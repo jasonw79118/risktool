@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiskTool Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="app.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>RiskTool</h2>
+  <ul>
+    <li>Dashboard</li>
+    <li>Risk Domains</li>
+    <li>Risk Events</li>
+    <li>Loss Evidence</li>
+    <li>Mitigations</li>
+    <li>Decisions</li>
+    <li>Reports</li>
+  </ul>
+</div>
+
+<div class="main">
+
+<header>
+<h1>Enterprise Risk Monte Carlo Studio</h1>
+</header>
+
+<section class="cards">
+
+<div class="card">
+<h3>Risk Domains</h3>
+<p>Physical, Operational, Cyber, Compliance, Financial, Vendor, Legal</p>
+</div>
+
+<div class="card">
+<h3>Risk Events</h3>
+<p>Multiple events per domain supported</p>
+</div>
+
+<div class="card">
+<h3>Evidence Inputs</h3>
+<p>Fraud, Fines, Settlements, Judgments, Operational Loss</p>
+</div>
+
+<div class="card">
+<h3>Mitigation Modeling</h3>
+<p>Insurance, Controls, Technology, Policies</p>
+</div>
+
+</section>
+
+<section class="charts">
+<h2>Risk Visualization</h2>
+<canvas id="riskChart" width="400" height="200"></canvas>
+</section>
+
+</div>
+
+</body>
+</html>
