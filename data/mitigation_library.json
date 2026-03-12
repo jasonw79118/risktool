@@ -3,10 +3,9 @@
     "category": "Insurance",
     "recommendations": [
       "Cyber liability insurance",
-      "E&O / professional liability",
       "Crime / fidelity bond",
-      "D&O coverage",
-      "Media liability review"
+      "E&O / professional liability",
+      "D&O coverage"
     ]
   },
   {
@@ -15,18 +14,16 @@
       "Dual control",
       "Exception reporting",
       "Enhanced reconciliations",
-      "Segregation of duties",
-      "Independent QA review"
+      "Segregation of duties"
     ]
   },
   {
     "category": "Technology",
     "recommendations": [
       "MFA hardening",
-      "Monitoring and alerting",
+      "Behavioral monitoring",
       "Patch acceleration",
-      "Tokenization",
-      "Network segmentation"
+      "Tokenization"
     ]
   },
   {
@@ -34,7 +31,6 @@
     "recommendations": [
       "Manual fallback process",
       "Staff cross-training",
-      "Capacity planning",
       "Runbook updates",
       "Issue escalation improvements"
     ]
@@ -45,8 +41,7 @@
       "Secondary provider",
       "Contract amendments",
       "SLA strengthening",
-      "Exit plan testing",
-      "Fourth-party review"
+      "Exit plan testing"
     ]
   },
   {
@@ -55,18 +50,7 @@
       "Disclosure redesign",
       "Policy rewrite",
       "Targeted training",
-      "Complaint review cadence",
-      "Regulatory change monitoring"
-    ]
-  },
-  {
-    "category": "Governance",
-    "recommendations": [
-      "Board reporting",
-      "Risk acceptance review date",
-      "Decision authority matrix",
-      "Risk appetite thresholds",
-      "Management attestation"
+      "Complaint review cadence"
     ]
   }
 ]

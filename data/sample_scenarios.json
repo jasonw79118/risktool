@@ -1,0 +1,16 @@
+[
+  {
+    "scenario_name": "Mobile Banking Fraud + Reg E",
+    "institution_type": "Fintech",
+    "product_service": "Mobile Banking",
+    "risk_event_id": "EVT-002",
+    "decision_role": "Chief Risk Officer"
+  },
+  {
+    "scenario_name": "ACH Fraud / NACHA Exposure",
+    "institution_type": "Payments Processor",
+    "product_service": "ACH Processing",
+    "risk_event_id": "EVT-001",
+    "decision_role": "Executive Management Committee"
+  }
+]

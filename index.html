@@ -18,38 +18,35 @@
         <div class="brand-sub">Measured Risk</div>
       </div>
     </div>
-
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
+      <button class="nav-item" data-view="builder">Scenario Builder</button>
       <button class="nav-item" data-view="domains">Risk Domains</button>
-      <button class="nav-item" data-view="events">Risk Events</button>
-      <button class="nav-item" data-view="mitigations">Mitigations</button>
       <button class="nav-item" data-view="reports">Reports</button>
     </nav>
-
     <div class="sidebar-note">
-      <h4>Project Theme</h4>
-      <p>Royal Blue + Rustic Orange admin layout for GitHub Pages.</p>
+      <h4>Phase 3</h4>
+      <p>Scenario builder plus first browser-based Monte Carlo engine for GitHub Pages.</p>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
       <div>
-        <h1>Enterprise Risk Studio</h1>
-        <p>Measured risk controls.</p>
+        <h1>Risk Manager</h1>
+        <p>Scenario builder, mitigation analysis, and simulation-driven loss estimates.</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-secondary">Import Data</button>
-        <button class="btn btn-primary">New Scenario</button>
+        <button class="btn btn-secondary" id="loadSampleBtn">Load Sample Scenario</button>
+        <button class="btn btn-primary" id="runTopBtn">Run Simulation</button>
       </div>
     </header>
 
     <section id="view-dashboard" class="view active">
       <div class="hero">
         <div class="hero-copy">
-          <h2>Risk Modeling</h2>
-          <p>Model observed events, probable events, primary losses, secondary losses, mitigation costs, and management decisions in a single platform.</p>
+          <h2>Build a risk scenario and simulate annual loss</h2>
+          <p>This phase introduces a browser-based Monte Carlo engine. It models observed versus probable frequency, primary and secondary losses, mitigation cost, insurance coverage, and residual annual loss.</p>
         </div>
         <div class="hero-stats">
           <div class="stat-card"><span>Domains</span><strong id="domain-count">0</strong></div>
@@ -60,108 +57,151 @@
       </div>
 
       <div class="grid four">
-        <div class="card">
-          <h3>Observed vs Probable Frequency</h3>
-          <p>Each event supports observed annual frequency plus probable min, likely, and max inputs.</p>
-        </div>
-        <div class="card">
-          <h3>Primary vs Secondary Loss</h3>
-          <p>Track direct loss, fines, settlements, legal cost, employee time, business restriction, and reputation cost.</p>
-        </div>
-        <div class="card">
-          <h3>Mitigation Cost vs Benefit</h3>
-          <p>Compare reduction in expected loss against annual and one-time mitigation cost.</p>
-        </div>
-        <div class="card">
-          <h3>Decision Register</h3>
-          <p>Store management and board decisions separately from system-generated recommendations.</p>
-        </div>
+        <div class="card"><h3>Frequency Inputs</h3><p>Observed annual events plus probable min, likely, and max assumptions.</p></div>
+        <div class="card"><h3>Loss Components</h3><p>Direct, fine/settlement, legal, employee time, reputation, and business restriction costs.</p></div>
+        <div class="card"><h3>Mitigations</h3><p>Apply severity reduction, annual cost, and insurance coverage to estimate residual loss.</p></div>
+        <div class="card"><h3>Decision Support</h3><p>Pair modeled outputs with a management decision authority and review process.</p></div>
       </div>
 
       <div class="grid two">
         <div class="card chart-card">
           <div class="card-header">
-            <h3>Sample Loss Distribution</h3>
-            <span>Demo Chart</span>
+            <h3>Annual Loss Distribution</h3>
+            <span>Simulated Output</span>
           </div>
-          <canvas id="lossChart" width="640" height="280"></canvas>
+          <canvas id="lossChart" width="760" height="300"></canvas>
         </div>
         <div class="card">
           <div class="card-header">
-            <h3>System Recommendations</h3>
-            <span>Illustrative</span>
+            <h3>Simulation Results</h3>
+            <span>Scenario Summary</span>
           </div>
-          <ul class="recommendation-list">
-            <li>Strengthen MFA and authentication controls for digital channels.</li>
-            <li>Add secondary vendor strategy for critical processing dependencies.</li>
-            <li>Schedule board-level review date for accepted high-tail-risk scenarios.</li>
-            <li>Compare insurance coverage to modeled tail exposure before acceptance.</li>
-          </ul>
+          <div class="result-list">
+            <div class="result-row"><span>Expected Annual Loss</span><strong id="expectedLoss">$0</strong></div>
+            <div class="result-row"><span>P50 Loss</span><strong id="p50Loss">$0</strong></div>
+            <div class="result-row"><span>P95 Loss</span><strong id="p95Loss">$0</strong></div>
+            <div class="result-row"><span>P99 Loss</span><strong id="p99Loss">$0</strong></div>
+            <div class="result-row"><span>Mitigation Annual Cost</span><strong id="mitigationAnnual">$0</strong></div>
+            <div class="result-row"><span>Net Expected Loss After Cost</span><strong id="netExpectedLoss">$0</strong></div>
+          </div>
+          <div class="note-box" id="scenarioNarrative">Run a scenario to populate the narrative summary.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-builder" class="view">
+      <div class="section-header">
+        <h2>Scenario Builder</h2>
+        <p>Use this to define a scenario, set loss assumptions, apply mitigations, and run the Monte Carlo engine.</p>
+      </div>
+
+      <div class="grid two">
+        <div class="card">
+          <h3>Profile & Event Selection</h3>
+          <div class="form-grid">
+            <div><label>Scenario Name</label><input id="scenarioName" type="text" placeholder="e.g. Mobile Banking Fraud Scenario"></div>
+            <div><label>Institution Type</label><select id="institutionType"></select></div>
+            <div><label>Product / Service</label><select id="productService"></select></div>
+            <div><label>Risk Event</label><select id="riskEvent"></select></div>
+            <div><label>Decision Role</label><select id="decisionRole"></select></div>
+            <div><label>Iterations</label><input id="iterations" type="number" min="100" step="100" value="5000"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Event Frequency Inputs</h3>
+          <div class="form-grid">
+            <div><label>Observed Events / Year</label><input id="observedEvents" type="number" min="0" step="0.01" value="0.25"></div>
+            <div><label>Probable Min / Year</label><input id="probableMin" type="number" min="0" step="0.01" value="0.10"></div>
+            <div><label>Probable Most Likely / Year</label><input id="probableLikely" type="number" min="0" step="0.01" value="0.40"></div>
+            <div><label>Probable Max / Year</label><input id="probableMax" type="number" min="0" step="0.01" value="1.20"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div class="card">
+          <h3>Primary Loss Inputs</h3>
+          <div class="form-grid">
+            <div><label>Direct Loss - Min</label><input id="directMin" type="number" min="0" step="1000" value="25000"></div>
+            <div><label>Direct Loss - Likely</label><input id="directLikely" type="number" min="0" step="1000" value="150000"></div>
+            <div><label>Direct Loss - Max</label><input id="directMax" type="number" min="0" step="1000" value="1000000"></div>
+            <div><label>Fine / Settlement - Min</label><input id="fineMin" type="number" min="0" step="1000" value="0"></div>
+            <div><label>Fine / Settlement - Likely</label><input id="fineLikely" type="number" min="0" step="1000" value="50000"></div>
+            <div><label>Fine / Settlement - Max</label><input id="fineMax" type="number" min="0" step="1000" value="750000"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Secondary Loss Inputs</h3>
+          <div class="form-grid">
+            <div><label>Legal Cost - Min</label><input id="legalMin" type="number" min="0" step="1000" value="10000"></div>
+            <div><label>Legal Cost - Likely</label><input id="legalLikely" type="number" min="0" step="1000" value="75000"></div>
+            <div><label>Legal Cost - Max</label><input id="legalMax" type="number" min="0" step="1000" value="500000"></div>
+            <div><label>Other Secondary - Min</label><input id="secondaryMin" type="number" min="0" step="1000" value="5000"></div>
+            <div><label>Other Secondary - Likely</label><input id="secondaryLikely" type="number" min="0" step="1000" value="50000"></div>
+            <div><label>Other Secondary - Max</label><input id="secondaryMax" type="number" min="0" step="1000" value="400000"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div class="card">
+          <h3>Mitigation & Insurance</h3>
+          <div class="form-grid">
+            <div><label>Severity Reduction %</label><input id="severityReduction" type="number" min="0" max="100" step="1" value="20"></div>
+            <div><label>Annual Mitigation Cost</label><input id="mitigationCost" type="number" min="0" step="1000" value="100000"></div>
+            <div><label>Insurance Coverage Limit</label><input id="insuranceLimit" type="number" min="0" step="1000" value="250000"></div>
+            <div><label>Insurance Deductible</label><input id="insuranceDeductible" type="number" min="0" step="1000" value="25000"></div>
+            <div><label>Selected Mitigation Category</label><select id="mitigationCategory"></select></div>
+            <div><label>Recommendation</label><select id="mitigationRecommendation"></select></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Run & Save</h3>
+          <p class="card-text">This first engine runs entirely in the browser for GitHub Pages. It is designed as a stepping stone to the fuller loss evidence database and report export workflow.</p>
+          <div class="builder-actions">
+            <button class="btn btn-secondary" id="loadSampleBuilderBtn">Load Sample</button>
+            <button class="btn btn-primary" id="runBuilderBtn">Run Simulation</button>
+          </div>
+          <div class="note-box">Next phase will add scenario persistence, richer reports, and export-ready decision records.</div>
         </div>
       </div>
     </section>
 
     <section id="view-domains" class="view">
       <div class="section-header">
-        <h2>Enterprise Risk Domain Library</h2>
-        <p>Comprehensive domain framework meant to capture everything from facilities to regulatory and cross-border risk.</p>
+        <h2>Risk Domains</h2>
+        <p>Foundation library used to classify scenarios and future loss evidence.</p>
       </div>
       <div id="domainsGrid" class="grid three"></div>
     </section>
 
-    <section id="view-events" class="view">
-      <div class="section-header">
-        <h2>Risk Event Library</h2>
-        <p>Multiple events can be captured per domain, product, or scenario.</p>
-      </div>
-      <div class="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Event ID</th>
-              <th>Domain</th>
-              <th>Event Name</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody id="eventsTableBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="view-mitigations" class="view">
-      <div class="section-header">
-        <h2>Mitigation Library</h2>
-        <p>System-generated mitigations remain separate from management decisions and cost-benefit approval.</p>
-      </div>
-      <div id="mitigationGrid" class="grid three"></div>
-    </section>
-
     <section id="view-reports" class="view">
       <div class="section-header">
-        <h2>Reporting & Governance</h2>
-        <p>Decision roles, reporting outputs, and future chart/report structures.</p>
+        <h2>Report Preview</h2>
+        <p>High-level summary of the current scenario and governance outputs.</p>
       </div>
       <div class="grid two">
         <div class="card">
-          <h3>Decision Authorities</h3>
-          <ul id="roleList" class="simple-list"></ul>
+          <h3>Scenario Snapshot</h3>
+          <ul class="simple-list" id="reportSnapshot"><li>No scenario run yet.</li></ul>
         </div>
         <div class="card">
           <h3>Planned Reports</h3>
           <ul class="simple-list">
-            <li>Expected annual loss by domain</li>
-            <li>P95 and P99 tail risk report</li>
-            <li>Before/after mitigation comparison</li>
-            <li>Accepted risk review calendar</li>
-            <li>Management and board decision log</li>
-            <li>Top secondary loss drivers</li>
+            <li>Expected annual loss report</li>
+            <li>P95 and P99 tail risk comparison</li>
+            <li>Before/after mitigation benefit report</li>
+            <li>Secondary loss driver report</li>
+            <li>Decision authority and review log</li>
+            <li>Export package for spreadsheet/report workflow</li>
           </ul>
         </div>
       </div>
     </section>
   </main>
-
   <script src="app.js"></script>
 </body>
 </html>

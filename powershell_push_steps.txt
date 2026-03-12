@@ -1,26 +1,22 @@
-PowerShell setup and push steps
+PowerShell update steps
 
-1. Put these files in:
+1. Extract this package into:
    C:\Users\jason\risktool
 
-2. If not a git repo yet:
-   git init
+2. In PowerShell:
+   cd C:\Users\jason\risktool
 
-3. Add GitHub remote:
-   git remote add origin https://github.com/YOURUSERNAME/risktool.git
-
-4. Add files:
+3. Stage everything:
    git add .
 
-5. Commit:
-   git commit -m "Add Risk Manager phase 2 dashboard and data libraries"
+4. Commit:
+   git commit -m "Add Risk Manager phase 3 scenario builder and Monte Carlo engine"
 
-6. Set main branch and push:
+5. Push:
+   git push origin main
+
+6. If the remote is not set yet:
+   git init
+   git remote add origin https://github.com/YOURUSERNAME/risktool.git
    git branch -M main
    git push -u origin main
-
-7. If remote already exists:
-   git remote -v
-
-8. To change remote URL:
-   git remote set-url origin https://github.com/YOURUSERNAME/risktool.git
