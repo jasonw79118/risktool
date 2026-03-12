@@ -14,3 +14,6 @@ Included changes:
 
 Important:
 This version still stores scenarios in browser localStorage.
+
+- Monte Carlo report documentation now includes Method, Input, and Output tables
+- Custom Monte Carlo JSON can change randomization method and event logic

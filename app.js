@@ -22,7 +22,7 @@ const CAT_KEYS = {
   scenarioStatuses: "risk_manager_scenario_statuses_v431",
   scenarioSources: "risk_manager_scenario_sources_v431",
   acceptanceAuthorities: "risk_manager_acceptance_authorities_v431",
-  monteCarloConfig: "risk_manager_monte_carlo_config_v431"
+  monteCarloConfig: "risk_manager_monte_carlo_config_v432"
 };
 
 let productGroups = [];
@@ -33,6 +33,23 @@ let scenarioStatuses = [];
 let scenarioSources = [];
 let acceptanceAuthorities = [];
 let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
+const DEFAULT_MONTE_CARLO_MODEL = {
+  name: "Risk Manager Hubbard-Style Monte Carlo",
+  version: "4.3.2",
+  randomMethod: "normal_range",
+  iterations: 5000,
+  volatilityPct: 20,
+  ciDivisor: 3.29,
+  percentiles: [10,50,90],
+  eventModel: {
+    enabled: false,
+    probability: 0.1,
+    impactPct: 15,
+    timingMethod: "uniform"
+  },
+  tiers: structuredClone(DEFAULT_ROTATION_RULES)
+};
+let monteCarloModel = structuredClone(DEFAULT_MONTE_CARLO_MODEL);
 
 let currentComplexItems = [];
 let singleMitigations = [];
@@ -324,23 +341,143 @@ function getComplexPayload() {
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
+
+function getMonteCarloModel() {
+  return monteCarloModel || structuredClone(DEFAULT_MONTE_CARLO_MODEL);
+}
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+function percentile(values, p) {
+  if (!values.length) return 0;
+  const sorted = values.slice().sort((a, b) => a - b);
+  const index = (p / 100) * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) return sorted[lower];
+  const weight = index - lower;
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+function mean(values) {
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+}
+function stdDev(values) {
+  if (values.length < 2) return 0;
+  const m = mean(values);
+  return Math.sqrt(values.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / (values.length - 1));
+}
+function randomNormal() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function sampleNormalRange(lower, mode, upper, ciDivisor) {
+  const sd = Math.max((upper - lower) / Math.max(ciDivisor || 3.29, 0.1), 0.01);
+  const draw = mode + randomNormal() * sd;
+  return clamp(draw, lower, upper);
+}
+function sampleTriangular(lower, mode, upper) {
+  const u = Math.random();
+  const c = (mode - lower) / Math.max(upper - lower, 0.0001);
+  if (u < c) return lower + Math.sqrt(u * (upper - lower) * (mode - lower));
+  return upper - Math.sqrt((1 - u) * (upper - lower) * (upper - mode));
+}
+function sampleBetaPert(lower, mode, upper) {
+  // Approximate Beta-PERT using a weighted average of uniforms around the mode.
+  const draws = [Math.random(), Math.random(), Math.random(), Math.random(), Math.random()];
+  const centerBias = (draws[0] + draws[1] + draws[2] + draws[3] + ((mode - lower) / Math.max(upper - lower, 0.0001))) / 5;
+  return lower + centerBias * (upper - lower);
+}
+function sampleUniform(lower, upper) {
+  return lower + Math.random() * (upper - lower);
+}
+function sampleBoundedValue(method, lower, mode, upper, ciDivisor) {
+  if (method === "triangular") return sampleTriangular(lower, mode, upper);
+  if (method === "beta_pert") return sampleBetaPert(lower, mode, upper);
+  if (method === "uniform") return sampleUniform(lower, upper);
+  return sampleNormalRange(lower, mode, upper, ciDivisor);
+}
+function buildMonteCarloInputs(payload) {
+  const model = getMonteCarloModel();
+  const base = Number(payload.inherent || 0);
+  const volatility = Number(model.volatilityPct || 20) / 100;
+  const lower = clamp(Math.round(base * (1 - volatility)), 0, 100);
+  const upper = clamp(Math.round(base * (1 + volatility)), 0, 100);
+  return {
+    lower,
+    mode: clamp(base, 0, 100),
+    upper,
+    controlEffectiveness: Number(payload.control || 0),
+    eventEnabled: !!model.eventModel?.enabled,
+    eventProbability: Number(model.eventModel?.probability || 0),
+    eventImpactPct: Number(model.eventModel?.impactPct || 0),
+    eventTimingMethod: model.eventModel?.timingMethod || "uniform"
+  };
+}
+function runMonteCarloSimulation(payload) {
+  const model = getMonteCarloModel();
+  const inputs = buildMonteCarloInputs(payload);
+  const inherentSeries = [];
+  const residualSeries = [];
+  for (let i = 0; i < Number(model.iterations || 5000); i++) {
+    let inherent = sampleBoundedValue(model.randomMethod, inputs.lower, inputs.mode, inputs.upper, model.ciDivisor);
+    if (inputs.eventEnabled && Math.random() < inputs.eventProbability) {
+      const timingFactor = inputs.eventTimingMethod === "fixed_full_year" ? 1 : Math.random();
+      inherent = clamp(inherent + (inputs.eventImpactPct * timingFactor), 0, 100);
+    }
+    const residual = clamp(inherent * (1 - inputs.controlEffectiveness / 100), 0, 100);
+    inherentSeries.push(inherent);
+    residualSeries.push(residual);
+  }
+  const pcts = Array.isArray(model.percentiles) ? model.percentiles : [10,50,90];
+  const residualMean = mean(residualSeries);
+  const residualP50 = percentile(residualSeries, 50);
+  return {
+    methodRows: [
+      ["Model Name", model.name],
+      ["Model Version", model.version],
+      ["Randomization Method", model.randomMethod],
+      ["Iterations", model.iterations],
+      ["Bounded Range Logic", "Lower / most likely / upper"],
+      ["Range Construction", `Base score ± ${model.volatilityPct}%`],
+      ["Normal-range divisor", model.ciDivisor],
+      ["Event Model Enabled", inputs.eventEnabled ? "Yes" : "No"],
+      ["Event Probability", `${Math.round(inputs.eventProbability * 100)}%`],
+      ["Event Timing Method", inputs.eventTimingMethod]
+    ],
+    inputRows: [
+      ["Scenario ID", payload.id || "Generated on save"],
+      ["Scenario Name", payload.name],
+      ["Base Inherent Risk Score", payload.inherent],
+      ["Lower Bound", inputs.lower],
+      ["Most Likely / Mean Anchor", inputs.mode],
+      ["Upper Bound", inputs.upper],
+      ["Control Effectiveness %", inputs.controlEffectiveness],
+      ["Primary Product", payload.primaryProduct],
+      ["Primary Regulation", payload.primaryRegulation],
+      ["Scenario Status", payload.scenarioStatus]
+    ],
+    outputRows: [
+      ["Mean Inherent Score", mean(inherentSeries).toFixed(1)],
+      ["Mean Residual Score", residualMean.toFixed(1)],
+      ...pcts.map(p => [`P${p} Residual Score`, percentile(residualSeries, Number(p)).toFixed(1)]),
+      ["Residual Median", residualP50.toFixed(1)],
+      ["Residual Standard Deviation", stdDev(residualSeries).toFixed(1)],
+      ["Probability Residual >= 70", `${((residualSeries.filter(x => x >= 70).length / residualSeries.length) * 100).toFixed(1)}%`]
+    ],
+    explanation: "This report documents the Monte Carlo method used for the current run. The model applies a bounded random draw around the calculated inherent risk score using a selected randomization method inspired by Hubbard-style simulation practice: define a plausible lower, most-likely, and upper value, run repeated iterations, then summarize the output distribution. Optional event logic can inject an additional randomized shock when enabled.",
+    residualMean: Math.round(residualMean)
+  };
+}
+
 function summarizePayload(payload) {
   const total = payload.inherent;
   const itemCount = payload.mode === "complex" ? Math.max(payload.items.length, 1) : 1;
-  const residual = Math.max(0, Math.round(total * (1 - payload.control / 100)));
+  const mc = runMonteCarloSimulation(payload);
+  const residual = Math.max(0, Math.round(mc.residualMean));
   const tier = getRiskTier(residual);
   const frequency = getReviewFrequency(residual);
-  const monteCarloRows = [
-    ["Scenario ID", payload.id || "Generated on save"],
-    ["Inherent Risk Score", payload.inherent],
-    ["Control Effectiveness %", payload.control],
-    ["Residual Risk Score", residual],
-    ["Risk Tier", tier],
-    ["Review Frequency", frequency],
-    ["Included Risk Items", itemCount],
-    ["Scenario Status", payload.scenarioStatus],
-    ["Identified Date", payload.identifiedDate || ""]
-  ];
   return {
     ...payload,
     total,
@@ -348,8 +485,11 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    generatedSummary: buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount),
-    monteCarloRows
+    monteCarloMethodRows: mc.methodRows,
+    monteCarloInputRows: mc.inputRows,
+    monteCarloOutputRows: mc.outputRows,
+    monteCarloExplanation: mc.explanation,
+    generatedSummary: buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)
   };
 }
 function renderScenarioSummary(summary) {
@@ -413,18 +553,32 @@ function renderCharts(summary) {
   if (showReport) drawSimpleBarChart("reportChart", summary);
 }
 function renderMonteCarloTable(summary) {
-  const showTable = document.getElementById("includeMonteCarloTable").checked;
-  const showExplain = document.getElementById("includeMonteCarloExplanation").checked;
-  const card = document.getElementById("monteCarloTableCard");
-  const tbody = document.getElementById("monteCarloTableBody");
+  const includeMethod = document.getElementById("includeMonteCarloMethodTable").checked;
+  const includeInputs = document.getElementById("includeMonteCarloInputTable").checked;
+  const includeOutputs = document.getElementById("includeMonteCarloOutputTable").checked;
+  const includeExplanation = document.getElementById("includeMonteCarloExplanation").checked;
+  const card = document.getElementById("monteCarloTablesCard");
+  const methodWrap = document.getElementById("monteCarloMethodWrap");
+  const inputWrap = document.getElementById("monteCarloInputWrap");
+  const outputWrap = document.getElementById("monteCarloOutputWrap");
+  const methodBody = document.getElementById("monteCarloMethodBody");
+  const inputBody = document.getElementById("monteCarloInputBody");
+  const outputBody = document.getElementById("monteCarloOutputBody");
   const explain = document.getElementById("monteCarloExplanationBox");
-  card.classList.toggle("hidden", !showTable);
-  if (!showTable || !summary) return;
-  tbody.innerHTML = summary.monteCarloRows.map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
-  explain.classList.toggle("hidden", !showExplain);
-  if (showExplain) {
-    explain.textContent = "This table shows the key values used to derive the current evaluation output. In this version, the default model uses risk-band thresholds and review-frequency rules. You can optionally load a custom JSON model in Reports to override the default tiering and review logic.";
-  }
+
+  const anything = includeMethod || includeInputs || includeOutputs || includeExplanation;
+  card.classList.toggle("hidden", !anything || !summary);
+  if (!anything || !summary) return;
+
+  methodWrap.classList.toggle("hidden", !includeMethod);
+  inputWrap.classList.toggle("hidden", !includeInputs);
+  outputWrap.classList.toggle("hidden", !includeOutputs);
+  explain.classList.toggle("hidden", !includeExplanation);
+
+  methodBody.innerHTML = (summary.monteCarloMethodRows || []).map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
+  inputBody.innerHTML = (summary.monteCarloInputRows || []).map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
+  outputBody.innerHTML = (summary.monteCarloOutputRows || []).map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
+  explain.textContent = summary.monteCarloExplanation || "";
 }
 function runScenario() {
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
@@ -703,24 +857,39 @@ function loadComplexTestScenario() {
   activateView("complex");
 }
 function validateMonteCarloConfig(config) {
-  return !!config && Array.isArray(config.tiers) && config.tiers.every(t =>
-    typeof t.tier === "string" &&
-    Number.isFinite(Number(t.min_score)) &&
-    Number.isFinite(Number(t.max_score)) &&
-    typeof t.review_frequency === "string"
-  );
+  return !!config &&
+    typeof config.randomMethod === "string" &&
+    Number.isFinite(Number(config.iterations)) &&
+    Number.isFinite(Number(config.volatilityPct)) &&
+    Array.isArray(config.tiers) &&
+    config.tiers.every(t =>
+      typeof t.tier === "string" &&
+      Number.isFinite(Number(t.min_score)) &&
+      Number.isFinite(Number(t.max_score)) &&
+      typeof t.review_frequency === "string"
+    );
 }
 function applyMonteCarloConfig(config) {
-  rotationRules = config.tiers.map(t => ({
-    tier: t.tier,
-    min_score: Number(t.min_score),
-    max_score: Number(t.max_score),
-    review_frequency: t.review_frequency
-  }));
-  writeJSON(CAT_KEYS.monteCarloConfig, rotationRules);
+  monteCarloModel = {
+    ...structuredClone(DEFAULT_MONTE_CARLO_MODEL),
+    ...config,
+    eventModel: {
+      ...structuredClone(DEFAULT_MONTE_CARLO_MODEL.eventModel),
+      ...(config.eventModel || {})
+    },
+    tiers: config.tiers.map(t => ({
+      tier: t.tier,
+      min_score: Number(t.min_score),
+      max_score: Number(t.max_score),
+      review_frequency: t.review_frequency
+    }))
+  };
+  rotationRules = monteCarloModel.tiers.map(t => ({...t}));
+  writeJSON(CAT_KEYS.monteCarloConfig, monteCarloModel);
   updateMonteCarloStatus();
 }
 function resetMonteCarloConfig() {
+  monteCarloModel = structuredClone(DEFAULT_MONTE_CARLO_MODEL);
   rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
   localStorage.removeItem(CAT_KEYS.monteCarloConfig);
   updateMonteCarloStatus();
@@ -728,22 +897,28 @@ function resetMonteCarloConfig() {
 function updateMonteCarloStatus() {
   const stored = readJSON(CAT_KEYS.monteCarloConfig, null);
   const el = document.getElementById("monteCarloConfigStatus");
-  if (stored && Array.isArray(stored) && stored.length) {
-    el.textContent = `Using custom Monte Carlo model with ${stored.length} tier rule(s).`;
-  } else {
-    el.textContent = "Using default Monte Carlo model.";
-  }
+  const model = stored && stored.randomMethod ? stored : DEFAULT_MONTE_CARLO_MODEL;
+  el.textContent = `Model: ${model.name} | method: ${model.randomMethod} | iterations: ${model.iterations} | volatility band: ±${model.volatilityPct}%`;
 }
 function loadStoredMonteCarloConfig() {
   const stored = readJSON(CAT_KEYS.monteCarloConfig, null);
-  if (stored && Array.isArray(stored) && stored.length) {
-    rotationRules = stored.map(t => ({
+  if (stored && stored.randomMethod) {
+    monteCarloModel = {
+      ...structuredClone(DEFAULT_MONTE_CARLO_MODEL),
+      ...stored,
+      eventModel: {
+        ...structuredClone(DEFAULT_MONTE_CARLO_MODEL.eventModel),
+        ...(stored.eventModel || {})
+      }
+    };
+    rotationRules = monteCarloModel.tiers.map(t => ({
       tier: t.tier,
       min_score: Number(t.min_score),
       max_score: Number(t.max_score),
       review_frequency: t.review_frequency
     }));
   } else {
+    monteCarloModel = structuredClone(DEFAULT_MONTE_CARLO_MODEL);
     rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
   }
 }
@@ -768,7 +943,9 @@ function wireInputs() {
   document.querySelectorAll(".nav-item").forEach(btn => btn.addEventListener("click", () => activateView(btn.dataset.view)));
   document.getElementById("showDashboardGraphToggle").addEventListener("change", () => renderCharts(lastSummary));
   document.getElementById("includeGraphInReport").addEventListener("change", () => renderCharts(lastSummary));
-  document.getElementById("includeMonteCarloTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
+  document.getElementById("includeMonteCarloMethodTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
+  document.getElementById("includeMonteCarloInputTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
+  document.getElementById("includeMonteCarloOutputTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
   document.getElementById("includeMonteCarloExplanation").addEventListener("change", () => renderMonteCarloTable(lastSummary));
   document.getElementById("resetMonteCarloBtn").addEventListener("click", resetMonteCarloConfig);
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
@@ -778,7 +955,7 @@ function wireInputs() {
       const text = await file.text();
       const json = JSON.parse(text);
       if (!validateMonteCarloConfig(json)) {
-        alert("Invalid Monte Carlo configuration. Expected { tiers: [{ tier, min_score, max_score, review_frequency }] }");
+        alert("Invalid Monte Carlo configuration. Expected keys like randomMethod, iterations, volatilityPct, eventModel, and tiers.");
         return;
       }
       applyMonteCarloConfig(json);
@@ -809,7 +986,7 @@ function renderManual() {
     <h4>Dashboard</h4>
     <p>The dashboard now includes a live open-scenario table for scenarios that are not closed, sorted by highest inherent risk first.</p>
     <h4>Monte Carlo Model</h4>
-    <p>The Reports view supports the default model or a custom JSON configuration. This lets a user load alternative risk-band and review-frequency rules without changing code.</p>
+    <p>The Reports view now documents the Monte Carlo method table, input table, and output table used for the current run. The default model follows a Hubbard-style bounded simulation pattern and users can load a custom JSON configuration to change the randomization method, iteration count, event logic, and risk-band rules without changing code.</p>
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
