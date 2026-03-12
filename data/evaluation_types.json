@@ -2,11 +2,11 @@
   {
     "id": "single_risk",
     "name": "Single Risk Evaluation",
-    "description": "One focused scenario or issue."
+    "description": "Deprecated in Phase 4.3 UI because builder selection now determines scenario type."
   },
   {
     "id": "complex_risk",
     "name": "Complex Risk Evaluation",
-    "description": "One broader project, area, or product family with multiple risk items."
+    "description": "Deprecated in Phase 4.3 UI because builder selection now determines scenario type."
   }
 ]

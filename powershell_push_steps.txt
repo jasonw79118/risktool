@@ -1,16 +1,17 @@
-PowerShell update steps
+PowerShell Push Steps
 
-1. Extract this package into:
-   C:\Users\jason\risktool
-
-2. In PowerShell:
-   cd C:\Users\jason\risktool
-
-3. Stage everything:
+1. Download and extract this package.
+2. Copy the files into the root of your local risktool repo, replacing:
+   - index.html
+   - style.css
+   - app.js
+   - README.txt
+   - powershell_push_steps.txt
+   - data folder files
+3. In PowerShell:
    git add .
-
-4. Commit:
-   git commit -m "Add Risk Manager phase 4.2 separate builders, category admin, and report options"
-
-5. Push:
-   git push origin main
+   git commit -m "Risk Manager surgical Phase 4.3 upgrade"
+   git push
+4. Wait for GitHub Pages to redeploy.
+5. Hard refresh the site:
+   Ctrl + F5
