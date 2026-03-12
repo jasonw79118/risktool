@@ -1,136 +1,572 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Risk Manager</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RM</div>
+      <div>
+        <div class="brand-name">Risk Manager</div>
+        <div class="brand-sub">Scenario Builder + Reporting</div>
+      </div>
+    </div>
 
-<header class="header">
-<h1>Risk Manager</h1>
-<p class="subtitle">Quantitative Risk & Decision Analysis</p>
-</header>
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard">Dashboard</button>
+      <button class="nav-item" data-view="single">Single Scenario</button>
+      <button class="nav-item" data-view="complex">Complex Scenario</button>
+      <button class="nav-item" data-view="categories">Category Admin</button>
+      <button class="nav-item" data-view="saved">Saved Scenarios</button>
+      <button class="nav-item" data-view="reports">Reports</button>
+      <button class="nav-item" data-view="information">Information</button>
+    </nav>
 
-<nav class="nav">
-<button onclick="showView('dashboard')">Dashboard</button>
-<button onclick="showView('single')">Single Scenario</button>
-<button onclick="showView('complex')">Complex Scenario</button>
-<button onclick="showView('admin')">Category Admin</button>
-<button onclick="showView('info')">Information</button>
-</nav>
+    <div class="sidebar-note">
+      <h4>Phase 4.3.1</h4>
+      <p>Surgical upgrade on the 4.2 layout with calculated inherent risk, date-based IDs, dashboard open-scenario table, category editing, test scenarios, and Information manual.</p>
+    </div>
+  </aside>
 
-<section id="dashboard" class="view active">
-<h2>Open Scenarios</h2>
-<table id="scenarioTable">
-<thead>
-<tr>
-<th>ID</th>
-<th>Title</th>
-<th>Risk Score</th>
-<th>Identified</th>
-<th>Product</th>
-<th>Domain</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1>Risk Manager</h1>
+        <p>Single and complex scenario evaluation with configurable dashboard and report content.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" id="saveScenarioBtn">Save Scenario</button>
+        <button class="btn btn-primary" id="runScenarioBtn">Run Active Scenario</button>
+      </div>
+    </header>
 
-<section id="single" class="view">
-<h2>Single Scenario</h2>
+    <section id="view-dashboard" class="view active">
+      <div class="hero">
+        <div class="hero-copy">
+          <h2>Current Scenario Output</h2>
+          <p>Run a single or complex scenario, choose your report options, and decide whether the graph appears on the dashboard.</p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card help-tip" data-help="Number of product groups currently available."><span>Product Groups</span><strong id="productGroupCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of regulations and standards available."><span>Regulations</span><strong id="regCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of risk domains available for scenarios and complex risk items."><span>Risk Domains</span><strong id="domainCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of saved scenarios in this browser."><span>Saved Scenarios</span><strong id="savedCount">0</strong></div>
+        </div>
+      </div>
 
-<label>Scenario Title</label>
-<input id="title">
+      <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>Scenario Results</h3><span>Output</span></div>
+          <div class="result-list">
+            <div class="result-row"><span>Scenario ID</span><strong id="scenarioIdDisplay">Not Saved</strong></div>
+            <div class="result-row"><span>Inherent Risk Score</span><strong id="inherentRiskScoreDisplay">0</strong></div>
+            <div class="result-row"><span>Residual Risk Score</span><strong id="residualRiskScore">0</strong></div>
+            <div class="result-row"><span>Risk Tier</span><strong id="riskTier">Not Run</strong></div>
+            <div class="result-row"><span>Review Frequency</span><strong id="reviewFrequency">Not Run</strong></div>
+            <div class="result-row"><span>Included Risk Items</span><strong id="itemCount">0</strong></div>
+          </div>
+          <div class="note-box" id="dashboardNarrative">Run a scenario to populate results.</div>
+        </div>
 
-<label>Hard Cost Min</label>
-<input id="hardMin" type="number">
+        <div class="card">
+          <div class="card-header"><h3>Generated Summary</h3><span>Interpretive</span></div>
+          <div class="note-box" id="aiSummaryBox">After each run, Risk Manager will generate a summary that explains what happened and what it means.</div>
+        </div>
+      </div>
 
-<label>Hard Cost Most Likely</label>
-<input id="hardLikely" type="number">
+      <div id="dashboardChartCard" class="card">
+        <div class="card-header"><h3>Dashboard Graph</h3><span>Optional</span></div>
+        <canvas id="dashboardChart" width="760" height="260"></canvas>
+      </div>
 
-<label>Hard Cost Max</label>
-<input id="hardMax" type="number">
+      <div class="card">
+        <div class="card-header"><h3>Open Scenario Table</h3><span>Not Closed</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Product Group</th><th>Risk Domain</th></tr></thead>
+            <tbody id="dashboardOpenScenarioBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-<label>Soft Cost Multiplier Min</label>
-<input id="softMin" type="number" step="0.1">
+    <section id="view-single" class="view">
+      <div class="section-header">
+        <h2>Single Scenario Builder</h2>
+        <p>Use this for a single focused issue or event.</p>
+      </div>
 
-<label>Soft Cost Multiplier Max</label>
-<input id="softMax" type="number" step="0.1">
+      <div class="card">
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="loadSingleTestBtn">Load Test Scenario</button>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Name used to save, reopen, and print this scenario.">Scenario Name</label>
+            <input id="singleScenarioName" type="text" placeholder="e.g. Payment Services Disclosure Review">
+          </div>
+          <div>
+            <label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Scenario ID</label>
+            <input id="singleScenarioId" type="text" readonly placeholder="Generated on save">
+          </div>
+          <div>
+            <label class="help-label" data-help="Overall product group or organizational group for this scenario.">Product Group</label>
+            <select id="singleProductGroup"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Primary risk domain for this scenario.">Risk Domain</label>
+            <select id="singleRiskDomain"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Current scenario lifecycle status.">Scenario Status</label>
+            <select id="singleScenarioStatus"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="How the scenario was identified.">Scenario Source</label>
+            <select id="singleScenarioSource"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Main product or service being evaluated.">Primary Product / Service</label>
+            <select id="singlePrimaryProduct"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Main regulation or standard associated with the scenario.">Primary Regulation</label>
+            <select id="singlePrimaryRegulation"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Scenario owner or primary responsible party.">Scenario Owner</label>
+            <input id="singleScenarioOwner" type="text" placeholder="e.g. Compliance">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date the scenario was first identified.">Identified Date</label>
+            <input id="singleIdentifiedDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="Likelihood on a 1-10 scale. This contributes to the calculated inherent risk score.">Likelihood (1-10)</label>
+            <input id="singleLikelihood" type="number" min="1" max="10" value="8">
+          </div>
+          <div>
+            <label class="help-label" data-help="Impact on a 1-10 scale. This contributes to the calculated inherent risk score.">Impact (1-10)</label>
+            <input id="singleImpact" type="number" min="1" max="10" value="8">
+          </div>
+          <div>
+            <label class="help-label" data-help="Calculated from likelihood and impact. This field is read-only.">Inherent Risk Score</label>
+            <input id="singleInherentRiskScore" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
+            <input id="singleControlEffectiveness" type="number" min="0" max="100" value="30">
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+            <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
+          </div>
+        </div>
+      </div>
 
-<label>Mitigation Cost</label>
-<input id="mitCost" type="number">
+      <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
+          <div class="form-grid">
+            <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
+            <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
+            <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
+            <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
+          </div>
+          <div class="builder-actions">
+            <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
+              <tbody id="singleMitigationBody"></tbody>
+            </table>
+          </div>
+        </div>
 
-<label>Mitigation Effectiveness (%)</label>
-<input id="mitEffect" type="number">
+        <div class="card">
+          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+          <div class="checkbox-list">
+            <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+              <select id="singleAcceptanceAuthority"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+              <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
+            </div>
+            <div>
+              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+              <input id="singleAcceptanceDate" type="date">
+            </div>
+            <div>
+              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+              <input id="singleReviewDate" type="date">
+            </div>
+            <div class="full-span">
+              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+              <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<button onclick="runSimulation()">Run Monte Carlo</button>
-<button onclick="saveScenario()">Save Scenario</button>
+    <section id="view-complex" class="view">
+      <div class="section-header">
+        <h2>Complex Scenario Builder</h2>
+        <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
+      </div>
 
-<div id="report"></div>
-</section>
+      <div class="card">
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
+            <input id="complexScenarioName" type="text" placeholder="e.g. Deposits Risk Review">
+          </div>
+          <div>
+            <label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Scenario ID</label>
+            <input id="complexScenarioId" type="text" readonly placeholder="Generated on save">
+          </div>
+          <div>
+            <label class="help-label" data-help="Overall product group or organizational group for this scenario.">Product Group</label>
+            <select id="complexProductGroup"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Primary risk domain for the larger scenario.">Risk Domain</label>
+            <select id="complexRiskDomain"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Current scenario lifecycle status.">Scenario Status</label>
+            <select id="complexScenarioStatus"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="How the scenario was identified.">Scenario Source</label>
+            <select id="complexScenarioSource"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Main product or service for the full scenario.">Primary Product / Service</label>
+            <select id="complexPrimaryProduct"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Main regulation or standard for the full scenario.">Primary Regulation</label>
+            <select id="complexPrimaryRegulation"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Scenario owner or primary responsible party.">Scenario Owner</label>
+            <input id="complexScenarioOwner" type="text" placeholder="e.g. Enterprise Risk">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date the scenario was first identified.">Identified Date</label>
+            <input id="complexIdentifiedDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="Calculated from weighted complex risk items. This field is read-only.">Inherent Risk Score</label>
+            <input id="complexInherentRiskScore" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="Estimated percentage reduction from the current control environment.">Control Effectiveness %</label>
+            <input id="complexControlEffectiveness" type="number" min="0" max="100" value="28">
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+            <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
+          </div>
+        </div>
+      </div>
 
-<section id="complex" class="view">
-<h2>Complex Scenario Builder</h2>
-<p>Use the same quantitative model but multiple risk drivers.</p>
-</section>
+      <div class="grid two">
+        <div class="card">
+          <div class="form-grid">
+            <div>
+              <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
+              <input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk">
+            </div>
+            <div>
+              <label class="help-label" data-help="Risk domain classification for this item.">Risk Domain</label>
+              <select id="riskItemDomain"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
+              <select id="riskItemProduct"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Regulation or standard linked to this risk item.">Related Regulation</label>
+              <select id="riskItemReg"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label>
+              <input id="riskItemScore" type="number" min="0" max="100" value="65">
+            </div>
+            <div>
+              <label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label>
+              <input id="riskItemWeight" type="number" min="1" max="5" value="3">
+            </div>
+          </div>
+          <div class="builder-actions">
+            <button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button>
+          </div>
+        </div>
 
-<section id="admin" class="view">
-<h2>Category Admin</h2>
-<p>Category fields are editable and sorted alphabetically.</p>
-</section>
+        <div class="card">
+          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
+          <div class="form-grid">
+            <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
+            <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
+            <div><label>Status</label><input id="complexMitStatus" type="text" placeholder="e.g. Planned"></div>
+            <div><label>Attachment Name</label><input id="complexMitAttachment" type="text" placeholder="e.g. gap_analysis.xlsx"></div>
+          </div>
+          <div class="builder-actions">
+            <button class="btn btn-secondary" id="addComplexMitigationBtn">Add Mitigation</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
+              <tbody id="complexMitigationBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-<section id="info" class="view">
-<h2>Information</h2>
-<div class="manual">
-<h3>Monte Carlo Method Explanation</h3>
-<p>
-This system uses Monte Carlo simulation to estimate risk exposure. Monte Carlo simulation is a
-quantitative risk analysis technique widely used in financial modeling, engineering,
-and regulatory risk management. The model performs thousands of randomized trials
-using defined probability ranges for uncertain inputs.
-</p>
+      <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
+              <tbody id="riskItemsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
 
-<p>
-Inputs such as event impact and mitigation effectiveness are defined as ranges rather
-than fixed values. The simulation randomly samples values within those ranges and
-calculates resulting financial outcomes across many iterations.
-</p>
+        <div class="card">
+          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+          <div class="checkbox-list">
+            <label><input id="complexAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+              <select id="complexAcceptanceAuthority"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+              <input id="complexAcceptedBy" type="text" placeholder="e.g. Risk Governance Committee">
+            </div>
+            <div>
+              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+              <input id="complexAcceptanceDate" type="date">
+            </div>
+            <div>
+              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+              <input id="complexReviewDate" type="date">
+            </div>
+            <div class="full-span">
+              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+              <textarea id="complexDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<p>
-The result is a probability distribution showing the range of potential outcomes and
-the most statistically likely impact.
-</p>
+    <section id="view-categories" class="view">
+      <div class="section-header">
+        <h2>Category Admin</h2>
+        <p>Add, edit, or remove values. Existing selections are shown in each field and category-driven options are alphabetized.</p>
+      </div>
+      <div class="grid three">
+        <div class="card category-card">
+          <div class="card-header"><h3>Product Groups</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newProductGroupName" type="text" placeholder="Add Product Group">
+            <button class="btn btn-primary" id="addProductGroupBtn">Add Product Group</button>
+          </div>
+          <div class="editable-list" id="productGroupsList"></div>
+        </div>
 
-<h3>Regulatory Alignment</h3>
+        <div class="card category-card">
+          <div class="card-header"><h3>Products / Services</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newProductName" type="text" placeholder="Add Product / Service">
+            <button class="btn btn-primary" id="addProductBtn">Add Product / Service</button>
+          </div>
+          <div class="editable-list" id="productsList"></div>
+        </div>
 
-<p>
-Quantitative risk modeling techniques such as Monte Carlo simulation are commonly
-accepted within U.S. regulatory frameworks when used to evaluate uncertainty in
-financial exposure and operational risk.
-</p>
+        <div class="card category-card">
+          <div class="card-header"><h3>Regulations</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newRegulationName" type="text" placeholder="Add Regulation">
+            <button class="btn btn-primary" id="addRegulationBtn">Add Regulation</button>
+          </div>
+          <div class="editable-list" id="regulationsList"></div>
+        </div>
 
-<p>
-The methodology implemented here:
-</p>
+        <div class="card category-card">
+          <div class="card-header"><h3>Risk Domains</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newRiskDomainName" type="text" placeholder="Add Risk Domain">
+            <button class="btn btn-primary" id="addRiskDomainBtn">Add Risk Domain</button>
+          </div>
+          <div class="editable-list" id="riskDomainsList"></div>
+        </div>
 
-<ul>
-<li>Defines bounded ranges for uncertain variables</li>
-<li>Uses randomized sampling across multiple iterations</li>
-<li>Calculates probability distributions of outcomes</li>
-<li>Produces expected loss estimates and confidence ranges</li>
-<li>Documents assumptions used in the model</li>
-</ul>
+        <div class="card category-card">
+          <div class="card-header"><h3>Scenario Status</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newScenarioStatusName" type="text" placeholder="Add Scenario Status">
+            <button class="btn btn-primary" id="addScenarioStatusBtn">Add Scenario Status</button>
+          </div>
+          <div class="editable-list" id="scenarioStatusesList"></div>
+        </div>
 
-<p>
-These characteristics support transparency and reproducibility, which are important
-considerations for regulatory review and internal model validation.
-</p>
+        <div class="card category-card">
+          <div class="card-header"><h3>Scenario Source</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newScenarioSourceName" type="text" placeholder="Add Scenario Source">
+            <button class="btn btn-primary" id="addScenarioSourceBtn">Add Scenario Source</button>
+          </div>
+          <div class="editable-list" id="scenarioSourcesList"></div>
+        </div>
 
-</div>
-</section>
+        <div class="card category-card">
+          <div class="card-header"><h3>Risk Acceptance Authority</h3><span>Editable</span></div>
+          <div class="form-stack">
+            <input id="newAcceptanceAuthorityName" type="text" placeholder="Add Acceptance Authority">
+            <button class="btn btn-primary" id="addAcceptanceAuthorityBtn">Add Acceptance Authority</button>
+          </div>
+          <div class="editable-list" id="acceptanceAuthoritiesList"></div>
+        </div>
+      </div>
+    </section>
 
-<script src="app.js"></script>
+    <section id="view-saved" class="view">
+      <div class="section-header">
+        <h2>Saved Scenarios</h2>
+        <p>Saved locally in the browser so they can be reopened, updated, and reprinted later.</p>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Builder</th><th>Product Group</th><th>Status</th><th>Inherent Risk</th><th>Residual Risk</th><th>Identified Date</th><th>Actions</th></tr></thead>
+            <tbody id="savedEvaluationsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-reports" class="view">
+      <div class="section-header">
+        <h2>Report Options & Snapshot</h2>
+        <p>Control report content and dashboard graph visibility from here.</p>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>Report Options</h3>
+          <div class="checkbox-list">
+            <label><input id="showDashboardGraphToggle" type="checkbox" checked> Show graph on dashboard</label>
+            <label><input id="includeGraphInReport" type="checkbox" checked> Include graph in report</label>
+            <label><input id="includeMonteCarloMethodTable" type="checkbox" checked> Include Monte Carlo method table</label>
+            <label><input id="includeMonteCarloInputTable" type="checkbox" checked> Include Monte Carlo input table</label>
+            <label><input id="includeMonteCarloOutputTable" type="checkbox" checked> Include Monte Carlo output table</label>
+            <label><input id="includeMonteCarloExplanation" type="checkbox" checked> Include Monte Carlo narrative explanation</label>
+          </div>
+          <hr class="soft-line">
+          <h3>Monte Carlo Configuration</h3>
+          <p class="muted">This model follows the Hubbard-style use of random simulation across bounded assumptions. You can keep the default model or load a custom JSON configuration that changes the randomization method and the report tables will document exactly what was used.</p>
+          <div class="builder-actions">
+            <input id="customMonteCarloFile" type="file" accept=".json">
+            <button class="btn btn-secondary" id="resetMonteCarloBtn">Reset to Default Model</button>
+          </div>
+          <div class="note-box" id="monteCarloConfigStatus">Using default Monte Carlo model.</div>
+        </div>
+        <div class="card">
+          <h3>Report Summary</h3>
+          <ul id="reportSummary" class="simple-list"><li>No scenario has been run yet.</li></ul>
+        </div>
+      </div>
+
+      <div id="reportGraphCard" class="card">
+        <div class="card-header"><h3>Report Graph</h3><span>Optional</span></div>
+        <canvas id="reportChart" width="760" height="260"></canvas>
+      </div>
+
+      <div id="monteCarloTablesCard" class="card hidden">
+        <div class="card-header"><h3>Monte Carlo Model Documentation</h3><span>Optional</span></div>
+
+        <div id="monteCarloMethodWrap">
+          <h4>Monte Carlo Method Table</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method Element</th><th>Value</th></tr></thead>
+              <tbody id="monteCarloMethodBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="monteCarloInputWrap">
+          <h4>Monte Carlo Input Table</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Input</th><th>Value</th></tr></thead>
+              <tbody id="monteCarloInputBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="monteCarloOutputWrap">
+          <h4>Monte Carlo Output Table</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Output</th><th>Value</th></tr></thead>
+              <tbody id="monteCarloOutputBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="monteCarloExplanationBox" class="note-box hidden"></div>
+      </div>
+    </section>
+
+    <section id="view-information" class="view">
+      <div class="section-header">
+        <h2>Information</h2>
+        <p>User manual and model guidance.</p>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>User Manual</h3><span>Reference</span></div>
+          <div class="manual-copy" id="userManualCopy"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Recommendations</h3><span>Next Steps</span></div>
+          <ul class="simple-list">
+            <li>Add export/import for scenarios so data can move between workstations.</li>
+            <li>Add shared storage later so scenarios follow the user across terminals.</li>
+            <li>Add days-open and last-reviewed fields to increase operational value.</li>
+            <li>Add duplicate-scenario capability for recurring issues.</li>
+            <li>Consider role-based report signatures once storage is upgraded.</li>
+          </ul>
+          <div class="note-box">Current limitation: scenarios are still stored in the local browser until a shared storage layer is added.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
