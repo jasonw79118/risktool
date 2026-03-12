@@ -1,0 +1,26 @@
+PowerShell setup and push steps
+
+1. Put these files in:
+   C:\Users\jason\risktool
+
+2. If not a git repo yet:
+   git init
+
+3. Add GitHub remote:
+   git remote add origin https://github.com/YOURUSERNAME/risktool.git
+
+4. Add files:
+   git add .
+
+5. Commit:
+   git commit -m "Add Risk Manager phase 2 dashboard and data libraries"
+
+6. Set main branch and push:
+   git branch -M main
+   git push -u origin main
+
+7. If remote already exists:
+   git remote -v
+
+8. To change remote URL:
+   git remote set-url origin https://github.com/YOURUSERNAME/risktool.git

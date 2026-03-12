@@ -1,63 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RiskTool Dashboard</title>
-<link rel="stylesheet" href="style.css">
-<script defer src="app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RM</div>
+      <div>
+        <div class="brand-name">Risk Manager</div>
+        <div class="brand-sub">Measured Risk</div>
+      </div>
+    </div>
 
-<div class="sidebar">
-  <h2>RiskTool</h2>
-  <ul>
-    <li>Dashboard</li>
-    <li>Risk Domains</li>
-    <li>Risk Events</li>
-    <li>Loss Evidence</li>
-    <li>Mitigations</li>
-    <li>Decisions</li>
-    <li>Reports</li>
-  </ul>
-</div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard">Dashboard</button>
+      <button class="nav-item" data-view="domains">Risk Domains</button>
+      <button class="nav-item" data-view="events">Risk Events</button>
+      <button class="nav-item" data-view="mitigations">Mitigations</button>
+      <button class="nav-item" data-view="reports">Reports</button>
+    </nav>
 
-<div class="main">
+    <div class="sidebar-note">
+      <h4>Project Theme</h4>
+      <p>Royal Blue + Rustic Orange admin layout for GitHub Pages.</p>
+    </div>
+  </aside>
 
-<header>
-<h1>Enterprise Risk Evaluation Studio</h1>
-</header>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1>Enterprise Risk Studio</h1>
+        <p>Broader-than-compliance risk modeling for banks, fintechs, and core processors.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary">Import Data</button>
+        <button class="btn btn-primary">New Scenario</button>
+      </div>
+    </header>
 
-<section class="cards">
+    <section id="view-dashboard" class="view active">
+      <div class="hero">
+        <div class="hero-copy">
+          <h2>From physical risk to cyber to regulatory loss modeling</h2>
+          <p>Model observed events, probable events, primary losses, secondary losses, mitigation costs, and management decisions in a single platform.</p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card"><span>Domains</span><strong id="domain-count">0</strong></div>
+          <div class="stat-card"><span>Events</span><strong id="event-count">0</strong></div>
+          <div class="stat-card"><span>Mitigation Categories</span><strong id="mitigation-count">0</strong></div>
+          <div class="stat-card"><span>Decision Roles</span><strong id="role-count">0</strong></div>
+        </div>
+      </div>
 
-<div class="card">
-<h3>Risk Domains</h3>
-<p>Physical, Operational, Cyber, Compliance, Financial, Vendor, Legal</p>
-</div>
+      <div class="grid four">
+        <div class="card">
+          <h3>Observed vs Probable Frequency</h3>
+          <p>Each event supports observed annual frequency plus probable min, likely, and max inputs.</p>
+        </div>
+        <div class="card">
+          <h3>Primary vs Secondary Loss</h3>
+          <p>Track direct loss, fines, settlements, legal cost, employee time, business restriction, and reputation cost.</p>
+        </div>
+        <div class="card">
+          <h3>Mitigation Cost vs Benefit</h3>
+          <p>Compare reduction in expected loss against annual and one-time mitigation cost.</p>
+        </div>
+        <div class="card">
+          <h3>Decision Register</h3>
+          <p>Store management and board decisions separately from system-generated recommendations.</p>
+        </div>
+      </div>
 
-<div class="card">
-<h3>Risk Events</h3>
-<p>Multiple events per domain supported</p>
-</div>
+      <div class="grid two">
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3>Sample Loss Distribution</h3>
+            <span>Demo Chart</span>
+          </div>
+          <canvas id="lossChart" width="640" height="280"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>System Recommendations</h3>
+            <span>Illustrative</span>
+          </div>
+          <ul class="recommendation-list">
+            <li>Strengthen MFA and authentication controls for digital channels.</li>
+            <li>Add secondary vendor strategy for critical processing dependencies.</li>
+            <li>Schedule board-level review date for accepted high-tail-risk scenarios.</li>
+            <li>Compare insurance coverage to modeled tail exposure before acceptance.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-<div class="card">
-<h3>Evidence Inputs</h3>
-<p>Fraud, Fines, Settlements, Judgments, Operational Loss</p>
-</div>
+    <section id="view-domains" class="view">
+      <div class="section-header">
+        <h2>Enterprise Risk Domain Library</h2>
+        <p>Comprehensive domain framework meant to capture everything from facilities to regulatory and cross-border risk.</p>
+      </div>
+      <div id="domainsGrid" class="grid three"></div>
+    </section>
 
-<div class="card">
-<h3>Mitigation Modeling</h3>
-<p>Insurance, Controls, Technology, Policies</p>
-</div>
+    <section id="view-events" class="view">
+      <div class="section-header">
+        <h2>Risk Event Library</h2>
+        <p>Multiple events can be captured per domain, product, or scenario.</p>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Event ID</th>
+              <th>Domain</th>
+              <th>Event Name</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="eventsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
 
-</section>
+    <section id="view-mitigations" class="view">
+      <div class="section-header">
+        <h2>Mitigation Library</h2>
+        <p>System-generated mitigations remain separate from management decisions and cost-benefit approval.</p>
+      </div>
+      <div id="mitigationGrid" class="grid three"></div>
+    </section>
 
-<section class="charts">
-<h2>Risk Visualization</h2>
-<canvas id="riskChart" width="400" height="200"></canvas>
-</section>
+    <section id="view-reports" class="view">
+      <div class="section-header">
+        <h2>Reporting & Governance</h2>
+        <p>Decision roles, reporting outputs, and future chart/report structures.</p>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>Decision Authorities</h3>
+          <ul id="roleList" class="simple-list"></ul>
+        </div>
+        <div class="card">
+          <h3>Planned Reports</h3>
+          <ul class="simple-list">
+            <li>Expected annual loss by domain</li>
+            <li>P95 and P99 tail risk report</li>
+            <li>Before/after mitigation comparison</li>
+            <li>Accepted risk review calendar</li>
+            <li>Management and board decision log</li>
+            <li>Top secondary loss drivers</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
 
-</div>
-
+  <script src="app.js"></script>
 </body>
 </html>

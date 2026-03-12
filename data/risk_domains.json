@@ -1,0 +1,362 @@
+[
+  {
+    "id": "physical_environmental",
+    "name": "Physical & Environmental Risk",
+    "description": "Risks arising from buildings, facilities, utilities, severe weather, and environmental events.",
+    "sample_events": [
+      "Facility outage",
+      "Fire or smoke damage",
+      "Flood or tornado damage",
+      "Utility disruption",
+      "Physical access compromise"
+    ]
+  },
+  {
+    "id": "business_continuity",
+    "name": "Business Continuity & Resilience",
+    "description": "Risks affecting an organization's ability to continue critical operations and recover within tolerance.",
+    "sample_events": [
+      "Disaster recovery failure",
+      "Recovery objective miss",
+      "Backup restoration failure",
+      "Pandemic staffing disruption",
+      "Crisis response breakdown"
+    ]
+  },
+  {
+    "id": "operational_process",
+    "name": "Operational Process Risk",
+    "description": "Risks from failed internal processes, human error, reconciliation problems, and workflow gaps.",
+    "sample_events": [
+      "Processing error",
+      "Exception queue failure",
+      "Reconciliation break",
+      "Misapplied fee or rate",
+      "Operational control override"
+    ]
+  },
+  {
+    "id": "technology_application",
+    "name": "Technology & Application Risk",
+    "description": "Risks tied to software defects, failed deployments, architecture weaknesses, and application instability.",
+    "sample_events": [
+      "Production release failure",
+      "Critical software defect",
+      "API outage",
+      "Data corruption",
+      "Performance degradation"
+    ]
+  },
+  {
+    "id": "cybersecurity",
+    "name": "Cybersecurity Risk",
+    "description": "Risks involving compromise, unauthorized access, malware, ransomware, or hostile cyber activity.",
+    "sample_events": [
+      "Credential stuffing",
+      "Account takeover",
+      "Ransomware attack",
+      "Phishing compromise",
+      "Privilege escalation"
+    ]
+  },
+  {
+    "id": "information_security_privacy",
+    "name": "Information Security & Privacy Risk",
+    "description": "Risks involving confidentiality, privacy compliance, data governance, and improper information handling.",
+    "sample_events": [
+      "PII exposure",
+      "Unauthorized data sharing",
+      "Improper retention",
+      "Privacy notice failure",
+      "Data residency violation"
+    ]
+  },
+  {
+    "id": "fraud_external",
+    "name": "External Fraud Risk",
+    "description": "Fraud perpetrated by customers, outsiders, organized crime, or third parties.",
+    "sample_events": [
+      "ACH fraud",
+      "Card fraud",
+      "Synthetic identity fraud",
+      "Wire fraud",
+      "Check fraud"
+    ]
+  },
+  {
+    "id": "fraud_internal",
+    "name": "Internal Fraud & Conduct Risk",
+    "description": "Risks arising from employee misconduct, collusion, theft, or willful control evasion.",
+    "sample_events": [
+      "Employee theft",
+      "Unauthorized transaction",
+      "Record falsification",
+      "Improper override",
+      "Kickback scheme"
+    ]
+  },
+  {
+    "id": "third_party_vendor",
+    "name": "Third-Party & Vendor Risk",
+    "description": "Risks tied to vendors, subcontractors, cloud providers, managed services, and vendor concentration.",
+    "sample_events": [
+      "Vendor outage",
+      "Fourth-party disruption",
+      "Vendor data breach",
+      "Critical SLA miss",
+      "Vendor termination failure"
+    ]
+  },
+  {
+    "id": "model_analytics_ai",
+    "name": "Model, Analytics & AI Risk",
+    "description": "Risks from flawed models, biased analytics, poor assumptions, drift, or unsupported AI outputs.",
+    "sample_events": [
+      "Model performance failure",
+      "Bias issue",
+      "Data drift",
+      "Faulty loss estimate",
+      "Unsupported AI recommendation"
+    ]
+  },
+  {
+    "id": "payments_network",
+    "name": "Payments & Network Rule Risk",
+    "description": "Risks from ACH, cards, EFT, wire, network rules, settlement, and processing obligations.",
+    "sample_events": [
+      "NACHA rules violation",
+      "Visa assessment",
+      "Mastercard chargeback spike",
+      "Settlement mismatch",
+      "Fed clearing disruption"
+    ]
+  },
+  {
+    "id": "consumer_compliance",
+    "name": "Consumer Compliance Risk",
+    "description": "Risks tied to consumer financial laws, disclosures, servicing obligations, and complaint handling.",
+    "sample_events": [
+      "Reg E error resolution failure",
+      "Reg Z disclosure error",
+      "UDAAP issue",
+      "Reg DD fee disclosure gap",
+      "Complaint response failure"
+    ]
+  },
+  {
+    "id": "aml_sanctions",
+    "name": "BSA/AML, Sanctions & Financial Crimes Risk",
+    "description": "Risks involving AML program weaknesses, OFAC screening, suspicious activity reporting, and customer due diligence.",
+    "sample_events": [
+      "SAR failure",
+      "CTR filing failure",
+      "Weak CIP/KYC",
+      "OFAC screening miss",
+      "Watchlist match handling failure"
+    ]
+  },
+  {
+    "id": "securities_public_company",
+    "name": "Securities, FINRA & Public Company Risk",
+    "description": "Risks linked to SEC, FINRA, disclosure controls, investor communications, and public company obligations.",
+    "sample_events": [
+      "Disclosure control failure",
+      "SEC inquiry",
+      "FINRA supervision gap",
+      "Insider information handling failure",
+      "Earnings-related misstatement"
+    ]
+  },
+  {
+    "id": "financial_reporting_accounting",
+    "name": "Financial Reporting & Accounting Risk",
+    "description": "Risks in accounting treatment, CECL, GAAP, FASB application, and reporting accuracy.",
+    "sample_events": [
+      "Revenue recognition error",
+      "CECL estimate weakness",
+      "FASB 91 treatment issue",
+      "Material misstatement",
+      "Close process failure"
+    ]
+  },
+  {
+    "id": "credit_counterparty",
+    "name": "Credit & Counterparty Risk",
+    "description": "Risks from counterparties, obligors, concentration, and product or settlement exposures.",
+    "sample_events": [
+      "Counterparty default",
+      "Settlement counterparty loss",
+      "Merchant reserve insufficiency",
+      "Credit concentration issue",
+      "Recourse exposure event"
+    ]
+  },
+  {
+    "id": "liquidity_treasury",
+    "name": "Liquidity, Treasury & Funding Risk",
+    "description": "Risks involving liquidity pressure, funding structure, brokered deposits, and treasury management.",
+    "sample_events": [
+      "Liquidity crunch",
+      "Deposit runoff",
+      "Funding mismatch",
+      "Brokered deposit issue",
+      "Public funds collateral problem"
+    ]
+  },
+  {
+    "id": "capital_interest_market",
+    "name": "Capital, Interest Rate & Market Risk",
+    "description": "Risks related to capital adequacy, rate exposure, valuation swings, and market-sensitive positions.",
+    "sample_events": [
+      "Basel capital breach",
+      "Interest rate shock",
+      "AOCI volatility issue",
+      "Hedging failure",
+      "Securities valuation decline"
+    ]
+  },
+  {
+    "id": "legal_litigation",
+    "name": "Legal, Litigation & Judgement Risk",
+    "description": "Risks from disputes, lawsuits, arbitration, judgments, and legal interpretations.",
+    "sample_events": [
+      "Class action lawsuit",
+      "Contract dispute",
+      "Pending judgment",
+      "Enforcement consent order",
+      "Outside counsel escalation"
+    ]
+  },
+  {
+    "id": "strategic_business",
+    "name": "Strategic & Business Model Risk",
+    "description": "Risks from failed strategies, product expansion, market shifts, or unsuitable business choices.",
+    "sample_events": [
+      "Failed expansion initiative",
+      "Unprofitable product line",
+      "Misaligned pricing model",
+      "Unsupported market entry",
+      "Partnership strategy failure"
+    ]
+  },
+  {
+    "id": "reputation_brand",
+    "name": "Reputation & Brand Risk",
+    "description": "Risks involving trust erosion, public criticism, negative media, complaints, and franchise damage.",
+    "sample_events": [
+      "Negative media cycle",
+      "Consumer complaint surge",
+      "Social media backlash",
+      "Brand trust decline",
+      "Key client attrition"
+    ]
+  },
+  {
+    "id": "human_capital",
+    "name": "Human Capital & Workforce Risk",
+    "description": "Risks tied to staffing, culture, training, key-person dependence, and workforce resilience.",
+    "sample_events": [
+      "Critical role vacancy",
+      "Training deficiency",
+      "Toxic culture issue",
+      "Turnover spike",
+      "Insider knowledge concentration"
+    ]
+  },
+  {
+    "id": "governance_board",
+    "name": "Governance, Board & Oversight Risk",
+    "description": "Risks from weak governance, unclear authority, poor committee oversight, and decision failures.",
+    "sample_events": [
+      "Board oversight gap",
+      "Unclear risk ownership",
+      "Policy exception without approval",
+      "Inadequate escalation",
+      "Risk appetite breach"
+    ]
+  },
+  {
+    "id": "audit_assurance",
+    "name": "Audit, Assurance & Exam Risk",
+    "description": "Risks involving internal audit, exam findings, unresolved issues, and weak testing coverage.",
+    "sample_events": [
+      "Repeat audit finding",
+      "Unresolved issue",
+      "Exam criticism",
+      "Control testing failure",
+      "Weak issue tracking"
+    ]
+  },
+  {
+    "id": "records_documentation",
+    "name": "Records, Documentation & Retention Risk",
+    "description": "Risks from incomplete records, bad documentation, retention failures, and evidentiary weaknesses.",
+    "sample_events": [
+      "Record retention failure",
+      "Missing approval evidence",
+      "Document imaging loss",
+      "Improper destruction",
+      "Inadequate policy evidence"
+    ]
+  },
+  {
+    "id": "tax_irs_escheat",
+    "name": "Tax, IRS & Escheatment Risk",
+    "description": "Risks involving tax reporting, withholding, retirement reporting, TIN issues, and escheatment.",
+    "sample_events": [
+      "IRS reporting failure",
+      "TIN certification gap",
+      "Escheatment noncompliance",
+      "Retirement tax reporting issue",
+      "Levy processing failure"
+    ]
+  },
+  {
+    "id": "identity_authentication",
+    "name": "Identity, Authentication & Access Risk",
+    "description": "Risks from enrollment, authentication, access provisioning, MFA, and identity proofing failures.",
+    "sample_events": [
+      "Weak enrollment controls",
+      "MFA bypass",
+      "Improper privileged access",
+      "Dormant account misuse",
+      "Identity proofing failure"
+    ]
+  },
+  {
+    "id": "customer_fairness",
+    "name": "Customer Fairness, Conduct & UDAAP Risk",
+    "description": "Risks arising from unfair, deceptive, abusive, discriminatory, or poorly explained customer treatment.",
+    "sample_events": [
+      "Fee fairness issue",
+      "Discriminatory practice allegation",
+      "Misleading marketing",
+      "Inadequate adverse action notice",
+      "Complaint trend escalation"
+    ]
+  },
+  {
+    "id": "global_cross_border",
+    "name": "Global, Cross-Border & Geopolitical Risk",
+    "description": "Risks from international customers, sanctions zones, cross-border data movement, and geopolitical instability.",
+    "sample_events": [
+      "Cross-border transfer violation",
+      "Geopolitical service disruption",
+      "International sanctions exposure",
+      "Data localization conflict",
+      "Country risk escalation"
+    ]
+  },
+  {
+    "id": "insurance_risk_transfer",
+    "name": "Insurance & Risk Transfer Risk",
+    "description": "Risks that expected transfer mechanisms fail due to exclusions, gaps, underinsurance, or denial.",
+    "sample_events": [
+      "Coverage gap",
+      "Claim denial",
+      "Policy exclusion surprise",
+      "Limit exhaustion",
+      "Insurer concentration issue"
+    ]
+  }
+]

@@ -1,28 +1,28 @@
-RiskTool – Phase 1 Starter
+Risk Manager – Phase 2 Package
 
-This package contains the initial dashboard structure for the RiskTool project.
+Included:
+- index.html
+- style.css
+- app.js
+- data/risk_domains.json
+- data/risk_events.json
+- data/mitigation_library.json
+- data/decision_roles.json
+- data/schema.json
+- README.txt
+- powershell_push_steps.txt
 
-Files included:
-index.html
-style.css
-app.js
+Adds:
+- Enterprise Risk Domain Library
+- Risk Event Library
+- Mitigation Recommendation Library
+- Decision authority roles
+- Admin-style dashboard layout
+- Royal Blue + Rustic Orange theme
 
-Theme colors:
-Royal Blue (#0d3b66)
-Rustic Orange (#f4a261)
-
-Modules planned:
-- Risk Domains
-- Risk Events
-- Loss Evidence
-- Mitigation Engine
-- Decision Register
-- Monte Carlo Simulation
-- Charts and Reports
-
-Git push steps:
-
-cd path\to\risktool
-git add .
-git commit -m "Add RiskTool Phase 1 dashboard"
-git push origin main
+Still to come:
+- loss evidence entry structure
+- scenario builder
+- Monte Carlo simulation engine
+- before/after mitigation analytics
+- downloadable report/export framework

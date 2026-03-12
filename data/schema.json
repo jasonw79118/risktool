@@ -1,0 +1,94 @@
+{
+  "entities": [
+    {
+      "name": "institution_profile",
+      "fields": [
+        "institution_type",
+        "legal_entity",
+        "geographic_footprint",
+        "public_company_flag",
+        "business_lines",
+        "critical_vendors"
+      ]
+    },
+    {
+      "name": "risk_domain",
+      "fields": [
+        "domain_id",
+        "name",
+        "description",
+        "sample_events"
+      ]
+    },
+    {
+      "name": "risk_event",
+      "fields": [
+        "event_id",
+        "domain_id",
+        "event_name",
+        "event_type",
+        "product_or_service",
+        "regulation_or_standard",
+        "control_maturity",
+        "correlated_event_group"
+      ]
+    },
+    {
+      "name": "loss_evidence",
+      "fields": [
+        "source_type",
+        "agency_or_source",
+        "state_or_region",
+        "industry_segment",
+        "date",
+        "observed_frequency",
+        "min_loss",
+        "most_likely_loss",
+        "max_loss",
+        "confidence_score"
+      ]
+    },
+    {
+      "name": "mitigation_option",
+      "fields": [
+        "category",
+        "recommendation",
+        "frequency_reduction_pct",
+        "severity_reduction_pct",
+        "implementation_cost",
+        "annual_cost",
+        "coverage_limit",
+        "deductible",
+        "confidence_score"
+      ]
+    },
+    {
+      "name": "decision_register",
+      "fields": [
+        "decision_id",
+        "scenario_id",
+        "decision_type",
+        "decision_role",
+        "decision_date",
+        "review_date",
+        "rationale",
+        "approved_mitigations",
+        "residual_risk_notes"
+      ]
+    },
+    {
+      "name": "simulation_run",
+      "fields": [
+        "run_id",
+        "scenario_id",
+        "iterations",
+        "expected_annual_loss",
+        "p95_loss",
+        "p99_loss",
+        "before_mitigation",
+        "after_mitigation",
+        "timestamp"
+      ]
+    }
+  ]
+}
