@@ -676,6 +676,7 @@ function renderSavedScenarios() {
     if (btn.dataset.action === "open") openScenario(id);
     if (btn.dataset.action === "delete") deleteScenario(id);
   }));
+  renderHeatMap();
 }
 function renderDashboardOpenTable() {
   const tbody = document.getElementById("dashboardOpenScenarioBody");
@@ -683,7 +684,7 @@ function renderDashboardOpenTable() {
     .filter(x => String(x.scenarioStatus).toLowerCase() !== "closed")
     .sort((a, b) => (b.inherent - a.inherent) || String(a.identifiedDate || "").localeCompare(String(b.identifiedDate || "")));
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7">No open scenarios available.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">No open scenarios available.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(s => `<tr>
@@ -694,7 +695,9 @@ function renderDashboardOpenTable() {
     <td>${escapeHtml(s.identifiedDate)}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.riskDomain)}</td>
+    <td><button class="btn btn-secondary small-btn" data-report-id="${escapeHtml(s.id)}">Open Report</button></td>
   </tr>`).join("");
+  tbody.querySelectorAll("[data-report-id]").forEach(btn => btn.addEventListener("click", () => openScenarioReport(btn.dataset.reportId)));
 }
 function openScenario(id) {
   const s = getSavedScenarios().find(x => x.id === id);
@@ -992,6 +995,14 @@ function wireInputs() {
   document.getElementById("includeMonteCarloTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
   document.getElementById("includeMonteCarloExplanation").addEventListener("change", () => renderMonteCarloTable(lastSummary));
   document.getElementById("resetMonteCarloBtn").addEventListener("click", resetMonteCarloConfig);
+  const exportBtn = document.getElementById("exportScenariosBtn");
+  if (exportBtn) exportBtn.addEventListener("click", exportScenarioLibrary);
+  const importFile = document.getElementById("importScenariosFile");
+  if (importFile) importFile.addEventListener("change", (event) => importScenarioLibrary(event.target.files?.[0]));
+  const boardBtn = document.getElementById("downloadBoardPacketBtn");
+  if (boardBtn) boardBtn.addEventListener("click", () => textDownload(`board_packet_${(lastSummary?.id || currentDateStamp())}.txt`, buildBoardPacketText(lastSummary)));
+  const aiBtn = document.getElementById("downloadAIPacketBtn");
+  if (aiBtn) aiBtn.addEventListener("click", () => textDownload(`ai_packet_${(lastSummary?.id || currentDateStamp())}.txt`, buildAIPacketText(lastSummary)));
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1037,6 +1048,239 @@ function renderManual() {
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
+}
+
+
+function exportScenarioLibrary() {
+  const payload = {
+    exportVersion: "4.5",
+    exportedAt: new Date().toISOString(),
+    categories: {
+      productGroups,
+      products,
+      regulations,
+      riskDomains,
+      scenarioStatuses,
+      scenarioSources,
+      acceptanceAuthorities
+    },
+    scenarios: getSavedScenarios()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `risk_manager_scenario_library_${currentDateStamp()}.json`;
+  link.click();
+}
+function importScenarioLibrary(file) {
+  if (!file) return;
+  file.text().then(text => {
+    const payload = JSON.parse(text);
+    if (!payload || !Array.isArray(payload.scenarios)) {
+      alert("Invalid scenario library JSON.");
+      return;
+    }
+    if (payload.categories) {
+      if (Array.isArray(payload.categories.productGroups)) setStoredArray(CAT_KEYS.productGroups, [...getStoredArray(CAT_KEYS.productGroups), ...payload.categories.productGroups]);
+      if (Array.isArray(payload.categories.products)) setStoredArray(CAT_KEYS.products, [...getStoredArray(CAT_KEYS.products), ...payload.categories.products]);
+      if (Array.isArray(payload.categories.regulations)) setStoredArray(CAT_KEYS.regulations, [...getStoredArray(CAT_KEYS.regulations), ...payload.categories.regulations]);
+      if (Array.isArray(payload.categories.riskDomains)) setStoredArray(CAT_KEYS.riskDomains, [...getStoredArray(CAT_KEYS.riskDomains), ...payload.categories.riskDomains]);
+      if (Array.isArray(payload.categories.scenarioStatuses)) setStoredArray(CAT_KEYS.scenarioStatuses, [...getStoredArray(CAT_KEYS.scenarioStatuses), ...payload.categories.scenarioStatuses]);
+      if (Array.isArray(payload.categories.scenarioSources)) setStoredArray(CAT_KEYS.scenarioSources, [...getStoredArray(CAT_KEYS.scenarioSources), ...payload.categories.scenarioSources]);
+      if (Array.isArray(payload.categories.acceptanceAuthorities)) setStoredArray(CAT_KEYS.acceptanceAuthorities, [...getStoredArray(CAT_KEYS.acceptanceAuthorities), ...payload.categories.acceptanceAuthorities]);
+    }
+    const existing = getSavedScenarios();
+    const mergedMap = new Map(existing.map(s => [s.id, s]));
+    payload.scenarios.map(normalizeScenario).forEach(s => {
+      if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
+      mergedMap.set(s.id, s);
+    });
+    setSavedScenarios(Array.from(mergedMap.values()));
+    refreshLibraries();
+    renderSavedScenarios();
+    renderDashboardOpenTable();
+    renderHeatMap();
+    alert("Scenario library imported.");
+  }).catch(() => {
+    alert("Unable to import scenario library JSON.");
+  });
+}
+function openScenarioReport(id) {
+  const s = getSavedScenarios().find(x => x.id === id);
+  if (!s) return;
+  const summary = summarizePayload(s);
+  lastSummary = summary;
+  renderScenarioSummary(summary);
+  renderMonteCarloTable(summary);
+  renderCharts(summary);
+  activateView("reports");
+}
+function textDownload(filename, content) {
+  const blob = new Blob([content], { type: "text/plain" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+function buildBoardPacketText(summary) {
+  if (!summary) return "No scenario has been run or selected.";
+  const lines = [];
+  lines.push("BOARD RISK BRIEF");
+  lines.push(`Scenario: ${summary.name}`);
+  lines.push(`Scenario ID: ${summary.id || "Not Saved"}`);
+  lines.push(`Builder: ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}`);
+  lines.push(`Product Group: ${summary.productGroup}`);
+  lines.push(`Risk Domain: ${summary.riskDomain}`);
+  lines.push(`Primary Product: ${summary.primaryProduct}`);
+  lines.push(`Primary Regulation: ${summary.primaryRegulation}`);
+  lines.push("");
+  lines.push("EXECUTIVE SUMMARY");
+  lines.push(`Annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}`);
+  lines.push(`Most likely annual impact: ${currency(summary.rangeMedian)}`);
+  lines.push(`Expected annual hard cost: ${currency(summary.hardCostExpected)}`);
+  lines.push(`Expected annual soft cost: ${currency(summary.softCostExpected)}`);
+  lines.push(`Expected annual loss: ${currency(summary.expectedLoss)}`);
+  lines.push(`Residual annual loss: ${currency(summary.residualExpectedLoss)}`);
+  lines.push(`Mitigation cost: ${currency(summary.mitigationCost)}`);
+  lines.push(`Annual risk reduction value: ${currency(summary.riskReductionValue)}`);
+  lines.push(`Net benefit / ROI: ${currency(summary.mitigationROI)}`);
+  lines.push(`Decision view: ${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}`);
+  lines.push("");
+  lines.push("SCENARIO DESCRIPTION");
+  lines.push(summary.description || "No description provided.");
+  lines.push("");
+  if (summary.mode === "complex" && Array.isArray(summary.items) && summary.items.length) {
+    lines.push("COMPLEX SCENARIO RISK ITEMS");
+    summary.items.forEach((item, i) => {
+      lines.push(`${i + 1}. ${item.name}`);
+      lines.push(`   Risk Domain: ${item.domain}`);
+      lines.push(`   Product / Service: ${item.product}`);
+      lines.push(`   Regulation: ${item.regulation}`);
+      lines.push(`   Score: ${item.score}`);
+      lines.push(`   Weight: ${item.weight}`);
+      lines.push(`   Explanation: ${item.description || "This line item represents an individual weighted contributor to the overall complex-scenario risk result."}`);
+      lines.push("");
+    });
+  }
+  if (Array.isArray(summary.mitigations) && summary.mitigations.length) {
+    lines.push("MITIGATION FACTORS");
+    summary.mitigations.forEach((m, i) => {
+      lines.push(`${i + 1}. ${m.title || m.name || "Mitigation"}`);
+      lines.push(`   Owner: ${m.owner || ""}`);
+      lines.push(`   Status: ${m.status || ""}`);
+      lines.push(`   Attachment: ${m.attachment || ""}`);
+      lines.push(`   Explanation: ${m.description || "This mitigation factor is included as a control or treatment intended to reduce hard cost, soft cost, or overall residual exposure."}`);
+      lines.push("");
+    });
+  }
+  lines.push("TIME HORIZON OUTLOOK");
+  (summary.horizonRows || []).forEach(row => {
+    lines.push(`${row.horizonLabel}: Without mitigation ${currency(row.withoutMitigation)} | With mitigation ${currency(row.withMitigation)} | Reduction ${currency(row.riskReduction)}`);
+  });
+  lines.push("");
+  lines.push("MONTE CARLO METHOD");
+  lines.push("The model uses bounded triangular sampling for hard cost and soft-cost multipliers. It estimates annual loss ranges and applies the stated control-effectiveness percentage to calculate residual loss.");
+  return lines.join("\\n");
+}
+function buildAIPacketText(summary) {
+  if (!summary) return "No scenario has been run or selected.";
+  const lines = [];
+  lines.push("TITLE");
+  lines.push(summary.name);
+  lines.push("");
+  lines.push("EXECUTIVE SUMMARY");
+  lines.push(`Annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}`);
+  lines.push(`Most likely annual impact: ${currency(summary.rangeMedian)}`);
+  lines.push(`Mitigation cost: ${currency(summary.mitigationCost)}`);
+  lines.push(`Risk reduction value: ${currency(summary.riskReductionValue)}`);
+  lines.push(`Decision: ${summary.mitigationROI >= 0 ? "Mitigate" : "Review alternatives"}`);
+  lines.push("");
+  lines.push("SCENARIO DESCRIPTION");
+  lines.push(summary.description || "No description provided.");
+  lines.push("");
+  lines.push("FINANCIAL MODEL");
+  lines.push(`Hard Cost: ${currency(summary.hardCostExpected)}`);
+  lines.push(`Soft Cost: ${currency(summary.softCostExpected)}`);
+  lines.push(`Expected Annual Loss: ${currency(summary.expectedLoss)}`);
+  lines.push(`Residual Annual Loss: ${currency(summary.residualExpectedLoss)}`);
+  lines.push(`Net Benefit / ROI: ${currency(summary.mitigationROI)}`);
+  lines.push("");
+  if (summary.mode === "complex" && Array.isArray(summary.items) && summary.items.length) {
+    lines.push("COMPLEX RISK ITEMS");
+    summary.items.forEach((item, i) => {
+      lines.push(`${i + 1}. ${item.name} | Domain: ${item.domain} | Score: ${item.score} | Weight: ${item.weight}`);
+      lines.push(`Explanation: ${item.description || "Weighted contributor to the overall complex scenario."}`);
+    });
+    lines.push("");
+  }
+  if (Array.isArray(summary.mitigations) && summary.mitigations.length) {
+    lines.push("MITIGATION FACTORS");
+    summary.mitigations.forEach((m, i) => {
+      lines.push(`${i + 1}. ${m.title || m.name || "Mitigation"} | Owner: ${m.owner || ""} | Status: ${m.status || ""}`);
+      lines.push(`Explanation: ${m.description || "Control intended to reduce expected loss and residual exposure."}`);
+    });
+    lines.push("");
+  }
+  lines.push("TIME HORIZON OUTLOOK");
+  (summary.horizonRows || []).forEach(row => {
+    lines.push(`${row.horizonLabel}: ${currency(row.withoutMitigation)} without mitigation; ${currency(row.withMitigation)} with mitigation`);
+  });
+  lines.push("");
+  lines.push("INSTRUCTION");
+  lines.push("Create a board-level PowerPoint presentation with executive summary, financial analysis, complex risk item breakdown, mitigation analysis, time horizon outlook, and recommendation slides.");
+  return lines.join("\\n");
+}
+function renderHeatMap() {
+  const canvas = document.getElementById("riskHeatMap");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const margin = 48;
+  const gridW = w - margin * 2;
+  const gridH = h - margin * 2;
+  const cellW = gridW / 5;
+  const cellH = gridH / 5;
+
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 5; col++) {
+      const x = margin + col * cellW;
+      const y = margin + row * cellH;
+      const score = (5 - row) + (col + 1);
+      ctx.fillStyle = score >= 8 ? "#f8d7da" : score >= 6 ? "#fff3cd" : "#d1e7dd";
+      ctx.fillRect(x, y, cellW, cellH);
+      ctx.strokeStyle = "#c8d2e3";
+      ctx.strokeRect(x, y, cellW, cellH);
+    }
+  }
+  ctx.fillStyle = "#172033";
+  ctx.font = "12px Arial";
+  for (let i = 1; i <= 5; i++) {
+    ctx.fillText(String(i), margin + (i - 0.5) * cellW - 3, h - 16);
+    ctx.fillText(String(i), 18, h - (margin + (i - 0.5) * cellH) + 4);
+  }
+  ctx.fillText("Likelihood", w / 2 - 24, h - 4);
+  ctx.save();
+  ctx.translate(10, h / 2 + 24);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Impact", 0, 0);
+  ctx.restore();
+
+  const scenarios = getSavedScenarios().filter(s => Number(s.likelihood || 0) > 0 && Number(s.impact || 0) > 0);
+  scenarios.forEach((s, idx) => {
+    const x = margin + (Math.min(5, Math.max(1, Number(s.likelihood))) - 0.5) * cellW;
+    const y = h - margin - (Math.min(5, Math.max(1, Number(s.impact))) - 0.5) * cellH;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#d96b1f";
+    ctx.fill();
+    ctx.strokeStyle = "#173a8c";
+    ctx.stroke();
+    if (idx < 8) {
+      ctx.fillStyle = "#172033";
+      ctx.fillText((s.id || "").slice(-5), x + 8, y - 6);
+    }
+  });
 }
 
 function restoreAllDefaultLibraries() {
@@ -1085,6 +1329,7 @@ function init() {
   renderComplexItems();
   refreshLibraries();
   updateInherentScores();
+  renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
 }

@@ -90,10 +90,15 @@
         <div class="card-header"><h3>Open Scenario Table</h3><span>Not Closed</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Product Group</th><th>Risk Domain</th></tr></thead>
+            <thead><tr><th>ID</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Product Group</th><th>Risk Domain</th><th>Actions</th></tr></thead>
             <tbody id="dashboardOpenScenarioBody"></tbody>
           </table>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3><span class="help-label" data-help="Plots scenarios using likelihood and impact so leadership can quickly see concentration of risk.">Risk Heat Map</span></h3><span>Board View</span></div>
+        <canvas id="riskHeatMap" width="760" height="360"></canvas>
       </div>
     </section>
 
@@ -520,7 +525,11 @@
     <section id="view-saved" class="view">
       <div class="section-header">
         <h2>Saved Scenarios</h2>
-        <p>Saved locally in the browser so they can be reopened, updated, and reprinted later.</p>
+        <p>Saved locally in the browser so they can be reopened, updated, and reprinted later. This phase adds export/import so scenarios can move across machines.</p>
+      </div>
+      <div class="builder-actions">
+        <button class="btn btn-secondary" id="exportScenariosBtn">Export Scenario Library</button>
+        <input id="importScenariosFile" type="file" accept=".json">
       </div>
       <div class="card">
         <div class="table-wrap">
@@ -537,14 +546,18 @@
         <h2>Report Options & Snapshot</h2>
         <p>Control report content and dashboard graph visibility from here.</p>
       </div>
+      <div class="builder-actions">
+        <button class="btn btn-secondary" id="downloadBoardPacketBtn">Download Board Packet TXT</button>
+        <button class="btn btn-secondary" id="downloadAIPacketBtn">Download AI PPT Brief TXT</button>
+      </div>
       <div class="grid two">
         <div class="card">
-          <h3>Report Options</h3>
+          <h3><span class="help-label" data-help="Controls what appears in the active report and dashboard.">Report Options</span></h3>
           <div class="checkbox-list">
-            <label><input id="showDashboardGraphToggle" type="checkbox" checked> Show graph on dashboard</label>
-            <label><input id="includeGraphInReport" type="checkbox" checked> Include graph in report</label>
-            <label><input id="includeMonteCarloTable" type="checkbox"> Include Monte Carlo table in report</label>
-            <label><input id="includeMonteCarloExplanation" type="checkbox"> Include Monte Carlo table explanation</label>
+            <label><input id="showDashboardGraphToggle" type="checkbox" checked> <span class="help-label" data-help="Displays the current scenario chart on the dashboard view.">Show graph on dashboard</span></label>
+            <label><input id="includeGraphInReport" type="checkbox" checked> <span class="help-label" data-help="Includes the scenario comparison chart in the report section.">Include graph in report</span></label>
+            <label><input id="includeMonteCarloTable" type="checkbox"> <span class="help-label" data-help="Includes the Monte Carlo method, input, and output tables used to support the financial model.">Include Monte Carlo table in report</span></label>
+            <label><input id="includeMonteCarloExplanation" type="checkbox"> <span class="help-label" data-help="Adds plain-language methodology text explaining the Monte Carlo approach for management and examiners.">Include Monte Carlo table explanation</span></label>
           </div>
           <hr class="soft-line">
           <h3>Monte Carlo Configuration</h3>
@@ -564,7 +577,7 @@
 
       <div class="grid two">
         <div id="horizonExposureCard" class="card">
-          <div class="card-header"><h3>Time Horizon Exposure</h3><span>Always Included</span></div>
+          <div class="card-header"><h3><span class="help-label" data-help="Shows projected exposure over 1, 3, 5, 10, 15, 20, 25, and 30+ year outlooks with and without mitigation.">Time Horizon Exposure</span></h3><span>Always Included</span></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Horizon</th><th>Without Mitigation</th><th>With Mitigation</th><th>Risk Reduction</th></tr></thead>
@@ -574,7 +587,7 @@
         </div>
 
         <div id="riskPriorityCard" class="card">
-          <div class="card-header"><h3>Decision Metrics</h3><span>Executive</span></div>
+          <div class="card-header"><h3><span class="help-label" data-help="Summarizes expected loss, mitigation cost, risk reduction value, and net benefit for executive decision making.">Decision Metrics</span></h3><span>Executive</span></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Measure</th><th>Value</th></tr></thead>
@@ -591,7 +604,7 @@
       </div>
 
       <div id="monteCarloTableCard" class="card hidden">
-        <div class="card-header"><h3>Monte Carlo Method and Calculation Tables</h3><span>Optional</span></div>
+        <div class="card-header"><h3><span class="help-label" data-help="Documents the Monte Carlo method, model assumptions, and resulting financial outputs used in the report.">Monte Carlo Method and Calculation Tables</span></h3><span>Optional</span></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Measure</th><th>Value</th></tr></thead>
