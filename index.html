@@ -18,19 +18,18 @@
         <div class="brand-sub">Single + Complex Evaluations</div>
       </div>
     </div>
-
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
       <button class="nav-item" data-view="evaluations">Evaluations</button>
       <button class="nav-item" data-view="builder">Evaluation Builder</button>
+      <button class="nav-item" data-view="saved">Saved Scenarios</button>
       <button class="nav-item" data-view="libraries">Libraries</button>
       <button class="nav-item" data-view="rotation">Review Rotation</button>
       <button class="nav-item" data-view="reports">Reports</button>
     </nav>
-
     <div class="sidebar-note">
-      <h4>Phase 4</h4>
-      <p>This phase adds single and complex evaluation modes plus review-frequency logic for broader enterprise use.</p>
+      <h4>Phase 4.1</h4>
+      <p>Clickable navigation, local save/return, hover help, and generated scenario summary.</p>
     </div>
   </aside>
 
@@ -38,10 +37,11 @@
     <header class="topbar">
       <div>
         <h1>Risk Manager Evaluation Engine</h1>
-        <p>Support one-off risk scoring and broader multi-item project or business-area reviews inside the same platform.</p>
+        <p>Single and complex evaluations with saved scenarios and generated summaries.</p>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-secondary" id="loadDepositProjectBtn">Load Deposits Example</button>
+        <button class="btn btn-secondary" id="saveEvaluationBtn">Save Evaluation</button>
         <button class="btn btn-primary" id="runEvaluationBtn">Run Evaluation</button>
       </div>
     </header>
@@ -53,18 +53,18 @@
           <p>Use Single Risk Evaluation for one focused issue, or Complex Risk Evaluation for a product, department, project, or business area with multiple risk items and aggregated results.</p>
         </div>
         <div class="hero-stats">
-          <div class="stat-card"><span>Evaluation Types</span><strong id="evalTypeCount">0</strong></div>
-          <div class="stat-card"><span>Risk Domains</span><strong id="domainCount">0</strong></div>
-          <div class="stat-card"><span>Products / Services</span><strong id="productCount">0</strong></div>
-          <div class="stat-card"><span>Regulations</span><strong id="regCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of evaluation modes currently supported."><span>Evaluation Types</span><strong id="evalTypeCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Total enterprise risk domains available in the current library."><span>Risk Domains</span><strong id="domainCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Products and services available for linking to evaluations."><span>Products / Services</span><strong id="productCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Regulations and standards available for tagging scenarios."><span>Regulations</span><strong id="regCount">0</strong></div>
         </div>
       </div>
 
       <div class="grid four">
-        <div class="card"><h3>Single Evaluations</h3><p>Use for focused scenarios like teller fraud, a vendor outage, or a specific compliance risk.</p></div>
-        <div class="card"><h3>Complex Evaluations</h3><p>Use for larger projects or areas like Deposits, Digital Banking, Lending, or BSA / AML programs.</p></div>
-        <div class="card"><h3>Residual Risk</h3><p>Score inherent risk, apply controls and mitigation strength, then estimate residual risk and review cadence.</p></div>
-        <div class="card"><h3>CMS Rotation</h3><p>Convert risk tiers into review frequency recommendations for scheduling and ongoing oversight.</p></div>
+        <div class="card compact-card help-tip" data-help="Focused issue or one scenario. Good for a single threat, control gap, or event."><h3>Single Evaluations</h3></div>
+        <div class="card compact-card help-tip" data-help="Broad review with several items inside one project, program, or business area."><h3>Complex Evaluations</h3></div>
+        <div class="card compact-card help-tip" data-help="Residual risk equals remaining risk after considering control effectiveness."><h3>Residual Risk</h3></div>
+        <div class="card compact-card help-tip" data-help="Review frequency converts residual risk into a schedule recommendation."><h3>CMS Rotation</h3></div>
       </div>
 
       <div class="grid two">
@@ -79,16 +79,9 @@
           </div>
           <div class="note-box" id="dashboardNarrative">Run an evaluation to populate results.</div>
         </div>
-
         <div class="card">
-          <div class="card-header"><h3>How Phase 4 Expands the Project</h3><span>Direction</span></div>
-          <ul class="simple-list">
-            <li>Keep the same repo and same product.</li>
-            <li>Add support for single and multi-item evaluations.</li>
-            <li>Allow ranking of products and services against regulations.</li>
-            <li>Turn residual risk into review cadence and CMS rotation logic.</li>
-            <li>Stay useful to multiple business groups, not just compliance.</li>
-          </ul>
+          <div class="card-header"><h3>Generated Summary</h3><span>Interpretive</span></div>
+          <div class="note-box" id="aiSummaryBox">After each run, Risk Manager will generate an interpretive summary that explains what the score means and what to look at next.</div>
         </div>
       </div>
     </section>
@@ -106,7 +99,6 @@
         <h2>Evaluation Builder</h2>
         <p>Create one-off or multi-item evaluations, then estimate total and residual risk with a recommended review cycle.</p>
       </div>
-
       <div class="grid two">
         <div class="card">
           <h3>Evaluation Profile</h3>
@@ -119,7 +111,6 @@
             <div><label>Control Effectiveness %</label><input id="controlEffectiveness" type="number" min="0" max="100" value="30"></div>
           </div>
         </div>
-
         <div class="card">
           <h3>Complex Evaluation Item Builder</h3>
           <div class="form-grid">
@@ -136,22 +127,31 @@
           </div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-header"><h3>Evaluation Risk Items</h3><span>Complex Mode Supports Multiple Entries</span></div>
         <div class="table-wrap">
           <table>
             <thead>
-              <tr>
-                <th>Item</th>
-                <th>Domain</th>
-                <th>Product</th>
-                <th>Regulation</th>
-                <th>Score</th>
-                <th>Weight</th>
-              </tr>
+              <tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr>
             </thead>
             <tbody id="riskItemsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-saved" class="view">
+      <div class="section-header">
+        <h2>Saved Scenarios</h2>
+        <p>Saved locally in the browser so they can be reopened, updated, and reprinted later.</p>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Type</th><th>Primary Product</th><th>Residual Risk</th><th>Review Frequency</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="savedEvaluationsBody"></tbody>
           </table>
         </div>
       </div>
@@ -163,18 +163,9 @@
         <p>Core reference data for evaluations, including products, regulations, and seeded risk items.</p>
       </div>
       <div class="grid three">
-        <div class="card">
-          <h3>Products / Services</h3>
-          <ul id="productsList" class="simple-list"></ul>
-        </div>
-        <div class="card">
-          <h3>Regulations</h3>
-          <ul id="regulationsList" class="simple-list compact"></ul>
-        </div>
-        <div class="card">
-          <h3>Seed Risk Items</h3>
-          <ul id="seedItemsList" class="simple-list compact"></ul>
-        </div>
+        <div class="card"><h3>Products / Services</h3><ul id="productsList" class="simple-list"></ul></div>
+        <div class="card"><h3>Regulations</h3><ul id="regulationsList" class="simple-list compact"></ul></div>
+        <div class="card"><h3>Seed Risk Items</h3><ul id="seedItemsList" class="simple-list compact"></ul></div>
       </div>
     </section>
 
@@ -186,13 +177,7 @@
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Tier</th>
-                <th>Score Range</th>
-                <th>Review Frequency</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Tier</th><th>Score Range</th><th>Review Frequency</th></tr></thead>
             <tbody id="rotationRulesBody"></tbody>
           </table>
         </div>
@@ -212,7 +197,7 @@
         <div class="card">
           <h3>Next Planned Additions</h3>
           <ul class="simple-list">
-            <li>Saved evaluations and profiles</li>
+            <li>Saved evaluations with export and print options</li>
             <li>Product x regulation mapping matrix</li>
             <li>Residual risk ranking dashboard</li>
             <li>Compliance review calendar builder</li>
@@ -223,7 +208,6 @@
       </div>
     </section>
   </main>
-
   <script src="app.js"></script>
 </body>
 </html>

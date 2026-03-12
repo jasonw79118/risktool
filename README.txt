@@ -1,4 +1,4 @@
-Risk Manager – Phase 4 Package
+Risk Manager – Phase 4.1 Fix Package
 
 Included:
 - index.html
@@ -13,16 +13,15 @@ Included:
 - data/risk_items_seed.json
 - data/review_frequency_rules.json
 
-This phase adds:
-- Single Risk Evaluation mode
-- Complex Risk Evaluation mode
-- Multi-item evaluation builder
-- Weighted risk item scoring
-- Total risk and residual risk scoring
-- Review frequency recommendation engine
-- Starter CMS / review rotation logic
+This update fixes and adds:
+- clickable navigation and stronger page initialization
+- hover help on dashboard tiles
+- reduced explanatory text on tiles
+- saved scenarios using browser localStorage
+- open/delete saved scenarios
+- generated interpretive summary after each run
 
 Important:
-- This phase keeps the same project and expands it rather than splitting it.
-- It is still a front-end prototype intended for GitHub Pages.
-- Next phase should add saved evaluations, product x regulation mapping, and stronger ranking/reporting outputs.
+- saved scenarios are stored in the local browser on that device
+- this is a generated interpretive summary, not a live LLM/API summary yet
+- next phase should add printable/exportable scenario reports and a backend or file export for portable saved records
