@@ -1,0 +1,31 @@
+Risk Manager – Phase 4.3 Integration Notes
+
+This package is intended to be merged into the current risktool project.
+
+Recommended merge order:
+1. Add css/theme-phase-4-3.css
+2. Add data/category-seeds.json
+3. Add js/schema-phase-4-3.js
+4. Add js/storage-phase-4-3.js
+5. Add js/id-phase-4-3.js
+6. Add js/scenario-table-phase-4-3.js
+7. Add js/category-admin-phase-4-3.js
+8. Add js/builders-phase-4-3.js
+
+Expected outcomes:
+- Remove Evaluation Type from UI
+- Add Product Group
+- Add Risk Domain
+- Add Scenario Status
+- Add Scenario Source
+- Add Risk Acceptance Authority
+- Add repeatable mitigation model
+- Add accepted risk governance object
+- Add Scenario Table support
+- Add migration from older browser-local records
+
+Notes:
+- Keep Single Scenario and Complex Scenario screens separate
+- Keep browser-local persistence for now
+- Labels with hover help should use the provided `.help-label` class
+- Accepted Risk should be a distinct governed section, not just a note field

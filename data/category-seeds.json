@@ -1,0 +1,66 @@
+{
+  "productGroups": [
+    "Digital",
+    "Document Services",
+    "Education Services",
+    "Interfaces and Bridge Integrations",
+    "LOS",
+    "DOS",
+    "Managed Services",
+    "Core",
+    "Payment Services",
+    "Regulatory Compliance",
+    "Risk",
+    "Marketing",
+    "Legal",
+    "Executive Management",
+    "Physical Locations",
+    "Customer X",
+    "Relationship Management",
+    "CRC",
+    "Human Resources",
+    "Implementations",
+    "State Issues",
+    "Deployment",
+    "Internal",
+    "Vendor Due Diligence",
+    "Audit",
+    "3rd Party",
+    "Partnership",
+    "Vendors"
+  ],
+  "riskDomains": [
+    "Compliance",
+    "Operational",
+    "Strategic",
+    "Technology",
+    "Cybersecurity",
+    "Vendor",
+    "Legal",
+    "Reputational",
+    "Financial",
+    "Third-Party",
+    "Regulatory Change",
+    "Data Governance"
+  ],
+  "scenarioStatuses": [
+    "Open",
+    "Pending",
+    "Closed",
+    "Referred to Committee"
+  ],
+  "scenarioSources": [
+    "Audit",
+    "Exam Finding",
+    "Risk",
+    "New Regulation",
+    "Industry News"
+  ],
+  "riskAcceptanceAuthorities": [
+    "Risk Governance Committee",
+    "CEO",
+    "CRO",
+    "CTO",
+    "Board"
+  ]
+}

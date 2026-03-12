@@ -1,0 +1,67 @@
+
+:root {
+  --rm-blue: #1f4e8c;
+  --rm-orange: #b85c1e;
+  --rm-border: #2c3e50;
+  --rm-bg-card: rgba(255,255,255,0.04);
+  --rm-text: #e9eef5;
+}
+
+.help-label {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.rm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.rm-card {
+  background: var(--rm-bg-card);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 4px solid var(--rm-blue);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.rm-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(31,78,140,0.18);
+  font-size: 12px;
+}
+
+.rm-status {
+  border-color: rgba(184,92,30,0.28);
+  background: rgba(184,92,30,0.16);
+}
+
+.rm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.rm-table th,
+.rm-table td {
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.rm-table th {
+  color: #fff;
+  background: rgba(31,78,140,0.22);
+}
+
+.rm-list {
+  margin: 0;
+  padding-left: 18px;
+}
