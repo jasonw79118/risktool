@@ -15,61 +15,54 @@
       <div class="brand-mark">RM</div>
       <div>
         <div class="brand-name">Risk Manager</div>
-        <div class="brand-sub">Single + Complex Evaluations</div>
+        <div class="brand-sub">Scenario Builder + Reporting</div>
       </div>
     </div>
+
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
-      <button class="nav-item" data-view="evaluations">Evaluations</button>
-      <button class="nav-item" data-view="builder">Evaluation Builder</button>
+      <button class="nav-item" data-view="single">Single Scenario</button>
+      <button class="nav-item" data-view="complex">Complex Scenario</button>
+      <button class="nav-item" data-view="categories">Category Admin</button>
       <button class="nav-item" data-view="saved">Saved Scenarios</button>
-      <button class="nav-item" data-view="libraries">Libraries</button>
-      <button class="nav-item" data-view="rotation">Review Rotation</button>
       <button class="nav-item" data-view="reports">Reports</button>
     </nav>
+
     <div class="sidebar-note">
-      <h4>Phase 4.1</h4>
-      <p>Clickable navigation, local save/return, hover help, and generated scenario summary.</p>
+      <h4>Phase 4.2</h4>
+      <p>Separate builders, category adds, chart controls, and report options.</p>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
       <div>
-        <h1>Risk Manager Evaluation Engine</h1>
-        <p>Single and complex evaluations with saved scenarios and generated summaries.</p>
+        <h1>Risk Manager</h1>
+        <p>Single and complex scenario evaluation with configurable dashboard and report content.</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-secondary" id="loadDepositProjectBtn">Load Deposits Example</button>
-        <button class="btn btn-secondary" id="saveEvaluationBtn">Save Evaluation</button>
-        <button class="btn btn-primary" id="runEvaluationBtn">Run Evaluation</button>
+        <button class="btn btn-secondary" id="saveScenarioBtn">Save Scenario</button>
+        <button class="btn btn-primary" id="runScenarioBtn">Run Active Scenario</button>
       </div>
     </header>
 
     <section id="view-dashboard" class="view active">
       <div class="hero">
         <div class="hero-copy">
-          <h2>Two evaluation tracks in one project</h2>
-          <p>Use Single Risk Evaluation for one focused issue, or Complex Risk Evaluation for a product, department, project, or business area with multiple risk items and aggregated results.</p>
+          <h2>Current Scenario Output</h2>
+          <p>Run a single or complex scenario, choose your report options, and decide whether the graph appears on the dashboard.</p>
         </div>
         <div class="hero-stats">
-          <div class="stat-card help-tip" data-help="Number of evaluation modes currently supported."><span>Evaluation Types</span><strong id="evalTypeCount">0</strong></div>
-          <div class="stat-card help-tip" data-help="Total enterprise risk domains available in the current library."><span>Risk Domains</span><strong id="domainCount">0</strong></div>
-          <div class="stat-card help-tip" data-help="Products and services available for linking to evaluations."><span>Products / Services</span><strong id="productCount">0</strong></div>
-          <div class="stat-card help-tip" data-help="Regulations and standards available for tagging scenarios."><span>Regulations</span><strong id="regCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of primary products and services currently available."><span>Products / Services</span><strong id="productCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of regulations and standards available."><span>Regulations</span><strong id="regCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of risk domains available for complex scenario items."><span>Risk Domains</span><strong id="domainCount">0</strong></div>
+          <div class="stat-card help-tip" data-help="Number of saved scenarios in this browser."><span>Saved Scenarios</span><strong id="savedCount">0</strong></div>
         </div>
-      </div>
-
-      <div class="grid four">
-        <div class="card compact-card help-tip" data-help="Focused issue or one scenario. Good for a single threat, control gap, or event."><h3>Single Evaluations</h3></div>
-        <div class="card compact-card help-tip" data-help="Broad review with several items inside one project, program, or business area."><h3>Complex Evaluations</h3></div>
-        <div class="card compact-card help-tip" data-help="Residual risk equals remaining risk after considering control effectiveness."><h3>Residual Risk</h3></div>
-        <div class="card compact-card help-tip" data-help="Review frequency converts residual risk into a schedule recommendation."><h3>CMS Rotation</h3></div>
       </div>
 
       <div class="grid two">
         <div class="card">
-          <div class="card-header"><h3>Current Evaluation Output</h3><span>Starter Logic</span></div>
+          <div class="card-header"><h3>Scenario Results</h3><span>Output</span></div>
           <div class="result-list">
             <div class="result-row"><span>Total Risk Score</span><strong id="totalRiskScore">0</strong></div>
             <div class="result-row"><span>Residual Risk Score</span><strong id="residualRiskScore">0</strong></div>
@@ -77,65 +70,163 @@
             <div class="result-row"><span>Review Frequency</span><strong id="reviewFrequency">Not Run</strong></div>
             <div class="result-row"><span>Included Risk Items</span><strong id="itemCount">0</strong></div>
           </div>
-          <div class="note-box" id="dashboardNarrative">Run an evaluation to populate results.</div>
+          <div class="note-box" id="dashboardNarrative">Run a scenario to populate results.</div>
         </div>
+
         <div class="card">
           <div class="card-header"><h3>Generated Summary</h3><span>Interpretive</span></div>
-          <div class="note-box" id="aiSummaryBox">After each run, Risk Manager will generate an interpretive summary that explains what the score means and what to look at next.</div>
+          <div class="note-box" id="aiSummaryBox">After each run, Risk Manager will generate a summary that explains what happened and what it means.</div>
         </div>
       </div>
+
+      <div id="dashboardChartCard" class="card">
+        <div class="card-header"><h3>Dashboard Graph</h3><span>Optional</span></div>
+        <canvas id="dashboardChart" width="760" height="260"></canvas>
+      </div>
     </section>
 
-    <section id="view-evaluations" class="view">
+    <section id="view-single" class="view">
       <div class="section-header">
-        <h2>Evaluation Types</h2>
-        <p>Choose the right evaluation mode based on whether you are analyzing a single risk or a broader area with multiple items.</p>
+        <h2>Single Scenario Builder</h2>
+        <p>Use this for a single focused issue or event.</p>
       </div>
-      <div id="evaluationTypeGrid" class="grid two"></div>
-    </section>
-
-    <section id="view-builder" class="view">
-      <div class="section-header">
-        <h2>Evaluation Builder</h2>
-        <p>Create one-off or multi-item evaluations, then estimate total and residual risk with a recommended review cycle.</p>
-      </div>
-      <div class="grid two">
-        <div class="card">
-          <h3>Evaluation Profile</h3>
-          <div class="form-grid">
-            <div><label>Evaluation Name</label><input id="evaluationName" type="text" placeholder="e.g. Deposits Risk Review"></div>
-            <div><label>Evaluation Type</label><select id="evaluationType"></select></div>
-            <div><label>Primary Product / Service</label><select id="primaryProduct"></select></div>
-            <div><label>Primary Regulation</label><select id="primaryRegulation"></select></div>
-            <div><label>Inherent Risk Score (0-100)</label><input id="inherentRiskScore" type="number" min="0" max="100" value="72"></div>
-            <div><label>Control Effectiveness %</label><input id="controlEffectiveness" type="number" min="0" max="100" value="30"></div>
+      <div class="card">
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Name used to save, reopen, and print this scenario.">Scenario Name</label>
+            <input id="singleScenarioName" type="text" placeholder="e.g. Teller Fraud Review">
+          </div>
+          <div>
+            <label class="help-label" data-help="Primary evaluation type tag. Additional options can be added on the Category Admin screen.">Evaluation Type</label>
+            <select id="singleEvaluationType"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Main product or service being evaluated.">Primary Product / Service</label>
+            <select id="singlePrimaryProduct"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Main regulation or standard associated with the scenario.">Primary Regulation</label>
+            <select id="singlePrimaryRegulation"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Initial risk before considering controls or mitigation.">Inherent Risk Score (0-100)</label>
+            <input id="singleInherentRiskScore" type="number" min="0" max="100" value="72">
+          </div>
+          <div>
+            <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
+            <input id="singleControlEffectiveness" type="number" min="0" max="100" value="30">
           </div>
         </div>
+      </div>
+    </section>
+
+    <section id="view-complex" class="view">
+      <div class="section-header">
+        <h2>Complex Scenario Builder</h2>
+        <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
+      </div>
+
+      <div class="grid two">
         <div class="card">
-          <h3>Complex Evaluation Item Builder</h3>
           <div class="form-grid">
-            <div><label>Risk Item Name</label><input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk"></div>
-            <div><label>Risk Domain</label><select id="riskItemDomain"></select></div>
-            <div><label>Related Product / Service</label><select id="riskItemProduct"></select></div>
-            <div><label>Related Regulation</label><select id="riskItemReg"></select></div>
-            <div><label>Item Risk Score (0-100)</label><input id="riskItemScore" type="number" min="0" max="100" value="65"></div>
-            <div><label>Weight (1-5)</label><input id="riskItemWeight" type="number" min="1" max="5" value="3"></div>
+            <div>
+              <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
+              <input id="complexScenarioName" type="text" placeholder="e.g. Deposits Risk Review">
+            </div>
+            <div>
+              <label class="help-label" data-help="Primary evaluation type tag.">Evaluation Type</label>
+              <select id="complexEvaluationType"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Main product or service for the full scenario.">Primary Product / Service</label>
+              <select id="complexPrimaryProduct"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Main regulation or standard for the full scenario.">Primary Regulation</label>
+              <select id="complexPrimaryRegulation"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Base risk before considering controls across the broader scenario.">Inherent Risk Score (0-100)</label>
+              <input id="complexInherentRiskScore" type="number" min="0" max="100" value="78">
+            </div>
+            <div>
+              <label class="help-label" data-help="Estimated percentage reduction from the current control environment.">Control Effectiveness %</label>
+              <input id="complexControlEffectiveness" type="number" min="0" max="100" value="28">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-grid">
+            <div>
+              <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
+              <input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk">
+            </div>
+            <div>
+              <label class="help-label" data-help="Risk domain classification for this item.">Risk Domain</label>
+              <select id="riskItemDomain"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
+              <select id="riskItemProduct"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Regulation or standard linked to this risk item.">Related Regulation</label>
+              <select id="riskItemReg"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label>
+              <input id="riskItemScore" type="number" min="0" max="100" value="65">
+            </div>
+            <div>
+              <label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label>
+              <input id="riskItemWeight" type="number" min="1" max="5" value="3">
+            </div>
           </div>
           <div class="builder-actions">
             <button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button>
-            <button class="btn btn-primary" id="runBuilderEvaluationBtn">Run Evaluation</button>
+            <button class="btn btn-secondary" id="loadDepositProjectBtn">Load Deposits Example</button>
           </div>
         </div>
       </div>
+
       <div class="card">
-        <div class="card-header"><h3>Evaluation Risk Items</h3><span>Complex Mode Supports Multiple Entries</span></div>
+        <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries</span></div>
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr>
-            </thead>
+            <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
             <tbody id="riskItemsTableBody"></tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-categories" class="view">
+      <div class="section-header">
+        <h2>Category Admin</h2>
+        <p>Add new values from the site for evaluation type, primary product/service, and primary regulation.</p>
+      </div>
+      <div class="grid three">
+        <div class="card">
+          <h3>Add Evaluation Type</h3>
+          <div class="form-stack">
+            <input id="newEvaluationTypeName" type="text" placeholder="e.g. Program Assessment">
+            <button class="btn btn-primary" id="addEvaluationTypeBtn">Add Evaluation Type</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Add Product / Service</h3>
+          <div class="form-stack">
+            <input id="newProductName" type="text" placeholder="e.g. Treasury Management">
+            <button class="btn btn-primary" id="addProductBtn">Add Product / Service</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Add Regulation</h3>
+          <div class="form-stack">
+            <input id="newRegulationName" type="text" placeholder="e.g. State Privacy Rule">
+            <button class="btn btn-primary" id="addRegulationBtn">Add Regulation</button>
+          </div>
         </div>
       </div>
     </section>
@@ -148,37 +239,8 @@
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr><th>Name</th><th>Type</th><th>Primary Product</th><th>Residual Risk</th><th>Review Frequency</th><th>Actions</th></tr>
-            </thead>
+            <thead><tr><th>Name</th><th>Builder</th><th>Primary Product</th><th>Residual Risk</th><th>Review Frequency</th><th>Actions</th></tr></thead>
             <tbody id="savedEvaluationsBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="view-libraries" class="view">
-      <div class="section-header">
-        <h2>Libraries</h2>
-        <p>Core reference data for evaluations, including products, regulations, and seeded risk items.</p>
-      </div>
-      <div class="grid three">
-        <div class="card"><h3>Products / Services</h3><ul id="productsList" class="simple-list"></ul></div>
-        <div class="card"><h3>Regulations</h3><ul id="regulationsList" class="simple-list compact"></ul></div>
-        <div class="card"><h3>Seed Risk Items</h3><ul id="seedItemsList" class="simple-list compact"></ul></div>
-      </div>
-    </section>
-
-    <section id="view-rotation" class="view">
-      <div class="section-header">
-        <h2>Review Rotation Logic</h2>
-        <p>Starter rule set for mapping residual risk scores into CMS or broader oversight review frequency.</p>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Tier</th><th>Score Range</th><th>Review Frequency</th></tr></thead>
-            <tbody id="rotationRulesBody"></tbody>
           </table>
         </div>
       </div>
@@ -186,28 +248,43 @@
 
     <section id="view-reports" class="view">
       <div class="section-header">
-        <h2>Report Snapshot</h2>
-        <p>Summary output for a future export-ready reporting workflow.</p>
+        <h2>Report Options & Snapshot</h2>
+        <p>Control report content and dashboard graph visibility from here.</p>
       </div>
       <div class="grid two">
         <div class="card">
-          <h3>Evaluation Summary</h3>
-          <ul id="reportSummary" class="simple-list"><li>No evaluation has been run yet.</li></ul>
+          <h3>Report Options</h3>
+          <div class="checkbox-list">
+            <label><input id="showDashboardGraphToggle" type="checkbox" checked> Show graph on dashboard</label>
+            <label><input id="includeGraphInReport" type="checkbox" checked> Include graph in report</label>
+            <label><input id="includeMonteCarloTable" type="checkbox"> Include Monte Carlo table in report</label>
+            <label><input id="includeMonteCarloExplanation" type="checkbox"> Include Monte Carlo table explanation</label>
+          </div>
         </div>
         <div class="card">
-          <h3>Next Planned Additions</h3>
-          <ul class="simple-list">
-            <li>Saved evaluations with export and print options</li>
-            <li>Product x regulation mapping matrix</li>
-            <li>Residual risk ranking dashboard</li>
-            <li>Compliance review calendar builder</li>
-            <li>Loss evidence integration</li>
-            <li>Export to spreadsheet and report output</li>
-          </ul>
+          <h3>Report Summary</h3>
+          <ul id="reportSummary" class="simple-list"><li>No scenario has been run yet.</li></ul>
         </div>
+      </div>
+
+      <div id="reportGraphCard" class="card">
+        <div class="card-header"><h3>Report Graph</h3><span>Optional</span></div>
+        <canvas id="reportChart" width="760" height="260"></canvas>
+      </div>
+
+      <div id="monteCarloTableCard" class="card hidden">
+        <div class="card-header"><h3>Monte Carlo Table</h3><span>Optional</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Measure</th><th>Value</th></tr></thead>
+            <tbody id="monteCarloTableBody"></tbody>
+          </table>
+        </div>
+        <div id="monteCarloExplanationBox" class="note-box hidden"></div>
       </div>
     </section>
   </main>
+
   <script src="app.js"></script>
 </body>
 </html>

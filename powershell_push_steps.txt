@@ -10,7 +10,7 @@ PowerShell update steps
    git add .
 
 4. Commit:
-   git commit -m "Add Risk Manager phase 4.1 fixes, saved scenarios, and generated summaries"
+   git commit -m "Add Risk Manager phase 4.2 separate builders, category admin, and report options"
 
 5. Push:
    git push origin main

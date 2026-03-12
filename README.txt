@@ -1,4 +1,4 @@
-Risk Manager – Phase 4.1 Fix Package
+Risk Manager – Phase 4.2 Package
 
 Included:
 - index.html
@@ -10,18 +10,20 @@ Included:
 - data/products_services.json
 - data/regulations.json
 - data/risk_domains.json
-- data/risk_items_seed.json
 - data/review_frequency_rules.json
 
-This update fixes and adds:
-- clickable navigation and stronger page initialization
-- hover help on dashboard tiles
-- reduced explanatory text on tiles
-- saved scenarios using browser localStorage
-- open/delete saved scenarios
-- generated interpretive summary after each run
+This update adds:
+- separate Single Scenario and Complex Scenario screens
+- category adds from the site for evaluation type, product/service, and regulation
+- hover help on field titles in both builder pages
+- optional graph on dashboard
+- optional graph in reports
+- optional Monte Carlo table in reports
+- optional Monte Carlo explanation in reports
+- dashboard cleanup by removing the unnecessary evaluation track tiles
+- saved scenario support retained
 
-Important:
-- saved scenarios are stored in the local browser on that device
-- this is a generated interpretive summary, not a live LLM/API summary yet
-- next phase should add printable/exportable scenario reports and a backend or file export for portable saved records
+Notes:
+- new categories are stored locally in the browser for now
+- report options are front-end controls for the current prototype
+- next phase should add print/export output and portable import/export for saved scenarios
