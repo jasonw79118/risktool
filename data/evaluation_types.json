@@ -1,0 +1,12 @@
+[
+  {
+    "id": "single_risk",
+    "name": "Single Risk Evaluation",
+    "description": "Evaluate one focused risk scenario such as teller fraud, vendor outage, or a specific compliance issue."
+  },
+  {
+    "id": "complex_risk",
+    "name": "Complex Risk Evaluation",
+    "description": "Evaluate a project, business area, product family, or function with multiple risk items in one assessment."
+  }
+]

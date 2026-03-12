@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Teller line employee fraud",
+    "domain": "Internal Fraud & Conduct Risk",
+    "weight": 3
+  },
+  {
+    "name": "Mobile banking account takeover",
+    "domain": "Cybersecurity Risk",
+    "weight": 3
+  },
+  {
+    "name": "ACH fraud exposure",
+    "domain": "External Fraud Risk",
+    "weight": 3
+  },
+  {
+    "name": "NACHA rules violation",
+    "domain": "Payments & Network Rule Risk",
+    "weight": 3
+  },
+  {
+    "name": "Reg E error resolution issue",
+    "domain": "Consumer Compliance Risk",
+    "weight": 3
+  },
+  {
+    "name": "Vendor outage affecting deposits",
+    "domain": "Third-Party & Vendor Risk",
+    "weight": 2
+  },
+  {
+    "name": "Privacy breach in online enrollment",
+    "domain": "Information Security & Privacy Risk",
+    "weight": 3
+  },
+  {
+    "name": "Complaint surge from fee changes",
+    "domain": "Reputation & Brand Risk",
+    "weight": 2
+  },
+  {
+    "name": "Operational reconciliation failure",
+    "domain": "Operational Process Risk",
+    "weight": 2
+  },
+  {
+    "name": "Weak CIP / KYC controls",
+    "domain": "BSA/AML, Sanctions & Financial Crimes Risk",
+    "weight": 3
+  }
+]

@@ -10,13 +10,7 @@ PowerShell update steps
    git add .
 
 4. Commit:
-   git commit -m "Add Risk Manager phase 3 scenario builder and Monte Carlo engine"
+   git commit -m "Add Risk Manager phase 4 evaluation engine and review rotation logic"
 
 5. Push:
    git push origin main
-
-6. If the remote is not set yet:
-   git init
-   git remote add origin https://github.com/YOURUSERNAME/risktool.git
-   git branch -M main
-   git push -u origin main

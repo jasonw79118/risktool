@@ -15,193 +15,215 @@
       <div class="brand-mark">RM</div>
       <div>
         <div class="brand-name">Risk Manager</div>
-        <div class="brand-sub">Measured Risk</div>
+        <div class="brand-sub">Single + Complex Evaluations</div>
       </div>
     </div>
+
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
-      <button class="nav-item" data-view="builder">Scenario Builder</button>
-      <button class="nav-item" data-view="domains">Risk Domains</button>
+      <button class="nav-item" data-view="evaluations">Evaluations</button>
+      <button class="nav-item" data-view="builder">Evaluation Builder</button>
+      <button class="nav-item" data-view="libraries">Libraries</button>
+      <button class="nav-item" data-view="rotation">Review Rotation</button>
       <button class="nav-item" data-view="reports">Reports</button>
     </nav>
+
     <div class="sidebar-note">
-      <h4>Phase 3</h4>
-      <p>Scenario builder plus first browser-based Monte Carlo engine for GitHub Pages.</p>
+      <h4>Phase 4</h4>
+      <p>This phase adds single and complex evaluation modes plus review-frequency logic for broader enterprise use.</p>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
       <div>
-        <h1>Risk Manager</h1>
-        <p>Scenario builder, mitigation analysis, and simulation-driven loss estimates.</p>
+        <h1>Risk Manager Evaluation Engine</h1>
+        <p>Support one-off risk scoring and broader multi-item project or business-area reviews inside the same platform.</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-secondary" id="loadSampleBtn">Load Sample Scenario</button>
-        <button class="btn btn-primary" id="runTopBtn">Run Simulation</button>
+        <button class="btn btn-secondary" id="loadDepositProjectBtn">Load Deposits Example</button>
+        <button class="btn btn-primary" id="runEvaluationBtn">Run Evaluation</button>
       </div>
     </header>
 
     <section id="view-dashboard" class="view active">
       <div class="hero">
         <div class="hero-copy">
-          <h2>Build a risk scenario and simulate annual loss</h2>
-          <p>This phase introduces a browser-based Monte Carlo engine. It models observed versus probable frequency, primary and secondary losses, mitigation cost, insurance coverage, and residual annual loss.</p>
+          <h2>Two evaluation tracks in one project</h2>
+          <p>Use Single Risk Evaluation for one focused issue, or Complex Risk Evaluation for a product, department, project, or business area with multiple risk items and aggregated results.</p>
         </div>
         <div class="hero-stats">
-          <div class="stat-card"><span>Domains</span><strong id="domain-count">0</strong></div>
-          <div class="stat-card"><span>Events</span><strong id="event-count">0</strong></div>
-          <div class="stat-card"><span>Mitigation Categories</span><strong id="mitigation-count">0</strong></div>
-          <div class="stat-card"><span>Decision Roles</span><strong id="role-count">0</strong></div>
+          <div class="stat-card"><span>Evaluation Types</span><strong id="evalTypeCount">0</strong></div>
+          <div class="stat-card"><span>Risk Domains</span><strong id="domainCount">0</strong></div>
+          <div class="stat-card"><span>Products / Services</span><strong id="productCount">0</strong></div>
+          <div class="stat-card"><span>Regulations</span><strong id="regCount">0</strong></div>
         </div>
       </div>
 
       <div class="grid four">
-        <div class="card"><h3>Frequency Inputs</h3><p>Observed annual events plus probable min, likely, and max assumptions.</p></div>
-        <div class="card"><h3>Loss Components</h3><p>Direct, fine/settlement, legal, employee time, reputation, and business restriction costs.</p></div>
-        <div class="card"><h3>Mitigations</h3><p>Apply severity reduction, annual cost, and insurance coverage to estimate residual loss.</p></div>
-        <div class="card"><h3>Decision Support</h3><p>Pair modeled outputs with a management decision authority and review process.</p></div>
+        <div class="card"><h3>Single Evaluations</h3><p>Use for focused scenarios like teller fraud, a vendor outage, or a specific compliance risk.</p></div>
+        <div class="card"><h3>Complex Evaluations</h3><p>Use for larger projects or areas like Deposits, Digital Banking, Lending, or BSA / AML programs.</p></div>
+        <div class="card"><h3>Residual Risk</h3><p>Score inherent risk, apply controls and mitigation strength, then estimate residual risk and review cadence.</p></div>
+        <div class="card"><h3>CMS Rotation</h3><p>Convert risk tiers into review frequency recommendations for scheduling and ongoing oversight.</p></div>
       </div>
 
       <div class="grid two">
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Annual Loss Distribution</h3>
-            <span>Simulated Output</span>
-          </div>
-          <canvas id="lossChart" width="760" height="300"></canvas>
-        </div>
         <div class="card">
-          <div class="card-header">
-            <h3>Simulation Results</h3>
-            <span>Scenario Summary</span>
-          </div>
+          <div class="card-header"><h3>Current Evaluation Output</h3><span>Starter Logic</span></div>
           <div class="result-list">
-            <div class="result-row"><span>Expected Annual Loss</span><strong id="expectedLoss">$0</strong></div>
-            <div class="result-row"><span>P50 Loss</span><strong id="p50Loss">$0</strong></div>
-            <div class="result-row"><span>P95 Loss</span><strong id="p95Loss">$0</strong></div>
-            <div class="result-row"><span>P99 Loss</span><strong id="p99Loss">$0</strong></div>
-            <div class="result-row"><span>Mitigation Annual Cost</span><strong id="mitigationAnnual">$0</strong></div>
-            <div class="result-row"><span>Net Expected Loss After Cost</span><strong id="netExpectedLoss">$0</strong></div>
+            <div class="result-row"><span>Total Risk Score</span><strong id="totalRiskScore">0</strong></div>
+            <div class="result-row"><span>Residual Risk Score</span><strong id="residualRiskScore">0</strong></div>
+            <div class="result-row"><span>Risk Tier</span><strong id="riskTier">Not Run</strong></div>
+            <div class="result-row"><span>Review Frequency</span><strong id="reviewFrequency">Not Run</strong></div>
+            <div class="result-row"><span>Included Risk Items</span><strong id="itemCount">0</strong></div>
           </div>
-          <div class="note-box" id="scenarioNarrative">Run a scenario to populate the narrative summary.</div>
+          <div class="note-box" id="dashboardNarrative">Run an evaluation to populate results.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>How Phase 4 Expands the Project</h3><span>Direction</span></div>
+          <ul class="simple-list">
+            <li>Keep the same repo and same product.</li>
+            <li>Add support for single and multi-item evaluations.</li>
+            <li>Allow ranking of products and services against regulations.</li>
+            <li>Turn residual risk into review cadence and CMS rotation logic.</li>
+            <li>Stay useful to multiple business groups, not just compliance.</li>
+          </ul>
         </div>
       </div>
+    </section>
+
+    <section id="view-evaluations" class="view">
+      <div class="section-header">
+        <h2>Evaluation Types</h2>
+        <p>Choose the right evaluation mode based on whether you are analyzing a single risk or a broader area with multiple items.</p>
+      </div>
+      <div id="evaluationTypeGrid" class="grid two"></div>
     </section>
 
     <section id="view-builder" class="view">
       <div class="section-header">
-        <h2>Scenario Builder</h2>
-        <p>Use this to define a scenario, set loss assumptions, apply mitigations, and run the Monte Carlo engine.</p>
+        <h2>Evaluation Builder</h2>
+        <p>Create one-off or multi-item evaluations, then estimate total and residual risk with a recommended review cycle.</p>
       </div>
 
       <div class="grid two">
         <div class="card">
-          <h3>Profile & Event Selection</h3>
+          <h3>Evaluation Profile</h3>
           <div class="form-grid">
-            <div><label>Scenario Name</label><input id="scenarioName" type="text" placeholder="e.g. Mobile Banking Fraud Scenario"></div>
-            <div><label>Institution Type</label><select id="institutionType"></select></div>
-            <div><label>Product / Service</label><select id="productService"></select></div>
-            <div><label>Risk Event</label><select id="riskEvent"></select></div>
-            <div><label>Decision Role</label><select id="decisionRole"></select></div>
-            <div><label>Iterations</label><input id="iterations" type="number" min="100" step="100" value="5000"></div>
+            <div><label>Evaluation Name</label><input id="evaluationName" type="text" placeholder="e.g. Deposits Risk Review"></div>
+            <div><label>Evaluation Type</label><select id="evaluationType"></select></div>
+            <div><label>Primary Product / Service</label><select id="primaryProduct"></select></div>
+            <div><label>Primary Regulation</label><select id="primaryRegulation"></select></div>
+            <div><label>Inherent Risk Score (0-100)</label><input id="inherentRiskScore" type="number" min="0" max="100" value="72"></div>
+            <div><label>Control Effectiveness %</label><input id="controlEffectiveness" type="number" min="0" max="100" value="30"></div>
           </div>
         </div>
 
         <div class="card">
-          <h3>Event Frequency Inputs</h3>
+          <h3>Complex Evaluation Item Builder</h3>
           <div class="form-grid">
-            <div><label>Observed Events / Year</label><input id="observedEvents" type="number" min="0" step="0.01" value="0.25"></div>
-            <div><label>Probable Min / Year</label><input id="probableMin" type="number" min="0" step="0.01" value="0.10"></div>
-            <div><label>Probable Most Likely / Year</label><input id="probableLikely" type="number" min="0" step="0.01" value="0.40"></div>
-            <div><label>Probable Max / Year</label><input id="probableMax" type="number" min="0" step="0.01" value="1.20"></div>
+            <div><label>Risk Item Name</label><input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk"></div>
+            <div><label>Risk Domain</label><select id="riskItemDomain"></select></div>
+            <div><label>Related Product / Service</label><select id="riskItemProduct"></select></div>
+            <div><label>Related Regulation</label><select id="riskItemReg"></select></div>
+            <div><label>Item Risk Score (0-100)</label><input id="riskItemScore" type="number" min="0" max="100" value="65"></div>
+            <div><label>Weight (1-5)</label><input id="riskItemWeight" type="number" min="1" max="5" value="3"></div>
           </div>
-        </div>
-      </div>
-
-      <div class="grid two">
-        <div class="card">
-          <h3>Primary Loss Inputs</h3>
-          <div class="form-grid">
-            <div><label>Direct Loss - Min</label><input id="directMin" type="number" min="0" step="1000" value="25000"></div>
-            <div><label>Direct Loss - Likely</label><input id="directLikely" type="number" min="0" step="1000" value="150000"></div>
-            <div><label>Direct Loss - Max</label><input id="directMax" type="number" min="0" step="1000" value="1000000"></div>
-            <div><label>Fine / Settlement - Min</label><input id="fineMin" type="number" min="0" step="1000" value="0"></div>
-            <div><label>Fine / Settlement - Likely</label><input id="fineLikely" type="number" min="0" step="1000" value="50000"></div>
-            <div><label>Fine / Settlement - Max</label><input id="fineMax" type="number" min="0" step="1000" value="750000"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Secondary Loss Inputs</h3>
-          <div class="form-grid">
-            <div><label>Legal Cost - Min</label><input id="legalMin" type="number" min="0" step="1000" value="10000"></div>
-            <div><label>Legal Cost - Likely</label><input id="legalLikely" type="number" min="0" step="1000" value="75000"></div>
-            <div><label>Legal Cost - Max</label><input id="legalMax" type="number" min="0" step="1000" value="500000"></div>
-            <div><label>Other Secondary - Min</label><input id="secondaryMin" type="number" min="0" step="1000" value="5000"></div>
-            <div><label>Other Secondary - Likely</label><input id="secondaryLikely" type="number" min="0" step="1000" value="50000"></div>
-            <div><label>Other Secondary - Max</label><input id="secondaryMax" type="number" min="0" step="1000" value="400000"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid two">
-        <div class="card">
-          <h3>Mitigation & Insurance</h3>
-          <div class="form-grid">
-            <div><label>Severity Reduction %</label><input id="severityReduction" type="number" min="0" max="100" step="1" value="20"></div>
-            <div><label>Annual Mitigation Cost</label><input id="mitigationCost" type="number" min="0" step="1000" value="100000"></div>
-            <div><label>Insurance Coverage Limit</label><input id="insuranceLimit" type="number" min="0" step="1000" value="250000"></div>
-            <div><label>Insurance Deductible</label><input id="insuranceDeductible" type="number" min="0" step="1000" value="25000"></div>
-            <div><label>Selected Mitigation Category</label><select id="mitigationCategory"></select></div>
-            <div><label>Recommendation</label><select id="mitigationRecommendation"></select></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Run & Save</h3>
-          <p class="card-text">This first engine runs entirely in the browser for GitHub Pages. It is designed as a stepping stone to the fuller loss evidence database and report export workflow.</p>
           <div class="builder-actions">
-            <button class="btn btn-secondary" id="loadSampleBuilderBtn">Load Sample</button>
-            <button class="btn btn-primary" id="runBuilderBtn">Run Simulation</button>
+            <button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button>
+            <button class="btn btn-primary" id="runBuilderEvaluationBtn">Run Evaluation</button>
           </div>
-          <div class="note-box">Next phase will add scenario persistence, richer reports, and export-ready decision records.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Evaluation Risk Items</h3><span>Complex Mode Supports Multiple Entries</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Domain</th>
+                <th>Product</th>
+                <th>Regulation</th>
+                <th>Score</th>
+                <th>Weight</th>
+              </tr>
+            </thead>
+            <tbody id="riskItemsTableBody"></tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <section id="view-domains" class="view">
+    <section id="view-libraries" class="view">
       <div class="section-header">
-        <h2>Risk Domains</h2>
-        <p>Foundation library used to classify scenarios and future loss evidence.</p>
+        <h2>Libraries</h2>
+        <p>Core reference data for evaluations, including products, regulations, and seeded risk items.</p>
       </div>
-      <div id="domainsGrid" class="grid three"></div>
+      <div class="grid three">
+        <div class="card">
+          <h3>Products / Services</h3>
+          <ul id="productsList" class="simple-list"></ul>
+        </div>
+        <div class="card">
+          <h3>Regulations</h3>
+          <ul id="regulationsList" class="simple-list compact"></ul>
+        </div>
+        <div class="card">
+          <h3>Seed Risk Items</h3>
+          <ul id="seedItemsList" class="simple-list compact"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-rotation" class="view">
+      <div class="section-header">
+        <h2>Review Rotation Logic</h2>
+        <p>Starter rule set for mapping residual risk scores into CMS or broader oversight review frequency.</p>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Score Range</th>
+                <th>Review Frequency</th>
+              </tr>
+            </thead>
+            <tbody id="rotationRulesBody"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <section id="view-reports" class="view">
       <div class="section-header">
-        <h2>Report Preview</h2>
-        <p>High-level summary of the current scenario and governance outputs.</p>
+        <h2>Report Snapshot</h2>
+        <p>Summary output for a future export-ready reporting workflow.</p>
       </div>
       <div class="grid two">
         <div class="card">
-          <h3>Scenario Snapshot</h3>
-          <ul class="simple-list" id="reportSnapshot"><li>No scenario run yet.</li></ul>
+          <h3>Evaluation Summary</h3>
+          <ul id="reportSummary" class="simple-list"><li>No evaluation has been run yet.</li></ul>
         </div>
         <div class="card">
-          <h3>Planned Reports</h3>
+          <h3>Next Planned Additions</h3>
           <ul class="simple-list">
-            <li>Expected annual loss report</li>
-            <li>P95 and P99 tail risk comparison</li>
-            <li>Before/after mitigation benefit report</li>
-            <li>Secondary loss driver report</li>
-            <li>Decision authority and review log</li>
-            <li>Export package for spreadsheet/report workflow</li>
+            <li>Saved evaluations and profiles</li>
+            <li>Product x regulation mapping matrix</li>
+            <li>Residual risk ranking dashboard</li>
+            <li>Compliance review calendar builder</li>
+            <li>Loss evidence integration</li>
+            <li>Export to spreadsheet and report output</li>
           </ul>
         </div>
       </div>
     </section>
   </main>
+
   <script src="app.js"></script>
 </body>
 </html>

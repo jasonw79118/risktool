@@ -1,28 +1,28 @@
-Risk Manager – Phase 3 Package
+Risk Manager – Phase 4 Package
 
 Included:
 - index.html
 - style.css
 - app.js
-- data/risk_domains.json
-- data/risk_events.json
-- data/mitigation_library.json
-- data/decision_roles.json
-- data/products_services.json
-- data/institution_types.json
-- data/sample_scenarios.json
 - README.txt
 - powershell_push_steps.txt
+- data/evaluation_types.json
+- data/products_services.json
+- data/regulations.json
+- data/risk_domains.json
+- data/risk_items_seed.json
+- data/review_frequency_rules.json
 
 This phase adds:
-- Scenario Builder
-- First browser-based Monte Carlo engine
-- Frequency inputs: observed vs probable events per year
-- Loss inputs: primary and secondary loss components
-- Mitigation cost, severity reduction, and insurance coverage
-- Report preview and simulation result cards
+- Single Risk Evaluation mode
+- Complex Risk Evaluation mode
+- Multi-item evaluation builder
+- Weighted risk item scoring
+- Total risk and residual risk scoring
+- Review frequency recommendation engine
+- Starter CMS / review rotation logic
 
 Important:
-- This is an initial front-end Monte Carlo engine for GitHub Pages.
-- It is useful for prototyping and workflow design.
-- It does not yet include saved scenarios, exported reports, external evidence imports, or Excel output.
+- This phase keeps the same project and expands it rather than splitting it.
+- It is still a front-end prototype intended for GitHub Pages.
+- Next phase should add saved evaluations, product x regulation mapping, and stronger ranking/reporting outputs.

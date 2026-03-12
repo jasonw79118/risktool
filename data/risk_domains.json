@@ -1,122 +1,32 @@
 [
-  {
-    "id": "physical_environmental",
-    "name": "Physical & Environmental Risk"
-  },
-  {
-    "id": "business_continuity",
-    "name": "Business Continuity & Resilience"
-  },
-  {
-    "id": "operational_process",
-    "name": "Operational Process Risk"
-  },
-  {
-    "id": "technology_application",
-    "name": "Technology & Application Risk"
-  },
-  {
-    "id": "cybersecurity",
-    "name": "Cybersecurity Risk"
-  },
-  {
-    "id": "information_security_privacy",
-    "name": "Information Security & Privacy Risk"
-  },
-  {
-    "id": "fraud_external",
-    "name": "External Fraud Risk"
-  },
-  {
-    "id": "fraud_internal",
-    "name": "Internal Fraud & Conduct Risk"
-  },
-  {
-    "id": "third_party_vendor",
-    "name": "Third-Party & Vendor Risk"
-  },
-  {
-    "id": "model_analytics_ai",
-    "name": "Model, Analytics & AI Risk"
-  },
-  {
-    "id": "payments_network",
-    "name": "Payments & Network Rule Risk"
-  },
-  {
-    "id": "consumer_compliance",
-    "name": "Consumer Compliance Risk"
-  },
-  {
-    "id": "aml_sanctions",
-    "name": "BSA/AML, Sanctions & Financial Crimes Risk"
-  },
-  {
-    "id": "securities_public_company",
-    "name": "Securities, FINRA & Public Company Risk"
-  },
-  {
-    "id": "financial_reporting_accounting",
-    "name": "Financial Reporting & Accounting Risk"
-  },
-  {
-    "id": "credit_counterparty",
-    "name": "Credit & Counterparty Risk"
-  },
-  {
-    "id": "liquidity_treasury",
-    "name": "Liquidity, Treasury & Funding Risk"
-  },
-  {
-    "id": "capital_interest_market",
-    "name": "Capital, Interest Rate & Market Risk"
-  },
-  {
-    "id": "legal_litigation",
-    "name": "Legal, Litigation & Judgement Risk"
-  },
-  {
-    "id": "strategic_business",
-    "name": "Strategic & Business Model Risk"
-  },
-  {
-    "id": "reputation_brand",
-    "name": "Reputation & Brand Risk"
-  },
-  {
-    "id": "human_capital",
-    "name": "Human Capital & Workforce Risk"
-  },
-  {
-    "id": "governance_board",
-    "name": "Governance, Board & Oversight Risk"
-  },
-  {
-    "id": "audit_assurance",
-    "name": "Audit, Assurance & Exam Risk"
-  },
-  {
-    "id": "records_documentation",
-    "name": "Records, Documentation & Retention Risk"
-  },
-  {
-    "id": "tax_irs_escheat",
-    "name": "Tax, IRS & Escheatment Risk"
-  },
-  {
-    "id": "identity_authentication",
-    "name": "Identity, Authentication & Access Risk"
-  },
-  {
-    "id": "customer_fairness",
-    "name": "Customer Fairness, Conduct & UDAAP Risk"
-  },
-  {
-    "id": "global_cross_border",
-    "name": "Global, Cross-Border & Geopolitical Risk"
-  },
-  {
-    "id": "insurance_risk_transfer",
-    "name": "Insurance & Risk Transfer Risk"
-  }
+  "Physical & Environmental Risk",
+  "Business Continuity & Resilience",
+  "Operational Process Risk",
+  "Technology & Application Risk",
+  "Cybersecurity Risk",
+  "Information Security & Privacy Risk",
+  "External Fraud Risk",
+  "Internal Fraud & Conduct Risk",
+  "Third-Party & Vendor Risk",
+  "Model, Analytics & AI Risk",
+  "Payments & Network Rule Risk",
+  "Consumer Compliance Risk",
+  "BSA/AML, Sanctions & Financial Crimes Risk",
+  "Securities, FINRA & Public Company Risk",
+  "Financial Reporting & Accounting Risk",
+  "Credit & Counterparty Risk",
+  "Liquidity, Treasury & Funding Risk",
+  "Capital, Interest Rate & Market Risk",
+  "Legal, Litigation & Judgement Risk",
+  "Strategic & Business Model Risk",
+  "Reputation & Brand Risk",
+  "Human Capital & Workforce Risk",
+  "Governance, Board & Oversight Risk",
+  "Audit, Assurance & Exam Risk",
+  "Records, Documentation & Retention Risk",
+  "Tax, IRS & Escheatment Risk",
+  "Identity, Authentication & Access Risk",
+  "Customer Fairness, Conduct & UDAAP Risk",
+  "Global, Cross-Border & Geopolitical Risk",
+  "Insurance & Risk Transfer Risk"
 ]

@@ -1,14 +1,20 @@
 [
+  "Deposits",
+  "Checking",
+  "Savings",
+  "Certificates of Deposit",
+  "IRA / Retirement Deposits",
   "Mobile Banking",
   "Internet Banking",
+  "Online Account Opening",
   "ACH Processing",
   "Wire Transfers",
   "Debit Card Program",
-  "Core Deposit Platform",
-  "Online Account Opening",
+  "ATM / EFT Network",
   "Consumer Lending",
   "Mortgage / HELOC",
-  "BSA / AML Monitoring",
   "Merchant Services",
-  "API Banking / BaaS"
+  "API Banking / BaaS",
+  "BSA / AML Monitoring",
+  "Core Deposit Platform"
 ]
