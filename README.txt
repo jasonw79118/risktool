@@ -1,9 +1,9 @@
-Risk Manager – Phase 5 Board Packet DOCX + Outcomes + Heat Map Correction
+Risk Manager – Phase 5.1 Random Outcomes Table Patch
 
-This Phase 5 package updates the prior board/output patch to:
-- generate the board packet as DOCX instead of TXT
-- include all non-closed scenarios plus closed scenarios from the past 90 days in the board packet
-- export the outcomes table to TXT independently of Monte Carlo table display toggles
-- add hover help to report-summary fields
-- ensure the heat map shows all non-closed scenarios
-- keep scenario export/import, report quick links, and AI PPT brief export
+This corrective Phase 5.1 package adds:
+- Random Scenarios field with options: 100, 500, 1,000, 10,000, 100,000
+- Random Outcomes TXT export built from the actual randomized Monte Carlo scenario rows
+- heat map includes all non-closed scenarios
+- board packet DOCX continues to include all non-closed scenarios plus closed scenarios from the past 90 days
+
+This patch keeps the stable Phase 5 board/output baseline while correcting the meaning of the outcomes table.

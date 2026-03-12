@@ -120,7 +120,9 @@ function normalizeScenario(saved) {
     monteCarloMethodRows: Array.isArray(saved.monteCarloMethodRows) ? saved.monteCarloMethodRows : [],
     monteCarloInputRows: Array.isArray(saved.monteCarloInputRows) ? saved.monteCarloInputRows : [],
     monteCarloOutputRows: Array.isArray(saved.monteCarloOutputRows) ? saved.monteCarloOutputRows : [],
-    horizonRows: Array.isArray(saved.horizonRows) ? saved.horizonRows : []
+    horizonRows: Array.isArray(saved.horizonRows) ? saved.horizonRows : [],
+    randomScenarioCount: Number(saved.randomScenarioCount || 1000),
+    randomOutcomeRows: Array.isArray(saved.randomOutcomeRows) ? saved.randomOutcomeRows : []
   };
 }
 function getSavedScenarios() {
@@ -314,6 +316,7 @@ function getSinglePayload() {
     softCostLikely: Number(document.getElementById("singleSoftCostLikely").value || 0),
     softCostMax: Number(document.getElementById("singleSoftCostMax").value || 0),
     mitigationCost: Number(document.getElementById("singleMitigationCost").value || 0),
+    randomScenarioCount: Number(document.getElementById("singleRandomScenarioCount").value || 1000),
     items: [],
     mitigations: singleMitigations.slice(),
     acceptedRisk: getAcceptedRisk("single")
@@ -344,6 +347,7 @@ function getComplexPayload() {
     softCostLikely: Number(document.getElementById("complexSoftCostLikely").value || 0),
     softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
     mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
+    randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: currentComplexItems.slice(),
     mitigations: complexMitigations.slice(),
     acceptedRisk: getAcceptedRisk("complex")
@@ -368,7 +372,9 @@ function triangularSample(min, mode, max) {
     : max - Math.sqrt((1 - u) * (max - min) * (max - mode));
 }
 function runFinancialMonteCarlo(payload) {
-  const iterations = 4000;
+  const allowedIterations = [100, 500, 1000, 10000, 100000];
+  const requested = Number(payload.randomScenarioCount || 1000);
+  const iterations = allowedIterations.includes(requested) ? requested : 1000;
   const hardMin = Math.max(0, Number(payload.hardCostMin || 0));
   const hardLikely = Math.max(hardMin, Number(payload.hardCostLikely || hardMin));
   const hardMax = Math.max(hardLikely, Number(payload.hardCostMax || hardLikely));
@@ -382,6 +388,8 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
+  const outcomeRows = [];
+
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
@@ -392,6 +400,14 @@ function runFinancialMonteCarlo(payload) {
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
+    outcomeRows.push({
+      scenarioNumber: i + 1,
+      hardCost: Math.round(hard),
+      softCost: Math.round(soft),
+      totalCost: Math.round(total),
+      residualCost: Math.round(residual),
+      breakevenMet: Math.round(total - residual) >= mitigationCost ? 1 : 0
+    });
   }
   totalSamples.sort((a,b) => a-b);
   residualSamples.sort((a,b) => a-b);
@@ -431,7 +447,8 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows
+    horizonRows,
+    randomOutcomeRows: outcomeRows
   };
 }
 function currency(value) {
@@ -724,6 +741,8 @@ function openScenario(id) {
     document.getElementById("singleSoftCostLikely").value = s.softCostLikely || 0;
     document.getElementById("singleSoftCostMax").value = s.softCostMax || 0;
     document.getElementById("singleMitigationCost").value = s.mitigationCost || 0;
+    const singleRandom = document.getElementById("singleRandomScenarioCount");
+    if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderMitigationTable("singleMitigationBody", singleMitigations);
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
@@ -755,6 +774,8 @@ function openScenario(id) {
     document.getElementById("complexSoftCostLikely").value = s.softCostLikely || 0;
     document.getElementById("complexSoftCostMax").value = s.softCostMax || 0;
     document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
+    const complexRandom = document.getElementById("complexRandomScenarioCount");
+    if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
     currentComplexItems = Array.isArray(s.items) ? s.items.slice() : [];
     renderComplexItems();
     complexMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
@@ -870,6 +891,8 @@ function loadSingleTestScenario() {
   document.getElementById("singleSoftCostLikely").value = 0.35;
   document.getElementById("singleSoftCostMax").value = 0.65;
   document.getElementById("singleMitigationCost").value = 60000;
+  const singleRandom = document.getElementById("singleRandomScenarioCount");
+  if (singleRandom) singleRandom.value = "1000";
   document.getElementById("singleScenarioDescription").value = "The card-services team changed the consumer dispute workflow and may have shortened key timing checkpoints. The scenario evaluates disclosure and procedural risk under Reg E.";
   singleMitigations = [
     { title: "Workflow validation", owner: "Operations", status: "In Progress", attachment: "workflow_review.xlsx" },
@@ -904,6 +927,8 @@ function loadComplexTestScenario() {
   document.getElementById("complexSoftCostLikely").value = 0.45;
   document.getElementById("complexSoftCostMax").value = 0.90;
   document.getElementById("complexMitigationCost").value = 210000;
+  const complexRandom = document.getElementById("complexRandomScenarioCount");
+  if (complexRandom) complexRandom.value = "1000";
   document.getElementById("complexScenarioDescription").value = "This scenario covers a cross-functional modernization effort touching deposit operations, dispute servicing, disclosures, and third-party integrations.";
   currentComplexItems = [
     {name:"Overdraft fee disclosure risk", domain:"Consumer Compliance Risk", product:"Deposits", regulation:"Reg DD", score:82, weight:4},
@@ -1070,16 +1095,18 @@ function getBoardPacketScenarios() {
 }
 function buildOutcomesTableText(summary) {
   if (!summary) return "No scenario has been run or selected.";
-  const rows = []
-    .concat([["Scenario", summary.name]])
-    .concat([["Scenario ID", summary.id || "Not Saved"]])
-    .concat([["Builder", summary.mode === "single" ? "Single Scenario" : "Complex Scenario"]])
-    .concat([["Annual Exposure Range", `${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}`]])
-    .concat(summary.monteCarloMethodRows || [])
-    .concat(summary.monteCarloInputRows || [])
-    .concat(summary.monteCarloOutputRows || [])
-    .concat((summary.horizonRows || []).map(r => [`${r.horizonLabel} Outlook`, `${currency(r.withoutMitigation)} without mitigation | ${currency(r.withMitigation)} with mitigation | ${currency(r.riskReduction)} reduction`]));
-  return rows.map(r => `${r[0]}: ${r[1]}`).join("\\n");
+  const header = [
+    `Random Outcomes Table for: ${summary.name}`,
+    `Scenario ID: ${summary.id || "Not Saved"}`,
+    `Random Scenarios Run: ${summary.randomScenarioCount || 1000}`,
+    "",
+    "Scenario #	Hard Cost	Soft Cost	Total Cost	Residual Cost	Breakeven Met?"
+  ];
+  const body = (summary.randomOutcomeRows || []).map(r =>
+    `${r.scenarioNumber}	${r.hardCost}	${r.softCost}	${r.totalCost}	${r.residualCost}	${r.breakevenMet}`
+  );
+  return header.concat(body).join("
+");
 }
 async function downloadBoardPacketDocx() {
   const scenarios = getBoardPacketScenarios();
