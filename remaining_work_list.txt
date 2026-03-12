@@ -1,0 +1,52 @@
+Risk Manager – Remaining Work List After Phase 4.3.2 Quant Patch
+
+1. Cross-machine scenario storage
+   - export/import package for scenarios and model settings
+   - shared cloud storage so scenarios follow the user across terminals/workstations
+
+2. Stronger report printing
+   - printable report layout
+   - PDF-friendly formatting
+   - optional signature / approval block
+
+3. Better Monte Carlo configurability
+   - user-selected random method
+   - selectable distributions beyond triangular
+   - configurable iteration count from UI
+   - optional seeding / reproducibility controls
+
+4. Cost modeling improvements
+   - recurring vs one-time cost modeling
+   - inflation / discount-rate options
+   - probability of occurrence by time horizon
+   - separate control implementation schedule
+
+5. Executive dashboard improvements
+   - prioritization table: expected loss vs mitigation cost vs net benefit
+   - days open
+   - last reviewed date
+   - duplicate scenario action
+
+6. Scenario lifecycle / governance
+   - reopen / close workflow history
+   - committee referral notes
+   - formal approvals and accepted-risk history
+
+7. Evidence management
+   - real file attachment persistence instead of metadata only
+   - evidence library and linkage to scenarios / mitigations
+
+8. Security / administration
+   - user accounts
+   - role-based permissions
+   - audit trail for edits and report generation
+
+9. Organization portability
+   - save/load custom Monte Carlo model libraries
+   - save/load category libraries
+   - save/load test scenarios and templates
+
+10. Data quality / validation
+    - stronger numeric validation on financial assumptions
+    - warnings for unrealistic or inverted ranges
+    - scenario completeness checks before final report generation

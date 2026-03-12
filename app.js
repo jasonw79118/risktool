@@ -22,7 +22,7 @@ const CAT_KEYS = {
   scenarioStatuses: "risk_manager_scenario_statuses_v431",
   scenarioSources: "risk_manager_scenario_sources_v431",
   acceptanceAuthorities: "risk_manager_acceptance_authorities_v431",
-  monteCarloConfig: "risk_manager_monte_carlo_config_v432"
+  monteCarloConfig: "risk_manager_monte_carlo_config_v431"
 };
 
 let productGroups = [];
@@ -33,23 +33,6 @@ let scenarioStatuses = [];
 let scenarioSources = [];
 let acceptanceAuthorities = [];
 let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
-const DEFAULT_MONTE_CARLO_MODEL = {
-  name: "Risk Manager Hubbard-Style Monte Carlo",
-  version: "4.3.2",
-  randomMethod: "normal_range",
-  iterations: 5000,
-  volatilityPct: 20,
-  ciDivisor: 3.29,
-  percentiles: [10,50,90],
-  eventModel: {
-    enabled: false,
-    probability: 0.1,
-    impactPct: 15,
-    timingMethod: "uniform"
-  },
-  tiers: structuredClone(DEFAULT_ROTATION_RULES)
-};
-let monteCarloModel = structuredClone(DEFAULT_MONTE_CARLO_MODEL);
 
 let currentComplexItems = [];
 let singleMitigations = [];
@@ -126,7 +109,18 @@ function normalizeScenario(saved) {
       reviewDate: "",
       decisionLogic: ""
     },
-    generatedSummary: saved.generatedSummary || ""
+    generatedSummary: saved.generatedSummary || "",
+    hardCostMin: Number(saved.hardCostMin || 0),
+    hardCostLikely: Number(saved.hardCostLikely || 0),
+    hardCostMax: Number(saved.hardCostMax || 0),
+    softCostMin: Number(saved.softCostMin || 0),
+    softCostLikely: Number(saved.softCostLikely || 0),
+    softCostMax: Number(saved.softCostMax || 0),
+    mitigationCost: Number(saved.mitigationCost || 0),
+    monteCarloMethodRows: Array.isArray(saved.monteCarloMethodRows) ? saved.monteCarloMethodRows : [],
+    monteCarloInputRows: Array.isArray(saved.monteCarloInputRows) ? saved.monteCarloInputRows : [],
+    monteCarloOutputRows: Array.isArray(saved.monteCarloOutputRows) ? saved.monteCarloOutputRows : [],
+    horizonRows: Array.isArray(saved.horizonRows) ? saved.horizonRows : []
   };
 }
 function getSavedScenarios() {
@@ -313,6 +307,13 @@ function getSinglePayload() {
     impact: Number(document.getElementById("singleImpact").value || 0),
     inherent: calculateSingleInherent(),
     control: Number(document.getElementById("singleControlEffectiveness").value || 0),
+    hardCostMin: Number(document.getElementById("singleHardCostMin").value || 0),
+    hardCostLikely: Number(document.getElementById("singleHardCostLikely").value || 0),
+    hardCostMax: Number(document.getElementById("singleHardCostMax").value || 0),
+    softCostMin: Number(document.getElementById("singleSoftCostMin").value || 0),
+    softCostLikely: Number(document.getElementById("singleSoftCostLikely").value || 0),
+    softCostMax: Number(document.getElementById("singleSoftCostMax").value || 0),
+    mitigationCost: Number(document.getElementById("singleMitigationCost").value || 0),
     items: [],
     mitigations: singleMitigations.slice(),
     acceptedRisk: getAcceptedRisk("single")
@@ -336,148 +337,149 @@ function getComplexPayload() {
     impact: 0,
     inherent: calculateComplexInherent(),
     control: Number(document.getElementById("complexControlEffectiveness").value || 0),
+    hardCostMin: Number(document.getElementById("complexHardCostMin").value || 0),
+    hardCostLikely: Number(document.getElementById("complexHardCostLikely").value || 0),
+    hardCostMax: Number(document.getElementById("complexHardCostMax").value || 0),
+    softCostMin: Number(document.getElementById("complexSoftCostMin").value || 0),
+    softCostLikely: Number(document.getElementById("complexSoftCostLikely").value || 0),
+    softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
+    mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
     items: currentComplexItems.slice(),
     mitigations: complexMitigations.slice(),
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
 
-function getMonteCarloModel() {
-  return monteCarloModel || structuredClone(DEFAULT_MONTE_CARLO_MODEL);
+function clampNumber(value, min, max, fallback) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.min(max, Math.max(min, num));
 }
-function clamp(n, min, max) {
-  return Math.max(min, Math.min(max, n));
-}
-function percentile(values, p) {
-  if (!values.length) return 0;
-  const sorted = values.slice().sort((a, b) => a - b);
-  const index = (p / 100) * (sorted.length - 1);
-  const lower = Math.floor(index);
-  const upper = Math.ceil(index);
-  if (lower === upper) return sorted[lower];
-  const weight = index - lower;
-  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
-}
-function mean(values) {
-  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
-}
-function stdDev(values) {
-  if (values.length < 2) return 0;
-  const m = mean(values);
-  return Math.sqrt(values.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / (values.length - 1));
-}
-function randomNormal() {
-  let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-}
-function sampleNormalRange(lower, mode, upper, ciDivisor) {
-  const sd = Math.max((upper - lower) / Math.max(ciDivisor || 3.29, 0.1), 0.01);
-  const draw = mode + randomNormal() * sd;
-  return clamp(draw, lower, upper);
-}
-function sampleTriangular(lower, mode, upper) {
+function triangularSample(min, mode, max) {
+  min = Number(min || 0);
+  mode = Number(mode || min);
+  max = Number(max || mode);
+  if (max <= min) return min;
+  mode = Math.min(max, Math.max(min, mode));
   const u = Math.random();
-  const c = (mode - lower) / Math.max(upper - lower, 0.0001);
-  if (u < c) return lower + Math.sqrt(u * (upper - lower) * (mode - lower));
-  return upper - Math.sqrt((1 - u) * (upper - lower) * (upper - mode));
+  const c = (mode - min) / (max - min);
+  return u < c
+    ? min + Math.sqrt(u * (max - min) * (mode - min))
+    : max - Math.sqrt((1 - u) * (max - min) * (max - mode));
 }
-function sampleBetaPert(lower, mode, upper) {
-  // Approximate Beta-PERT using a weighted average of uniforms around the mode.
-  const draws = [Math.random(), Math.random(), Math.random(), Math.random(), Math.random()];
-  const centerBias = (draws[0] + draws[1] + draws[2] + draws[3] + ((mode - lower) / Math.max(upper - lower, 0.0001))) / 5;
-  return lower + centerBias * (upper - lower);
-}
-function sampleUniform(lower, upper) {
-  return lower + Math.random() * (upper - lower);
-}
-function sampleBoundedValue(method, lower, mode, upper, ciDivisor) {
-  if (method === "triangular") return sampleTriangular(lower, mode, upper);
-  if (method === "beta_pert") return sampleBetaPert(lower, mode, upper);
-  if (method === "uniform") return sampleUniform(lower, upper);
-  return sampleNormalRange(lower, mode, upper, ciDivisor);
-}
-function buildMonteCarloInputs(payload) {
-  const model = getMonteCarloModel();
-  const base = Number(payload.inherent || 0);
-  const volatility = Number(model.volatilityPct || 20) / 100;
-  const lower = clamp(Math.round(base * (1 - volatility)), 0, 100);
-  const upper = clamp(Math.round(base * (1 + volatility)), 0, 100);
-  return {
-    lower,
-    mode: clamp(base, 0, 100),
-    upper,
-    controlEffectiveness: Number(payload.control || 0),
-    eventEnabled: !!model.eventModel?.enabled,
-    eventProbability: Number(model.eventModel?.probability || 0),
-    eventImpactPct: Number(model.eventModel?.impactPct || 0),
-    eventTimingMethod: model.eventModel?.timingMethod || "uniform"
-  };
-}
-function runMonteCarloSimulation(payload) {
-  const model = getMonteCarloModel();
-  const inputs = buildMonteCarloInputs(payload);
-  const inherentSeries = [];
-  const residualSeries = [];
-  for (let i = 0; i < Number(model.iterations || 5000); i++) {
-    let inherent = sampleBoundedValue(model.randomMethod, inputs.lower, inputs.mode, inputs.upper, model.ciDivisor);
-    if (inputs.eventEnabled && Math.random() < inputs.eventProbability) {
-      const timingFactor = inputs.eventTimingMethod === "fixed_full_year" ? 1 : Math.random();
-      inherent = clamp(inherent + (inputs.eventImpactPct * timingFactor), 0, 100);
-    }
-    const residual = clamp(inherent * (1 - inputs.controlEffectiveness / 100), 0, 100);
-    inherentSeries.push(inherent);
-    residualSeries.push(residual);
+function runFinancialMonteCarlo(payload) {
+  const iterations = 4000;
+  const hardMin = Math.max(0, Number(payload.hardCostMin || 0));
+  const hardLikely = Math.max(hardMin, Number(payload.hardCostLikely || hardMin));
+  const hardMax = Math.max(hardLikely, Number(payload.hardCostMax || hardLikely));
+  const softMin = Math.max(0, Number(payload.softCostMin || 0));
+  const softLikely = Math.max(softMin, Number(payload.softCostLikely || softMin));
+  const softMax = Math.max(softLikely, Number(payload.softCostMax || softLikely));
+  const effectiveness = clampNumber(payload.control || 0, 0, 100, 0) / 100;
+  const mitigationCost = Math.max(0, Number(payload.mitigationCost || 0));
+
+  const totalSamples = [];
+  const residualSamples = [];
+  const hardSamples = [];
+  const softSamples = [];
+  for (let i = 0; i < iterations; i++) {
+    const hard = triangularSample(hardMin, hardLikely, hardMax);
+    const softMultiplier = triangularSample(softMin, softLikely, softMax);
+    const soft = hard * softMultiplier;
+    const total = hard + soft;
+    const residual = total * (1 - effectiveness);
+    hardSamples.push(hard);
+    softSamples.push(soft);
+    totalSamples.push(total);
+    residualSamples.push(residual);
   }
-  const pcts = Array.isArray(model.percentiles) ? model.percentiles : [10,50,90];
-  const residualMean = mean(residualSeries);
-  const residualP50 = percentile(residualSeries, 50);
+  totalSamples.sort((a,b) => a-b);
+  residualSamples.sort((a,b) => a-b);
+
+  const avg = arr => arr.reduce((a,b)=>a+b,0) / Math.max(arr.length,1);
+  const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * p)))];
+
+  const expectedLoss = Math.round(avg(totalSamples));
+  const residualExpectedLoss = Math.round(avg(residualSamples));
+  const hardCostExpected = Math.round(avg(hardSamples));
+  const softCostExpected = Math.round(avg(softSamples));
+  const riskReductionValue = Math.max(0, expectedLoss - residualExpectedLoss);
+  const mitigationROI = riskReductionValue - mitigationCost;
+
+  const horizons = [1,3,5,10,15,20,25,30];
+  const horizonRows = horizons.map(years => {
+    const withoutMitigation = expectedLoss * years;
+    const withMitigation = residualExpectedLoss * years + mitigationCost;
+    return {
+      horizonLabel: years === 30 ? "30+ Years" : `${years} Year${years > 1 ? "s" : ""}`,
+      years,
+      withoutMitigation: Math.round(withoutMitigation),
+      withMitigation: Math.round(withMitigation),
+      riskReduction: Math.round(withoutMitigation - withMitigation)
+    };
+  });
+
   return {
-    methodRows: [
-      ["Model Name", model.name],
-      ["Model Version", model.version],
-      ["Randomization Method", model.randomMethod],
-      ["Iterations", model.iterations],
-      ["Bounded Range Logic", "Lower / most likely / upper"],
-      ["Range Construction", `Base score ± ${model.volatilityPct}%`],
-      ["Normal-range divisor", model.ciDivisor],
-      ["Event Model Enabled", inputs.eventEnabled ? "Yes" : "No"],
-      ["Event Probability", `${Math.round(inputs.eventProbability * 100)}%`],
-      ["Event Timing Method", inputs.eventTimingMethod]
-    ],
-    inputRows: [
-      ["Scenario ID", payload.id || "Generated on save"],
-      ["Scenario Name", payload.name],
-      ["Base Inherent Risk Score", payload.inherent],
-      ["Lower Bound", inputs.lower],
-      ["Most Likely / Mean Anchor", inputs.mode],
-      ["Upper Bound", inputs.upper],
-      ["Control Effectiveness %", inputs.controlEffectiveness],
-      ["Primary Product", payload.primaryProduct],
-      ["Primary Regulation", payload.primaryRegulation],
-      ["Scenario Status", payload.scenarioStatus]
-    ],
-    outputRows: [
-      ["Mean Inherent Score", mean(inherentSeries).toFixed(1)],
-      ["Mean Residual Score", residualMean.toFixed(1)],
-      ...pcts.map(p => [`P${p} Residual Score`, percentile(residualSeries, Number(p)).toFixed(1)]),
-      ["Residual Median", residualP50.toFixed(1)],
-      ["Residual Standard Deviation", stdDev(residualSeries).toFixed(1)],
-      ["Probability Residual >= 70", `${((residualSeries.filter(x => x >= 70).length / residualSeries.length) * 100).toFixed(1)}%`]
-    ],
-    explanation: "This report documents the Monte Carlo method used for the current run. The model applies a bounded random draw around the calculated inherent risk score using a selected randomization method inspired by Hubbard-style simulation practice: define a plausible lower, most-likely, and upper value, run repeated iterations, then summarize the output distribution. Optional event logic can inject an additional randomized shock when enabled.",
-    residualMean: Math.round(residualMean)
+    iterations,
+    hardCostExpected,
+    softCostExpected,
+    expectedLoss,
+    residualExpectedLoss,
+    riskReductionValue,
+    mitigationCost,
+    mitigationROI,
+    rangeLow: Math.round(pct(totalSamples, 0.10)),
+    rangeMedian: Math.round(pct(totalSamples, 0.50)),
+    rangeHigh: Math.round(pct(totalSamples, 0.90)),
+    horizonRows
   };
+}
+function currency(value) {
+  return `$${Math.round(Number(value || 0)).toLocaleString()}`;
 }
 
 function summarizePayload(payload) {
   const total = payload.inherent;
   const itemCount = payload.mode === "complex" ? Math.max(payload.items.length, 1) : 1;
-  const mc = runMonteCarloSimulation(payload);
-  const residual = Math.max(0, Math.round(mc.residualMean));
+  const residual = Math.max(0, Math.round(total * (1 - payload.control / 100)));
   const tier = getRiskTier(residual);
   const frequency = getReviewFrequency(residual);
+  const mc = runFinancialMonteCarlo(payload);
+
+  const monteCarloMethodRows = [
+    ["Method", "Triangular Monte Carlo with bounded sampling"],
+    ["Iterations", mc.iterations],
+    ["Randomization Basis", "Triangular draws for hard cost and soft-cost multipliers"],
+    ["Control Effectiveness Applied", `${payload.control}% reduction to expected simulated cost`],
+    ["Output Range Basis", "P10 / P50 / P90 of simulated annual total cost"],
+    ["Model Purpose", "Estimate hard cost, soft cost, residual loss, and mitigation economics"]
+  ];
+  const monteCarloInputRows = [
+    ["Hard Cost Min", currency(payload.hardCostMin)],
+    ["Hard Cost Most Likely", currency(payload.hardCostLikely)],
+    ["Hard Cost Max", currency(payload.hardCostMax)],
+    ["Soft Cost Multiplier Min", payload.softCostMin],
+    ["Soft Cost Multiplier Most Likely", payload.softCostLikely],
+    ["Soft Cost Multiplier Max", payload.softCostMax],
+    ["Mitigation Cost", currency(payload.mitigationCost)],
+    ["Control Effectiveness", `${payload.control}%`]
+  ];
+  const monteCarloOutputRows = [
+    ["Expected Annual Hard Cost", currency(mc.hardCostExpected)],
+    ["Expected Annual Soft Cost", currency(mc.softCostExpected)],
+    ["Expected Annual Loss", currency(mc.expectedLoss)],
+    ["Residual Annual Loss", currency(mc.residualExpectedLoss)],
+    ["Annual Risk Reduction Value", currency(mc.riskReductionValue)],
+    ["Mitigation Cost", currency(mc.mitigationCost)],
+    ["Net Benefit / ROI", currency(mc.mitigationROI)],
+    ["P10 Annual Loss", currency(mc.rangeLow)],
+    ["P50 Annual Loss", currency(mc.rangeMedian)],
+    ["P90 Annual Loss", currency(mc.rangeHigh)]
+  ];
+  const decisionText = mc.mitigationROI >= 0
+    ? `Mitigation appears cost effective. Estimated annual risk reduction of ${currency(mc.riskReductionValue)} exceeds the direct mitigation cost of ${currency(mc.mitigationCost)} by approximately ${currency(mc.mitigationROI)}.`
+    : `Direct mitigation cost appears to exceed the estimated annual reduction in loss by approximately ${currency(Math.abs(mc.mitigationROI))}. Leadership should consider partial controls, transfer options, or alternative mitigating factors.`;
+
   return {
     ...payload,
     total,
@@ -485,11 +487,22 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    monteCarloMethodRows: mc.methodRows,
-    monteCarloInputRows: mc.inputRows,
-    monteCarloOutputRows: mc.outputRows,
-    monteCarloExplanation: mc.explanation,
-    generatedSummary: buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)
+    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}`,
+    monteCarloRows: [],
+    monteCarloMethodRows,
+    monteCarloInputRows,
+    monteCarloOutputRows,
+    horizonRows: mc.horizonRows,
+    expectedLoss: mc.expectedLoss,
+    residualExpectedLoss: mc.residualExpectedLoss,
+    hardCostExpected: mc.hardCostExpected,
+    softCostExpected: mc.softCostExpected,
+    riskReductionValue: mc.riskReductionValue,
+    mitigationROI: mc.mitigationROI,
+    rangeLow: mc.rangeLow,
+    rangeMedian: mc.rangeMedian,
+    rangeHigh: mc.rangeHigh,
+    decisionText
   };
 }
 function renderScenarioSummary(summary) {
@@ -499,7 +512,7 @@ function renderScenarioSummary(summary) {
   document.getElementById("riskTier").textContent = summary.tier;
   document.getElementById("reviewFrequency").textContent = summary.frequency;
   document.getElementById("itemCount").textContent = summary.itemCount;
-  document.getElementById("dashboardNarrative").textContent = `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Recommended review frequency: ${summary.frequency}.`;
+  document.getElementById("dashboardNarrative").textContent = `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`;
   document.getElementById("aiSummaryBox").textContent = summary.generatedSummary;
   document.getElementById("reportSummary").innerHTML = `
     <li><strong>Scenario ID:</strong> ${escapeHtml(summary.id || "Not Saved")}</li>
@@ -508,11 +521,44 @@ function renderScenarioSummary(summary) {
     <li><strong>Product Group:</strong> ${escapeHtml(summary.productGroup)}</li>
     <li><strong>Primary Product:</strong> ${escapeHtml(summary.primaryProduct)}</li>
     <li><strong>Primary Regulation:</strong> ${escapeHtml(summary.primaryRegulation)}</li>
-    <li><strong>Inherent Risk Score:</strong> ${summary.inherent}</li>
+    <li><strong>Inherent Risk Score:</strong> ${summary.inherent} (${escapeHtml(summary.tier)})</li>
     <li><strong>Residual Risk Score:</strong> ${summary.residual}</li>
-    <li><strong>Risk Tier:</strong> ${escapeHtml(summary.tier)}</li>
+    <li><strong>Annual Exposure Range:</strong> ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</li>
+    <li><strong>Most Likely Annual Impact:</strong> ${currency(summary.rangeMedian)}</li>
+    <li><strong>Expected Annual Hard Cost:</strong> ${currency(summary.hardCostExpected)}</li>
+    <li><strong>Expected Annual Soft Cost:</strong> ${currency(summary.softCostExpected)}</li>
+    <li><strong>Expected Annual Loss:</strong> ${currency(summary.expectedLoss)}</li>
+    <li><strong>Residual Annual Loss:</strong> ${currency(summary.residualExpectedLoss)}</li>
+    <li><strong>Mitigation Cost:</strong> ${currency(summary.mitigationCost)}</li>
+    <li><strong>Annual Risk Reduction Value:</strong> ${currency(summary.riskReductionValue)}</li>
+    <li><strong>Net Benefit / ROI:</strong> ${currency(summary.mitigationROI)}</li>
     <li><strong>Review Frequency:</strong> ${escapeHtml(summary.frequency)}</li>
   `;
+  document.getElementById("executiveDecisionBox").innerHTML = `
+    <strong>Executive Decision Summary</strong><br>
+    There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
+    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
+    The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
+    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
+  `;
+
+  document.getElementById("decisionMetricsBody").innerHTML = `
+    <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
+    <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
+    <tr><td>Mitigation Cost</td><td>${currency(summary.mitigationCost)}</td></tr>
+    <tr><td>Annual Risk Reduction Value</td><td>${currency(summary.riskReductionValue)}</td></tr>
+    <tr><td>Net Benefit / ROI</td><td>${currency(summary.mitigationROI)}</td></tr>
+    <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
+  `;
+
+  document.getElementById("horizonExposureBody").innerHTML = summary.horizonRows.map(row => `
+    <tr>
+      <td>${escapeHtml(row.horizonLabel)}</td>
+      <td>${currency(row.withoutMitigation)}</td>
+      <td>${currency(row.withMitigation)}</td>
+      <td>${currency(row.riskReduction)}</td>
+    </tr>
+  `).join("");
 }
 function drawSimpleBarChart(canvasId, summary) {
   const canvas = document.getElementById(canvasId);
@@ -553,32 +599,25 @@ function renderCharts(summary) {
   if (showReport) drawSimpleBarChart("reportChart", summary);
 }
 function renderMonteCarloTable(summary) {
-  const includeMethod = document.getElementById("includeMonteCarloMethodTable").checked;
-  const includeInputs = document.getElementById("includeMonteCarloInputTable").checked;
-  const includeOutputs = document.getElementById("includeMonteCarloOutputTable").checked;
-  const includeExplanation = document.getElementById("includeMonteCarloExplanation").checked;
-  const card = document.getElementById("monteCarloTablesCard");
-  const methodWrap = document.getElementById("monteCarloMethodWrap");
-  const inputWrap = document.getElementById("monteCarloInputWrap");
-  const outputWrap = document.getElementById("monteCarloOutputWrap");
-  const methodBody = document.getElementById("monteCarloMethodBody");
-  const inputBody = document.getElementById("monteCarloInputBody");
-  const outputBody = document.getElementById("monteCarloOutputBody");
+  const showTable = document.getElementById("includeMonteCarloTable").checked;
+  const showExplain = document.getElementById("includeMonteCarloExplanation").checked;
+  const card = document.getElementById("monteCarloTableCard");
+  const tbody = document.getElementById("monteCarloTableBody");
   const explain = document.getElementById("monteCarloExplanationBox");
-
-  const anything = includeMethod || includeInputs || includeOutputs || includeExplanation;
-  card.classList.toggle("hidden", !anything || !summary);
-  if (!anything || !summary) return;
-
-  methodWrap.classList.toggle("hidden", !includeMethod);
-  inputWrap.classList.toggle("hidden", !includeInputs);
-  outputWrap.classList.toggle("hidden", !includeOutputs);
-  explain.classList.toggle("hidden", !includeExplanation);
-
-  methodBody.innerHTML = (summary.monteCarloMethodRows || []).map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
-  inputBody.innerHTML = (summary.monteCarloInputRows || []).map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
-  outputBody.innerHTML = (summary.monteCarloOutputRows || []).map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
-  explain.textContent = summary.monteCarloExplanation || "";
+  card.classList.toggle("hidden", !showTable);
+  if (!showTable || !summary) return;
+  const rows = []
+    .concat([["--- Monte Carlo Method ---",""]])
+    .concat(summary.monteCarloMethodRows || [])
+    .concat([["--- Monte Carlo Inputs ---",""]])
+    .concat(summary.monteCarloInputRows || [])
+    .concat([["--- Monte Carlo Outputs ---",""]])
+    .concat(summary.monteCarloOutputRows || []);
+  tbody.innerHTML = rows.map(r => `<tr><td>${escapeHtml(r[0])}</td><td>${escapeHtml(r[1])}</td></tr>`).join("");
+  explain.classList.toggle("hidden", !showExplain);
+  if (showExplain) {
+    explain.textContent = "This report section documents the Monte Carlo method, inputs, and outputs used in the current scenario. The model uses bounded triangular sampling for hard cost and soft-cost multipliers, applies the stated control-effectiveness assumption, and estimates a distribution of annual loss outcomes. This structure is intended to support transparency, reproducibility, and examiner review.";
+  }
 }
 function runScenario() {
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
@@ -675,6 +714,13 @@ function openScenario(id) {
     document.getElementById("singleLikelihood").value = s.likelihood || 0;
     document.getElementById("singleImpact").value = s.impact || 0;
     document.getElementById("singleControlEffectiveness").value = s.control || 0;
+    document.getElementById("singleHardCostMin").value = s.hardCostMin || 0;
+    document.getElementById("singleHardCostLikely").value = s.hardCostLikely || 0;
+    document.getElementById("singleHardCostMax").value = s.hardCostMax || 0;
+    document.getElementById("singleSoftCostMin").value = s.softCostMin || 0;
+    document.getElementById("singleSoftCostLikely").value = s.softCostLikely || 0;
+    document.getElementById("singleSoftCostMax").value = s.softCostMax || 0;
+    document.getElementById("singleMitigationCost").value = s.mitigationCost || 0;
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderMitigationTable("singleMitigationBody", singleMitigations);
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
@@ -699,6 +745,13 @@ function openScenario(id) {
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
+    document.getElementById("complexHardCostMin").value = s.hardCostMin || 0;
+    document.getElementById("complexHardCostLikely").value = s.hardCostLikely || 0;
+    document.getElementById("complexHardCostMax").value = s.hardCostMax || 0;
+    document.getElementById("complexSoftCostMin").value = s.softCostMin || 0;
+    document.getElementById("complexSoftCostLikely").value = s.softCostLikely || 0;
+    document.getElementById("complexSoftCostMax").value = s.softCostMax || 0;
+    document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
     currentComplexItems = Array.isArray(s.items) ? s.items.slice() : [];
     renderComplexItems();
     complexMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
@@ -807,6 +860,13 @@ function loadSingleTestScenario() {
   document.getElementById("singleLikelihood").value = 8;
   document.getElementById("singleImpact").value = 9;
   document.getElementById("singleControlEffectiveness").value = 32;
+  document.getElementById("singleHardCostMin").value = 40000;
+  document.getElementById("singleHardCostLikely").value = 135000;
+  document.getElementById("singleHardCostMax").value = 325000;
+  document.getElementById("singleSoftCostMin").value = 0.15;
+  document.getElementById("singleSoftCostLikely").value = 0.35;
+  document.getElementById("singleSoftCostMax").value = 0.65;
+  document.getElementById("singleMitigationCost").value = 60000;
   document.getElementById("singleScenarioDescription").value = "The card-services team changed the consumer dispute workflow and may have shortened key timing checkpoints. The scenario evaluates disclosure and procedural risk under Reg E.";
   singleMitigations = [
     { title: "Workflow validation", owner: "Operations", status: "In Progress", attachment: "workflow_review.xlsx" },
@@ -834,6 +894,13 @@ function loadComplexTestScenario() {
   document.getElementById("complexScenarioOwner").value = "Enterprise Risk";
   document.getElementById("complexIdentifiedDate").value = todayIso();
   document.getElementById("complexControlEffectiveness").value = 28;
+  document.getElementById("complexHardCostMin").value = 125000;
+  document.getElementById("complexHardCostLikely").value = 475000;
+  document.getElementById("complexHardCostMax").value = 1200000;
+  document.getElementById("complexSoftCostMin").value = 0.20;
+  document.getElementById("complexSoftCostLikely").value = 0.45;
+  document.getElementById("complexSoftCostMax").value = 0.90;
+  document.getElementById("complexMitigationCost").value = 210000;
   document.getElementById("complexScenarioDescription").value = "This scenario covers a cross-functional modernization effort touching deposit operations, dispute servicing, disclosures, and third-party integrations.";
   currentComplexItems = [
     {name:"Overdraft fee disclosure risk", domain:"Consumer Compliance Risk", product:"Deposits", regulation:"Reg DD", score:82, weight:4},
@@ -857,39 +924,24 @@ function loadComplexTestScenario() {
   activateView("complex");
 }
 function validateMonteCarloConfig(config) {
-  return !!config &&
-    typeof config.randomMethod === "string" &&
-    Number.isFinite(Number(config.iterations)) &&
-    Number.isFinite(Number(config.volatilityPct)) &&
-    Array.isArray(config.tiers) &&
-    config.tiers.every(t =>
-      typeof t.tier === "string" &&
-      Number.isFinite(Number(t.min_score)) &&
-      Number.isFinite(Number(t.max_score)) &&
-      typeof t.review_frequency === "string"
-    );
+  return !!config && Array.isArray(config.tiers) && config.tiers.every(t =>
+    typeof t.tier === "string" &&
+    Number.isFinite(Number(t.min_score)) &&
+    Number.isFinite(Number(t.max_score)) &&
+    typeof t.review_frequency === "string"
+  );
 }
 function applyMonteCarloConfig(config) {
-  monteCarloModel = {
-    ...structuredClone(DEFAULT_MONTE_CARLO_MODEL),
-    ...config,
-    eventModel: {
-      ...structuredClone(DEFAULT_MONTE_CARLO_MODEL.eventModel),
-      ...(config.eventModel || {})
-    },
-    tiers: config.tiers.map(t => ({
-      tier: t.tier,
-      min_score: Number(t.min_score),
-      max_score: Number(t.max_score),
-      review_frequency: t.review_frequency
-    }))
-  };
-  rotationRules = monteCarloModel.tiers.map(t => ({...t}));
-  writeJSON(CAT_KEYS.monteCarloConfig, monteCarloModel);
+  rotationRules = config.tiers.map(t => ({
+    tier: t.tier,
+    min_score: Number(t.min_score),
+    max_score: Number(t.max_score),
+    review_frequency: t.review_frequency
+  }));
+  writeJSON(CAT_KEYS.monteCarloConfig, rotationRules);
   updateMonteCarloStatus();
 }
 function resetMonteCarloConfig() {
-  monteCarloModel = structuredClone(DEFAULT_MONTE_CARLO_MODEL);
   rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
   localStorage.removeItem(CAT_KEYS.monteCarloConfig);
   updateMonteCarloStatus();
@@ -897,28 +949,22 @@ function resetMonteCarloConfig() {
 function updateMonteCarloStatus() {
   const stored = readJSON(CAT_KEYS.monteCarloConfig, null);
   const el = document.getElementById("monteCarloConfigStatus");
-  const model = stored && stored.randomMethod ? stored : DEFAULT_MONTE_CARLO_MODEL;
-  el.textContent = `Model: ${model.name} | method: ${model.randomMethod} | iterations: ${model.iterations} | volatility band: ±${model.volatilityPct}%`;
+  if (stored && Array.isArray(stored) && stored.length) {
+    el.textContent = `Using custom Monte Carlo model with ${stored.length} tier rule(s).`;
+  } else {
+    el.textContent = "Using default Monte Carlo model.";
+  }
 }
 function loadStoredMonteCarloConfig() {
   const stored = readJSON(CAT_KEYS.monteCarloConfig, null);
-  if (stored && stored.randomMethod) {
-    monteCarloModel = {
-      ...structuredClone(DEFAULT_MONTE_CARLO_MODEL),
-      ...stored,
-      eventModel: {
-        ...structuredClone(DEFAULT_MONTE_CARLO_MODEL.eventModel),
-        ...(stored.eventModel || {})
-      }
-    };
-    rotationRules = monteCarloModel.tiers.map(t => ({
+  if (stored && Array.isArray(stored) && stored.length) {
+    rotationRules = stored.map(t => ({
       tier: t.tier,
       min_score: Number(t.min_score),
       max_score: Number(t.max_score),
       review_frequency: t.review_frequency
     }));
   } else {
-    monteCarloModel = structuredClone(DEFAULT_MONTE_CARLO_MODEL);
     rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
   }
 }
@@ -943,9 +989,7 @@ function wireInputs() {
   document.querySelectorAll(".nav-item").forEach(btn => btn.addEventListener("click", () => activateView(btn.dataset.view)));
   document.getElementById("showDashboardGraphToggle").addEventListener("change", () => renderCharts(lastSummary));
   document.getElementById("includeGraphInReport").addEventListener("change", () => renderCharts(lastSummary));
-  document.getElementById("includeMonteCarloMethodTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
-  document.getElementById("includeMonteCarloInputTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
-  document.getElementById("includeMonteCarloOutputTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
+  document.getElementById("includeMonteCarloTable").addEventListener("change", () => renderMonteCarloTable(lastSummary));
   document.getElementById("includeMonteCarloExplanation").addEventListener("change", () => renderMonteCarloTable(lastSummary));
   document.getElementById("resetMonteCarloBtn").addEventListener("click", resetMonteCarloConfig);
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
@@ -955,7 +999,7 @@ function wireInputs() {
       const text = await file.text();
       const json = JSON.parse(text);
       if (!validateMonteCarloConfig(json)) {
-        alert("Invalid Monte Carlo configuration. Expected keys like randomMethod, iterations, volatilityPct, eventModel, and tiers.");
+        alert("Invalid Monte Carlo configuration. Expected { tiers: [{ tier, min_score, max_score, review_frequency }] }");
         return;
       }
       applyMonteCarloConfig(json);
@@ -978,15 +1022,18 @@ function renderManual() {
     <h4>Single vs Complex</h4>
     <p>Use Single Scenario for one focused issue. Use Complex Scenario for a project, product family, department, or business area with multiple weighted risk items.</p>
     <h4>Scoring</h4>
-    <p>Inherent risk is now calculated, not manually entered. Single Scenario uses likelihood and impact. Complex Scenario uses the weighted average of risk items. Residual risk applies control effectiveness to the inherent score.</p>
+    <p>Inherent risk is calculated, not manually entered. Single Scenario uses likelihood and impact. Complex Scenario uses the weighted average of risk items. Residual risk applies control effectiveness to the inherent score.</p>
+    <h4>Financial Risk Modeling</h4>
+    <p>The report separately considers direct hard cost and secondary or incidental soft cost. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a multiplier applied to hard cost to reflect reputational, operational, complaint, and related secondary impacts.</p>
+    <h4>Monte Carlo Method</h4>
+    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
+    <p>This approach is designed to support U.S. regulatory examiner expectations by documenting assumptions, preserving bounded input ranges, showing the method used, and producing transparent output tables that can be reproduced and reviewed later.</p>
+    <h4>Executive Decision Analysis</h4>
+    <p>Reports now explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether other mitigating factors should be considered.</p>
+    <h4>Time Horizons</h4>
+    <p>Each report now includes one-year, three-year, five-year, ten-year, fifteen-year, twenty-year, twenty-five-year, and thirty-plus-year outlooks, both with and without mitigation, so leadership can understand longer-term exposure.</p>
     <h4>Category Admin</h4>
     <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, or remove values.</p>
-    <h4>Accepted Risk</h4>
-    <p>Accepted Risk is a formal governance section that captures authority, who accepted the risk, the acceptance date, the review date, and decision logic.</p>
-    <h4>Dashboard</h4>
-    <p>The dashboard now includes a live open-scenario table for scenarios that are not closed, sorted by highest inherent risk first.</p>
-    <h4>Monte Carlo Model</h4>
-    <p>The Reports view now documents the Monte Carlo method table, input table, and output table used for the current run. The default model follows a Hubbard-style bounded simulation pattern and users can load a custom JSON configuration to change the randomization method, iteration count, event logic, and risk-band rules without changing code.</p>
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;

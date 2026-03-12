@@ -1,44 +1,27 @@
 {
-  "name": "Custom Monte Carlo Profile",
-  "version": "1.0",
-  "randomMethod": "triangular",
-  "iterations": 8000,
-  "volatilityPct": 25,
-  "ciDivisor": 3.29,
-  "percentiles": [
-    10,
-    50,
-    90
-  ],
-  "eventModel": {
-    "enabled": true,
-    "probability": 0.12,
-    "impactPct": 18,
-    "timingMethod": "uniform"
-  },
   "tiers": [
     {
       "tier": "Very High",
-      "min_score": 85,
+      "min_score": 90,
       "max_score": 100,
       "review_frequency": "Quarterly"
     },
     {
       "tier": "High",
-      "min_score": 70,
-      "max_score": 84,
+      "min_score": 75,
+      "max_score": 89,
       "review_frequency": "Semiannual"
     },
     {
       "tier": "Moderate",
-      "min_score": 50,
-      "max_score": 69,
+      "min_score": 55,
+      "max_score": 74,
       "review_frequency": "Annual"
     },
     {
       "tier": "Low",
       "min_score": 0,
-      "max_score": 49,
+      "max_score": 54,
       "review_frequency": "18-24 Months"
     }
   ]

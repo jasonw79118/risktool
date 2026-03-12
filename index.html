@@ -164,6 +164,36 @@
             <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
             <input id="singleControlEffectiveness" type="number" min="0" max="100" value="30">
           </div>
+
+          <div>
+            <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
+            <input id="singleHardCostMin" type="number" min="0" step="1000" value="50000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Most likely direct hard-cost loss estimate for the scenario.">Hard Cost Most Likely ($)</label>
+            <input id="singleHardCostLikely" type="number" min="0" step="1000" value="150000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Maximum direct hard-cost loss estimate for the scenario.">Hard Cost Max ($)</label>
+            <input id="singleHardCostMax" type="number" min="0" step="1000" value="400000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Minimum soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Min</label>
+            <input id="singleSoftCostMin" type="number" min="0" step="0.05" value="0.15">
+          </div>
+          <div>
+            <label class="help-label" data-help="Most likely soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Most Likely</label>
+            <input id="singleSoftCostLikely" type="number" min="0" step="0.05" value="0.35">
+          </div>
+          <div>
+            <label class="help-label" data-help="Maximum soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Max</label>
+            <input id="singleSoftCostMax" type="number" min="0" step="0.05" value="0.75">
+          </div>
+          <div>
+            <label class="help-label" data-help="Estimated direct cost to fully mitigate the identified risk.">Mitigation Cost ($)</label>
+            <input id="singleMitigationCost" type="number" min="0" step="1000" value="75000">
+          </div>
+
           <div class="full-span">
             <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
             <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
@@ -281,6 +311,36 @@
             <label class="help-label" data-help="Estimated percentage reduction from the current control environment.">Control Effectiveness %</label>
             <input id="complexControlEffectiveness" type="number" min="0" max="100" value="28">
           </div>
+
+          <div>
+            <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
+            <input id="complexHardCostMin" type="number" min="0" step="1000" value="100000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Most likely direct hard-cost loss estimate for the scenario.">Hard Cost Most Likely ($)</label>
+            <input id="complexHardCostLikely" type="number" min="0" step="1000" value="350000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Maximum direct hard-cost loss estimate for the scenario.">Hard Cost Max ($)</label>
+            <input id="complexHardCostMax" type="number" min="0" step="1000" value="900000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Minimum soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Min</label>
+            <input id="complexSoftCostMin" type="number" min="0" step="0.05" value="0.20">
+          </div>
+          <div>
+            <label class="help-label" data-help="Most likely soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Most Likely</label>
+            <input id="complexSoftCostLikely" type="number" min="0" step="0.05" value="0.45">
+          </div>
+          <div>
+            <label class="help-label" data-help="Maximum soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Max</label>
+            <input id="complexSoftCostMax" type="number" min="0" step="0.05" value="0.90">
+          </div>
+          <div>
+            <label class="help-label" data-help="Estimated direct cost to fully mitigate the identified risk.">Mitigation Cost ($)</label>
+            <input id="complexMitigationCost" type="number" min="0" step="1000" value="150000">
+          </div>
+
           <div class="full-span">
             <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
             <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
@@ -480,14 +540,12 @@
           <div class="checkbox-list">
             <label><input id="showDashboardGraphToggle" type="checkbox" checked> Show graph on dashboard</label>
             <label><input id="includeGraphInReport" type="checkbox" checked> Include graph in report</label>
-            <label><input id="includeMonteCarloMethodTable" type="checkbox" checked> Include Monte Carlo method table</label>
-            <label><input id="includeMonteCarloInputTable" type="checkbox" checked> Include Monte Carlo input table</label>
-            <label><input id="includeMonteCarloOutputTable" type="checkbox" checked> Include Monte Carlo output table</label>
-            <label><input id="includeMonteCarloExplanation" type="checkbox" checked> Include Monte Carlo narrative explanation</label>
+            <label><input id="includeMonteCarloTable" type="checkbox"> Include Monte Carlo table in report</label>
+            <label><input id="includeMonteCarloExplanation" type="checkbox"> Include Monte Carlo table explanation</label>
           </div>
           <hr class="soft-line">
           <h3>Monte Carlo Configuration</h3>
-          <p class="muted">This model follows the Hubbard-style use of random simulation across bounded assumptions. You can keep the default model or load a custom JSON configuration that changes the randomization method and the report tables will document exactly what was used.</p>
+          <p class="muted">Keep the default model or load a custom JSON configuration with risk tiers and review frequency rules.</p>
           <div class="builder-actions">
             <input id="customMonteCarloFile" type="file" accept=".json">
             <button class="btn btn-secondary" id="resetMonteCarloBtn">Reset to Default Model</button>
@@ -497,47 +555,46 @@
         <div class="card">
           <h3>Report Summary</h3>
           <ul id="reportSummary" class="simple-list"><li>No scenario has been run yet.</li></ul>
+          <div id="executiveDecisionBox" class="note-box">Run a scenario to generate the executive decision summary.</div>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div id="horizonExposureCard" class="card">
+          <div class="card-header"><h3>Time Horizon Exposure</h3><span>Always Included</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Horizon</th><th>Without Mitigation</th><th>With Mitigation</th><th>Risk Reduction</th></tr></thead>
+              <tbody id="horizonExposureBody"><tr><td colspan="4">Run a scenario to populate time-horizon projections.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="riskPriorityCard" class="card">
+          <div class="card-header"><h3>Decision Metrics</h3><span>Executive</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Measure</th><th>Value</th></tr></thead>
+              <tbody id="decisionMetricsBody"><tr><td colspan="2">Run a scenario to populate decision metrics.</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <div id="reportGraphCard" class="card">
+
         <div class="card-header"><h3>Report Graph</h3><span>Optional</span></div>
         <canvas id="reportChart" width="760" height="260"></canvas>
       </div>
 
-      <div id="monteCarloTablesCard" class="card hidden">
-        <div class="card-header"><h3>Monte Carlo Model Documentation</h3><span>Optional</span></div>
-
-        <div id="monteCarloMethodWrap">
-          <h4>Monte Carlo Method Table</h4>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Method Element</th><th>Value</th></tr></thead>
-              <tbody id="monteCarloMethodBody"></tbody>
-            </table>
-          </div>
+      <div id="monteCarloTableCard" class="card hidden">
+        <div class="card-header"><h3>Monte Carlo Method and Calculation Tables</h3><span>Optional</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Measure</th><th>Value</th></tr></thead>
+            <tbody id="monteCarloTableBody"></tbody>
+          </table>
         </div>
-
-        <div id="monteCarloInputWrap">
-          <h4>Monte Carlo Input Table</h4>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Input</th><th>Value</th></tr></thead>
-              <tbody id="monteCarloInputBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="monteCarloOutputWrap">
-          <h4>Monte Carlo Output Table</h4>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Output</th><th>Value</th></tr></thead>
-              <tbody id="monteCarloOutputBody"></tbody>
-            </table>
-          </div>
-        </div>
-
         <div id="monteCarloExplanationBox" class="note-box hidden"></div>
       </div>
     </section>
