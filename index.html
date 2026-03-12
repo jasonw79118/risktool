@@ -1,17 +1,128 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Risk Manager</title>
-<link rel="stylesheet" href="style.css?v=421">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Risk Manager Hotfix 4.2.1</h1>
-<p>If you see this page and buttons work, the UI is fixed.</p>
 
-<button onclick="alert('Navigation working')">Test Button</button>
+<header class="header">
+<h1>Risk Manager</h1>
+<p class="subtitle">Operational & Compliance Scenario Management</p>
+</header>
 
-<script src="app.js?v=421"></script>
+<nav class="nav">
+<button onclick="showView('dashboard')">Dashboard</button>
+<button onclick="showView('single')">Single Scenario</button>
+<button onclick="showView('complex')">Complex Scenario</button>
+<button onclick="showView('admin')">Category Admin</button>
+<button onclick="showView('table')">Scenario Table</button>
+</nav>
+
+<section id="dashboard" class="view active">
+<h2>Dashboard</h2>
+<div class="cards">
+<div class="card">
+<h3>Total Scenarios</h3>
+<p id="totalScenarios">0</p>
+</div>
+<div class="card">
+<h3>Open Scenarios</h3>
+<p id="openScenarios">0</p>
+</div>
+<div class="card">
+<h3>Accepted Risks</h3>
+<p id="acceptedRisks">0</p>
+</div>
+</div>
+</section>
+
+<section id="single" class="view">
+<h2>Single Scenario Builder</h2>
+
+<label class="help-label" title="Short descriptive name for the risk scenario">Scenario Title</label>
+<input id="singleTitle">
+
+<label>Product Group</label>
+<select id="singleProduct"></select>
+
+<label>Risk Domain</label>
+<select id="singleDomain"></select>
+
+<label>Status</label>
+<select id="singleStatus"></select>
+
+<label>Source</label>
+<select id="singleSource"></select>
+
+<label>Description</label>
+<textarea id="singleDesc"></textarea>
+
+<button onclick="saveScenario('single')">Save Scenario</button>
+</section>
+
+<section id="complex" class="view">
+<h2>Complex Scenario Builder</h2>
+
+<label>Scenario Title</label>
+<input id="complexTitle">
+
+<label>Product Group</label>
+<select id="complexProduct"></select>
+
+<label>Risk Domain</label>
+<select id="complexDomain"></select>
+
+<label>Status</label>
+<select id="complexStatus"></select>
+
+<label>Source</label>
+<select id="complexSource"></select>
+
+<label>Description</label>
+<textarea id="complexDesc"></textarea>
+
+<button onclick="saveScenario('complex')">Save Scenario</button>
+</section>
+
+<section id="admin" class="view">
+<h2>Category Admin</h2>
+
+<div class="adminBlock">
+<h3>Product Groups</h3>
+<ul id="productList"></ul>
+<input id="newProduct">
+<button onclick="addCategory('productGroups','newProduct')">Add</button>
+</div>
+
+<div class="adminBlock">
+<h3>Risk Domains</h3>
+<ul id="domainList"></ul>
+<input id="newDomain">
+<button onclick="addCategory('riskDomains','newDomain')">Add</button>
+</div>
+
+</section>
+
+<section id="table" class="view">
+<h2>Scenario Table</h2>
+<table id="scenarioTable">
+<thead>
+<tr>
+<th>ID</th>
+<th>Title</th>
+<th>Product</th>
+<th>Domain</th>
+<th>Status</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<script src="app.js"></script>
 </body>
 </html>

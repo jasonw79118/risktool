@@ -1,4 +1,69 @@
 
-body {font-family: Arial; padding:40px; background:#f4f7fb;}
-h1 {color:#173a8c;}
-button {padding:10px 14px; font-size:16px;}
+body {
+font-family: Arial, sans-serif;
+margin:0;
+background:#0e1624;
+color:white;
+}
+
+.header {
+background:#1f4e8c;
+padding:20px;
+}
+
+.subtitle {
+opacity:0.7;
+}
+
+.nav {
+background:#152238;
+padding:10px;
+}
+
+.nav button {
+margin-right:10px;
+padding:8px 12px;
+background:#b85c1e;
+border:none;
+color:white;
+cursor:pointer;
+}
+
+.view {
+display:none;
+padding:20px;
+}
+
+.view.active {
+display:block;
+}
+
+.cards {
+display:flex;
+gap:20px;
+}
+
+.card {
+background:#1b2b45;
+padding:20px;
+border-radius:8px;
+}
+
+.help-label {
+text-decoration: underline dotted;
+cursor: help;
+}
+
+table {
+width:100%;
+border-collapse:collapse;
+}
+
+th, td {
+padding:10px;
+border-bottom:1px solid #333;
+}
+
+.adminBlock {
+margin-bottom:30px;
+}
