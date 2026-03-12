@@ -446,7 +446,10 @@
     <section id="view-categories" class="view">
       <div class="section-header">
         <h2>Category Admin</h2>
-        <p>Add, edit, or remove values. Existing selections are shown in each field and category-driven options are alphabetized.</p>
+        <p>Add, edit, or remove values. Existing selections are shown in each field and category-driven options are alphabetized. This corrective build also restores the default libraries if they were lost.</p>
+      </div>
+      <div class="builder-actions">
+        <button class="btn btn-secondary" id="restoreDefaultLibrariesBtn">Restore All Default Libraries</button>
       </div>
       <div class="grid three">
         <div class="card category-card">
@@ -607,7 +610,7 @@
       <div class="grid two">
         <div class="card">
           <div class="card-header"><h3>User Manual</h3><span>Reference</span></div>
-          <div class="manual-copy" id="userManualCopy"></div>
+          <div class="manual-copy" id="userManualCopy"><p>Loading user manual...</p></div>
         </div>
         <div class="card">
           <div class="card-header"><h3>Recommendations</h3><span>Next Steps</span></div>

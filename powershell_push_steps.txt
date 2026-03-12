@@ -1,6 +1,4 @@
-# Risk Manager – Phase 4.3.2 Quant Patch push steps
-# From your repo folder:
-
+# Risk Manager – Phase 4.3.2a correction push steps
 git add index.html style.css app.js README.txt powershell_push_steps.txt remaining_work_list.txt
-git commit -m "Risk Manager Phase 4.3.2 quantitative decision patch"
+git commit -m "Risk Manager Phase 4.3.2a correction restore category defaults and information manual"
 git push origin main

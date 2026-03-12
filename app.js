@@ -1038,14 +1038,54 @@ function renderManual() {
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
 }
+
+function restoreAllDefaultLibraries() {
+  setStoredArray(CAT_KEYS.productGroups, DEFAULT_PRODUCT_GROUPS);
+  setStoredArray(CAT_KEYS.products, DEFAULT_PRODUCTS);
+  setStoredArray(CAT_KEYS.regulations, DEFAULT_REGULATIONS);
+  setStoredArray(CAT_KEYS.riskDomains, DEFAULT_RISK_DOMAINS);
+  setStoredArray(CAT_KEYS.scenarioStatuses, DEFAULT_SCENARIO_STATUSES);
+  setStoredArray(CAT_KEYS.scenarioSources, DEFAULT_SCENARIO_SOURCES);
+  setStoredArray(CAT_KEYS.acceptanceAuthorities, DEFAULT_ACCEPTANCE_AUTHORITIES);
+  refreshLibraries();
+}
+function forceManualContent() {
+  const manual = document.getElementById("userManualCopy");
+  if (!manual) return;
+  manual.innerHTML = `
+    <h4>Purpose</h4>
+    <p>Risk Manager is used to evaluate single and complex risk scenarios, generate narrative summaries, maintain saved scenarios, and support executive decision-making with quantified risk estimates.</p>
+    <h4>Single vs Complex Scenarios</h4>
+    <p>Use Single Scenario for one focused issue. Use Complex Scenario for a broader project, business area, product family, or department with multiple weighted risk items.</p>
+    <h4>Calculated Scores</h4>
+    <p>Inherent risk is calculated, not typed in manually. Single Scenario uses likelihood and impact. Complex Scenario uses the weighted average of the individual complex risk items. Residual risk applies the stated control-effectiveness percentage to the inherent score.</p>
+    <h4>Financial Modeling</h4>
+    <p>The report separately evaluates direct <strong>hard cost</strong> and secondary or incidental <strong>soft cost</strong>. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a bounded multiplier applied to hard cost to reflect secondary impacts such as reputational damage, customer complaints, operational disruption, and related indirect effects.</p>
+    <h4>Monte Carlo Method</h4>
+    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard-cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
+    <p>This approach is intended to satisfy U.S. examiner expectations by documenting assumptions, using bounded inputs, identifying the method used, preserving transparency in the output tables, and allowing the methodology to be reviewed later.</p>
+    <h4>Executive Decision Analysis</h4>
+    <p>Reports explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether alternative mitigating factors should be considered.</p>
+    <h4>Time Horizons</h4>
+    <p>Each report includes outlooks for 1 year, 3 years, 5 years, 10 years, 15 years, 20 years, 25 years, and 30+ years, both with and without mitigation, so decision makers can understand longer-term exposure.</p>
+    <h4>Category Admin</h4>
+    <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, remove, and now restore the default libraries if needed.</p>
+    <h4>Storage Limitation</h4>
+    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
+  `;
+}
+
 function init() {
   loadStoredMonteCarloConfig();
   wireInputs();
   renderManual();
+  forceManualContent();
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   renderComplexItems();
   refreshLibraries();
   updateInherentScores();
+  const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
+  if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
 }
 document.addEventListener("DOMContentLoaded", init);
