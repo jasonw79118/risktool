@@ -1,4 +1,4 @@
-# Risk Manager – Phase 4.5 export/import + board output patch push steps
+# Risk Manager – Phase 5 board packet and output upgrade push steps
 git add index.html style.css app.js README.txt powershell_push_steps.txt remaining_work_list.txt data/monte_carlo_config_example.json
-git commit -m "Risk Manager Phase 4.5 export import board output and heat map patch"
+git commit -m "Risk Manager Phase 5 board packet docx and report output upgrade"
 git push origin main

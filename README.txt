@@ -1,11 +1,12 @@
-Risk Manager – Phase 4.5 Export / Import + Board Output Patch
+Risk Manager – Phase 5 Board Packet and Output Upgrade
 
-This surgical patch adds:
-- scenario library export/import for cross-machine portability
-- quick Open Report action in the dashboard open-scenario table
-- hover help in report options and report sections
-- board packet TXT export
-- AI PowerPoint briefing TXT export
-- dashboard risk heat map
+This surgical package moves the project into Phase 5 and adds:
+- hover help for report-summary fields
+- board packet export as DOCX
+- AI PowerPoint briefing export as TXT
+- outcomes table TXT export when Monte Carlo tables are selected
+- quick Open Report link in the dashboard open-scenario table
+- export/import, heat map, and prior 4.5 capabilities retained
 
-This package is intended to sit on top of the stable 4.3.2a correction baseline.
+Note:
+DOCX board packet export uses a browser-side DOCX library loaded by script tag.

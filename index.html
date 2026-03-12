@@ -547,8 +547,9 @@
         <p>Control report content and dashboard graph visibility from here.</p>
       </div>
       <div class="builder-actions">
-        <button class="btn btn-secondary" id="downloadBoardPacketBtn">Download Board Packet TXT</button>
+        <button class="btn btn-secondary" id="downloadBoardPacketBtn">Download Board Packet DOCX</button>
         <button class="btn btn-secondary" id="downloadAIPacketBtn">Download AI PPT Brief TXT</button>
+        <button class="btn btn-secondary" id="downloadOutcomesTableBtn">Download Outcomes Table TXT</button>
       </div>
       <div class="grid two">
         <div class="card">
@@ -569,8 +570,8 @@
           <div class="note-box" id="monteCarloConfigStatus">Using default Monte Carlo model.</div>
         </div>
         <div class="card">
-          <h3>Report Summary</h3>
-          <ul id="reportSummary" class="simple-list"><li>No scenario has been run yet.</li></ul>
+          <h3><span class="help-label" data-help="Summarizes scenario identity, scoring, annual exposure range, mitigation economics, and review frequency.">Report Summary</span></h3>
+          <div id="reportSummary" class="summary-table-wrap"><table class="summary-table"><tbody><tr><td colspan="2">No scenario has been run yet.</td></tr></tbody></table></div>
           <div id="executiveDecisionBox" class="note-box">Run a scenario to generate the executive decision summary.</div>
         </div>
       </div>
@@ -640,6 +641,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
