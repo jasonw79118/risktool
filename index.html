@@ -88,10 +88,10 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Open Scenario Table</h3><span>Not Closed</span></div>
+        <div class="card-header"><h3>Open Scenario Table</h3><span>Not Closed • ID opens the original builder</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Product Group</th><th>Risk Domain</th><th>Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Builder</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Product Group</th><th>Risk Domain</th><th>Actions</th></tr></thead>
             <tbody id="dashboardOpenScenarioBody"></tbody>
           </table>
         </div>
@@ -198,6 +198,16 @@
           <div>
             <label class="help-label" data-help="Estimated direct cost to fully mitigate the identified risk.">Mitigation Cost ($)</label>
             <input id="singleMitigationCost" type="number" min="0" step="1000" value="75000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Number of randomized Monte Carlo scenarios to run for the financial model and outcomes table.">Random Scenarios</label>
+            <select id="singleRandomScenarioCount">
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000" selected>1,000</option>
+              <option value="10000">10,000</option>
+              <option value="100000">100,000</option>
+            </select>
           </div>
 
           <div class="full-span">
@@ -346,6 +356,16 @@
             <label class="help-label" data-help="Estimated direct cost to fully mitigate the identified risk.">Mitigation Cost ($)</label>
             <input id="complexMitigationCost" type="number" min="0" step="1000" value="150000">
           </div>
+          <div>
+            <label class="help-label" data-help="Number of randomized Monte Carlo scenarios to run for the financial model and outcomes table.">Random Scenarios</label>
+            <select id="complexRandomScenarioCount">
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000" selected>1,000</option>
+              <option value="10000">10,000</option>
+              <option value="100000">100,000</option>
+            </select>
+          </div>
 
           <div class="full-span">
             <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
@@ -409,7 +429,7 @@
 
       <div class="grid two">
         <div class="card">
-          <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries</span></div>
+          <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
