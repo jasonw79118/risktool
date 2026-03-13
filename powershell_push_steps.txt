@@ -1,4 +1,4 @@
-# Risk Manager – Phase 5.4 random outcomes XLS patch push steps
+# Risk Manager – Phase 5.4a random outcomes XLS correction push steps
 git add index.html style.css app.js README.txt powershell_push_steps.txt remaining_work_list.txt data/monte_carlo_config_example.json
-git commit -m "Risk Manager Phase 5.4 random outcomes xls patch"
+git commit -m "Risk Manager Phase 5.4a random outcomes xls correction"
 git push origin main

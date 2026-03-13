@@ -1563,5 +1563,75 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
+  setupRandomOutcomesXlsButton();
 }
 document.addEventListener("DOMContentLoaded", init);
+
+
+
+function buildRandomOutcomesWorkbookXml(summary) {
+  if (!summary) return "";
+  const rows = Array.isArray(summary.randomOutcomeRows) ? summary.randomOutcomeRows : [];
+  const header = ["Scenario Number","Hard Cost","Soft Cost","Total Cost","Residual Cost","Breakeven Met?"];
+
+  const xmlEscape = (value) => String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&apos;");
+
+  const rowXml = (cells) => "<Row>" + cells.map(cell => {
+    const asString = String(cell ?? "");
+    const isNum = /^-?\d+(\.\d+)?$/.test(asString);
+    const type = isNum ? "Number" : "String";
+    return `<Cell><Data ss:Type="${type}">${xmlEscape(asString)}</Data></Cell>`;
+  }).join("") + "</Row>";
+
+  const allRows = [header].concat(rows.map(r => [
+    r.scenarioNumber,
+    r.hardCost,
+    r.softCost,
+    r.totalCost,
+    r.residualCost,
+    r.breakevenMet
+  ]));
+
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Worksheet ss:Name="Random Outcomes">
+  <Table>
+   ${allRows.map(rowXml).join("")}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+}
+
+function setupRandomOutcomesXlsButton() {
+  const oldBtn = document.getElementById("downloadOutcomesTableBtn");
+  if (!oldBtn) return;
+  oldBtn.textContent = "Download Random Outcomes XLS";
+
+  // Replace the node to remove any previously-bound TXT click handlers.
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+
+  newBtn.addEventListener("click", () => {
+    if (!lastSummary) {
+      alert("Run or open a scenario first.");
+      return;
+    }
+    const xml = buildRandomOutcomesWorkbookXml(lastSummary);
+    const blob = new Blob([xml], { type: "application/vnd.ms-excel" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `random_outcomes_${(lastSummary?.id || currentDateStamp())}.xls`;
+    link.click();
+  });
+}
+

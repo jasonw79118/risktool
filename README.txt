@@ -1,17 +1,11 @@
-Risk Manager – Phase 5.4 Random Outcomes XLS Patch
+Risk Manager – Phase 5.4a Random Outcomes XLS Correction
 
-This patch changes the random outcomes export from TXT to XLS-compatible SpreadsheetML.
+This correction fixes the Random Outcomes export so it truly downloads as an XLS file.
 
-Included:
-- Download Random Outcomes XLS button
-- export contains one row per randomized Monte Carlo scenario
-- row count matches the selected Random Scenarios value
-- keeps the rest of the Phase 5.3 navigation/random-scenarios behavior
+What changed:
+- the Random Outcomes button is forcibly rebound to XLS export logic
+- any older TXT click handlers are removed by replacing the button node at startup
+- the export writes SpreadsheetML content with an .xls filename
+- one row is created for each randomized Monte Carlo scenario
 
-The workbook contains:
-- Scenario Number
-- Hard Cost
-- Soft Cost
-- Total Cost
-- Residual Cost
-- Breakeven Met?
+Use this correction on top of the Phase 5.4 baseline.
