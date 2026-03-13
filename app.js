@@ -506,6 +506,7 @@ function summarizePayload(payload) {
     monteCarloOutputRows,
     horizonRows: mc.horizonRows,
     randomScenarioCount: mc.iterations,
+    randomOutcomeRows: mc.randomOutcomeRows,
     expectedLoss: mc.expectedLoss,
     residualExpectedLoss: mc.residualExpectedLoss,
     hardCostExpected: mc.hardCostExpected,
@@ -1034,7 +1035,14 @@ function wireInputs() {
   const aiBtn = document.getElementById("downloadAIPacketBtn");
   if (aiBtn) aiBtn.addEventListener("click", () => textDownload(`ai_packet_${(lastSummary?.id || currentDateStamp())}.txt`, buildAIPacketText(lastSummary)));
   const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (outcomesBtn) outcomesBtn.addEventListener("click", () => textDownload(`outcomes_table_${(lastSummary?.id || currentDateStamp())}.txt`, buildOutcomesTableText(lastSummary)));
+  if (outcomesBtn) outcomesBtn.addEventListener("click", () => {
+    if (!lastSummary) {
+      alert("Run or open a scenario first.");
+      return;
+    }
+    const xml = buildOutcomesTableText(lastSummary);
+    fileDownload(`random_outcomes_${(lastSummary?.id || currentDateStamp())}.xls`, xml, "application/vnd.ms-excel");
+  });
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1101,17 +1109,40 @@ function getBoardPacketScenarios() {
     .map(s => summarizePayload(s));
 }
 function buildOutcomesTableText(summary) {
-  if (!summary) return "No scenario has been run or selected.";
-  const rows = []
-    .concat([["Scenario", summary.name]])
-    .concat([["Scenario ID", summary.id || "Not Saved"]])
-    .concat([["Builder", summary.mode === "single" ? "Single Scenario" : "Complex Scenario"]])
-    .concat([["Annual Exposure Range", `${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}`]])
-    .concat(summary.monteCarloMethodRows || [])
-    .concat(summary.monteCarloInputRows || [])
-    .concat(summary.monteCarloOutputRows || [])
-    .concat((summary.horizonRows || []).map(r => [`${r.horizonLabel} Outlook`, `${currency(r.withoutMitigation)} without mitigation | ${currency(r.withMitigation)} with mitigation | ${currency(r.riskReduction)} reduction`]));
-  return rows.map(r => `${r[0]}: ${r[1]}`).join("\\n");
+  if (!summary) return "";
+  const rows = summary.randomOutcomeRows || [];
+  const header = ["Scenario Number","Hard Cost","Soft Cost","Total Cost","Residual Cost","Breakeven Met?"];
+  const xmlEscape = (value) => String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+  const rowXml = (cells) => "<Row>" + cells.map(cell => {
+    const isNum = typeof cell === "number" || /^[0-9]+(\.[0-9]+)?$/.test(String(cell));
+    const type = isNum ? "Number" : "String";
+    return `<Cell><Data ss:Type="${type}">${xmlEscape(cell)}</Data></Cell>`;
+  }).join("") + "</Row>";
+  const allRows = [header].concat(rows.map(r => [
+    r.scenarioNumber,
+    r.hardCost,
+    r.softCost,
+    r.totalCost,
+    r.residualCost,
+    r.breakevenMet
+  ]));
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Worksheet ss:Name="Random Outcomes">
+  <Table>
+   ${allRows.map(rowXml).join("")}
+  </Table>
+ </Worksheet>
+</Workbook>`;
 }
 async function downloadBoardPacketDocx() {
   const scenarios = getBoardPacketScenarios();
@@ -1292,6 +1323,15 @@ function openScenarioReport(id) {
   renderCharts(summary);
   activateView("reports");
 }
+
+function fileDownload(filename, content, mimeType = "text/plain") {
+  const blob = new Blob([content], { type: mimeType });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
 function textDownload(filename, content) {
   const blob = new Blob([content], { type: "text/plain" });
   const link = document.createElement("a");
