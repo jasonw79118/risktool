@@ -118,14 +118,3 @@ th { background: #f7f9fc; color: var(--royal-blue-dark); }
 }
 
 #executiveDecisionBox strong { color: var(--royal-blue-dark); }
-
-.scenario-link {
-  color: var(--royal-blue);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  cursor: pointer;
-  font-weight: 600;
-}
-.scenario-link:hover {
-  color: var(--rustic-orange);
-}

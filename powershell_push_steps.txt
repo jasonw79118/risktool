@@ -1,4 +1,4 @@
-# Risk Manager – Phase 5.2 open scenario navigation patch push steps
+# Risk Manager – Phase 5 board packet DOCX + outcomes correction push steps
 git add index.html style.css app.js README.txt powershell_push_steps.txt remaining_work_list.txt data/monte_carlo_config_example.json
-git commit -m "Risk Manager Phase 5.2 open scenario navigation patch"
+git commit -m "Risk Manager Phase 5 board packet docx and outcomes correction"
 git push origin main
