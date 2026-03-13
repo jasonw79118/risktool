@@ -24,6 +24,7 @@
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
       <button class="nav-item" data-view="single">Single Scenario</button>
       <button class="nav-item" data-view="complex">Complex Scenario</button>
+      <button class="nav-item" data-view="beta">Beta Scenario</button>
       <button class="nav-item" data-view="categories">Category Admin</button>
       <button class="nav-item" data-view="saved">Saved Scenarios</button>
       <button class="nav-item" data-view="reports">Reports</button>
@@ -469,6 +470,141 @@
       </div>
     </section>
 
+
+    <section id="view-beta" class="view">
+      <div class="section-header">
+        <h2>Beta Scenario Builder</h2>
+        <p>Use this for future-state planning, new products, projects, and implementations under uncertainty.</p>
+      </div>
+
+      <div class="card">
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="loadBetaTestBtn">Load Test Beta Scenario</button>
+          <button class="btn btn-primary" id="runBetaScenarioBtn">Run Beta Scenario</button>
+          <button class="btn btn-secondary" id="saveBetaScenarioBtn">Save Beta Scenario</button>
+          <button class="btn btn-secondary" id="promoteBetaScenarioBtn">Promote to Active Scenario</button>
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Name used to save and report this beta scenario.">Scenario Name</label>
+            <input id="betaScenarioName" type="text" placeholder="e.g. New Product Launch Planning Scenario">
+          </div>
+          <div>
+            <label class="help-label" data-help="Auto-generated on first save.">Scenario ID</label>
+            <input id="betaScenarioId" type="text" readonly placeholder="Generated on save">
+          </div>
+          <div>
+            <label class="help-label" data-help="Overall product group or organizational group.">Product Group</label>
+            <select id="betaProductGroup"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Primary risk domain for this beta scenario.">Risk Domain</label>
+            <select id="betaRiskDomain"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Scenario workflow status.">Scenario Status</label>
+            <select id="betaScenarioStatus">
+              <option>Draft</option>
+              <option>Under Review</option>
+              <option>Presented to Management</option>
+              <option>Approved to Proceed</option>
+              <option>Rejected</option>
+              <option>Promoted to Active</option>
+              <option>Closed</option>
+            </select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Name of the project or product being modeled.">Project / Product Name</label>
+            <input id="betaProjectOrProductName" type="text" placeholder="e.g. Embedded Payments Launch">
+          </div>
+          <div>
+            <label class="help-label" data-help="Scenario owner or responsible party.">Scenario Owner</label>
+            <input id="betaScenarioOwner" type="text" placeholder="e.g. Product Management">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date the beta scenario was first identified.">Identified Date</label>
+            <input id="betaIdentifiedDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="Planned management decision date.">Planned Decision Date</label>
+            <input id="betaPlannedDecisionDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="Planned go-live or launch date.">Planned Go-Live Date</label>
+            <input id="betaPlannedGoLiveDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="Minimum modeled value.">Min</label>
+            <input id="betaMin" type="number" min="0" step="1000" value="100000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Most likely modeled value.">Mode</label>
+            <input id="betaMode" type="number" min="0" step="1000" value="250000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Maximum modeled value.">Max</label>
+            <input id="betaMax" type="number" min="0" step="1000" value="700000">
+          </div>
+          <div>
+            <label class="help-label" data-help="Number of randomized beta scenarios to run.">Random Scenarios</label>
+            <select id="betaRandomScenarioCount">
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000" selected>1,000</option>
+              <option value="10000">10,000</option>
+              <option value="100000">100,000</option>
+            </select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Derived from Min / Mode / Max.">Relative Mean</label>
+            <input id="betaRelativeMean" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="Derived beta shape A.">A</label>
+            <input id="betaShapeA" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="Derived beta shape B.">B</label>
+            <input id="betaShapeB" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="Expected value from the beta simulation.">Expected Value</label>
+            <input id="betaExpectedValue" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="P10 from the beta simulation.">P10</label>
+            <input id="betaP10" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="P50 from the beta simulation.">P50</label>
+            <input id="betaP50" type="number" readonly>
+          </div>
+          <div>
+            <label class="help-label" data-help="P90 from the beta simulation.">P90</label>
+            <input id="betaP90" type="number" readonly>
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Narrative description of the future-state proposal or project.">Description</label>
+            <textarea id="betaScenarioDescription" rows="4" placeholder="Describe the future-state proposal, uncertainty, risks, and why the scenario matters."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Beta Scenario Output</h3><span>Decision Support</span></div>
+        <div class="result-list">
+          <div class="result-row"><span>Expected Value</span><strong id="betaExpectedValueDisplay">0</strong></div>
+          <div class="result-row"><span>P10</span><strong id="betaP10Display">0</strong></div>
+          <div class="result-row"><span>P50</span><strong id="betaP50Display">0</strong></div>
+          <div class="result-row"><span>P90</span><strong id="betaP90Display">0</strong></div>
+          <div class="result-row"><span>Random Scenarios Run</span><strong id="betaIterationsDisplay">0</strong></div>
+        </div>
+        <div class="note-box" id="betaNarrative">Run a beta scenario to populate projected future-state outcomes.</div>
+      </div>
+    </section>
+
+
     <section id="view-categories" class="view">
       <div class="section-header">
         <h2>Category Admin</h2>
@@ -662,6 +798,7 @@
     </section>
   </main>
 
+  <script src="beta_scenario_engine.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

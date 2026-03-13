@@ -1,3 +1,167 @@
+
+let lastBetaSummary = null;
+
+function getBetaPayload() {
+  return {
+    mode: "beta",
+    distributionMethod: "beta",
+    id: document.getElementById("betaScenarioId").value,
+    name: document.getElementById("betaScenarioName").value || "Unnamed Beta Scenario",
+    projectOrProductName: document.getElementById("betaProjectOrProductName").value,
+    productGroup: document.getElementById("betaProductGroup").value,
+    riskDomain: document.getElementById("betaRiskDomain").value,
+    scenarioStatus: document.getElementById("betaScenarioStatus").value,
+    scenarioSource: "Risk",
+    scenarioOwner: document.getElementById("betaScenarioOwner").value,
+    identifiedDate: document.getElementById("betaIdentifiedDate").value,
+    plannedDecisionDate: document.getElementById("betaPlannedDecisionDate").value,
+    plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate").value,
+    description: document.getElementById("betaScenarioDescription").value,
+    randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount").value || 1000),
+    betaInputs: {
+      min: Number(document.getElementById("betaMin").value || 0),
+      mode: Number(document.getElementById("betaMode").value || 0),
+      max: Number(document.getElementById("betaMax").value || 0)
+    },
+    items: [],
+    mitigations: [],
+    promotion: {
+      eligible: true,
+      promoted: false,
+      targetMode: "",
+      promotedScenarioId: ""
+    }
+  };
+}
+
+function renderBetaSummary(summary) {
+  document.getElementById("betaRelativeMean").value = Number(summary.relativeMean || 0).toFixed(4);
+  document.getElementById("betaShapeA").value = Number(summary.a || 0).toFixed(4);
+  document.getElementById("betaShapeB").value = Number(summary.b || 0).toFixed(4);
+  document.getElementById("betaExpectedValue").value = summary.expectedValue || 0;
+  document.getElementById("betaP10").value = summary.p10 || 0;
+  document.getElementById("betaP50").value = summary.p50 || 0;
+  document.getElementById("betaP90").value = summary.p90 || 0;
+
+  document.getElementById("betaExpectedValueDisplay").textContent = summary.expectedValue || 0;
+  document.getElementById("betaP10Display").textContent = summary.p10 || 0;
+  document.getElementById("betaP50Display").textContent = summary.p50 || 0;
+  document.getElementById("betaP90Display").textContent = summary.p90 || 0;
+  document.getElementById("betaIterationsDisplay").textContent = summary.iterations || 0;
+  document.getElementById("betaNarrative").textContent = `${summary.name} produced an expected value of ${currency(summary.expectedValue)} with a P10 of ${currency(summary.p10)}, a P50 of ${currency(summary.p50)}, and a P90 of ${currency(summary.p90)} across ${summary.iterations} randomized beta scenarios.`;
+}
+
+function runBetaScenario() {
+  const payload = getBetaPayload();
+  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  lastBetaSummary = { ...payload, ...sim };
+  renderBetaSummary(lastBetaSummary);
+  activateView("beta");
+}
+
+function saveBetaScenario() {
+  const payload = getBetaPayload();
+  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  const summary = { ...payload, ...sim };
+
+  const saved = getSavedScenarios();
+  if (!summary.id) {
+    summary.id = generateScenarioId(saved);
+    document.getElementById("betaScenarioId").value = summary.id;
+  }
+  summary.scenarioId = summary.id;
+
+  const idx = saved.findIndex(x => x.id === summary.id);
+  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
+  setSavedScenarios(saved);
+  lastBetaSummary = summary;
+  renderBetaSummary(summary);
+  renderSavedScenarios();
+  renderDashboardOpenTable();
+  refreshLibraries();
+  activateView("saved");
+}
+
+function loadBetaTestScenario() {
+  document.getElementById("betaScenarioId").value = "";
+  document.getElementById("betaScenarioName").value = "Embedded Payments Launch Planning Scenario";
+  document.getElementById("betaProjectOrProductName").value = "Embedded Payments for SMB Clients";
+  document.getElementById("betaProductGroup").value = "Payment Services";
+  document.getElementById("betaRiskDomain").value = "Strategic & Business Model Risk";
+  document.getElementById("betaScenarioStatus").value = "Under Review";
+  document.getElementById("betaScenarioOwner").value = "Product Management";
+  document.getElementById("betaIdentifiedDate").value = todayIso();
+  document.getElementById("betaPlannedDecisionDate").value = todayIso();
+  document.getElementById("betaPlannedGoLiveDate").value = todayIso();
+  document.getElementById("betaMin").value = 125000;
+  document.getElementById("betaMode").value = 325000;
+  document.getElementById("betaMax").value = 900000;
+  document.getElementById("betaRandomScenarioCount").value = "1000";
+  document.getElementById("betaScenarioDescription").value = "This beta scenario evaluates whether the organization should proceed with a new embedded-payments product launch.";
+  runBetaScenario();
+}
+
+function promoteBetaScenarioToActive() {
+  const payload = getBetaPayload();
+  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  const betaSummary = { ...payload, ...sim };
+
+  const saved = getSavedScenarios();
+  if (!betaSummary.id) {
+    betaSummary.id = generateScenarioId(saved);
+    document.getElementById("betaScenarioId").value = betaSummary.id;
+  }
+  betaSummary.scenarioId = betaSummary.id;
+
+  const promoted = {
+    id: generateScenarioId(saved.concat([betaSummary])),
+    mode: "complex",
+    sourceBetaScenarioId: betaSummary.id,
+    name: betaSummary.name,
+    productGroup: betaSummary.productGroup,
+    riskDomain: betaSummary.riskDomain,
+    scenarioStatus: "Open",
+    scenarioSource: "Risk",
+    primaryProduct: betaSummary.projectOrProductName || "",
+    primaryRegulation: "",
+    scenarioOwner: betaSummary.scenarioOwner || "",
+    identifiedDate: betaSummary.identifiedDate || "",
+    description: betaSummary.description || "",
+    likelihood: 0,
+    impact: 0,
+    inherent: 0,
+    control: 0,
+    items: [],
+    mitigations: [],
+    acceptedRisk: {
+      isAccepted: false,
+      authority: "",
+      acceptedBy: "",
+      acceptanceDate: "",
+      reviewDate: "",
+      decisionLogic: ""
+    }
+  };
+
+  betaSummary.promotion = {
+    eligible: true,
+    promoted: true,
+    targetMode: "complex",
+    promotedScenarioId: promoted.id
+  };
+  betaSummary.scenarioStatus = "Promoted to Active";
+
+  const withoutBeta = saved.filter(x => x.id !== betaSummary.id);
+  withoutBeta.unshift(promoted);
+  withoutBeta.unshift(betaSummary);
+  setSavedScenarios(withoutBeta);
+  refreshLibraries();
+  renderSavedScenarios();
+  renderDashboardOpenTable();
+  activateView("saved");
+}
+
+
 const DEFAULT_PRODUCT_GROUPS = ["Digital","Document Services","Education Services","Interfaces and Bridge Integrations","LOS","DOS","Managed Services","Core","Payment Services","Regulatory Compliance","Risk","Marketing","Legal","Executive Management","Physical Locations","Customer X","Relationship Management","CRC","Human Resources","Implementations","State Issues","Deployment","Internal","Vendor Due Diligence","Audit","3rd Party","Partnership","Vendors"];
 const DEFAULT_PRODUCTS = ["Deposits", "Checking", "Savings", "Certificates of Deposit", "IRA / Retirement Deposits", "Mobile Banking", "Internet Banking", "Online Account Opening", "ACH Processing", "Wire Transfers", "Debit Card Program", "ATM / EFT Network", "Consumer Lending", "Mortgage / HELOC", "Merchant Services", "API Banking / BaaS", "BSA / AML Monitoring", "Core Deposit Platform"];
 const DEFAULT_REGULATIONS = ["Reg D", "Reg E", "Reg O", "Reg P", "Reg X", "Reg Z", "Reg BB", "Reg CC", "Reg DD", "Reg GG", "FCRA / Reg V", "UDAAP", "BSA/AML", "CIP", "CTR", "SAR", "FinCEN Watchlist", "OFAC", "ID Theft Red Flags", "IRS Violations", "TIN Certification", "Escheatment", "FDIC Deposit Insurance", "Brokered Deposits", "Government Securities", "Public Funds", "ESIGN", "SCRA", "MLA", "CECL", "FASB 91", "NACHA", "FRB Clearing", "Basel III", "HIPAA", "Visa", "Mastercard", "FFIEC IT", "Record Retention", "GAAP", "Privacy", "Patriot Act", "California Consumer Privacy", "European Consumer Privacy", "SEC", "FINRA"];
@@ -164,6 +328,8 @@ function refreshLibraries() {
   document.getElementById("domainCount").textContent = riskDomains.length;
   document.getElementById("savedCount").textContent = saved.length;
 
+  populateSelect("betaProductGroup", productGroups);
+  populateSelect("betaRiskDomain", riskDomains);
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
   populateSelect("singleRiskDomain", riskDomains);
@@ -394,34 +560,21 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
-  const outcomeRows = [];
-
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
     const soft = hard * softMultiplier;
     const total = hard + soft;
     const residual = total * (1 - effectiveness);
-
     hardSamples.push(hard);
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
-
-    outcomeRows.push({
-      scenarioNumber: i + 1,
-      hardCost: Math.round(hard),
-      softCost: Math.round(soft),
-      totalCost: Math.round(total),
-      residualCost: Math.round(residual),
-      breakevenMet: Math.round(total - residual) >= mitigationCost ? 1 : 0
-    });
   }
+  totalSamples.sort((a,b) => a-b);
+  residualSamples.sort((a,b) => a-b);
 
-  totalSamples.sort((a, b) => a - b);
-  residualSamples.sort((a, b) => a - b);
-
-  const avg = arr => arr.reduce((a, b) => a + b, 0) / Math.max(arr.length, 1);
+  const avg = arr => arr.reduce((a,b)=>a+b,0) / Math.max(arr.length,1);
   const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * p)))];
 
   const expectedLoss = Math.round(avg(totalSamples));
@@ -431,7 +584,7 @@ function runFinancialMonteCarlo(payload) {
   const riskReductionValue = Math.max(0, expectedLoss - residualExpectedLoss);
   const mitigationROI = riskReductionValue - mitigationCost;
 
-  const horizons = [1, 3, 5, 10, 15, 20, 25, 30];
+  const horizons = [1,3,5,10,15,20,25,30];
   const horizonRows = horizons.map(years => {
     const withoutMitigation = expectedLoss * years;
     const withMitigation = residualExpectedLoss * years + mitigationCost;
@@ -456,8 +609,7 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows,
-    randomOutcomeRows: outcomeRows
+    horizonRows
   };
 }
 function currency(value) {
@@ -688,7 +840,7 @@ function renderSavedScenarios() {
   tbody.innerHTML = saved.map(s => `<tr>
     <td>${escapeHtml(s.id)}</td>
     <td>${escapeHtml(s.name)}</td>
-    <td>${s.mode === "single" ? "Single" : "Complex"}</td>
+    <td>${s.mode === "single" ? "Single" : s.mode === "complex" ? "Complex" : s.mode === "beta" ? "Beta" : "Unknown"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -717,7 +869,7 @@ function renderDashboardOpenTable() {
   }
   tbody.innerHTML = rows.map(s => `<tr>
     <td><button class="scenario-link" data-open-id="${escapeHtml(s.id)}">${escapeHtml(s.id)}</button></td>
-    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : "Unknown"}</td>
+    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : s.mode === "beta" ? "Beta Scenario" : "Unknown"}</td>
     <td>${escapeHtml(s.name)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -809,6 +961,38 @@ function openScenario(id) {
     updateInherentScores();
     activateView("complex");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (s.mode === "beta") {
+    document.getElementById("betaScenarioId").value = s.id || "";
+    document.getElementById("betaScenarioName").value = s.name || "";
+    document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || "";
+    document.getElementById("betaProductGroup").value = s.productGroup || productGroups[0] || "";
+    document.getElementById("betaRiskDomain").value = s.riskDomain || riskDomains[0] || "";
+    document.getElementById("betaScenarioStatus").value = s.scenarioStatus || "Draft";
+    document.getElementById("betaScenarioOwner").value = s.scenarioOwner || "";
+    document.getElementById("betaIdentifiedDate").value = s.identifiedDate || "";
+    document.getElementById("betaPlannedDecisionDate").value = s.plannedDecisionDate || "";
+    document.getElementById("betaPlannedGoLiveDate").value = s.plannedGoLiveDate || "";
+    document.getElementById("betaMin").value = s.betaInputs?.min || 0;
+    document.getElementById("betaMode").value = s.betaInputs?.mode || 0;
+    document.getElementById("betaMax").value = s.betaInputs?.max || 0;
+    document.getElementById("betaRandomScenarioCount").value = String(s.randomScenarioCount || 1000);
+    document.getElementById("betaScenarioDescription").value = s.description || "";
+    const betaSummary = {
+      ...s,
+      relativeMean: s.relativeMean || 0,
+      a: s.a || 0,
+      b: s.b || 0,
+      expectedValue: s.expectedValue || 0,
+      p10: s.p10 || 0,
+      p50: s.p50 || 0,
+      p90: s.p90 || 0,
+      iterations: s.iterations || s.randomScenarioCount || 0
+    };
+    renderBetaSummary(betaSummary);
+    lastBetaSummary = betaSummary;
+    activateView("beta");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
   }
 }
 function deleteScenario(id) {
@@ -1019,6 +1203,14 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
+  const loadBetaBtn = document.getElementById("loadBetaTestBtn");
+  if (loadBetaBtn) loadBetaBtn.addEventListener("click", loadBetaTestScenario);
+  const runBetaBtn = document.getElementById("runBetaScenarioBtn");
+  if (runBetaBtn) runBetaBtn.addEventListener("click", runBetaScenario);
+  const saveBetaBtn = document.getElementById("saveBetaScenarioBtn");
+  if (saveBetaBtn) saveBetaBtn.addEventListener("click", saveBetaScenario);
+  const promoteBetaBtn = document.getElementById("promoteBetaScenarioBtn");
+  if (promoteBetaBtn) promoteBetaBtn.addEventListener("click", promoteBetaScenarioToActive);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
@@ -1684,7 +1876,6 @@ function setupRandomOutcomesCsvButton() {
       alert("Run or open a scenario first.");
       return;
     }
-
     const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
       ? summarizePayload(lastSummary)
       : lastSummary;
