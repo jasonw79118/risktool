@@ -1563,7 +1563,7 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
-  setupRandomOutcomesXlsButton();
+  setupRandomOutcomesCsvButton();
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -1631,6 +1631,59 @@ function setupRandomOutcomesXlsButton() {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `random_outcomes_${(lastSummary?.id || currentDateStamp())}.xls`;
+    link.click();
+  });
+}
+
+
+
+
+function buildRandomOutcomesCsv(summary) {
+  if (!summary) return "";
+  const rows = Array.isArray(summary.randomOutcomeRows) ? summary.randomOutcomeRows : [];
+  const escapeCsv = (value) => {
+    const s = String(value ?? "");
+    return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
+  };
+  const header = ["Scenario Number","Hard Cost","Soft Cost","Total Cost","Residual Cost","Breakeven Met?"];
+  const body = rows.map(r => [
+    r.scenarioNumber,
+    r.hardCost,
+    r.softCost,
+    r.totalCost,
+    r.residualCost,
+    r.breakevenMet
+  ]);
+  return [header].concat(body).map(row => row.map(escapeCsv).join(",")).join("\n");
+}
+
+function setupRandomOutcomesCsvButton() {
+  const oldBtn = document.getElementById("downloadOutcomesTableBtn");
+  if (!oldBtn) return;
+  oldBtn.textContent = "Download Random Outcomes CSV";
+
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+
+  newBtn.addEventListener("click", () => {
+    if (!lastSummary) {
+      alert("Run or open a scenario first.");
+      return;
+    }
+    const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
+      ? summarizePayload(lastSummary)
+      : lastSummary;
+
+    if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) {
+      alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
+      return;
+    }
+
+    const csv = buildRandomOutcomesCsv(exportSummary);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`;
     link.click();
   });
 }

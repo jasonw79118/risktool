@@ -1,11 +1,14 @@
-Risk Manager – Phase 5.4a Random Outcomes XLS Correction
+Risk Manager – Phase 5.4b Random Outcomes CSV Patch
 
-This correction fixes the Random Outcomes export so it truly downloads as an XLS file.
+This patch changes the Random Outcomes export from XLS to CSV.
 
-What changed:
-- the Random Outcomes button is forcibly rebound to XLS export logic
-- any older TXT click handlers are removed by replacing the button node at startup
-- the export writes SpreadsheetML content with an .xls filename
-- one row is created for each randomized Monte Carlo scenario
+Why:
+- CSV is simpler and more reliable in the browser
+- easier to verify row counts
+- easier to open in Excel without SpreadsheetML issues
 
-Use this correction on top of the Phase 5.4 baseline.
+Included:
+- Download Random Outcomes CSV button
+- export rebuilt from the randomized scenario rows
+- if the current summary is missing rows, the export regenerates them before download
+- row count should match the selected Random Scenarios value
