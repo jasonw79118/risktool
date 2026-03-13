@@ -514,26 +514,26 @@ function renderScenarioSummary(summary) {
   document.getElementById("itemCount").textContent = summary.itemCount;
   document.getElementById("dashboardNarrative").textContent = `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`;
   document.getElementById("aiSummaryBox").textContent = summary.generatedSummary;
-  document.getElementById("reportSummary").innerHTML = `
-    <li><span class="help-label" data-help="Auto-generated scenario identifier used for tracking and reporting."><strong>Scenario ID:</strong></span> ${escapeHtml(summary.id || "Not Saved")}</li>
-    <li><span class="help-label" data-help="The scenario currently being evaluated or reported."><strong>Scenario:</strong></span> ${escapeHtml(summary.name)}</li>
-    <li><span class="help-label" data-help="Shows whether the report is based on a single or complex scenario builder."><strong>Builder:</strong></span> ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}</li>
-    <li><span class="help-label" data-help="Overall business or organizational group associated with the scenario."><strong>Product Group:</strong></span> ${escapeHtml(summary.productGroup)}</li>
-    <li><span class="help-label" data-help="Primary product or service most directly connected to the scenario."><strong>Primary Product:</strong></span> ${escapeHtml(summary.primaryProduct)}</li>
-    <li><span class="help-label" data-help="Primary regulation or standard used to frame the scenario."><strong>Primary Regulation:</strong></span> ${escapeHtml(summary.primaryRegulation)}</li>
-    <li><span class="help-label" data-help="Calculated starting risk before current control-effectiveness is applied."><strong>Inherent Risk Score:</strong></span> ${summary.inherent} (${escapeHtml(summary.tier)})</li>
-    <li><span class="help-label" data-help="Remaining risk after the stated control-effectiveness percentage is applied."><strong>Residual Risk Score:</strong></span> ${summary.residual}</li>
-    <li><span class="help-label" data-help="P10 to P90 annual loss range estimated by the financial model."><strong>Annual Exposure Range:</strong></span> ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</li>
-    <li><span class="help-label" data-help="P50 annual loss estimate from the model; this is the most likely annual impact used for executive framing."><strong>Most Likely Annual Impact:</strong></span> ${currency(summary.rangeMedian)}</li>
-    <li><span class="help-label" data-help="Expected direct measurable cost of the risk before secondary impacts."><strong>Expected Annual Hard Cost:</strong></span> ${currency(summary.hardCostExpected)}</li>
-    <li><span class="help-label" data-help="Expected secondary or incidental cost added to hard cost, such as reputation, complaint, or disruption impacts."><strong>Expected Annual Soft Cost:</strong></span> ${currency(summary.softCostExpected)}</li>
-    <li><span class="help-label" data-help="Expected total annual cost, combining hard and soft cost."><strong>Expected Annual Loss:</strong></span> ${currency(summary.expectedLoss)}</li>
-    <li><span class="help-label" data-help="Expected annual cost remaining after the planned controls and mitigation assumptions are applied."><strong>Residual Annual Loss:</strong></span> ${currency(summary.residualExpectedLoss)}</li>
-    <li><span class="help-label" data-help="Estimated direct cost to implement the planned full mitigation approach."><strong>Mitigation Cost:</strong></span> ${currency(summary.mitigationCost)}</li>
-    <li><span class="help-label" data-help="Estimated annual reduction in loss from mitigation, before subtracting mitigation cost."><strong>Annual Risk Reduction Value:</strong></span> ${currency(summary.riskReductionValue)}</li>
-    <li><span class="help-label" data-help="Risk-reduction value minus mitigation cost; used as a cost-effectiveness screen."><strong>Net Benefit / ROI:</strong></span> ${currency(summary.mitigationROI)}</li>
-    <li><span class="help-label" data-help="Suggested review cadence based on the mapped residual-risk tier."><strong>Review Frequency:</strong></span> ${escapeHtml(summary.frequency)}</li>
-  `;
+  document.getElementById("reportSummary").innerHTML = `<table class="summary-table"><tbody>
+    <tr><td>${reportLabel("Scenario ID","Unique identifier assigned to the saved scenario record.")}</td><td>${escapeHtml(summary.id || "Not Saved")}</td></tr>
+    <tr><td>${reportLabel("Scenario","Display name used for this scenario in saved records and reports.")}</td><td>${escapeHtml(summary.name)}</td></tr>
+    <tr><td>${reportLabel("Builder","Indicates whether the scenario was evaluated as a single or complex scenario.")}</td><td>${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}</td></tr>
+    <tr><td>${reportLabel("Product Group","Overall organizational or product grouping used to classify the scenario.")}</td><td>${escapeHtml(summary.productGroup)}</td></tr>
+    <tr><td>${reportLabel("Primary Product","Main product or service tied to the evaluated scenario.")}</td><td>${escapeHtml(summary.primaryProduct)}</td></tr>
+    <tr><td>${reportLabel("Primary Regulation","Primary regulation or standard most directly connected to the scenario.")}</td><td>${escapeHtml(summary.primaryRegulation)}</td></tr>
+    <tr><td>${reportLabel("Inherent Risk Score","Calculated pre-control score before applying control-effectiveness assumptions.")}</td><td>${summary.inherent} (${escapeHtml(summary.tier)})</td></tr>
+    <tr><td>${reportLabel("Residual Risk Score","Calculated post-control score after applying the stated control-effectiveness assumption.")}</td><td>${summary.residual}</td></tr>
+    <tr><td>${reportLabel("Annual Exposure Range","Modeled annual loss range based on Monte Carlo outcomes, shown here as the lower and upper annual loss range.")}</td><td>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</td></tr>
+    <tr><td>${reportLabel("Most Likely Annual Impact","Median or central annual loss outcome from the Monte Carlo results.")}</td><td>${currency(summary.rangeMedian)}</td></tr>
+    <tr><td>${reportLabel("Expected Annual Hard Cost","Expected direct measurable financial loss such as fines, restitution, remediation, or operational loss.")}</td><td>${currency(summary.hardCostExpected)}</td></tr>
+    <tr><td>${reportLabel("Expected Annual Soft Cost","Expected secondary or incidental cost such as complaint handling, reputational drag, or management distraction.")}</td><td>${currency(summary.softCostExpected)}</td></tr>
+    <tr><td>${reportLabel("Expected Annual Loss","Combined expected hard and soft annual loss before mitigation.")}</td><td>${currency(summary.expectedLoss)}</td></tr>
+    <tr><td>${reportLabel("Residual Annual Loss","Expected annual loss remaining after the stated mitigation effectiveness is applied.")}</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
+    <tr><td>${reportLabel("Mitigation Cost","Estimated direct cost to implement the identified mitigation or full risk treatment.")}</td><td>${currency(summary.mitigationCost)}</td></tr>
+    <tr><td>${reportLabel("Annual Risk Reduction Value","Estimated annual reduction in loss achieved by the mitigation assumption.")}</td><td>${currency(summary.riskReductionValue)}</td></tr>
+    <tr><td>${reportLabel("Net Benefit / ROI","Annual reduction value minus mitigation cost, used to support executive cost-effectiveness decisions.")}</td><td>${currency(summary.mitigationROI)}</td></tr>
+    <tr><td>${reportLabel("Review Frequency","Recommended review cycle based on the mapped risk tier.")}</td><td>${escapeHtml(summary.frequency)}</td></tr>
+  </tbody></table>`;
   document.getElementById("executiveDecisionBox").innerHTML = `
     <strong>Executive Decision Summary</strong><br>
     There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
@@ -1000,11 +1000,11 @@ function wireInputs() {
   const importFile = document.getElementById("importScenariosFile");
   if (importFile) importFile.addEventListener("change", (event) => importScenarioLibrary(event.target.files?.[0]));
   const boardBtn = document.getElementById("downloadBoardPacketBtn");
-  if (boardBtn) boardBtn.addEventListener("click", downloadBoardPacketDocx);
+  if (boardBtn) boardBtn.addEventListener("click", () => downloadBoardPacketDocx(lastSummary));
   const aiBtn = document.getElementById("downloadAIPacketBtn");
   if (aiBtn) aiBtn.addEventListener("click", () => textDownload(`ai_packet_${(lastSummary?.id || currentDateStamp())}.txt`, buildAIPacketText(lastSummary)));
   const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (outcomesBtn) outcomesBtn.addEventListener("click", () => textDownload(`outcomes_table_${(lastSummary?.id || currentDateStamp())}.txt`, buildOutcomesTableText(lastSummary)));
+  if (outcomesBtn) outcomesBtn.addEventListener("click", () => downloadOutcomesTableTxt(lastSummary));
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1054,146 +1054,149 @@ function renderManual() {
 
 
 
-function daysSince(dateValue) {
-  if (!dateValue) return 999999;
-  const dt = new Date(dateValue);
-  if (Number.isNaN(dt.getTime())) return 999999;
-  return Math.floor((Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
+function reportLabel(text, help) {
+  return `<span class="help-label" data-help="${escapeHtml(help)}">${escapeHtml(text)}</span>`;
 }
-function getBoardPacketScenarios() {
-  return getSavedScenarios()
-    .filter(s => {
-      const status = String(s.scenarioStatus || "").toLowerCase();
-      return status !== "closed" || daysSince(s.identifiedDate || s.lastUpdated || s.createdAt) <= 90;
-    })
-    .map(s => summarizePayload(s));
-}
-function buildOutcomesTableText(summary) {
-  if (!summary) return "No scenario has been run or selected.";
-  const rows = []
-    .concat([["Scenario", summary.name]])
-    .concat([["Scenario ID", summary.id || "Not Saved"]])
-    .concat([["Builder", summary.mode === "single" ? "Single Scenario" : "Complex Scenario"]])
-    .concat([["Annual Exposure Range", `${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}`]])
-    .concat(summary.monteCarloMethodRows || [])
-    .concat(summary.monteCarloInputRows || [])
-    .concat(summary.monteCarloOutputRows || [])
-    .concat((summary.horizonRows || []).map(r => [`${r.horizonLabel} Outlook`, `${currency(r.withoutMitigation)} without mitigation | ${currency(r.withMitigation)} with mitigation | ${currency(r.riskReduction)} reduction`]));
-  return rows.map(r => `${r[0]}: ${r[1]}`).join("\\n");
-}
-async function downloadBoardPacketDocx() {
-  const scenarios = getBoardPacketScenarios();
-  if (!scenarios.length) {
-    alert("No eligible scenarios are available for the board packet.");
+async function downloadBoardPacketDocx(summary) {
+  if (!summary) {
+    alert("Run or open a scenario report first.");
     return;
   }
   const docxLib = window.docx;
   if (!docxLib) {
-    alert("The DOCX library did not load. Please try again after the page fully loads.");
+    alert("The DOCX library did not load. Refresh the page and try again.");
     return;
   }
   const {
-    Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle
+    Document, Packer, Paragraph, HeadingLevel, TextRun, Table, TableRow, TableCell,
+    WidthType, AlignmentType, BorderStyle, ShadingType
   } = docxLib;
 
-  const children = [];
-  const addSpacer = () => children.push(new Paragraph({ text: "" }));
-  const cell = (text, widthPct=25, bold=false) => new TableCell({
-    width: { size: widthPct, type: WidthType.PERCENTAGE },
-    borders: {
-      top: { style: BorderStyle.SINGLE, size: 1, color: "D9E1F2" },
-      bottom: { style: BorderStyle.SINGLE, size: 1, color: "D9E1F2" },
-      left: { style: BorderStyle.SINGLE, size: 1, color: "D9E1F2" },
-      right: { style: BorderStyle.SINGLE, size: 1, color: "D9E1F2" },
-    },
-    children: [new Paragraph({ children: [new TextRun({ text: String(text ?? ""), bold })] })]
+  const heading = (text, level = HeadingLevel.HEADING_1) =>
+    new Paragraph({
+      text,
+      heading: level,
+      spacing: { before: 180, after: 100 }
+    });
+
+  const body = (text, opts = {}) =>
+    new Paragraph({
+      children: [new TextRun({ text: String(text || ""), ...opts })],
+      spacing: { after: 90 }
+    });
+
+  const kvTable = (rows) => new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: rows.map(([k,v], idx) => new TableRow({
+      children: [
+        new TableCell({
+          width: { size: 34, type: WidthType.PERCENTAGE },
+          shading: idx === 0 ? { fill: "F7F9FC", type: ShadingType.CLEAR } : undefined,
+          children: [new Paragraph({ children: [new TextRun({ text: String(k), bold: true })] })]
+        }),
+        new TableCell({
+          width: { size: 66, type: WidthType.PERCENTAGE },
+          children: [new Paragraph(String(v ?? ""))]
+        })
+      ]
+    }))
   });
 
-  children.push(new Paragraph({
+  const sections = [];
+  sections.push(new Paragraph({
+    text: "Board Risk Brief",
     heading: HeadingLevel.TITLE,
     alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "Board Risk Packet", bold: true })]
+    spacing: { after: 180 }
   }));
-  children.push(new Paragraph({
+  sections.push(new Paragraph({
+    text: `${summary.name} - ${summary.id || "Not Saved"}`,
     alignment: AlignmentType.CENTER,
-    children: [new TextRun(`Included scenarios: ${scenarios.length} | Scope: open scenarios plus closed scenarios from the past 90 days`)]
+    spacing: { after: 280 }
   }));
-  addSpacer();
-
-  scenarios.forEach((s, idx) => {
-    children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(`${idx + 1}. ${s.name}`)] }));
-    children.push(new Paragraph(`Scenario ID: ${s.id || "Not Saved"}`));
-    children.push(new Paragraph(`Builder: ${s.mode === "single" ? "Single Scenario" : "Complex Scenario"}`));
-    children.push(new Paragraph(`Product Group: ${s.productGroup} | Risk Domain: ${s.riskDomain} | Status: ${s.scenarioStatus}`));
-    children.push(new Paragraph(`Annual exposure range: ${currency(s.rangeLow)} to ${currency(s.rangeHigh)} | Most likely annual impact: ${currency(s.rangeMedian)}`));
-    children.push(new Paragraph(`Expected annual loss: ${currency(s.expectedLoss)} | Residual annual loss: ${currency(s.residualExpectedLoss)} | Mitigation cost: ${currency(s.mitigationCost)} | Net benefit / ROI: ${currency(s.mitigationROI)}`));
-    children.push(new Paragraph({ text: "Executive Decision Summary", heading: HeadingLevel.HEADING_2 }));
-    children.push(new Paragraph(s.decisionText || ""));
-    children.push(new Paragraph({ text: "Scenario Description", heading: HeadingLevel.HEADING_2 }));
-    children.push(new Paragraph(s.description || "No description provided."));
-
-    children.push(new Paragraph({ text: "Financial Outcome Summary", heading: HeadingLevel.HEADING_2 }));
-    children.push(new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [cell("Measure", 45, true), cell("Value", 55, true)] }),
-        new TableRow({ children: [cell("Expected Annual Hard Cost", 45), cell(currency(s.hardCostExpected), 55)] }),
-        new TableRow({ children: [cell("Expected Annual Soft Cost", 45), cell(currency(s.softCostExpected), 55)] }),
-        new TableRow({ children: [cell("Expected Annual Loss", 45), cell(currency(s.expectedLoss), 55)] }),
-        new TableRow({ children: [cell("Residual Annual Loss", 45), cell(currency(s.residualExpectedLoss), 55)] }),
-        new TableRow({ children: [cell("Annual Risk Reduction Value", 45), cell(currency(s.riskReductionValue), 55)] }),
-        new TableRow({ children: [cell("Mitigation Cost", 45), cell(currency(s.mitigationCost), 55)] }),
-        new TableRow({ children: [cell("Net Benefit / ROI", 45), cell(currency(s.mitigationROI), 55)] }),
-      ]
-    }));
-    addSpacer();
-
-    if (s.mode === "complex" && Array.isArray(s.items) && s.items.length) {
-      children.push(new Paragraph({ text: "Complex Scenario Risk Items", heading: HeadingLevel.HEADING_2 }));
-      s.items.forEach((item, i) => {
-        children.push(new Paragraph({ text: `${i + 1}. ${item.name}`, heading: HeadingLevel.HEADING_3 }));
-        children.push(new Paragraph(`Risk Domain: ${item.domain || ""} | Product / Service: ${item.product || ""} | Regulation: ${item.regulation || ""}`));
-        children.push(new Paragraph(`Score: ${item.score || ""} | Weight: ${item.weight || ""}`));
-        children.push(new Paragraph(`Explanation: ${item.description || "This line item is a weighted contributor to the broader complex scenario and should be read as one component of the overall result."}`));
-      });
-      addSpacer();
-    }
-
-    if (Array.isArray(s.mitigations) && s.mitigations.length) {
-      children.push(new Paragraph({ text: "Mitigation Factors", heading: HeadingLevel.HEADING_2 }));
-      s.mitigations.forEach((m, i) => {
-        children.push(new Paragraph({ text: `${i + 1}. ${m.title || m.name || "Mitigation"}`, heading: HeadingLevel.HEADING_3 }));
-        children.push(new Paragraph(`Owner: ${m.owner || ""} | Status: ${m.status || ""} | Attachment: ${m.attachment || ""}`));
-        children.push(new Paragraph(`Explanation: ${m.description || "This mitigation factor is intended to reduce direct hard cost, secondary soft cost, or overall residual exposure."}`));
-      });
-      addSpacer();
-    }
-
-    children.push(new Paragraph({ text: "Time Horizon Outlook", heading: HeadingLevel.HEADING_2 }));
-    children.push(new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [cell("Horizon", 20, true), cell("Without Mitigation", 27, true), cell("With Mitigation", 27, true), cell("Reduction", 26, true)] }),
-        ...((s.horizonRows || []).map(r => new TableRow({
-          children: [cell(r.horizonLabel, 20), cell(currency(r.withoutMitigation), 27), cell(currency(r.withMitigation), 27), cell(currency(r.riskReduction), 26)]
-        })))
-      ]
-    }));
-    addSpacer();
-  });
+  sections.push(heading("Executive Summary"));
+  sections.push(body(`This board packet summarizes the scenario "${summary.name}" and translates the model outputs into a decision-oriented view for directors and executive leadership.`));
+  sections.push(kvTable([
+    ["Scenario ID", summary.id || "Not Saved"],
+    ["Builder", summary.mode === "single" ? "Single Scenario" : "Complex Scenario"],
+    ["Product Group", summary.productGroup || ""],
+    ["Risk Domain", summary.riskDomain || ""],
+    ["Primary Product", summary.primaryProduct || ""],
+    ["Primary Regulation", summary.primaryRegulation || ""],
+    ["Inherent Risk Score", `${summary.inherent} (${summary.tier})`],
+    ["Residual Risk Score", String(summary.residual)],
+    ["Annual Exposure Range", `${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}`],
+    ["Most Likely Annual Impact", currency(summary.rangeMedian)],
+    ["Expected Annual Loss", currency(summary.expectedLoss)],
+    ["Mitigation Cost", currency(summary.mitigationCost)],
+    ["Annual Risk Reduction Value", currency(summary.riskReductionValue)],
+    ["Net Benefit / ROI", currency(summary.mitigationROI)]
+  ]));
+  sections.push(heading("Scenario Description", HeadingLevel.HEADING_2));
+  sections.push(body(summary.description || "No scenario description was provided."));
+  sections.push(heading("Executive Decision View", HeadingLevel.HEADING_2));
+  sections.push(body(`There is a ${summary.tier.toLowerCase()} risk tied to this scenario that could cost the organization approximately ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)} over a one-year period, with a most likely annual outcome near ${currency(summary.rangeMedian)}.`));
+  sections.push(body(`Direct hard cost is modeled at approximately ${currency(summary.hardCostExpected)} annually, while secondary or incidental soft cost is modeled at approximately ${currency(summary.softCostExpected)} annually.`));
+  sections.push(body(`The estimated direct cost to mitigate the full risk is ${currency(summary.mitigationCost)}, and the modeled annual reduction in loss is approximately ${currency(summary.riskReductionValue)}.`));
+  sections.push(body(summary.decisionText || ""));
+  sections.push(heading("Financial Model", HeadingLevel.HEADING_2));
+  sections.push(kvTable([
+    ["Expected Annual Hard Cost", currency(summary.hardCostExpected)],
+    ["Expected Annual Soft Cost", currency(summary.softCostExpected)],
+    ["Expected Annual Loss", currency(summary.expectedLoss)],
+    ["Residual Annual Loss", currency(summary.residualExpectedLoss)],
+    ["Control Effectiveness", `${summary.control}%`],
+    ["Mitigation Cost", currency(summary.mitigationCost)],
+    ["Net Benefit / ROI", currency(summary.mitigationROI)]
+  ]));
+  if (summary.mode === "complex" && Array.isArray(summary.items) && summary.items.length) {
+    sections.push(heading("Complex Scenario Risk Items", HeadingLevel.HEADING_2));
+    summary.items.forEach((item, i) => {
+      sections.push(body(`${i + 1}. ${item.name || "Risk Item"}`, { bold: true }));
+      sections.push(body(`Risk Domain: ${item.domain || ""} | Product / Service: ${item.product || ""} | Regulation: ${item.regulation || ""} | Score: ${item.score || ""} | Weight: ${item.weight || ""}`));
+      sections.push(body(`Explanation: ${item.description || "This line item represents an individual weighted contributor to the overall complex-scenario result."}`));
+    });
+  }
+  if (Array.isArray(summary.mitigations) && summary.mitigations.length) {
+    sections.push(heading("Mitigation Factors", HeadingLevel.HEADING_2));
+    summary.mitigations.forEach((m, i) => {
+      sections.push(body(`${i + 1}. ${m.title || m.name || "Mitigation"}`, { bold: true }));
+      sections.push(body(`Owner: ${m.owner || ""} | Status: ${m.status || ""} | Attachment: ${m.attachment || ""}`));
+      sections.push(body(`Explanation: ${m.description || "This mitigation factor is included as a control or treatment intended to reduce hard cost, soft cost, or residual exposure."}`));
+    });
+  }
+  if (Array.isArray(summary.horizonRows) && summary.horizonRows.length) {
+    sections.push(heading("Time Horizon Outlook", HeadingLevel.HEADING_2));
+    sections.push(kvTable([["Horizon", "Without Mitigation | With Mitigation | Risk Reduction"]].concat(
+      summary.horizonRows.map(r => [r.horizonLabel, `${currency(r.withoutMitigation)} | ${currency(r.withMitigation)} | ${currency(r.riskReduction)}`])
+    )));
+  }
+  sections.push(heading("Monte Carlo Method", HeadingLevel.HEADING_2));
+  sections.push(body("The model uses bounded triangular sampling for hard cost and soft-cost multipliers. It estimates a distribution of annual loss outcomes, applies the stated control-effectiveness assumption, and translates the result into annual exposure, residual loss, and mitigation economics."));
 
   const doc = new Document({
-    sections: [{
-      properties: {},
-      children
-    }]
+    sections: [{ properties: {}, children: sections }]
   });
-
   const blob = await Packer.toBlob(doc);
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = `board_packet_${currentDateStamp()}.docx`;
+  link.download = `board_packet_${(summary.id || currentDateStamp())}.docx`;
   link.click();
+}
+function downloadOutcomesTableTxt(summary) {
+  if (!summary) {
+    alert("Run or open a scenario report first.");
+    return;
+  }
+  if (!document.getElementById("includeMonteCarloTable").checked) {
+    alert("Select 'Include Monte Carlo table in report' first.");
+    return;
+  }
+  const rows = []
+    .concat([["Monte Carlo Outcomes Table",""]])
+    .concat(summary.monteCarloOutputRows || []);
+  const lines = rows.map(r => `${r[0]}${r[1] !== "" ? ": " + r[1] : ""}`);
+  textDownload(`outcomes_table_${(summary.id || currentDateStamp())}.txt`, lines.join("\n"));
 }
 
 function exportScenarioLibrary() {
@@ -1411,19 +1414,17 @@ function renderHeatMap() {
   ctx.fillText("Impact", 0, 0);
   ctx.restore();
 
-  const scenarios = getSavedScenarios().filter(s => String(s.scenarioStatus || "").toLowerCase() !== "closed");
+  const scenarios = getSavedScenarios().filter(s => Number(s.likelihood || 0) > 0 && Number(s.impact || 0) > 0);
   scenarios.forEach((s, idx) => {
-    const likelihood = Math.min(5, Math.max(1, Number(s.likelihood || Math.round((Number(s.inherent || 0) / 100) * 4) + 1 || 3)));
-    const impact = Math.min(5, Math.max(1, Number(s.impact || Math.round((Number(s.residual || s.inherent || 0) / 100) * 4) + 1 || 3)));
-    const x = margin + (likelihood - 0.5) * cellW;
-    const y = h - margin - (impact - 0.5) * cellH;
+    const x = margin + (Math.min(5, Math.max(1, Number(s.likelihood))) - 0.5) * cellW;
+    const y = h - margin - (Math.min(5, Math.max(1, Number(s.impact))) - 0.5) * cellH;
     ctx.beginPath();
     ctx.arc(x, y, 6, 0, Math.PI * 2);
     ctx.fillStyle = "#d96b1f";
     ctx.fill();
     ctx.strokeStyle = "#173a8c";
     ctx.stroke();
-    if (idx < 12) {
+    if (idx < 8) {
       ctx.fillStyle = "#172033";
       ctx.fillText((s.id || "").slice(-5), x + 8, y - 6);
     }
