@@ -1,9 +1,11 @@
-Risk Manager – Phase 5.1 Random Outcomes Table Patch
+Risk Manager – Phase 5.2 Open Scenario Navigation Patch
 
-This corrective Phase 5.1 package adds:
-- Random Scenarios field with options: 100, 500, 1,000, 10,000, 100,000
-- Random Outcomes TXT export built from the actual randomized Monte Carlo scenario rows
-- heat map includes all non-closed scenarios
-- board packet DOCX continues to include all non-closed scenarios plus closed scenarios from the past 90 days
+This patch adds:
+- clickable Scenario ID links in the dashboard open-scenario table
+- ID links reopen the original builder where the scenario was created
+  - Single Scenario
+  - Complex Scenario
+- Builder identifier column added to the open-scenario table
+- Information menu note for the future beta-distribution scenario menu
 
-This patch keeps the stable Phase 5 board/output baseline while correcting the meaning of the outcomes table.
+This keeps the Phase 5.1 random outcomes baseline and improves scenario navigation.

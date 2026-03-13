@@ -701,11 +701,12 @@ function renderDashboardOpenTable() {
     .filter(x => String(x.scenarioStatus).toLowerCase() !== "closed")
     .sort((a, b) => (b.inherent - a.inherent) || String(a.identifiedDate || "").localeCompare(String(b.identifiedDate || "")));
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8">No open scenarios available.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9">No open scenarios available.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(s => `<tr>
-    <td>${escapeHtml(s.id)}</td>
+    <td><button class="scenario-link" data-open-id="${escapeHtml(s.id)}">${escapeHtml(s.id)}</button></td>
+    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : "Unknown"}</td>
     <td>${escapeHtml(s.name)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -715,6 +716,7 @@ function renderDashboardOpenTable() {
     <td><button class="btn btn-secondary small-btn" data-report-id="${escapeHtml(s.id)}">Open Report</button></td>
   </tr>`).join("");
   tbody.querySelectorAll("[data-report-id]").forEach(btn => btn.addEventListener("click", () => openScenarioReport(btn.dataset.reportId)));
+  tbody.querySelectorAll("[data-open-id]").forEach(btn => btn.addEventListener("click", () => openScenario(btn.dataset.openId)));
 }
 function openScenario(id) {
   const s = getSavedScenarios().find(x => x.id === id);
@@ -754,6 +756,7 @@ function openScenario(id) {
     activeMode = "single";
     updateInherentScores();
     activateView("single");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
     document.getElementById("complexScenarioId").value = s.id || "";
     document.getElementById("complexScenarioName").value = s.name || "";
@@ -789,6 +792,7 @@ function openScenario(id) {
     activeMode = "complex";
     updateInherentScores();
     activateView("complex");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 function deleteScenario(id) {
@@ -1072,6 +1076,8 @@ function renderManual() {
     <p>Each report now includes one-year, three-year, five-year, ten-year, fifteen-year, twenty-year, twenty-five-year, and thirty-plus-year outlooks, both with and without mitigation, so leadership can understand longer-term exposure.</p>
     <h4>Category Admin</h4>
     <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, or remove values.</p>
+    <h4>Future Scenario Types</h4>
+    <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
@@ -1488,6 +1494,8 @@ function forceManualContent() {
     <p>Each report includes outlooks for 1 year, 3 years, 5 years, 10 years, 15 years, 20 years, 25 years, and 30+ years, both with and without mitigation, so decision makers can understand longer-term exposure.</p>
     <h4>Category Admin</h4>
     <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, remove, and now restore the default libraries if needed.</p>
+    <h4>Future Scenario Types</h4>
+    <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
