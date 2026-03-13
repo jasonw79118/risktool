@@ -1,14 +1,12 @@
-Risk Manager – Phase 5.4b Random Outcomes CSV Patch
+Risk Manager – Phase 6 Beta Scenario Pack
 
-This patch changes the Random Outcomes export from XLS to CSV.
+This pack adds the design and starter code for a new Beta Scenario workflow.
 
-Why:
-- CSV is simpler and more reliable in the browser
-- easier to verify row counts
-- easier to open in Excel without SpreadsheetML issues
+Purpose:
+- evaluate future projects, launches, products, and implementations
+- use a bounded beta-distribution approach based on Min / Mode / Max
+- allow multiple risk lines and mitigation factors
+- support promotion to an active live scenario after management approval
 
-Included:
-- Download Random Outcomes CSV button
-- export rebuilt from the randomized scenario rows
-- if the current summary is missing rows, the export regenerates them before download
-- row count should match the selected Random Scenarios value
+Important:
+This is a Phase 6 implementation pack intended to be merged into your current working version.

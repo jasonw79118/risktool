@@ -1,0 +1,16 @@
+{
+  "scenarioId": "20260313-00001",
+  "mode": "beta",
+  "distributionMethod": "beta",
+  "name": "New Product Launch Beta Scenario",
+  "projectOrProductName": "Embedded Payments",
+  "productGroup": "Payment Services",
+  "riskDomain": "Strategic Risk",
+  "scenarioStatus": "Draft",
+  "randomScenarioCount": 1000,
+  "betaInputs": {
+    "min": 100000,
+    "mode": 250000,
+    "max": 700000
+  }
+}

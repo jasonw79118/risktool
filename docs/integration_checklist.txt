@@ -1,0 +1,13 @@
+Phase 6 Beta Scenario – Integration Checklist
+
+1. Add navigation item:
+<button class="nav-item" data-view="beta">Beta Scenario</button>
+
+2. Insert HTML fragment: beta_scenario_view_fragment.html
+
+3. Load engine: js/beta_scenario_engine.js
+
+4. Extend routing:
+single -> Single
+complex -> Complex
+beta -> Beta
