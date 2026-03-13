@@ -381,12 +381,15 @@ function runFinancialMonteCarlo(payload) {
   const allowedIterations = [100, 500, 1000, 10000, 100000];
   const requestedIterations = Number(payload.randomScenarioCount || 1000);
   const iterations = allowedIterations.includes(requestedIterations) ? requestedIterations : 1000;
+
   const hardMin = Math.max(0, Number(payload.hardCostMin || 0));
   const hardLikely = Math.max(hardMin, Number(payload.hardCostLikely || hardMin));
   const hardMax = Math.max(hardLikely, Number(payload.hardCostMax || hardLikely));
+
   const softMin = Math.max(0, Number(payload.softCostMin || 0));
   const softLikely = Math.max(softMin, Number(payload.softCostLikely || softMin));
   const softMax = Math.max(softLikely, Number(payload.softCostMax || softLikely));
+
   const effectiveness = clampNumber(payload.control || 0, 0, 100, 0) / 100;
   const mitigationCost = Math.max(0, Number(payload.mitigationCost || 0));
 
@@ -394,21 +397,34 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
+  const outcomeRows = [];
+
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
     const soft = hard * softMultiplier;
     const total = hard + soft;
     const residual = total * (1 - effectiveness);
+
     hardSamples.push(hard);
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
-  }
-  totalSamples.sort((a,b) => a-b);
-  residualSamples.sort((a,b) => a-b);
 
-  const avg = arr => arr.reduce((a,b)=>a+b,0) / Math.max(arr.length,1);
+    outcomeRows.push({
+      scenarioNumber: i + 1,
+      hardCost: Math.round(hard),
+      softCost: Math.round(soft),
+      totalCost: Math.round(total),
+      residualCost: Math.round(residual),
+      breakevenMet: Math.round(total - residual) >= mitigationCost ? 1 : 0
+    });
+  }
+
+  totalSamples.sort((a, b) => a - b);
+  residualSamples.sort((a, b) => a - b);
+
+  const avg = arr => arr.reduce((a, b) => a + b, 0) / Math.max(arr.length, 1);
   const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * p)))];
 
   const expectedLoss = Math.round(avg(totalSamples));
@@ -418,7 +434,7 @@ function runFinancialMonteCarlo(payload) {
   const riskReductionValue = Math.max(0, expectedLoss - residualExpectedLoss);
   const mitigationROI = riskReductionValue - mitigationCost;
 
-  const horizons = [1,3,5,10,15,20,25,30];
+  const horizons = [1, 3, 5, 10, 15, 20, 25, 30];
   const horizonRows = horizons.map(years => {
     const withoutMitigation = expectedLoss * years;
     const withMitigation = residualExpectedLoss * years + mitigationCost;
@@ -443,7 +459,8 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows
+    horizonRows,
+    randomOutcomeRows: outcomeRows
   };
 }
 function currency(value) {
@@ -1040,8 +1057,18 @@ function wireInputs() {
       alert("Run or open a scenario first.");
       return;
     }
-    const xml = buildOutcomesTableText(lastSummary);
-    fileDownload(`random_outcomes_${(lastSummary?.id || currentDateStamp())}.xls`, xml, "application/vnd.ms-excel");
+
+    const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
+      ? summarizePayload(lastSummary)
+      : lastSummary;
+
+    if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) {
+      alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
+      return;
+    }
+
+    const csv = buildOutcomesTableText(exportSummary);
+    fileDownload(`random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`, csv, "text/csv;charset=utf-8");
   });
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
@@ -1110,39 +1137,26 @@ function getBoardPacketScenarios() {
 }
 function buildOutcomesTableText(summary) {
   if (!summary) return "";
-  const rows = summary.randomOutcomeRows || [];
-  const header = ["Scenario Number","Hard Cost","Soft Cost","Total Cost","Residual Cost","Breakeven Met?"];
-  const xmlEscape = (value) => String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;");
-  const rowXml = (cells) => "<Row>" + cells.map(cell => {
-    const isNum = typeof cell === "number" || /^[0-9]+(\.[0-9]+)?$/.test(String(cell));
-    const type = isNum ? "Number" : "String";
-    return `<Cell><Data ss:Type="${type}">${xmlEscape(cell)}</Data></Cell>`;
-  }).join("") + "</Row>";
-  const allRows = [header].concat(rows.map(r => [
+  const rows = Array.isArray(summary.randomOutcomeRows) ? summary.randomOutcomeRows : [];
+
+  const escapeCsv = (value) => {
+    const s = String(value ?? "");
+    return /[",
+]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
+  };
+
+  const header = ["Scenario Number", "Hard Cost", "Soft Cost", "Total Cost", "Residual Cost", "Breakeven Met?"];
+  const body = rows.map(r => [
     r.scenarioNumber,
     r.hardCost,
     r.softCost,
     r.totalCost,
     r.residualCost,
     r.breakevenMet
-  ]));
-  return `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <Worksheet ss:Name="Random Outcomes">
-  <Table>
-   ${allRows.map(rowXml).join("")}
-  </Table>
- </Worksheet>
-</Workbook>`;
+  ]);
+
+  return [header].concat(body).map(row => row.map(escapeCsv).join(",")).join("
+");
 }
 async function downloadBoardPacketDocx() {
   const scenarios = getBoardPacketScenarios();
@@ -1563,7 +1577,7 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
-  setupRandomOutcomesCsvButton();
+  // legacy csv setup disabled
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -1612,7 +1626,7 @@ function buildRandomOutcomesWorkbookXml(summary) {
 </Workbook>`;
 }
 
-function setupRandomOutcomesXlsButton() {
+function setupRandomOutcomesXlsButton_legacy_disabled() {
   const oldBtn = document.getElementById("downloadOutcomesTableBtn");
   if (!oldBtn) return;
   oldBtn.textContent = "Download Random Outcomes XLS";
@@ -1657,7 +1671,7 @@ function buildRandomOutcomesCsv(summary) {
   return [header].concat(body).map(row => row.map(escapeCsv).join(",")).join("\n");
 }
 
-function setupRandomOutcomesCsvButton() {
+function setupRandomOutcomesCsvButton_legacy_disabled() {
   const oldBtn = document.getElementById("downloadOutcomesTableBtn");
   if (!oldBtn) return;
   oldBtn.textContent = "Download Random Outcomes CSV";
