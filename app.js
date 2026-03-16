@@ -1,164 +1,114 @@
 
-let lastBetaSummary = null;
+function setSelectValueSafe(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const wanted = String(value ?? "");
+  const hasOption = Array.from(el.options || []).some(opt => opt.value === wanted);
+  if (!hasOption && wanted) {
+    const opt = document.createElement("option");
+    opt.value = wanted;
+    opt.textContent = wanted;
+    el.appendChild(opt);
+  }
+  el.value = wanted;
+}
 
-function getBetaPayload() {
+
+
+function betaRelativeMean(min, mode, max) {
+  if (max <= min) return 0.5;
+  return ((((mode - min) / (max - min)) * 4) + 1) / 6;
+}
+function betaShapeA(relativeMean) {
+  return (relativeMean ** 2) * (1 - relativeMean) * (6 ** 2) - 1;
+}
+function betaShapeB(relativeMean, a) {
+  if (relativeMean <= 0) return 1;
+  return ((1 - relativeMean) / relativeMean) * a;
+}
+function normalSample() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function gammaSample(shape) {
+  if (shape < 1) {
+    const u = Math.random();
+    return gammaSample(1 + shape) * Math.pow(u, 1 / shape);
+  }
+  const d = shape - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  while (true) {
+    let x, v, u;
+    do {
+      x = normalSample();
+      v = 1 + c * x;
+    } while (v <= 0);
+    v = v * v * v;
+    u = Math.random();
+    if (u < 1 - 0.0331 * (x ** 4)) return d * v;
+    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+}
+function boundedBetaSample(min, mode, max) {
+  if (max <= min) return min;
+  const relMean = betaRelativeMean(min, mode, max);
+  const aRaw = betaShapeA(relMean);
+  const bRaw = betaShapeB(relMean, aRaw);
+
+  // Keep shapes positive and stable for browser-side simulation
+  const alpha = Math.max(0.5, Math.abs(aRaw));
+  const beta = Math.max(0.5, Math.abs(bRaw));
+
+  const x = gammaSample(alpha);
+  const y = gammaSample(beta);
+  const beta01 = x / (x + y);
+
+  return min + beta01 * (max - min);
+}
+function percentile(sortedValues, p) {
+  if (!sortedValues.length) return 0;
+  const index = Math.min(sortedValues.length - 1, Math.max(0, Math.floor(sortedValues.length * p)));
+  return sortedValues[index];
+}
+function runBetaScenarioSimulation(betaInputs, randomScenarioCount) {
+  const allowed = [100, 500, 1000, 10000, 100000];
+  const iterations = allowed.includes(Number(randomScenarioCount)) ? Number(randomScenarioCount) : 1000;
+
+  const min = Number(betaInputs.min || 0);
+  const mode = Number(betaInputs.mode || min);
+  const max = Number(betaInputs.max || mode);
+
+  const relativeMean = betaRelativeMean(min, mode, max);
+  const a = betaShapeA(relativeMean);
+  const b = betaShapeB(relativeMean, a);
+
+  const rows = [];
+  const values = [];
+  for (let i = 0; i < iterations; i++) {
+    const value = boundedBetaSample(min, mode, max);
+    rows.push({
+      scenarioNumber: i + 1,
+      sampledValue: Math.round(value)
+    });
+    values.push(value);
+  }
+
+  values.sort((x, y) => x - y);
+  const expectedValue = Math.round(values.reduce((acc, v) => acc + v, 0) / Math.max(values.length, 1));
+
   return {
-    mode: "beta",
-    distributionMethod: "beta",
-    id: document.getElementById("betaScenarioId").value,
-    name: document.getElementById("betaScenarioName").value || "Unnamed Beta Scenario",
-    projectOrProductName: document.getElementById("betaProjectOrProductName").value,
-    productGroup: document.getElementById("betaProductGroup").value,
-    riskDomain: document.getElementById("betaRiskDomain").value,
-    scenarioStatus: document.getElementById("betaScenarioStatus").value,
-    scenarioSource: "Risk",
-    scenarioOwner: document.getElementById("betaScenarioOwner").value,
-    identifiedDate: document.getElementById("betaIdentifiedDate").value,
-    plannedDecisionDate: document.getElementById("betaPlannedDecisionDate").value,
-    plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate").value,
-    description: document.getElementById("betaScenarioDescription").value,
-    randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount").value || 1000),
-    betaInputs: {
-      min: Number(document.getElementById("betaMin").value || 0),
-      mode: Number(document.getElementById("betaMode").value || 0),
-      max: Number(document.getElementById("betaMax").value || 0)
-    },
-    items: [],
-    mitigations: [],
-    promotion: {
-      eligible: true,
-      promoted: false,
-      targetMode: "",
-      promotedScenarioId: ""
-    }
+    iterations,
+    relativeMean,
+    a,
+    b,
+    expectedValue,
+    p10: Math.round(percentile(values, 0.10)),
+    p50: Math.round(percentile(values, 0.50)),
+    p90: Math.round(percentile(values, 0.90)),
+    randomOutcomeRows: rows
   };
-}
-
-function renderBetaSummary(summary) {
-  document.getElementById("betaRelativeMean").value = Number(summary.relativeMean || 0).toFixed(4);
-  document.getElementById("betaShapeA").value = Number(summary.a || 0).toFixed(4);
-  document.getElementById("betaShapeB").value = Number(summary.b || 0).toFixed(4);
-  document.getElementById("betaExpectedValue").value = summary.expectedValue || 0;
-  document.getElementById("betaP10").value = summary.p10 || 0;
-  document.getElementById("betaP50").value = summary.p50 || 0;
-  document.getElementById("betaP90").value = summary.p90 || 0;
-
-  document.getElementById("betaExpectedValueDisplay").textContent = summary.expectedValue || 0;
-  document.getElementById("betaP10Display").textContent = summary.p10 || 0;
-  document.getElementById("betaP50Display").textContent = summary.p50 || 0;
-  document.getElementById("betaP90Display").textContent = summary.p90 || 0;
-  document.getElementById("betaIterationsDisplay").textContent = summary.iterations || 0;
-  document.getElementById("betaNarrative").textContent = `${summary.name} produced an expected value of ${currency(summary.expectedValue)} with a P10 of ${currency(summary.p10)}, a P50 of ${currency(summary.p50)}, and a P90 of ${currency(summary.p90)} across ${summary.iterations} randomized beta scenarios.`;
-}
-
-function runBetaScenario() {
-  const payload = getBetaPayload();
-  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
-  lastBetaSummary = { ...payload, ...sim };
-  renderBetaSummary(lastBetaSummary);
-  activateView("beta");
-}
-
-function saveBetaScenario() {
-  const payload = getBetaPayload();
-  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
-  const summary = { ...payload, ...sim };
-
-  const saved = getSavedScenarios();
-  if (!summary.id) {
-    summary.id = generateScenarioId(saved);
-    document.getElementById("betaScenarioId").value = summary.id;
-  }
-  summary.scenarioId = summary.id;
-
-  const idx = saved.findIndex(x => x.id === summary.id);
-  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
-  setSavedScenarios(saved);
-  lastBetaSummary = summary;
-  renderBetaSummary(summary);
-  renderSavedScenarios();
-  renderDashboardOpenTable();
-  refreshLibraries();
-  activateView("saved");
-}
-
-function loadBetaTestScenario() {
-  document.getElementById("betaScenarioId").value = "";
-  document.getElementById("betaScenarioName").value = "Embedded Payments Launch Planning Scenario";
-  document.getElementById("betaProjectOrProductName").value = "Embedded Payments for SMB Clients";
-  document.getElementById("betaProductGroup").value = "Payment Services";
-  document.getElementById("betaRiskDomain").value = "Strategic & Business Model Risk";
-  document.getElementById("betaScenarioStatus").value = "Under Review";
-  document.getElementById("betaScenarioOwner").value = "Product Management";
-  document.getElementById("betaIdentifiedDate").value = todayIso();
-  document.getElementById("betaPlannedDecisionDate").value = todayIso();
-  document.getElementById("betaPlannedGoLiveDate").value = todayIso();
-  document.getElementById("betaMin").value = 125000;
-  document.getElementById("betaMode").value = 325000;
-  document.getElementById("betaMax").value = 900000;
-  document.getElementById("betaRandomScenarioCount").value = "1000";
-  document.getElementById("betaScenarioDescription").value = "This beta scenario evaluates whether the organization should proceed with a new embedded-payments product launch.";
-  runBetaScenario();
-}
-
-function promoteBetaScenarioToActive() {
-  const payload = getBetaPayload();
-  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
-  const betaSummary = { ...payload, ...sim };
-
-  const saved = getSavedScenarios();
-  if (!betaSummary.id) {
-    betaSummary.id = generateScenarioId(saved);
-    document.getElementById("betaScenarioId").value = betaSummary.id;
-  }
-  betaSummary.scenarioId = betaSummary.id;
-
-  const promoted = {
-    id: generateScenarioId(saved.concat([betaSummary])),
-    mode: "complex",
-    sourceBetaScenarioId: betaSummary.id,
-    name: betaSummary.name,
-    productGroup: betaSummary.productGroup,
-    riskDomain: betaSummary.riskDomain,
-    scenarioStatus: "Open",
-    scenarioSource: "Risk",
-    primaryProduct: betaSummary.projectOrProductName || "",
-    primaryRegulation: "",
-    scenarioOwner: betaSummary.scenarioOwner || "",
-    identifiedDate: betaSummary.identifiedDate || "",
-    description: betaSummary.description || "",
-    likelihood: 0,
-    impact: 0,
-    inherent: 0,
-    control: 0,
-    items: [],
-    mitigations: [],
-    acceptedRisk: {
-      isAccepted: false,
-      authority: "",
-      acceptedBy: "",
-      acceptanceDate: "",
-      reviewDate: "",
-      decisionLogic: ""
-    }
-  };
-
-  betaSummary.promotion = {
-    eligible: true,
-    promoted: true,
-    targetMode: "complex",
-    promotedScenarioId: promoted.id
-  };
-  betaSummary.scenarioStatus = "Promoted to Active";
-
-  const withoutBeta = saved.filter(x => x.id !== betaSummary.id);
-  withoutBeta.unshift(promoted);
-  withoutBeta.unshift(betaSummary);
-  setSavedScenarios(withoutBeta);
-  refreshLibraries();
-  renderSavedScenarios();
-  renderDashboardOpenTable();
-  activateView("saved");
 }
 
 
@@ -328,8 +278,6 @@ function refreshLibraries() {
   document.getElementById("domainCount").textContent = riskDomains.length;
   document.getElementById("savedCount").textContent = saved.length;
 
-  populateSelect("betaProductGroup", productGroups);
-  populateSelect("betaRiskDomain", riskDomains);
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
   populateSelect("singleRiskDomain", riskDomains);
@@ -840,7 +788,7 @@ function renderSavedScenarios() {
   tbody.innerHTML = saved.map(s => `<tr>
     <td>${escapeHtml(s.id)}</td>
     <td>${escapeHtml(s.name)}</td>
-    <td>${s.mode === "single" ? "Single" : s.mode === "complex" ? "Complex" : s.mode === "beta" ? "Beta" : "Unknown"}</td>
+    <td>${s.mode === "single" ? "Single" : "Complex"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -869,7 +817,7 @@ function renderDashboardOpenTable() {
   }
   tbody.innerHTML = rows.map(s => `<tr>
     <td><button class="scenario-link" data-open-id="${escapeHtml(s.id)}">${escapeHtml(s.id)}</button></td>
-    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : s.mode === "beta" ? "Beta Scenario" : "Unknown"}</td>
+    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : "Unknown"}</td>
     <td>${escapeHtml(s.name)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -961,38 +909,6 @@ function openScenario(id) {
     updateInherentScores();
     activateView("complex");
     window.scrollTo({ top: 0, behavior: "smooth" });
-  } else if (s.mode === "beta") {
-    document.getElementById("betaScenarioId").value = s.id || "";
-    document.getElementById("betaScenarioName").value = s.name || "";
-    document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || "";
-    document.getElementById("betaProductGroup").value = s.productGroup || productGroups[0] || "";
-    document.getElementById("betaRiskDomain").value = s.riskDomain || riskDomains[0] || "";
-    document.getElementById("betaScenarioStatus").value = s.scenarioStatus || "Draft";
-    document.getElementById("betaScenarioOwner").value = s.scenarioOwner || "";
-    document.getElementById("betaIdentifiedDate").value = s.identifiedDate || "";
-    document.getElementById("betaPlannedDecisionDate").value = s.plannedDecisionDate || "";
-    document.getElementById("betaPlannedGoLiveDate").value = s.plannedGoLiveDate || "";
-    document.getElementById("betaMin").value = s.betaInputs?.min || 0;
-    document.getElementById("betaMode").value = s.betaInputs?.mode || 0;
-    document.getElementById("betaMax").value = s.betaInputs?.max || 0;
-    document.getElementById("betaRandomScenarioCount").value = String(s.randomScenarioCount || 1000);
-    document.getElementById("betaScenarioDescription").value = s.description || "";
-    const betaSummary = {
-      ...s,
-      relativeMean: s.relativeMean || 0,
-      a: s.a || 0,
-      b: s.b || 0,
-      expectedValue: s.expectedValue || 0,
-      p10: s.p10 || 0,
-      p50: s.p50 || 0,
-      p90: s.p90 || 0,
-      iterations: s.iterations || s.randomScenarioCount || 0
-    };
-    renderBetaSummary(betaSummary);
-    lastBetaSummary = betaSummary;
-    activateView("beta");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-
   }
 }
 function deleteScenario(id) {
@@ -1203,14 +1119,6 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
-  const loadBetaBtn = document.getElementById("loadBetaTestBtn");
-  if (loadBetaBtn) loadBetaBtn.addEventListener("click", loadBetaTestScenario);
-  const runBetaBtn = document.getElementById("runBetaScenarioBtn");
-  if (runBetaBtn) runBetaBtn.addEventListener("click", runBetaScenario);
-  const saveBetaBtn = document.getElementById("saveBetaScenarioBtn");
-  if (saveBetaBtn) saveBetaBtn.addEventListener("click", saveBetaScenario);
-  const promoteBetaBtn = document.getElementById("promoteBetaScenarioBtn");
-  if (promoteBetaBtn) promoteBetaBtn.addEventListener("click", promoteBetaScenarioToActive);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
