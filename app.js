@@ -987,6 +987,7 @@ function renderScenarioSummary(summary) {
       <td>${currency(row.riskReduction)}</td>
     </tr>
   `).join("");
+  renderSensitivityAnalysis(summary);
 }
 function drawSimpleBarChart(canvasId, summary) {
   const canvas = document.getElementById(canvasId);
