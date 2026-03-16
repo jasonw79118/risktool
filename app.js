@@ -128,8 +128,8 @@ const DEFAULT_ROTATION_RULES = [
 
 const STORAGE_KEY = "risk_manager_scenarios_v431";
 const LEGACY_STORAGE_KEY = "risk_manager_saved_evaluations_v2";
-const SUPABASE_URL = window.RISKTOOL_SUPABASE_URL || "PASTE_SUPABASE_URL_HERE";
-const SUPABASE_ANON_KEY = window.RISKTOOL_SUPABASE_ANON_KEY || "PASTE_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL = window.RISKTOOL_SUPABASE_URL || "https://iybbmeuvmhcdqplgpqaa.supabase.co";
+const SUPABASE_ANON_KEY = window.RISKTOOL_SUPABASE_ANON_KEY || "sb_publishable_nV4tLL5XWEjynywZwE5kBw_2rciNO27";
 const SUPABASE_SCENARIOS_TABLE = "scenarios";
 let supabaseClientPromise = null;
 let cloudSyncReady = false;
