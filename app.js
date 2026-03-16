@@ -154,6 +154,9 @@ let complexMitigations = [];
 let singleEvidence = [];
 let complexEvidence = [];
 let betaEvidence = [];
+let singleInsurance = [];
+let complexInsurance = [];
+let betaInsurance = [];
 let activeMode = "single";
 let lastSummary = null;
 
@@ -314,6 +317,121 @@ function renderEvidenceReport(summary) {
   const stats = summarizeEvidence(evidence);
   statsBox.textContent = `Evidence base includes ${stats.count} event${stats.count === 1 ? "" : "s"} (${stats.internalCount} internal, ${stats.externalCount} external). Observed loss range: ${currency(stats.minLoss)} to ${currency(stats.maxLoss)}. Average observed loss: ${currency(stats.avgLoss)}. Use the source links to validate the supporting facts.`;
 }
+function getInsuranceArray(mode) {
+  if (mode === "single") return singleInsurance;
+  if (mode === "complex") return complexInsurance;
+  if (mode === "beta") return betaInsurance;
+  return [];
+}
+function insuranceFieldId(mode, suffix) {
+  const prefix = mode === "single" ? "singleInsurance" : mode === "complex" ? "complexInsurance" : "betaInsurance";
+  return `${prefix}${suffix}`;
+}
+function readInsuranceEntry(mode) {
+  const get = suffix => document.getElementById(insuranceFieldId(mode, suffix));
+  return {
+    title: get("Title")?.value || "",
+    carrier: get("Carrier")?.value || "",
+    coverageType: get("CoverageType")?.value || "Cyber",
+    policyNumber: get("PolicyNumber")?.value || "",
+    premiumCost: Number(get("PremiumCost")?.value || 0),
+    deductible: Number(get("Deductible")?.value || 0),
+    coverageLimit: Number(get("CoverageLimit")?.value || 0),
+    coverageStartDate: get("CoverageStartDate")?.value || "",
+    coverageEndDate: get("CoverageEndDate")?.value || "",
+    duration: get("Duration")?.value || "",
+    exclusions: get("Exclusions")?.value || "",
+    claimStatus: get("ClaimStatus")?.value || "Not Submitted",
+    notes: get("Notes")?.value || "",
+    sourceLink: safeLink(get("SourceLink")?.value || "")
+  };
+}
+function clearInsuranceInputs(mode) {
+  ["Title","Carrier","PolicyNumber","PremiumCost","Deductible","CoverageLimit","CoverageStartDate","CoverageEndDate","Duration","Exclusions","Notes","SourceLink"].forEach(suffix => {
+    const el = document.getElementById(insuranceFieldId(mode, suffix));
+    if (el) el.value = "";
+  });
+  const type = document.getElementById(insuranceFieldId(mode, "CoverageType"));
+  if (type) type.value = mode === "beta" ? "Project / Launch" : "Cyber";
+  const claimStatus = document.getElementById(insuranceFieldId(mode, "ClaimStatus"));
+  if (claimStatus) claimStatus.value = "Not Submitted";
+}
+function renderInsuranceTable(mode) {
+  const tbody = document.getElementById(mode === "single" ? "singleInsuranceBody" : mode === "complex" ? "complexInsuranceBody" : "betaInsuranceBody");
+  if (!tbody) return;
+  const items = getInsuranceArray(mode);
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="9">No insurance coverages added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map((item, index) => `
+    <tr>
+      <td>${escapeHtml(item.title || "")}</td>
+      <td>${escapeHtml(item.carrier || "")}</td>
+      <td>${escapeHtml(item.coverageType || "")}</td>
+      <td>${currency(item.premiumCost || 0)}</td>
+      <td>${currency(item.deductible || 0)}</td>
+      <td>${currency(item.coverageLimit || 0)}</td>
+      <td>${escapeHtml(item.duration || "")}</td>
+      <td>${item.sourceLink ? `<a href="${escapeHtml(item.sourceLink)}" target="_blank" rel="noopener noreferrer">Source</a>` : ""}</td>
+      <td><button class="btn btn-secondary small-btn" data-insurance-delete="${mode}:${index}">Delete</button></td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-insurance-delete]").forEach(btn => btn.addEventListener("click", () => {
+    const [targetMode, idx] = String(btn.dataset.insuranceDelete || "").split(":");
+    const list = getInsuranceArray(targetMode);
+    list.splice(Number(idx), 1);
+    renderInsuranceTable(targetMode);
+    if (lastSummary && lastSummary.mode === targetMode) renderInsuranceReport({ ...lastSummary, insurance: list.slice() });
+  }));
+}
+function addInsurance(mode) {
+  const entry = readInsuranceEntry(mode);
+  if (!entry.title && !entry.carrier && !entry.policyNumber && !entry.sourceLink) {
+    alert("Add at least a title, carrier, policy number, or source link before saving insurance coverage.");
+    return;
+  }
+  const list = getInsuranceArray(mode);
+  list.push(entry);
+  renderInsuranceTable(mode);
+  clearInsuranceInputs(mode);
+}
+function summarizeInsurance(rows) {
+  const insurance = Array.isArray(rows) ? rows : [];
+  return {
+    count: insurance.length,
+    totalPremium: insurance.reduce((sum, item) => sum + Number(item.premiumCost || 0), 0),
+    totalLimit: insurance.reduce((sum, item) => sum + Number(item.coverageLimit || 0), 0),
+    deductibleMin: insurance.length ? Math.min(...insurance.map(item => Number(item.deductible || 0))) : 0,
+    deductibleMax: insurance.length ? Math.max(...insurance.map(item => Number(item.deductible || 0))) : 0
+  };
+}
+function renderInsuranceReport(summary) {
+  const tbody = document.getElementById("insuranceReportBody");
+  const statsBox = document.getElementById("insuranceSummaryBox");
+  if (!tbody || !statsBox) return;
+  const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
+  if (!insurance.length) {
+    tbody.innerHTML = '<tr><td colspan="9">No insurance coverages are attached to this scenario.</td></tr>';
+    statsBox.textContent = "No insurance coverage records have been attached to this scenario yet.";
+    return;
+  }
+  tbody.innerHTML = insurance.map(item => `
+    <tr>
+      <td>${escapeHtml(item.title || "")}</td>
+      <td>${escapeHtml(item.carrier || "")}</td>
+      <td>${escapeHtml(item.coverageType || "")}</td>
+      <td>${currency(item.premiumCost || 0)}</td>
+      <td>${currency(item.deductible || 0)}</td>
+      <td>${currency(item.coverageLimit || 0)}</td>
+      <td>${escapeHtml(item.duration || "")}</td>
+      <td>${escapeHtml(item.claimStatus || "")}</td>
+      <td>${item.sourceLink ? `<a href="${escapeHtml(item.sourceLink)}" target="_blank" rel="noopener noreferrer">Source</a>` : ""}</td>
+    </tr>
+  `).join("");
+  const stats = summarizeInsurance(insurance);
+  statsBox.textContent = `Insurance library includes ${stats.count} coverage entr${stats.count === 1 ? "y" : "ies"}. Total premium: ${currency(stats.totalPremium)}. Total stated coverage limit: ${currency(stats.totalLimit)}. Deductible range: ${currency(stats.deductibleMin)} to ${currency(stats.deductibleMax)}.`;
+}
 function currentDateStamp() {
   return todayIso().replaceAll("-", "");
 }
@@ -351,6 +469,8 @@ function normalizeScenario(saved) {
     items: Array.isArray(saved.items) ? saved.items : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
     evidence: Array.isArray(saved.evidence) ? saved.evidence : [],
+    insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
+    complexGroupId: saved.complexGroupId || saved.groupId || saved.parentGroupId || "",
     acceptedRisk: saved.acceptedRisk || {
       isAccepted: false,
       authority: "",
@@ -496,9 +616,9 @@ function renderComplexItems() {
   const tbody = document.getElementById("riskItemsTableBody");
   if (!tbody) return;
   if (!currentComplexItems.length) {
-    tbody.innerHTML = '<tr><td colspan="6">No risk items added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">No risk items added yet.</td></tr>';
   } else {
-    tbody.innerHTML = currentComplexItems.map(item => `<tr data-issue-id="${escapeHtml(item.issueId || "")}"><td><button class="scenario-link" data-issue-open="${escapeHtml(item.issueId || "")}">${escapeHtml(item.name)}</button></td><td>${escapeHtml(item.domain)}</td><td>${escapeHtml(item.product)}</td><td>${escapeHtml(item.regulation)}</td><td>${item.score}</td><td>${item.weight}</td></tr>`).join("");
+    tbody.innerHTML = currentComplexItems.map(item => `<tr data-issue-id="${escapeHtml(item.issueId || "")}"><td>${escapeHtml(item.parentGroupId || "")}</td><td><button class="scenario-link" data-issue-open="${escapeHtml(item.issueId || "")}">${escapeHtml(item.name)}</button></td><td>${escapeHtml(item.domain)}</td><td>${escapeHtml(item.product)}</td><td>${escapeHtml(item.regulation)}</td><td>${item.score}</td><td>${item.weight}</td></tr>`).join("");
     tbody.querySelectorAll("[data-issue-open]").forEach(btn => btn.addEventListener("click", () => {
       const issueId = btn.dataset.issueOpen;
       highlightIssueRow(issueId);
@@ -510,6 +630,7 @@ function addRiskItem() {
   currentComplexItems.push({
     issueId: `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     parentScenarioMode: "complex",
+    parentGroupId: document.getElementById("complexGroupId")?.value || document.getElementById("complexScenarioId")?.value || "",
     name: document.getElementById("riskItemName").value || "Unnamed Risk Item",
     domain: document.getElementById("riskItemDomain").value,
     product: document.getElementById("riskItemProduct").value,
@@ -579,6 +700,7 @@ function getSinglePayload() {
     items: [],
     mitigations: singleMitigations.slice(),
     evidence: singleEvidence.slice(),
+    insurance: singleInsurance.slice(),
     acceptedRisk: getAcceptedRisk("single")
   };
 }
@@ -587,6 +709,7 @@ function getComplexPayload() {
     mode: "complex",
     id: document.getElementById("complexScenarioId").value,
     name: document.getElementById("complexScenarioName").value || "Unnamed Complex Scenario",
+    complexGroupId: document.getElementById("complexGroupId").value || document.getElementById("complexScenarioId").value || "",
     productGroup: document.getElementById("complexProductGroup").value,
     riskDomain: document.getElementById("complexRiskDomain").value,
     scenarioStatus: document.getElementById("complexScenarioStatus").value,
@@ -611,6 +734,7 @@ function getComplexPayload() {
     items: currentComplexItems.slice(),
     mitigations: complexMitigations.slice(),
     evidence: complexEvidence.slice(),
+    insurance: complexInsurance.slice(),
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
@@ -635,7 +759,8 @@ function getBetaPayload() {
       max: Number(document.getElementById("betaMax")?.value || 0)
     },
     randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount")?.value || 1000),
-    evidence: betaEvidence.slice()
+    evidence: betaEvidence.slice(),
+    insurance: betaInsurance.slice()
   };
 }
 function renderBetaSummary(summary) {
@@ -1109,7 +1234,9 @@ function openScenario(id) {
     document.getElementById("betaRandomScenarioCount").value = String(s.randomScenarioCount || 1000);
     document.getElementById("betaScenarioDescription").value = s.description || "";
     betaEvidence = Array.isArray(s.evidence) ? s.evidence.slice() : [];
+    betaInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     renderEvidenceTable("beta");
+    renderInsuranceTable("beta");
     renderBetaSummary({ ...s, ...runBetaScenarioSimulation(s.betaInputs || { min: 0, mode: 0, max: 0 }, s.randomScenarioCount || 1000) });
     activeMode = "beta";
     activateView("beta");
@@ -1146,7 +1273,9 @@ function openScenario(id) {
   ];
   renderEvidenceTable("single");
     singleEvidence = Array.isArray(s.evidence) ? s.evidence.slice() : [];
+    singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     renderEvidenceTable("single");
+    renderInsuranceTable("single");
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("singleAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("singleAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1160,6 +1289,7 @@ function openScenario(id) {
   } else {
     document.getElementById("complexScenarioId").value = s.id || "";
     document.getElementById("complexScenarioName").value = s.name || "";
+    document.getElementById("complexGroupId").value = s.complexGroupId || s.id || "";
     document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
     document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
@@ -1194,7 +1324,9 @@ function openScenario(id) {
   ];
   renderEvidenceTable("complex");
     complexEvidence = Array.isArray(s.evidence) ? s.evidence.slice() : [];
+    complexInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     renderEvidenceTable("complex");
+    renderInsuranceTable("complex");
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1423,6 +1555,12 @@ function wireInputs() {
   if (addComplexEvidenceBtn) addComplexEvidenceBtn.addEventListener("click", () => addEvidence("complex"));
   const addBetaEvidenceBtn = document.getElementById("addBetaEvidenceBtn");
   if (addBetaEvidenceBtn) addBetaEvidenceBtn.addEventListener("click", () => addEvidence("beta"));
+  const addSingleInsuranceBtn = document.getElementById("addSingleInsuranceBtn");
+  if (addSingleInsuranceBtn) addSingleInsuranceBtn.addEventListener("click", () => addInsurance("single"));
+  const addComplexInsuranceBtn = document.getElementById("addComplexInsuranceBtn");
+  if (addComplexInsuranceBtn) addComplexInsuranceBtn.addEventListener("click", () => addInsurance("complex"));
+  const addBetaInsuranceBtn = document.getElementById("addBetaInsuranceBtn");
+  if (addBetaInsuranceBtn) addBetaInsuranceBtn.addEventListener("click", () => addInsurance("beta"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);

@@ -171,7 +171,6 @@
             <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
             <input id="singleControlEffectiveness" type="number" min="0" max="100" value="30">
           </div>
-
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
             <input id="singleHardCostMin" type="number" min="0" step="1000" value="50000">
@@ -210,7 +209,6 @@
               <option value="100000">100,000</option>
             </select>
           </div>
-
           <div class="full-span">
             <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
             <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
@@ -218,25 +216,47 @@
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
-          <div class="form-grid">
-            <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="singleEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 125000"></div>
-            <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="singleEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
-            <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="singleEvidenceLossDate" type="date"></div>
-            <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="singleEvidenceOrganization" type="text" placeholder="e.g. Internal Operations or Peer Bank"></div>
-            <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="singleEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
-            <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="singleEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-            <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="singleEvidenceRegulation" type="text" placeholder="e.g. Reg E"></div>
-            <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="singleEvidenceLink" type="url" placeholder="https://..."></div>
-            <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="singleEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
-            <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="singleEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
-          </div>
-          <div class="builder-actions"><button class="btn btn-secondary" id="addSingleEvidenceBtn">Add Evidence Record</button></div>
-          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="singleEvidenceBody"></tbody></table></div>
+      <div class="card">
+        <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="singleEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 125000"></div>
+          <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="singleEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
+          <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="singleEvidenceLossDate" type="date"></div>
+          <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="singleEvidenceOrganization" type="text" placeholder="e.g. Internal Operations or Peer Bank"></div>
+          <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="singleEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
+          <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="singleEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+          <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="singleEvidenceRegulation" type="text" placeholder="e.g. Reg E"></div>
+          <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="singleEvidenceLink" type="url" placeholder="https://..."></div>
+          <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="singleEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
+          <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="singleEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
         </div>
-        <div class="card">
+        <div class="builder-actions"><button class="btn btn-secondary" id="addSingleEvidenceBtn">Add Evidence Record</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="singleEvidenceBody"></tbody></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Insurance Coverage</h3><span>Risk Transfer</span></div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Coverage title used to identify the policy within the scenario.">Insurance Title</label><input id="singleInsuranceTitle" type="text" placeholder="e.g. Operational Risk Policy"></div>
+          <div><label class="help-label" data-help="Insurance carrier or provider.">Carrier / Provider</label><input id="singleInsuranceCarrier" type="text" placeholder="e.g. Enterprise Mutual"></div>
+          <div><label class="help-label" data-help="Primary insurance coverage category.">Coverage Type</label><select id="singleInsuranceCoverageType"><option>Cyber</option><option>E&amp;O</option><option>D&amp;O</option><option>Crime / Fraud</option><option>Operational Risk</option><option>Project / Launch</option><option>Vendor / Third-Party</option><option>Other</option></select></div>
+          <div><label class="help-label" data-help="Policy or coverage reference number.">Policy Number</label><input id="singleInsurancePolicyNumber" type="text" placeholder="e.g. EO-11482"></div>
+          <div><label class="help-label" data-help="Annual or stated premium cost for the coverage.">Premium Cost ($)</label><input id="singleInsurancePremiumCost" type="number" min="0" step="1000" placeholder="e.g. 18000"></div>
+          <div><label class="help-label" data-help="Deductible or retention amount before insurance responds.">Deductible ($)</label><input id="singleInsuranceDeductible" type="number" min="0" step="1000" placeholder="e.g. 25000"></div>
+          <div><label class="help-label" data-help="Maximum stated policy coverage amount.">Coverage Limit ($)</label><input id="singleInsuranceCoverageLimit" type="number" min="0" step="1000" placeholder="e.g. 500000"></div>
+          <div><label class="help-label" data-help="Human-readable coverage period or duration.">Coverage Duration</label><input id="singleInsuranceDuration" type="text" placeholder="e.g. 12 Months"></div>
+          <div><label class="help-label" data-help="Coverage effective start date.">Coverage Start Date</label><input id="singleInsuranceCoverageStartDate" type="date"></div>
+          <div><label class="help-label" data-help="Coverage end or renewal date.">Coverage End Date</label><input id="singleInsuranceCoverageEndDate" type="date"></div>
+          <div><label class="help-label" data-help="Current claim or submission status related to this scenario.">Claim Status</label><select id="singleInsuranceClaimStatus"><option>Not Submitted</option><option>Potential Claim</option><option>Submitted</option><option>Under Review</option><option>Paid</option><option>Denied</option></select></div>
+          <div><label class="help-label" data-help="Policy source link or document location.">Source Link / Policy Location</label><input id="singleInsuranceSourceLink" type="url" placeholder="https://..."></div>
+          <div class="full-span"><label class="help-label" data-help="Important exclusions, carve-outs, or limitations that may reduce coverage.">Exclusions / Key Limitations</label><textarea id="singleInsuranceExclusions" rows="3" placeholder="Describe key exclusions or coverage limitations."></textarea></div>
+          <div class="full-span"><label class="help-label" data-help="Additional coverage notes relevant to the scenario.">Notes</label><textarea id="singleInsuranceNotes" rows="2" placeholder="Optional notes."></textarea></div>
+        </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance Coverage</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Title</th><th>Carrier</th><th>Type</th><th>Premium</th><th>Deductible</th><th>Limit</th><th>Duration</th><th>Link</th><th>Action</th></tr></thead><tbody id="singleInsuranceBody"></tbody></table></div>
+      </div>
+
+      <div class="card">
           <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
           <div class="form-grid">
             <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
@@ -255,7 +275,7 @@
           </div>
         </div>
 
-        <div class="card">
+      <div class="card">
           <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
           <div class="checkbox-list">
             <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
@@ -283,10 +303,10 @@
             </div>
           </div>
         </div>
-      </div>
     </section>
 
-    <section id="view-complex" class="view">
+
+<section id="view-complex" class="view">
       <div class="section-header">
         <h2>Complex Scenario Builder</h2>
         <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
@@ -304,6 +324,10 @@
           <div>
             <label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Scenario ID</label>
             <input id="complexScenarioId" type="text" readonly placeholder="Generated on save">
+          </div>
+          <div>
+            <label class="help-label" data-help="Shared umbrella identifier for a complex scenario group. All component risk items roll up into this group ID.">Complex Group ID</label>
+            <input id="complexGroupId" type="text" placeholder="e.g. CMP-GRP-001">
           </div>
           <div>
             <label class="help-label" data-help="Overall product group or organizational group for this scenario.">Product Group</label>
@@ -345,7 +369,6 @@
             <label class="help-label" data-help="Estimated percentage reduction from the current control environment.">Control Effectiveness %</label>
             <input id="complexControlEffectiveness" type="number" min="0" max="100" value="28">
           </div>
-
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
             <input id="complexHardCostMin" type="number" min="0" step="1000" value="100000">
@@ -384,7 +407,6 @@
               <option value="100000">100,000</option>
             </select>
           </div>
-
           <div class="full-span">
             <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
             <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
@@ -392,120 +414,110 @@
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
-          <div class="form-grid">
-            <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="complexEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 250000"></div>
-            <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="complexEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
-            <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="complexEvidenceLossDate" type="date"></div>
-            <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="complexEvidenceOrganization" type="text" placeholder="e.g. Internal Operations or Peer Bank"></div>
-            <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="complexEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
-            <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="complexEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-            <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="complexEvidenceRegulation" type="text" placeholder="e.g. UDAAP"></div>
-            <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="complexEvidenceLink" type="url" placeholder="https://..."></div>
-            <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="complexEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
-            <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="complexEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
-          </div>
-          <div class="builder-actions"><button class="btn btn-secondary" id="addComplexEvidenceBtn">Add Evidence Record</button></div>
-          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="complexEvidenceBody"></tbody></table></div>
+      <div class="card">
+        <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>All items roll into the group score</span></div>
+        <div class="note-box">Use Complex Group ID to tie component scenarios under one umbrella. Each item added here inherits that group ID and contributes to the overall weighted risk score.</div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label><input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk"></div>
+          <div><label class="help-label" data-help="Risk domain classification for this item.">Risk Domain</label><select id="riskItemDomain"></select></div>
+          <div><label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label><select id="riskItemProduct"></select></div>
+          <div><label class="help-label" data-help="Regulation or standard linked to this risk item.">Related Regulation</label><select id="riskItemReg"></select></div>
+          <div><label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label><input id="riskItemScore" type="number" min="0" max="100" value="65"></div>
+          <div><label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label><input id="riskItemWeight" type="number" min="1" max="5" value="3"></div>
         </div>
-        <div class="card">
-          <div class="form-grid">
-            <div>
-              <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
-              <input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk">
-            </div>
-            <div>
-              <label class="help-label" data-help="Risk domain classification for this item.">Risk Domain</label>
-              <select id="riskItemDomain"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
-              <select id="riskItemProduct"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Regulation or standard linked to this risk item.">Related Regulation</label>
-              <select id="riskItemReg"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label>
-              <input id="riskItemScore" type="number" min="0" max="100" value="65">
-            </div>
-            <div>
-              <label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label>
-              <input id="riskItemWeight" type="number" min="1" max="5" value="3">
-            </div>
-          </div>
-          <div class="builder-actions">
-            <button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
-          <div class="form-grid">
-            <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
-            <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
-            <div><label>Status</label><input id="complexMitStatus" type="text" placeholder="e.g. Planned"></div>
-            <div><label>Attachment Name</label><input id="complexMitAttachment" type="text" placeholder="e.g. gap_analysis.xlsx"></div>
-          </div>
-          <div class="builder-actions">
-            <button class="btn btn-secondary" id="addComplexMitigationBtn">Add Mitigation</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
-              <tbody id="complexMitigationBody"></tbody>
-            </table>
-          </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Group ID</th><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
+            <tbody id="riskItemsTableBody"></tbody>
+          </table>
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
-              <tbody id="riskItemsTableBody"></tbody>
-            </table>
-          </div>
+      <div class="card">
+        <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="complexEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 250000"></div>
+          <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="complexEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
+          <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="complexEvidenceLossDate" type="date"></div>
+          <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="complexEvidenceOrganization" type="text" placeholder="e.g. Internal Operations or Peer Bank"></div>
+          <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="complexEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
+          <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="complexEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+          <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="complexEvidenceRegulation" type="text" placeholder="e.g. UDAAP"></div>
+          <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="complexEvidenceLink" type="url" placeholder="https://..."></div>
+          <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="complexEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
+          <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="complexEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
         </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addComplexEvidenceBtn">Add Evidence Record</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="complexEvidenceBody"></tbody></table></div>
+      </div>
 
-        <div class="card">
-          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
-          <div class="checkbox-list">
-            <label><input id="complexAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+      <div class="card">
+        <div class="card-header"><h3>Insurance Coverage</h3><span>Risk Transfer</span></div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Coverage title used to identify the policy within the scenario.">Insurance Title</label><input id="complexInsuranceTitle" type="text" placeholder="e.g. Technology E&amp;O"></div>
+          <div><label class="help-label" data-help="Insurance carrier or provider.">Carrier / Provider</label><input id="complexInsuranceCarrier" type="text" placeholder="e.g. Enterprise Mutual"></div>
+          <div><label class="help-label" data-help="Primary insurance coverage category.">Coverage Type</label><select id="complexInsuranceCoverageType"><option>Cyber</option><option>E&amp;O</option><option>D&amp;O</option><option>Crime / Fraud</option><option>Operational Risk</option><option>Project / Launch</option><option>Vendor / Third-Party</option><option>Other</option></select></div>
+          <div><label class="help-label" data-help="Policy or coverage reference number.">Policy Number</label><input id="complexInsurancePolicyNumber" type="text" placeholder="e.g. TEO-22041"></div>
+          <div><label class="help-label" data-help="Annual or stated premium cost for the coverage.">Premium Cost ($)</label><input id="complexInsurancePremiumCost" type="number" min="0" step="1000" placeholder="e.g. 42000"></div>
+          <div><label class="help-label" data-help="Deductible or retention amount before insurance responds.">Deductible ($)</label><input id="complexInsuranceDeductible" type="number" min="0" step="1000" placeholder="e.g. 50000"></div>
+          <div><label class="help-label" data-help="Maximum stated policy coverage amount.">Coverage Limit ($)</label><input id="complexInsuranceCoverageLimit" type="number" min="0" step="1000" placeholder="e.g. 1500000"></div>
+          <div><label class="help-label" data-help="Human-readable coverage period or duration.">Coverage Duration</label><input id="complexInsuranceDuration" type="text" placeholder="e.g. 12 Months"></div>
+          <div><label class="help-label" data-help="Coverage effective start date.">Coverage Start Date</label><input id="complexInsuranceCoverageStartDate" type="date"></div>
+          <div><label class="help-label" data-help="Coverage end or renewal date.">Coverage End Date</label><input id="complexInsuranceCoverageEndDate" type="date"></div>
+          <div><label class="help-label" data-help="Current claim or submission status related to this scenario.">Claim Status</label><select id="complexInsuranceClaimStatus"><option>Not Submitted</option><option>Potential Claim</option><option>Submitted</option><option>Under Review</option><option>Paid</option><option>Denied</option></select></div>
+          <div><label class="help-label" data-help="Policy source link or document location.">Source Link / Policy Location</label><input id="complexInsuranceSourceLink" type="url" placeholder="https://..."></div>
+          <div class="full-span"><label class="help-label" data-help="Important exclusions, carve-outs, or limitations that may reduce coverage.">Exclusions / Key Limitations</label><textarea id="complexInsuranceExclusions" rows="3" placeholder="Describe key exclusions or coverage limitations."></textarea></div>
+          <div class="full-span"><label class="help-label" data-help="Additional coverage notes relevant to the scenario.">Notes</label><textarea id="complexInsuranceNotes" rows="2" placeholder="Optional notes."></textarea></div>
+        </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance Coverage</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Title</th><th>Carrier</th><th>Type</th><th>Premium</th><th>Deductible</th><th>Limit</th><th>Duration</th><th>Link</th><th>Action</th></tr></thead><tbody id="complexInsuranceBody"></tbody></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
+          <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
+          <div><label>Status</label><input id="complexMitStatus" type="text" placeholder="e.g. Planned"></div>
+          <div><label>Attachment Name</label><input id="complexMitAttachment" type="text" placeholder="e.g. gap_analysis.xlsx"></div>
+        </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addComplexMitigationBtn">Add Mitigation</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead><tbody id="complexMitigationBody"></tbody></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+        <div class="checkbox-list">
+          <label><input id="complexAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+            <select id="complexAcceptanceAuthority"></select>
           </div>
-          <div class="form-grid">
-            <div>
-              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
-              <select id="complexAcceptanceAuthority"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
-              <input id="complexAcceptedBy" type="text" placeholder="e.g. Risk Governance Committee">
-            </div>
-            <div>
-              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
-              <input id="complexAcceptanceDate" type="date">
-            </div>
-            <div>
-              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
-              <input id="complexReviewDate" type="date">
-            </div>
-            <div class="full-span">
-              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
-              <textarea id="complexDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
-            </div>
+          <div>
+            <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+            <input id="complexAcceptedBy" type="text" placeholder="e.g. Risk Governance Committee">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+            <input id="complexAcceptanceDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+            <input id="complexReviewDate" type="date">
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+            <textarea id="complexDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
         </div>
       </div>
     </section>
 
 
-    <section id="view-beta" class="view">
+<section id="view-beta" class="view">
       <div class="section-header">
         <h2>Beta Scenario Builder</h2>
         <p>Use this for future-state planning, new products, projects, and implementations under uncertainty.</p>
@@ -642,6 +654,28 @@
         </div>
         <div class="builder-actions"><button class="btn btn-secondary" id="addBetaEvidenceBtn">Add Evidence Record</button></div>
         <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="betaEvidenceBody"></tbody></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Insurance Coverage</h3><span>Risk Transfer</span></div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Coverage title used to identify the policy within the scenario.">Insurance Title</label><input id="betaInsuranceTitle" type="text" placeholder="e.g. Launch Contingency Policy"></div>
+          <div><label class="help-label" data-help="Insurance carrier or provider.">Carrier / Provider</label><input id="betaInsuranceCarrier" type="text" placeholder="e.g. Future Risk Underwriters"></div>
+          <div><label class="help-label" data-help="Primary insurance coverage category.">Coverage Type</label><select id="betaInsuranceCoverageType"><option>Project / Launch</option><option>Cyber</option><option>E&amp;O</option><option>D&amp;O</option><option>Crime / Fraud</option><option>Operational Risk</option><option>Vendor / Third-Party</option><option>Other</option></select></div>
+          <div><label class="help-label" data-help="Policy or coverage reference number.">Policy Number</label><input id="betaInsurancePolicyNumber" type="text" placeholder="e.g. BETA-7710"></div>
+          <div><label class="help-label" data-help="Annual or stated premium cost for the coverage.">Premium Cost ($)</label><input id="betaInsurancePremiumCost" type="number" min="0" step="1000" placeholder="e.g. 12000"></div>
+          <div><label class="help-label" data-help="Deductible or retention amount before insurance responds.">Deductible ($)</label><input id="betaInsuranceDeductible" type="number" min="0" step="1000" placeholder="e.g. 10000"></div>
+          <div><label class="help-label" data-help="Maximum stated policy coverage amount.">Coverage Limit ($)</label><input id="betaInsuranceCoverageLimit" type="number" min="0" step="1000" placeholder="e.g. 300000"></div>
+          <div><label class="help-label" data-help="Human-readable coverage period or duration.">Coverage Duration</label><input id="betaInsuranceDuration" type="text" placeholder="e.g. 9 Months"></div>
+          <div><label class="help-label" data-help="Coverage effective start date.">Coverage Start Date</label><input id="betaInsuranceCoverageStartDate" type="date"></div>
+          <div><label class="help-label" data-help="Coverage end or renewal date.">Coverage End Date</label><input id="betaInsuranceCoverageEndDate" type="date"></div>
+          <div><label class="help-label" data-help="Current claim or submission status related to this scenario.">Claim Status</label><select id="betaInsuranceClaimStatus"><option>Not Submitted</option><option>Potential Claim</option><option>Submitted</option><option>Under Review</option><option>Paid</option><option>Denied</option></select></div>
+          <div><label class="help-label" data-help="Policy source link or document location.">Source Link / Policy Location</label><input id="betaInsuranceSourceLink" type="url" placeholder="https://..."></div>
+          <div class="full-span"><label class="help-label" data-help="Important exclusions, carve-outs, or limitations that may reduce coverage.">Exclusions / Key Limitations</label><textarea id="betaInsuranceExclusions" rows="3" placeholder="Describe key exclusions or coverage limitations."></textarea></div>
+          <div class="full-span"><label class="help-label" data-help="Additional coverage notes relevant to the scenario.">Notes</label><textarea id="betaInsuranceNotes" rows="2" placeholder="Optional notes."></textarea></div>
+        </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addBetaInsuranceBtn">Add Insurance Coverage</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Title</th><th>Carrier</th><th>Type</th><th>Premium</th><th>Deductible</th><th>Limit</th><th>Duration</th><th>Link</th><th>Action</th></tr></thead><tbody id="betaInsuranceBody"></tbody></table></div>
       </div>
 
       <div class="card">
@@ -818,6 +852,17 @@
           </table>
         </div>
         <div id="evidenceSummaryBox" class="note-box">No historical loss evidence has been recorded for this scenario yet.</div>
+      </div>
+
+      <div id="insuranceReportCard" class="card">
+        <div class="card-header"><h3><span class="help-label" data-help="Insurance coverage records attached to the active scenario, including premium, deductible, limit, and source support.">Insurance Coverage Summary</span></h3><span>Risk Transfer</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Carrier</th><th>Type</th><th>Premium</th><th>Deductible</th><th>Limit</th><th>Duration</th><th>Claim Status</th><th>Link</th></tr></thead>
+            <tbody id="insuranceReportBody"><tr><td colspan="9">Run or open a scenario to populate insurance coverage records.</td></tr></tbody>
+          </table>
+        </div>
+        <div id="insuranceSummaryBox" class="note-box">No insurance coverage records have been attached to this scenario yet.</div>
       </div>
 
       <div id="reportGraphCard" class="card">
