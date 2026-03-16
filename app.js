@@ -450,6 +450,7 @@ function normalizeScenario(saved) {
     primaryProduct: saved.primaryProduct || "",
     primaryRegulation: saved.primaryRegulation || "",
     scenarioOwner: saved.scenarioOwner || "",
+    complexGroupId: saved.complexGroupId || "",
     identifiedDate: saved.identifiedDate || "",
     description: saved.description || "",
     likelihood: Number(saved.likelihood || 0),
@@ -684,6 +685,51 @@ function generateScenarioId(existingScenarios) {
   if (!existingIds.has(candidate)) return candidate;
   return `${candidate}-${Math.floor(Math.random() * 90 + 10)}`;
 }
+function generateComplexGroupId() {
+  const stamp = currentDateStamp();
+  const randomPart = Math.floor(Math.random() * 9000 + 1000);
+  return `CG-${stamp}-${randomPart}`;
+}
+function ensureComplexGroupId() {
+  const el = document.getElementById("complexGroupId");
+  if (!el) return "";
+  if (!String(el.value || "").trim()) el.value = generateComplexGroupId();
+  return el.value.trim();
+}
+function generateComplexComponentId() {
+  return `CMP-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`;
+}
+function ensureComplexScenarioUi() {
+  const complexIdField = document.getElementById("complexScenarioId")?.closest("div");
+  if (complexIdField && !document.getElementById("complexGroupId")) {
+    complexIdField.insertAdjacentHTML("afterend", `
+      <div>
+        <label class="help-label" data-help="Umbrella identifier for all component scenarios rolled into this complex build.">Complex Group ID</label>
+        <input id="complexGroupId" type="text" placeholder="Generated for the complex build">
+      </div>
+    `);
+  }
+
+  const addRiskItemBtn = document.getElementById("addRiskItemBtn");
+  if (addRiskItemBtn && !document.getElementById("addComplexScenarioBtn")) {
+    addRiskItemBtn.insertAdjacentHTML("afterend", `<button class="btn btn-primary" id="addComplexScenarioBtn">Add Another Scenario</button>`);
+  }
+
+  const tableBody = document.getElementById("riskItemsTableBody");
+  const complexView = document.getElementById("view-complex");
+  const tableCard = tableBody?.closest(".card");
+  if (tableCard && complexView) {
+    const headerTitle = tableCard.querySelector(".card-header h3");
+    const headerSub = tableCard.querySelector(".card-header span");
+    if (headerTitle) headerTitle.textContent = "Complex Build Scenarios";
+    if (headerSub) headerSub.textContent = "All component scenarios rolled into the complex group";
+    const theadRow = tableCard.querySelector("thead tr");
+    if (theadRow) {
+      theadRow.innerHTML = "<th>Group ID</th><th>Component ID</th><th>Scenario</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th>";
+    }
+    complexView.appendChild(tableCard);
+  }
+}
 function refreshLibraries() {
   productGroups = sortedUnique([...DEFAULT_PRODUCT_GROUPS, ...getStoredArray(CAT_KEYS.productGroups)]);
   products = sortedUnique([...DEFAULT_PRODUCTS, ...getStoredArray(CAT_KEYS.products)]);
@@ -778,9 +824,9 @@ function renderComplexItems() {
   const tbody = document.getElementById("riskItemsTableBody");
   if (!tbody) return;
   if (!currentComplexItems.length) {
-    tbody.innerHTML = '<tr><td colspan="6">No risk items added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">No component scenarios added yet.</td></tr>';
   } else {
-    tbody.innerHTML = currentComplexItems.map(item => `<tr data-issue-id="${escapeHtml(item.issueId || "")}"><td><button class="scenario-link" data-issue-open="${escapeHtml(item.issueId || "")}">${escapeHtml(item.name)}</button></td><td>${escapeHtml(item.domain)}</td><td>${escapeHtml(item.product)}</td><td>${escapeHtml(item.regulation)}</td><td>${item.score}</td><td>${item.weight}</td></tr>`).join("");
+    tbody.innerHTML = currentComplexItems.map(item => `<tr data-issue-id="${escapeHtml(item.issueId || "")}"><td>${escapeHtml(item.complexGroupId || ensureComplexGroupId())}</td><td><button class="scenario-link" data-issue-open="${escapeHtml(item.issueId || "")}">${escapeHtml(item.componentId || item.issueId || "")}</button></td><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.domain)}</td><td>${escapeHtml(item.product)}</td><td>${escapeHtml(item.regulation)}</td><td>${item.score}</td><td>${item.weight}</td></tr>`).join("");
     tbody.querySelectorAll("[data-issue-open]").forEach(btn => btn.addEventListener("click", () => {
       const issueId = btn.dataset.issueOpen;
       highlightIssueRow(issueId);
@@ -789,10 +835,13 @@ function renderComplexItems() {
   updateInherentScores();
 }
 function addRiskItem() {
+  const complexGroupId = ensureComplexGroupId();
   currentComplexItems.push({
     issueId: `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    componentId: generateComplexComponentId(),
+    complexGroupId,
     parentScenarioMode: "complex",
-    name: document.getElementById("riskItemName").value || "Unnamed Risk Item",
+    name: document.getElementById("riskItemName").value || "Unnamed Scenario Component",
     domain: document.getElementById("riskItemDomain").value,
     product: document.getElementById("riskItemProduct").value,
     regulation: document.getElementById("riskItemReg").value,
@@ -864,9 +913,11 @@ function getSinglePayload() {
   };
 }
 function getComplexPayload() {
+  const complexGroupId = ensureComplexGroupId();
   return {
     mode: "complex",
     id: document.getElementById("complexScenarioId").value,
+    complexGroupId,
     name: document.getElementById("complexScenarioName").value || "Unnamed Complex Scenario",
     productGroup: document.getElementById("complexProductGroup").value,
     riskDomain: document.getElementById("complexRiskDomain").value,
@@ -889,7 +940,7 @@ function getComplexPayload() {
     softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
     mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
-    items: currentComplexItems.slice(),
+    items: currentComplexItems.map(item => ({ ...item, complexGroupId })),
     mitigations: complexMitigations.slice(),
     acceptedRisk: getAcceptedRisk("complex")
   };
@@ -1336,6 +1387,7 @@ function openScenario(id) {
     document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
     document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
+    if (document.getElementById("complexGroupId")) document.getElementById("complexGroupId").value = s.complexGroupId || generateComplexGroupId();
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
@@ -1350,6 +1402,8 @@ function openScenario(id) {
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
     currentComplexItems = Array.isArray(s.items) ? s.items.slice().map(item => ({
       issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      componentId: item.componentId || generateComplexComponentId(),
+      complexGroupId: item.complexGroupId || s.complexGroupId || ensureComplexGroupId(),
       parentScenarioMode: "complex",
       description: item.description || "",
       ...item
@@ -1502,6 +1556,7 @@ function loadComplexTestScenario() {
   document.getElementById("complexPrimaryProduct").value = "Deposits";
   document.getElementById("complexPrimaryRegulation").value = "Reg DD";
   document.getElementById("complexScenarioOwner").value = "Enterprise Risk";
+  if (document.getElementById("complexGroupId")) document.getElementById("complexGroupId").value = generateComplexGroupId();
   document.getElementById("complexIdentifiedDate").value = todayIso();
   document.getElementById("complexControlEffectiveness").value = 28;
   document.getElementById("complexHardCostMin").value = 125000;
@@ -1588,6 +1643,8 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
+  const addComplexScenarioBtn = document.getElementById("addComplexScenarioBtn");
+  if (addComplexScenarioBtn) addComplexScenarioBtn.addEventListener("click", addRiskItem);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
@@ -2138,6 +2195,7 @@ function forceManualContent() {
 function init() {
   loadStoredMonteCarloConfig();
   ensureInsuranceUi();
+  ensureComplexScenarioUi();
   wireInputs();
   renderManual();
   forceManualContent();
