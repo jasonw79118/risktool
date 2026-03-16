@@ -9,14 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
-
-  <style>
-    .sensitivity-bars { display: grid; gap: 10px; margin-bottom: 14px; }
-    .sensitivity-row { display: grid; grid-template-columns: 180px 1fr 56px; gap: 10px; align-items: center; }
-    .sensitivity-label, .sensitivity-value { font-size: 13px; font-weight: 600; }
-    .sensitivity-bar-track { width: 100%; height: 12px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
-    .sensitivity-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4f46e5, #22c55e); }
-  </style>
 </head>
 <body>
   <aside class="sidebar">
@@ -228,6 +220,23 @@
 
       <div class="grid two">
         <div class="card">
+          <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
+          <div class="form-grid">
+            <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="singleEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 125000"></div>
+            <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="singleEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
+            <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="singleEvidenceLossDate" type="date"></div>
+            <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="singleEvidenceOrganization" type="text" placeholder="e.g. Internal Operations or Peer Bank"></div>
+            <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="singleEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
+            <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="singleEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+            <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="singleEvidenceRegulation" type="text" placeholder="e.g. Reg E"></div>
+            <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="singleEvidenceLink" type="url" placeholder="https://..."></div>
+            <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="singleEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
+            <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="singleEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
+          </div>
+          <div class="builder-actions"><button class="btn btn-secondary" id="addSingleEvidenceBtn">Add Evidence Record</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="singleEvidenceBody"></tbody></table></div>
+        </div>
+        <div class="card">
           <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
           <div class="form-grid">
             <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
@@ -384,6 +393,23 @@
       </div>
 
       <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
+          <div class="form-grid">
+            <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="complexEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 250000"></div>
+            <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="complexEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
+            <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="complexEvidenceLossDate" type="date"></div>
+            <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="complexEvidenceOrganization" type="text" placeholder="e.g. Internal Operations or Peer Bank"></div>
+            <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="complexEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
+            <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="complexEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+            <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="complexEvidenceRegulation" type="text" placeholder="e.g. UDAAP"></div>
+            <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="complexEvidenceLink" type="url" placeholder="https://..."></div>
+            <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="complexEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
+            <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="complexEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
+          </div>
+          <div class="builder-actions"><button class="btn btn-secondary" id="addComplexEvidenceBtn">Add Evidence Record</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="complexEvidenceBody"></tbody></table></div>
+        </div>
         <div class="card">
           <div class="form-grid">
             <div>
@@ -599,6 +625,25 @@
         </div>
       </div>
 
+
+      <div class="card">
+        <div class="card-header"><h3>Historical Loss Evidence</h3><span>Internal + External</span></div>
+        <div class="form-grid">
+          <div><label class="help-label" data-help="Actual observed loss amount tied to the evidence item.">Loss Amount ($)</label><input id="betaEvidenceLossAmount" type="number" min="0" step="1000" placeholder="e.g. 180000"></div>
+          <div><label class="help-label" data-help="Indicates whether the evidence came from your organization or an outside source.">Internal or External</label><select id="betaEvidenceSourceType"><option>Internal</option><option>External</option></select></div>
+          <div><label class="help-label" data-help="Date the observed loss event occurred.">Loss Date</label><input id="betaEvidenceLossDate" type="date"></div>
+          <div><label class="help-label" data-help="Company, business unit, peer, competitor, or industry body associated with the event.">Organization / Source</label><input id="betaEvidenceOrganization" type="text" placeholder="e.g. Internal Pilot or Peer Fintech"></div>
+          <div><label class="help-label" data-help="Classification of the evidence item.">Evidence Type</label><select id="betaEvidenceType"><option>Historical Loss</option><option>Industry Loss Event</option><option>Competitor Event</option><option>Ally / Partner Event</option><option>Article</option><option>Exam / Enforcement</option><option>Lawsuit / Settlement</option></select></div>
+          <div><label class="help-label" data-help="Confidence in the evidence quality and factual support.">Confidence</label><select id="betaEvidenceConfidence"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+          <div><label class="help-label" data-help="Regulation or standard linked to the observed event.">Related Regulation</label><input id="betaEvidenceRegulation" type="text" placeholder="Optional"></div>
+          <div><label class="help-label" data-help="Article or item location link used to support the evidence fact.">Article / Item Location Link</label><input id="betaEvidenceLink" type="url" placeholder="https://..."></div>
+          <div class="full-span"><label class="help-label" data-help="Short description of what happened and why this evidence matters.">Description</label><textarea id="betaEvidenceDescription" rows="3" placeholder="Describe the observed loss event."></textarea></div>
+          <div class="full-span"><label class="help-label" data-help="Additional notes, assumptions, or analyst comments.">Notes</label><textarea id="betaEvidenceNotes" rows="2" placeholder="Optional notes."></textarea></div>
+        </div>
+        <div class="builder-actions"><button class="btn btn-secondary" id="addBetaEvidenceBtn">Add Evidence Record</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Confidence</th><th>Link</th><th>Action</th></tr></thead><tbody id="betaEvidenceBody"></tbody></table></div>
+      </div>
+
       <div class="card">
         <div class="card-header"><h3>Beta Scenario Output</h3><span>Decision Support</span></div>
         <div class="result-list">
@@ -764,22 +809,15 @@
       </div>
 
 
-      <div class="grid two">
-        <div id="sensitivityAnalysisCard" class="card">
-          <div class="card-header"><h3><span class="help-label" data-help="Ranks which assumptions most influence the expected annual loss so management can see what is driving uncertainty.">Top Risk Drivers</span></h3><span>Sensitivity Analysis</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Rank</th><th>Driver</th><th>Influence</th></tr></thead>
-              <tbody id="sensitivityDriversBody"><tr><td colspan="3">Run a scenario to populate sensitivity analysis.</td></tr></tbody>
-            </table>
-          </div>
+      <div id="evidenceReportCard" class="card">
+        <div class="card-header"><h3><span class="help-label" data-help="Historical loss evidence recorded for the active scenario, including internal and external support with source links.">Historical Loss Evidence</span></h3><span>Decision Support</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Source</th><th>Organization</th><th>Loss</th><th>Type</th><th>Regulation</th><th>Confidence</th><th>Link</th></tr></thead>
+            <tbody id="evidenceReportBody"><tr><td colspan="8">Run or open a scenario to populate historical loss evidence.</td></tr></tbody>
+          </table>
         </div>
-
-        <div id="measurementGuidanceCard" class="card">
-          <div class="card-header"><h3><span class="help-label" data-help="Shows where better measurement would improve the model most while keeping the executive presentation familiar.">What To Measure Next</span></h3><span>Guidance</span></div>
-          <div id="sensitivityBars" class="sensitivity-bars"><div class="note-box">No sensitivity chart available yet.</div></div>
-          <div id="sensitivityGuidanceBox" class="note-box">Run a scenario to identify the assumptions driving uncertainty.</div>
-        </div>
+        <div id="evidenceSummaryBox" class="note-box">No historical loss evidence has been recorded for this scenario yet.</div>
       </div>
 
       <div id="reportGraphCard" class="card">

@@ -128,13 +128,6 @@ const DEFAULT_ROTATION_RULES = [
 
 const STORAGE_KEY = "risk_manager_scenarios_v431";
 const LEGACY_STORAGE_KEY = "risk_manager_saved_evaluations_v2";
-const SUPABASE_URL = window.RISKTOOL_SUPABASE_URL || "https://iybbmeuvmhcdqplgpqaa.supabase.co";
-const SUPABASE_ANON_KEY = window.RISKTOOL_SUPABASE_ANON_KEY || "sb_publishable_nV4tLL5XWEjynywZwE5kBw_2rciNO27";
-const SUPABASE_SCENARIOS_TABLE = "scenarios";
-let supabaseClientPromise = null;
-let cloudSyncReady = false;
-let cloudSyncInProgress = false;
-let cloudSyncMessage = "Local browser storage only";
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
   products: "risk_manager_products_v431",
@@ -158,6 +151,9 @@ let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
 let currentComplexItems = [];
 let singleMitigations = [];
 let complexMitigations = [];
+let singleEvidence = [];
+let complexEvidence = [];
+let betaEvidence = [];
 let activeMode = "single";
 let lastSummary = null;
 
@@ -185,6 +181,138 @@ function setStoredArray(key, value) {
 }
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
+}
+function safeLink(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+}
+function getEvidenceArray(mode) {
+  if (mode === "single") return singleEvidence;
+  if (mode === "complex") return complexEvidence;
+  if (mode === "beta") return betaEvidence;
+  return [];
+}
+function setEvidenceArray(mode, items) {
+  const next = Array.isArray(items) ? items.slice() : [];
+  if (mode === "single") singleEvidence = next;
+  if (mode === "complex") complexEvidence = next;
+  if (mode === "beta") betaEvidence = next;
+}
+function evidenceFieldId(mode, suffix) {
+  const prefix = mode === "single" ? "singleEvidence" : mode === "complex" ? "complexEvidence" : "betaEvidence";
+  return `${prefix}${suffix}`;
+}
+function readEvidenceEntry(mode) {
+  const get = suffix => document.getElementById(evidenceFieldId(mode, suffix));
+  const amount = Number(get("LossAmount")?.value || 0);
+  const link = safeLink(get("Link")?.value || "");
+  return {
+    lossAmount: amount,
+    sourceType: get("SourceType")?.value || "Internal",
+    lossDate: get("LossDate")?.value || "",
+    organization: get("Organization")?.value || "",
+    evidenceType: get("Type")?.value || "Historical Loss",
+    regulation: get("Regulation")?.value || "",
+    confidence: get("Confidence")?.value || "Medium",
+    link,
+    description: get("Description")?.value || "",
+    notes: get("Notes")?.value || ""
+  };
+}
+function clearEvidenceInputs(mode) {
+  ["LossAmount","LossDate","Organization","Regulation","Link","Description","Notes"].forEach(suffix => {
+    const el = document.getElementById(evidenceFieldId(mode, suffix));
+    if (el) el.value = "";
+  });
+  const source = document.getElementById(evidenceFieldId(mode, "SourceType"));
+  if (source) source.value = "Internal";
+  const type = document.getElementById(evidenceFieldId(mode, "Type"));
+  if (type) type.value = "Historical Loss";
+  const conf = document.getElementById(evidenceFieldId(mode, "Confidence"));
+  if (conf) conf.value = "Medium";
+}
+function renderEvidenceTable(mode) {
+  const tbodyId = mode === "single" ? "singleEvidenceBody" : mode === "complex" ? "complexEvidenceBody" : "betaEvidenceBody";
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  const items = getEvidenceArray(mode);
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="8">No evidence records added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map((item, index) => `
+    <tr>
+      <td>${escapeHtml(item.lossDate || "")}</td>
+      <td>${escapeHtml(item.sourceType || "")}</td>
+      <td>${escapeHtml(item.organization || "")}</td>
+      <td>${currency(item.lossAmount || 0)}</td>
+      <td>${escapeHtml(item.evidenceType || "")}</td>
+      <td>${escapeHtml(item.confidence || "")}</td>
+      <td>${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">Open</a>` : ""}</td>
+      <td><button class="btn btn-secondary small-btn" data-evidence-delete="${mode}:${index}">Delete</button></td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-evidence-delete]").forEach(btn => btn.addEventListener("click", () => {
+    const [targetMode, idx] = String(btn.dataset.evidenceDelete || "").split(":");
+    const list = getEvidenceArray(targetMode);
+    list.splice(Number(idx), 1);
+    renderEvidenceTable(targetMode);
+    if (lastSummary && lastSummary.mode === targetMode) renderEvidenceReport({ ...lastSummary, evidence: list.slice() });
+  }));
+}
+function addEvidence(mode) {
+  const entry = readEvidenceEntry(mode);
+  if (!entry.lossAmount && !entry.description && !entry.link && !entry.organization) {
+    alert("Add at least a loss amount, organization, link, or description before saving evidence.");
+    return;
+  }
+  const list = getEvidenceArray(mode);
+  list.push(entry);
+  renderEvidenceTable(mode);
+  clearEvidenceInputs(mode);
+}
+function summarizeEvidence(evidence) {
+  const rows = Array.isArray(evidence) ? evidence : [];
+  if (!rows.length) {
+    return { count: 0, internalCount: 0, externalCount: 0, minLoss: 0, maxLoss: 0, avgLoss: 0 };
+  }
+  const losses = rows.map(x => Number(x.lossAmount || 0)).filter(x => Number.isFinite(x) && x >= 0);
+  const internalCount = rows.filter(x => String(x.sourceType || "").toLowerCase() === "internal").length;
+  const externalCount = rows.length - internalCount;
+  return {
+    count: rows.length,
+    internalCount,
+    externalCount,
+    minLoss: losses.length ? Math.min(...losses) : 0,
+    maxLoss: losses.length ? Math.max(...losses) : 0,
+    avgLoss: losses.length ? Math.round(losses.reduce((a, b) => a + b, 0) / losses.length) : 0
+  };
+}
+function renderEvidenceReport(summary) {
+  const tbody = document.getElementById("evidenceReportBody");
+  const statsBox = document.getElementById("evidenceSummaryBox");
+  if (!tbody || !statsBox) return;
+  const evidence = Array.isArray(summary?.evidence) ? summary.evidence : [];
+  if (!evidence.length) {
+    tbody.innerHTML = '<tr><td colspan="8">No evidence records are attached to this scenario.</td></tr>';
+    statsBox.textContent = "No historical loss evidence has been recorded for this scenario yet.";
+    return;
+  }
+  tbody.innerHTML = evidence.map(item => `
+    <tr>
+      <td>${escapeHtml(item.lossDate || "")}</td>
+      <td>${escapeHtml(item.sourceType || "")}</td>
+      <td>${escapeHtml(item.organization || "")}</td>
+      <td>${currency(item.lossAmount || 0)}</td>
+      <td>${escapeHtml(item.evidenceType || "")}</td>
+      <td>${escapeHtml(item.regulation || "")}</td>
+      <td>${escapeHtml(item.confidence || "")}</td>
+      <td>${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">Source</a>` : ""}</td>
+    </tr>
+  `).join("");
+  const stats = summarizeEvidence(evidence);
+  statsBox.textContent = `Evidence base includes ${stats.count} event${stats.count === 1 ? "" : "s"} (${stats.internalCount} internal, ${stats.externalCount} external). Observed loss range: ${currency(stats.minLoss)} to ${currency(stats.maxLoss)}. Average observed loss: ${currency(stats.avgLoss)}. Use the source links to validate the supporting facts.`;
 }
 function currentDateStamp() {
   return todayIso().replaceAll("-", "");
@@ -222,6 +350,7 @@ function normalizeScenario(saved) {
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
+    evidence: Array.isArray(saved.evidence) ? saved.evidence : [],
     acceptedRisk: saved.acceptedRisk || {
       isAccepted: false,
       authority: "",
@@ -260,188 +389,15 @@ function getSavedScenarios() {
 function setSavedScenarios(items) {
   writeJSON(STORAGE_KEY, items);
 }
-function hasSupabaseConfig() {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== "PASTE_SUPABASE_URL_HERE" && SUPABASE_ANON_KEY !== "PASTE_SUPABASE_ANON_KEY_HERE");
-}
-function setCloudSyncMessage(message) {
-  cloudSyncMessage = message;
-  const el = document.getElementById("savedStorageStatus");
-  if (el) el.textContent = message;
-}
-function mergeScenarioLists(primaryItems, secondaryItems) {
-  const byId = new Map();
-  [...secondaryItems, ...primaryItems].forEach(item => {
-    const normalized = normalizeScenario(item);
-    if (!normalized.id) normalized.id = generateScenarioId([]);
-    byId.set(normalized.id, normalized);
-  });
-  return Array.from(byId.values()).sort((a, b) => String(b.identifiedDate || b.updatedAt || "").localeCompare(String(a.identifiedDate || a.updatedAt || "")));
-}
-async function ensureSupabaseClient() {
-  if (!hasSupabaseConfig()) return null;
-  if (window.supabase?.createClient) return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  if (!supabaseClientPromise) {
-    supabaseClientPromise = new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-risktool-supabase="true"]');
-      if (existing) {
-        existing.addEventListener("load", () => resolve(window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null), { once: true });
-        existing.addEventListener("error", reject, { once: true });
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-      script.async = true;
-      script.dataset.risktoolSupabase = "true";
-      script.onload = () => {
-        if (!window.supabase?.createClient) {
-          reject(new Error("Supabase client did not load."));
-          return;
-        }
-        resolve(window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
-      };
-      script.onerror = () => reject(new Error("Unable to load Supabase client."));
-      document.head.appendChild(script);
-    }).catch(error => {
-      console.error(error);
-      setCloudSyncMessage("Supabase client failed to load; using local browser storage");
-      return null;
-    });
-  }
-  return supabaseClientPromise;
-}
-async function fetchCloudScenarios() {
-  const client = await ensureSupabaseClient();
-  if (!client) return [];
-  const { data, error } = await client
-    .from(SUPABASE_SCENARIOS_TABLE)
-    .select("id, username, scenario_name, scenario_type, payload, created_at, updated_at")
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
-  return (data || []).map(row => normalizeScenario({
-    ...(row.payload || {}),
-    id: row.payload?.id || row.id || "",
-    name: row.payload?.name || row.scenario_name || "Unnamed Scenario",
-    mode: row.payload?.mode || row.scenario_type || "single",
-    scenarioOwner: row.payload?.scenarioOwner || row.username || "",
-    createdAt: row.created_at || row.payload?.createdAt || "",
-    updatedAt: row.updated_at || row.payload?.updatedAt || ""
-  }));
-}
-async function hydrateScenariosFromCloud() {
-  if (!hasSupabaseConfig()) {
-    setCloudSyncMessage("Supabase not configured; using local browser storage");
-    return;
-  }
-  try {
-    setCloudSyncMessage("Loading shared scenarios from Supabase...");
-    const cloudItems = await fetchCloudScenarios();
-    const localItems = getSavedScenarios();
-    const merged = mergeScenarioLists(cloudItems, localItems);
-    setSavedScenarios(merged);
-    cloudSyncReady = true;
-    setCloudSyncMessage(`Supabase sync active • ${cloudItems.length} shared scenario${cloudItems.length === 1 ? "" : "s"}`);
-    refreshLibraries();
-    renderHeatMap();
-  } catch (error) {
-    console.error(error);
-    setCloudSyncMessage("Supabase sync failed; using local browser storage");
-  }
-}
-async function upsertScenarioToCloud(summary) {
-  if (!hasSupabaseConfig()) return;
-  try {
-    const client = await ensureSupabaseClient();
-    if (!client) return;
-    const payload = JSON.parse(JSON.stringify(summary));
-    payload.updatedAt = new Date().toISOString();
-    const username = payload.scenarioOwner || "default";
-    const { data: existingRows, error: findError } = await client
-      .from(SUPABASE_SCENARIOS_TABLE)
-      .select("id")
-      .eq("username", username)
-      .contains("payload", { id: payload.id })
-      .limit(1);
-    if (findError) throw findError;
-    if (existingRows && existingRows.length) {
-      const { error } = await client
-        .from(SUPABASE_SCENARIOS_TABLE)
-        .update({
-          username,
-          scenario_name: payload.name || "Unnamed Scenario",
-          scenario_type: payload.mode || "single",
-          payload,
-          updated_at: payload.updatedAt
-        })
-        .eq("id", existingRows[0].id);
-      if (error) throw error;
-    } else {
-      const { error } = await client
-        .from(SUPABASE_SCENARIOS_TABLE)
-        .insert({
-          username,
-          scenario_name: payload.name || "Unnamed Scenario",
-          scenario_type: payload.mode || "single",
-          payload,
-          updated_at: payload.updatedAt
-        });
-      if (error) throw error;
-    }
-    cloudSyncReady = true;
-    setCloudSyncMessage("Supabase sync active");
-  } catch (error) {
-    console.error(error);
-    setCloudSyncMessage("Supabase save failed; local copy kept in browser storage");
-  }
-}
-async function deleteScenarioFromCloud(id) {
-  if (!hasSupabaseConfig() || !id) return;
-  try {
-    const client = await ensureSupabaseClient();
-    if (!client) return;
-    const { data: rows, error: findError } = await client
-      .from(SUPABASE_SCENARIOS_TABLE)
-      .select("id")
-      .contains("payload", { id });
-    if (findError) throw findError;
-    if (rows && rows.length) {
-      const rowIds = rows.map(row => row.id);
-      const { error } = await client
-        .from(SUPABASE_SCENARIOS_TABLE)
-        .delete()
-        .in("id", rowIds);
-      if (error) throw error;
-    }
-    setCloudSyncMessage("Supabase sync active");
-  } catch (error) {
-    console.error(error);
-    setCloudSyncMessage("Supabase delete failed; local copy removed but cloud copy may still exist");
-  }
-}
-function syncScenarioToCloud(summary) {
-  Promise.resolve().then(() => upsertScenarioToCloud(summary));
-}
-function syncScenarioLibraryToCloud(items) {
-  Promise.resolve().then(async () => {
-    if (cloudSyncInProgress) return;
-    cloudSyncInProgress = true;
-    try {
-      for (const item of items) {
-        await upsertScenarioToCloud(item);
-      }
-    } finally {
-      cloudSyncInProgress = false;
-    }
-  });
-}
 function generateScenarioId(existingScenarios) {
   const stamp = currentDateStamp();
-  const now = new Date();
-  const timePart = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}${String(now.getMilliseconds()).padStart(3, "0")}`;
-  const randomPart = Math.floor(Math.random() * 9000 + 1000);
-  const candidate = `${stamp}-${timePart}-${randomPart}`;
-  const existingIds = new Set((existingScenarios || []).map(x => String(x.id || "")));
-  if (!existingIds.has(candidate)) return candidate;
-  return `${candidate}-${Math.floor(Math.random() * 90 + 10)}`;
+  const matching = existingScenarios
+    .map(x => String(x.id || ""))
+    .filter(x => x.startsWith(stamp + "-"))
+    .map(x => Number(x.split("-")[1]))
+    .filter(Number.isFinite);
+  const next = (matching.length ? Math.max(...matching) : 0) + 1;
+  return `${stamp}-${String(next).padStart(5, "0")}`;
 }
 function refreshLibraries() {
   productGroups = sortedUnique([...DEFAULT_PRODUCT_GROUPS, ...getStoredArray(CAT_KEYS.productGroups)]);
@@ -475,6 +431,8 @@ function refreshLibraries() {
   populateSelect("riskItemReg", regulations);
   populateSelect("singleAcceptanceAuthority", acceptanceAuthorities);
   populateSelect("complexAcceptanceAuthority", acceptanceAuthorities);
+  populateSelect("betaProductGroup", productGroups);
+  populateSelect("betaRiskDomain", riskDomains);
 
   renderCategoryAdmin();
   renderSavedScenarios();
@@ -498,6 +456,7 @@ function activateView(viewName) {
   if (btn) btn.classList.add("active");
   if (viewName === "single") activeMode = "single";
   if (viewName === "complex") activeMode = "complex";
+  if (viewName === "beta") activeMode = "beta";
 }
 function getRiskTier(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
@@ -619,6 +578,7 @@ function getSinglePayload() {
     randomScenarioCount: Number(document.getElementById("singleRandomScenarioCount").value || 1000),
     items: [],
     mitigations: singleMitigations.slice(),
+    evidence: singleEvidence.slice(),
     acceptedRisk: getAcceptedRisk("single")
   };
 }
@@ -650,8 +610,115 @@ function getComplexPayload() {
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: currentComplexItems.slice(),
     mitigations: complexMitigations.slice(),
+    evidence: complexEvidence.slice(),
     acceptedRisk: getAcceptedRisk("complex")
   };
+}
+
+function getBetaPayload() {
+  return {
+    mode: "beta",
+    id: document.getElementById("betaScenarioId")?.value || "",
+    name: document.getElementById("betaScenarioName")?.value || "Unnamed Beta Scenario",
+    productGroup: document.getElementById("betaProductGroup")?.value || "",
+    riskDomain: document.getElementById("betaRiskDomain")?.value || "",
+    scenarioStatus: document.getElementById("betaScenarioStatus")?.value || "Draft",
+    scenarioOwner: document.getElementById("betaScenarioOwner")?.value || "",
+    identifiedDate: document.getElementById("betaIdentifiedDate")?.value || "",
+    projectOrProductName: document.getElementById("betaProjectOrProductName")?.value || "",
+    plannedDecisionDate: document.getElementById("betaPlannedDecisionDate")?.value || "",
+    plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate")?.value || "",
+    description: document.getElementById("betaScenarioDescription")?.value || "",
+    betaInputs: {
+      min: Number(document.getElementById("betaMin")?.value || 0),
+      mode: Number(document.getElementById("betaMode")?.value || 0),
+      max: Number(document.getElementById("betaMax")?.value || 0)
+    },
+    randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount")?.value || 1000),
+    evidence: betaEvidence.slice()
+  };
+}
+function renderBetaSummary(summary) {
+  document.getElementById("betaRelativeMean").value = Number(summary.relativeMean || 0).toFixed(4);
+  document.getElementById("betaShapeA").value = Number(summary.a || 0).toFixed(4);
+  document.getElementById("betaShapeB").value = Number(summary.b || 0).toFixed(4);
+  document.getElementById("betaExpectedValue").value = Math.round(summary.expectedValue || 0);
+  document.getElementById("betaP10").value = Math.round(summary.p10 || 0);
+  document.getElementById("betaP50").value = Math.round(summary.p50 || 0);
+  document.getElementById("betaP90").value = Math.round(summary.p90 || 0);
+  document.getElementById("betaExpectedValueDisplay").textContent = currency(summary.expectedValue || 0);
+  document.getElementById("betaP10Display").textContent = currency(summary.p10 || 0);
+  document.getElementById("betaP50Display").textContent = currency(summary.p50 || 0);
+  document.getElementById("betaP90Display").textContent = currency(summary.p90 || 0);
+  document.getElementById("betaIterationsDisplay").textContent = summary.iterations || 0;
+  const evidenceStats = summarizeEvidence(summary.evidence || []);
+  const evidenceText = evidenceStats.count ? ` Evidence base: ${evidenceStats.count} recorded event${evidenceStats.count === 1 ? "" : "s"} with observed loss range ${currency(evidenceStats.minLoss)} to ${currency(evidenceStats.maxLoss)}.` : "";
+  document.getElementById("betaNarrative").textContent = `Expected value is ${currency(summary.expectedValue || 0)} with a P10 to P90 range of ${currency(summary.p10 || 0)} to ${currency(summary.p90 || 0)} across ${summary.iterations || 0} simulated outcomes.${evidenceText}`;
+}
+function runBetaScenario() {
+  const payload = getBetaPayload();
+  const simulation = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  const summary = { ...payload, ...simulation };
+  lastSummary = summary;
+  renderBetaSummary(summary);
+  activateView("beta");
+}
+function saveBetaScenario() {
+  const payload = getBetaPayload();
+  const saved = getSavedScenarios();
+  if (!payload.id) {
+    payload.id = generateScenarioId(saved);
+    const idEl = document.getElementById("betaScenarioId");
+    if (idEl) idEl.value = payload.id;
+  }
+  const simulation = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  const summary = { ...payload, ...simulation };
+  const idx = saved.findIndex(x => x.id === summary.id);
+  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
+  setSavedScenarios(saved);
+  lastSummary = summary;
+  renderBetaSummary(summary);
+  renderSavedScenarios();
+  refreshLibraries();
+  activateView("saved");
+}
+function loadBetaTestScenario() {
+  document.getElementById("betaScenarioId").value = "";
+  document.getElementById("betaScenarioName").value = "New Product Rollout Planning";
+  setSelectValueSafe("betaProductGroup", "Payment Services");
+  setSelectValueSafe("betaRiskDomain", "Strategic & Business Model Risk");
+  document.getElementById("betaScenarioStatus").value = "Under Review";
+  document.getElementById("betaProjectOrProductName").value = "Embedded Payments Launch";
+  document.getElementById("betaScenarioOwner").value = "Product Management";
+  document.getElementById("betaIdentifiedDate").value = todayIso();
+  document.getElementById("betaPlannedDecisionDate").value = todayIso();
+  document.getElementById("betaPlannedGoLiveDate").value = "";
+  document.getElementById("betaMin").value = 100000;
+  document.getElementById("betaMode").value = 250000;
+  document.getElementById("betaMax").value = 700000;
+  document.getElementById("betaRandomScenarioCount").value = "1000";
+  document.getElementById("betaScenarioDescription").value = "This beta scenario estimates the financial uncertainty range around a planned launch before the project is promoted to an active risk scenario.";
+  betaEvidence = [
+    { lossAmount: 180000, sourceType: "External", lossDate: "2024-07-15", organization: "Peer Fintech", evidenceType: "Industry Loss Event", regulation: "", confidence: "Medium", link: "", description: "Launch delay and remediation costs after controls failed in pilot.", notes: "" },
+    { lossAmount: 95000, sourceType: "Internal", lossDate: "2025-02-10", organization: "Internal Pilot", evidenceType: "Internal Historical Loss", regulation: "", confidence: "High", link: "", description: "Rework and delay cost observed during internal pilot testing.", notes: "" }
+  ];
+  renderEvidenceTable("beta");
+  runBetaScenario();
+}
+function promoteBetaScenarioToActive() {
+  const beta = getBetaPayload();
+  document.getElementById("singleScenarioName").value = beta.name;
+  setSelectValueSafe("singleProductGroup", beta.productGroup);
+  setSelectValueSafe("singleRiskDomain", beta.riskDomain);
+  document.getElementById("singleScenarioOwner").value = beta.scenarioOwner;
+  document.getElementById("singleIdentifiedDate").value = beta.identifiedDate || todayIso();
+  document.getElementById("singleScenarioDescription").value = beta.description;
+  document.getElementById("singleHardCostMin").value = beta.betaInputs.min || 0;
+  document.getElementById("singleHardCostLikely").value = beta.betaInputs.mode || 0;
+  document.getElementById("singleHardCostMax").value = beta.betaInputs.max || 0;
+  singleEvidence = beta.evidence.slice();
+  renderEvidenceTable("single");
+  activateView("single");
 }
 
 function clampNumber(value, min, max, fallback) {
@@ -688,26 +755,16 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
-  const randomOutcomeRows = [];
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
     const soft = hard * softMultiplier;
     const total = hard + soft;
     const residual = total * (1 - effectiveness);
-    const breakevenMet = residual <= mitigationCost ? "Yes" : "No";
     hardSamples.push(hard);
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
-    randomOutcomeRows.push({
-      scenarioNumber: i + 1,
-      hardCost: Math.round(hard),
-      softCost: Math.round(soft),
-      totalCost: Math.round(total),
-      residualCost: Math.round(residual),
-      breakevenMet
-    });
   }
   totalSamples.sort((a,b) => a-b);
   residualSamples.sort((a,b) => a-b);
@@ -747,115 +804,9 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows,
-    randomOutcomeRows
+    horizonRows
   };
 }
-function buildSensitivityGuidance(drivers) {
-  if (!Array.isArray(drivers) || !drivers.length) {
-    return "Run a scenario to identify the assumptions driving uncertainty.";
-  }
-  const top = drivers[0];
-  const second = drivers[1];
-  const topPct = `${Math.round((top.influence || 0) * 100)}%`;
-  if (second) {
-    const secondPct = `${Math.round((second.influence || 0) * 100)}%`;
-    return `${top.driver} is currently the strongest driver of expected loss uncertainty at approximately ${topPct} of measured influence. The next best measurement target is ${second.driver} at approximately ${secondPct}. Better data on these assumptions should improve estimate quality the most.`;
-  }
-  return `${top.driver} is currently the strongest driver of expected loss uncertainty at approximately ${topPct} of measured influence. Better data on this assumption should improve estimate quality the most.`;
-}
-function calculateSensitivityDrivers(payload) {
-  const baseline = runFinancialMonteCarlo(payload);
-  const baselineLoss = Number(baseline.expectedLoss || 0);
-  const scenarios = [
-    {
-      label: "Hard Cost Most Likely",
-      mutate(testPayload) {
-        const original = Number(testPayload.hardCostLikely || 0);
-        const adjusted = Math.max(Number(testPayload.hardCostMin || 0), original * 1.10 || 0);
-        testPayload.hardCostLikely = adjusted;
-        testPayload.hardCostMax = Math.max(adjusted, Number(testPayload.hardCostMax || adjusted));
-      }
-    },
-    {
-      label: "Hard Cost Maximum",
-      mutate(testPayload) {
-        const original = Number(testPayload.hardCostMax || 0);
-        testPayload.hardCostMax = Math.max(Number(testPayload.hardCostLikely || 0), original * 1.10 || 0);
-      }
-    },
-    {
-      label: "Soft Cost Multiplier",
-      mutate(testPayload) {
-        const original = Number(testPayload.softCostLikely || 0);
-        const adjusted = Math.max(Number(testPayload.softCostMin || 0), original * 1.10 || 0);
-        testPayload.softCostLikely = adjusted;
-        testPayload.softCostMax = Math.max(adjusted, Number(testPayload.softCostMax || adjusted));
-      }
-    },
-    {
-      label: "Control Effectiveness",
-      mutate(testPayload) {
-        const original = Number(testPayload.control || 0);
-        testPayload.control = Math.min(100, Math.max(0, original + 10));
-      }
-    },
-    {
-      label: "Mitigation Cost",
-      mutate(testPayload) {
-        const original = Number(testPayload.mitigationCost || 0);
-        testPayload.mitigationCost = Math.max(0, original * 1.10 || 0);
-      }
-    }
-  ];
-
-  const raw = scenarios.map(driver => {
-    const testPayload = JSON.parse(JSON.stringify(payload || {}));
-    driver.mutate(testPayload);
-    const rerun = runFinancialMonteCarlo(testPayload);
-    const changedLoss = Number(rerun.expectedLoss || 0);
-    const delta = Math.abs(changedLoss - baselineLoss);
-    return { driver: driver.label, influence: baselineLoss > 0 ? delta / baselineLoss : 0 };
-  }).sort((a, b) => b.influence - a.influence);
-
-  const total = raw.reduce((acc, item) => acc + item.influence, 0);
-  return raw.map(item => ({
-    driver: item.driver,
-    influence: total > 0 ? item.influence / total : 0
-  }));
-}
-function renderSensitivityAnalysis(summary) {
-  const tbody = document.getElementById("sensitivityDriversBody");
-  const guidance = document.getElementById("sensitivityGuidanceBox");
-  const bars = document.getElementById("sensitivityBars");
-  if (!tbody || !guidance || !bars) return;
-  const drivers = Array.isArray(summary?.sensitivityDrivers) ? summary.sensitivityDrivers : [];
-  if (!drivers.length) {
-    tbody.innerHTML = '<tr><td colspan="3">Run a scenario to populate sensitivity analysis.</td></tr>';
-    bars.innerHTML = '<div class="note-box">No sensitivity chart available yet.</div>';
-    guidance.textContent = 'Run a scenario to identify the assumptions driving uncertainty.';
-    return;
-  }
-  tbody.innerHTML = drivers.map((item, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td>${escapeHtml(item.driver)}</td>
-      <td>${Math.round((item.influence || 0) * 100)}%</td>
-    </tr>
-  `).join("");
-  bars.innerHTML = drivers.map(item => {
-    const pct = Math.max(0, Math.min(100, Math.round((item.influence || 0) * 100)));
-    return `
-      <div class="sensitivity-row">
-        <div class="sensitivity-label">${escapeHtml(item.driver)}</div>
-        <div class="sensitivity-bar-track"><div class="sensitivity-bar-fill" style="width:${pct}%"></div></div>
-        <div class="sensitivity-value">${pct}%</div>
-      </div>
-    `;
-  }).join("");
-  guidance.textContent = summary.measurementGuidance || buildSensitivityGuidance(drivers);
-}
-
 function currency(value) {
   return `$${Math.round(Number(value || 0)).toLocaleString()}`;
 }
@@ -867,8 +818,7 @@ function summarizePayload(payload) {
   const tier = getRiskTier(residual);
   const frequency = getReviewFrequency(residual);
   const mc = runFinancialMonteCarlo(payload);
-  const sensitivityDrivers = calculateSensitivityDrivers(payload);
-  const measurementGuidance = buildSensitivityGuidance(sensitivityDrivers);
+  const evidenceStats = summarizeEvidence(payload.evidence || []);
 
   const monteCarloMethodRows = [
     ["Method", "Triangular Monte Carlo with bounded sampling"],
@@ -929,8 +879,8 @@ function summarizePayload(payload) {
     rangeMedian: mc.rangeMedian,
     rangeHigh: mc.rangeHigh,
     decisionText,
-    sensitivityDrivers,
-    measurementGuidance
+    evidence: Array.isArray(payload.evidence) ? payload.evidence.slice() : [],
+    evidenceStats
   };
 }
 function renderScenarioSummary(summary) {
@@ -961,13 +911,14 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Estimated annual reduction in loss from mitigation, before subtracting mitigation cost."><strong>Annual Risk Reduction Value:</strong></span> ${currency(summary.riskReductionValue)}</li>
     <li><span class="help-label" data-help="Risk-reduction value minus mitigation cost; used as a cost-effectiveness screen."><strong>Net Benefit / ROI:</strong></span> ${currency(summary.mitigationROI)}</li>
     <li><span class="help-label" data-help="Suggested review cadence based on the mapped residual-risk tier."><strong>Review Frequency:</strong></span> ${escapeHtml(summary.frequency)}</li>
+    <li><span class="help-label" data-help="Historical loss evidence count recorded for this scenario, including internal and external support."><strong>Evidence Records:</strong></span> ${summary.evidenceStats?.count || 0}</li>
   `;
   document.getElementById("executiveDecisionBox").innerHTML = `
     <strong>Executive Decision Summary</strong><br>
     There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
     Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
     The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
-    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
+    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.${summary.evidenceStats?.count ? ` The scenario currently includes ${summary.evidenceStats.count} historical evidence record${summary.evidenceStats.count === 1 ? "" : "s"} with source links to support the facts.` : ""}
   `;
 
   document.getElementById("decisionMetricsBody").innerHTML = `
@@ -979,6 +930,7 @@ function renderScenarioSummary(summary) {
     <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
   `;
 
+  renderEvidenceReport(summary);
   document.getElementById("horizonExposureBody").innerHTML = summary.horizonRows.map(row => `
     <tr>
       <td>${escapeHtml(row.horizonLabel)}</td>
@@ -987,7 +939,6 @@ function renderScenarioSummary(summary) {
       <td>${currency(row.riskReduction)}</td>
     </tr>
   `).join("");
-  renderSensitivityAnalysis(summary);
 }
 function drawSimpleBarChart(canvasId, summary) {
   const canvas = document.getElementById(canvasId);
@@ -1049,15 +1000,23 @@ function renderMonteCarloTable(summary) {
   }
 }
 function runScenario() {
+  if (activeMode === "beta") {
+    runBetaScenario();
+    return;
+  }
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const summary = summarizePayload(payload);
   lastSummary = summary;
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
   renderCharts(summary);
-  activateView("reports");
+  activateView("dashboard");
 }
 function saveScenario() {
+  if (activeMode === "beta") {
+    saveBetaScenario();
+    return;
+  }
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const saved = getSavedScenarios();
   if (!payload.id) {
@@ -1069,7 +1028,6 @@ function saveScenario() {
   const existingIndex = saved.findIndex(x => x.id === summary.id);
   if (existingIndex >= 0) saved[existingIndex] = summary; else saved.unshift(summary);
   setSavedScenarios(saved);
-  syncScenarioToCloud(summary);
   lastSummary = summary;
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
@@ -1090,7 +1048,7 @@ function renderSavedScenarios() {
   tbody.innerHTML = saved.map(s => `<tr>
     <td>${escapeHtml(s.id)}</td>
     <td>${escapeHtml(s.name)}</td>
-    <td>${s.mode === "single" ? "Single" : "Complex"}</td>
+    <td>${s.mode === "single" ? "Single" : s.mode === "beta" ? "Beta" : "Complex"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -1134,7 +1092,29 @@ function renderDashboardOpenTable() {
 function openScenario(id) {
   const s = getSavedScenarios().find(x => x.id === id);
   if (!s) return;
-  if (s.mode === "single") {
+  if (s.mode === "beta") {
+    document.getElementById("betaScenarioId").value = s.id || "";
+    document.getElementById("betaScenarioName").value = s.name || "";
+    setSelectValueSafe("betaProductGroup", s.productGroup || "");
+    setSelectValueSafe("betaRiskDomain", s.riskDomain || "");
+    document.getElementById("betaScenarioStatus").value = s.scenarioStatus || "Draft";
+    document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || "";
+    document.getElementById("betaScenarioOwner").value = s.scenarioOwner || "";
+    document.getElementById("betaIdentifiedDate").value = s.identifiedDate || "";
+    document.getElementById("betaPlannedDecisionDate").value = s.plannedDecisionDate || "";
+    document.getElementById("betaPlannedGoLiveDate").value = s.plannedGoLiveDate || "";
+    document.getElementById("betaMin").value = s.betaInputs?.min || 0;
+    document.getElementById("betaMode").value = s.betaInputs?.mode || 0;
+    document.getElementById("betaMax").value = s.betaInputs?.max || 0;
+    document.getElementById("betaRandomScenarioCount").value = String(s.randomScenarioCount || 1000);
+    document.getElementById("betaScenarioDescription").value = s.description || "";
+    betaEvidence = Array.isArray(s.evidence) ? s.evidence.slice() : [];
+    renderEvidenceTable("beta");
+    renderBetaSummary({ ...s, ...runBetaScenarioSimulation(s.betaInputs || { min: 0, mode: 0, max: 0 }, s.randomScenarioCount || 1000) });
+    activeMode = "beta";
+    activateView("beta");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (s.mode === "single") {
     document.getElementById("singleScenarioId").value = s.id || "";
     document.getElementById("singleScenarioName").value = s.name || "";
     document.getElementById("singleProductGroup").value = s.productGroup || productGroups[0] || "";
@@ -1160,6 +1140,13 @@ function openScenario(id) {
     if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderMitigationTable("singleMitigationBody", singleMitigations);
+  singleEvidence = [
+    { lossAmount: 85000, sourceType: "Internal", lossDate: todayIso(), organization: "Internal Card Services", evidenceType: "Internal Historical Loss", regulation: "Reg E", confidence: "High", link: "", description: "Prior reimbursement and remediation event tied to dispute workflow timing.", notes: "" },
+    { lossAmount: 140000, sourceType: "External", lossDate: "2024-11-20", organization: "Regional Bank Peer", evidenceType: "Industry Loss Event", regulation: "Reg E", confidence: "Medium", link: "", description: "Observed peer event involving dispute servicing breakdown and remediation cost.", notes: "" }
+  ];
+  renderEvidenceTable("single");
+    singleEvidence = Array.isArray(s.evidence) ? s.evidence.slice() : [];
+    renderEvidenceTable("single");
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("singleAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("singleAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1201,6 +1188,13 @@ function openScenario(id) {
     renderComplexItems();
     complexMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderMitigationTable("complexMitigationBody", complexMitigations);
+  complexEvidence = [
+    { lossAmount: 210000, sourceType: "External", lossDate: "2024-08-12", organization: "Industry Consortium Case", evidenceType: "Industry Loss Event", regulation: "Reg DD", confidence: "Medium", link: "", description: "Modernization effort caused disclosure remediation and complaint handling expense.", notes: "" },
+    { lossAmount: 120000, sourceType: "Internal", lossDate: "2025-01-18", organization: "Deposit Operations", evidenceType: "Internal Historical Loss", regulation: "UDAAP", confidence: "High", link: "", description: "Internal complaint remediation and overtime spend from servicing issue.", notes: "" }
+  ];
+  renderEvidenceTable("complex");
+    complexEvidence = Array.isArray(s.evidence) ? s.evidence.slice() : [];
+    renderEvidenceTable("complex");
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1215,7 +1209,6 @@ function openScenario(id) {
 }
 function deleteScenario(id) {
   setSavedScenarios(getSavedScenarios().filter(x => x.id !== id));
-  Promise.resolve().then(() => deleteScenarioFromCloud(id));
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
@@ -1424,10 +1417,24 @@ function wireInputs() {
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
+  const addSingleEvidenceBtn = document.getElementById("addSingleEvidenceBtn");
+  if (addSingleEvidenceBtn) addSingleEvidenceBtn.addEventListener("click", () => addEvidence("single"));
+  const addComplexEvidenceBtn = document.getElementById("addComplexEvidenceBtn");
+  if (addComplexEvidenceBtn) addComplexEvidenceBtn.addEventListener("click", () => addEvidence("complex"));
+  const addBetaEvidenceBtn = document.getElementById("addBetaEvidenceBtn");
+  if (addBetaEvidenceBtn) addBetaEvidenceBtn.addEventListener("click", () => addEvidence("beta"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
   document.getElementById("loadComplexTestBtn").addEventListener("click", loadComplexTestScenario);
+  const loadBetaBtn = document.getElementById("loadBetaTestBtn");
+  if (loadBetaBtn) loadBetaBtn.addEventListener("click", loadBetaTestScenario);
+  const runBetaBtn = document.getElementById("runBetaScenarioBtn");
+  if (runBetaBtn) runBetaBtn.addEventListener("click", runBetaScenario);
+  const saveBetaBtn = document.getElementById("saveBetaScenarioBtn");
+  if (saveBetaBtn) saveBetaBtn.addEventListener("click", saveBetaScenario);
+  const promoteBetaBtn = document.getElementById("promoteBetaScenarioBtn");
+  if (promoteBetaBtn) promoteBetaBtn.addEventListener("click", promoteBetaScenarioToActive);
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
@@ -1505,7 +1512,7 @@ function renderManual() {
     <h4>Future Scenario Types</h4>
     <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
-    <p>Saved scenarios are cached in local browser storage and can also sync to Supabase when the project URL and anon key are configured in app.js. This allows the scenario library to follow the user across different workstations while keeping a local fallback copy.</p>
+    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
 }
 
@@ -1720,9 +1727,7 @@ function importScenarioLibrary(file) {
       if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
       mergedMap.set(s.id, s);
     });
-    const mergedItems = Array.from(mergedMap.values());
-    setSavedScenarios(mergedItems);
-    syncScenarioLibraryToCloud(mergedItems);
+    setSavedScenarios(Array.from(mergedMap.values()));
     refreshLibraries();
     renderSavedScenarios();
     renderDashboardOpenTable();
@@ -1965,7 +1970,7 @@ function forceManualContent() {
     <h4>Future Scenario Types</h4>
     <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
-    <p>Saved scenarios are cached in local browser storage and can also sync to Supabase when the project URL and anon key are configured in app.js. This allows the scenario library to follow the user across different workstations while keeping a local fallback copy.</p>
+    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
 }
 
@@ -1976,24 +1981,17 @@ function init() {
   forceManualContent();
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
+  renderEvidenceTable("single");
+  renderEvidenceTable("complex");
+  renderEvidenceTable("beta");
   renderComplexItems();
   refreshLibraries();
   updateInherentScores();
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
-  const savedCountCard = document.getElementById("savedCount")?.closest(".metric-card");
-  if (savedCountCard && !document.getElementById("savedStorageStatus")) {
-    const status = document.createElement("div");
-    status.id = "savedStorageStatus";
-    status.style.marginTop = "6px";
-    status.style.fontSize = "12px";
-    status.style.opacity = "0.85";
-    status.textContent = cloudSyncMessage;
-    savedCountCard.appendChild(status);
-  }
   setupRandomOutcomesCsvButton();
-  hydrateScenariosFromCloud();
+  renderEvidenceReport(null);
 }
 document.addEventListener("DOMContentLoaded", init);
 
