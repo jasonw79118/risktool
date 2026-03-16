@@ -160,6 +160,7 @@ let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
 let lastSummary = null;
+let lastBetaSummary = null;
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -460,10 +461,13 @@ function refreshLibraries() {
 
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
+  populateSelect("betaProductGroup", productGroups);
   populateSelect("singleRiskDomain", riskDomains);
   populateSelect("complexRiskDomain", riskDomains);
+  populateSelect("betaRiskDomain", riskDomains);
   populateSelect("singleScenarioStatus", scenarioStatuses);
   populateSelect("complexScenarioStatus", scenarioStatuses);
+  populateSelect("betaScenarioStatus", scenarioStatuses);
   populateSelect("singleScenarioSource", scenarioSources);
   populateSelect("complexScenarioSource", scenarioSources);
   populateSelect("singlePrimaryProduct", products);
@@ -498,6 +502,7 @@ function activateView(viewName) {
   if (btn) btn.classList.add("active");
   if (viewName === "single") activeMode = "single";
   if (viewName === "complex") activeMode = "complex";
+  if (viewName === "beta") activeMode = "beta";
 }
 function getRiskTier(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
@@ -652,6 +657,184 @@ function getComplexPayload() {
     mitigations: complexMitigations.slice(),
     acceptedRisk: getAcceptedRisk("complex")
   };
+}
+
+function getBetaPayload() {
+  return {
+    mode: "beta",
+    distributionMethod: "beta",
+    id: document.getElementById("betaScenarioId")?.value || "",
+    name: document.getElementById("betaScenarioName")?.value || "Unnamed Beta Scenario",
+    projectOrProductName: document.getElementById("betaProjectOrProductName")?.value || "",
+    productGroup: document.getElementById("betaProductGroup")?.value || "",
+    riskDomain: document.getElementById("betaRiskDomain")?.value || "",
+    scenarioStatus: document.getElementById("betaScenarioStatus")?.value || "Pending",
+    scenarioSource: "Risk",
+    scenarioOwner: document.getElementById("betaScenarioOwner")?.value || "",
+    identifiedDate: document.getElementById("betaIdentifiedDate")?.value || "",
+    plannedDecisionDate: document.getElementById("betaPlannedDecisionDate")?.value || "",
+    plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate")?.value || "",
+    description: document.getElementById("betaScenarioDescription")?.value || "",
+    randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount")?.value || 1000),
+    betaInputs: {
+      min: Number(document.getElementById("betaMin")?.value || 0),
+      mode: Number(document.getElementById("betaMode")?.value || 0),
+      max: Number(document.getElementById("betaMax")?.value || 0)
+    },
+    items: [],
+    mitigations: [],
+    promotion: {
+      eligible: true,
+      promoted: false,
+      targetMode: "",
+      promotedScenarioId: ""
+    }
+  };
+}
+
+function renderBetaSummary(summary) {
+  const setValue = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  };
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  setValue("betaRelativeMean", Number(summary.relativeMean || 0).toFixed(4));
+  setValue("betaShapeA", Number(summary.a || 0).toFixed(4));
+  setValue("betaShapeB", Number(summary.b || 0).toFixed(4));
+  setValue("betaExpectedValue", summary.expectedValue || 0);
+  setValue("betaP10", summary.p10 || 0);
+  setValue("betaP50", summary.p50 || 0);
+  setValue("betaP90", summary.p90 || 0);
+
+  setText("betaExpectedValueDisplay", summary.expectedValue || 0);
+  setText("betaP10Display", summary.p10 || 0);
+  setText("betaP50Display", summary.p50 || 0);
+  setText("betaP90Display", summary.p90 || 0);
+  setText("betaIterationsDisplay", summary.iterations || 0);
+  setText("betaNarrative", `${summary.name} produced an expected value of ${currency(summary.expectedValue)} with a P10 of ${currency(summary.p10)}, a P50 of ${currency(summary.p50)}, and a P90 of ${currency(summary.p90)} across ${summary.iterations} randomized beta scenarios.`);
+}
+
+function runBetaScenario() {
+  const payload = getBetaPayload();
+  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  lastBetaSummary = { ...payload, ...sim };
+  renderBetaSummary(lastBetaSummary);
+  activateView("beta");
+}
+
+function saveBetaScenario() {
+  const payload = getBetaPayload();
+  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  const summary = { ...payload, ...sim };
+
+  const saved = getSavedScenarios();
+  if (!summary.id) {
+    summary.id = generateScenarioId(saved);
+    const idEl = document.getElementById("betaScenarioId");
+    if (idEl) idEl.value = summary.id;
+  }
+  summary.scenarioId = summary.id;
+
+  const idx = saved.findIndex(x => x.id === summary.id);
+  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
+  setSavedScenarios(saved);
+  syncScenarioToCloud(summary);
+  lastBetaSummary = summary;
+  renderBetaSummary(summary);
+  renderSavedScenarios();
+  renderDashboardOpenTable();
+  refreshLibraries();
+  activateView("saved");
+}
+
+function loadBetaTestScenario() {
+  const setInput = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  };
+  setInput("betaScenarioId", "");
+  setInput("betaScenarioName", "Embedded Payments Launch Planning Scenario");
+  setInput("betaProjectOrProductName", "Embedded Payments for SMB Clients");
+  setSelectValueSafe("betaProductGroup", "Payment Services");
+  setSelectValueSafe("betaRiskDomain", "Strategic & Business Model Risk");
+  setSelectValueSafe("betaScenarioStatus", "Under Review");
+  setInput("betaScenarioOwner", "Product Management");
+  setInput("betaIdentifiedDate", todayIso());
+  setInput("betaPlannedDecisionDate", todayIso());
+  setInput("betaPlannedGoLiveDate", todayIso());
+  setInput("betaMin", 125000);
+  setInput("betaMode", 325000);
+  setInput("betaMax", 900000);
+  setInput("betaRandomScenarioCount", "1000");
+  setInput("betaScenarioDescription", "This beta scenario evaluates whether the organization should proceed with a new embedded-payments product launch.");
+  runBetaScenario();
+}
+
+function promoteBetaScenarioToActive() {
+  const payload = getBetaPayload();
+  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
+  const betaSummary = { ...payload, ...sim };
+
+  const saved = getSavedScenarios();
+  if (!betaSummary.id) {
+    betaSummary.id = generateScenarioId(saved);
+    const idEl = document.getElementById("betaScenarioId");
+    if (idEl) idEl.value = betaSummary.id;
+  }
+  betaSummary.scenarioId = betaSummary.id;
+
+  const promoted = {
+    id: generateScenarioId(saved.concat([betaSummary])),
+    mode: "complex",
+    sourceBetaScenarioId: betaSummary.id,
+    name: betaSummary.name,
+    productGroup: betaSummary.productGroup,
+    riskDomain: betaSummary.riskDomain,
+    scenarioStatus: "Open",
+    scenarioSource: "Risk",
+    primaryProduct: betaSummary.projectOrProductName || "",
+    primaryRegulation: "",
+    scenarioOwner: betaSummary.scenarioOwner || "",
+    identifiedDate: betaSummary.identifiedDate || "",
+    description: betaSummary.description || "",
+    likelihood: 0,
+    impact: 0,
+    inherent: 0,
+    control: 0,
+    items: [],
+    mitigations: [],
+    acceptedRisk: {
+      isAccepted: false,
+      authority: "",
+      acceptedBy: "",
+      acceptanceDate: "",
+      reviewDate: "",
+      decisionLogic: ""
+    }
+  };
+
+  betaSummary.promotion = {
+    eligible: true,
+    promoted: true,
+    targetMode: "complex",
+    promotedScenarioId: promoted.id
+  };
+  betaSummary.scenarioStatus = "Promoted to Active";
+
+  const withoutBeta = saved.filter(x => x.id !== betaSummary.id);
+  withoutBeta.unshift(promoted);
+  withoutBeta.unshift(betaSummary);
+  setSavedScenarios(withoutBeta);
+  syncScenarioToCloud(betaSummary);
+  syncScenarioToCloud(promoted);
+  refreshLibraries();
+  renderSavedScenarios();
+  renderDashboardOpenTable();
+  activateView("saved");
 }
 
 function clampNumber(value, min, max, fallback) {
@@ -928,6 +1111,10 @@ function renderMonteCarloTable(summary) {
   }
 }
 function runScenario() {
+  if (activeMode === "beta") {
+    runBetaScenario();
+    return;
+  }
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const summary = summarizePayload(payload);
   lastSummary = summary;
@@ -937,6 +1124,10 @@ function runScenario() {
   activateView("dashboard");
 }
 function saveScenario() {
+  if (activeMode === "beta") {
+    saveBetaScenario();
+    return;
+  }
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const saved = getSavedScenarios();
   if (!payload.id) {
@@ -969,7 +1160,7 @@ function renderSavedScenarios() {
   tbody.innerHTML = saved.map(s => `<tr>
     <td>${escapeHtml(s.id)}</td>
     <td>${escapeHtml(s.name)}</td>
-    <td>${s.mode === "single" ? "Single" : "Complex"}</td>
+    <td>${s.mode === "single" ? "Single" : s.mode === "beta" ? "Beta" : "Complex"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -998,7 +1189,7 @@ function renderDashboardOpenTable() {
   }
   tbody.innerHTML = rows.map(s => `<tr>
     <td><button class="scenario-link" data-open-id="${escapeHtml(s.id)}">${escapeHtml(s.id)}</button></td>
-    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : "Unknown"}</td>
+    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : s.mode === "beta" ? "Beta Scenario" : "Unknown"}</td>
     <td>${escapeHtml(s.name)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -1013,6 +1204,33 @@ function renderDashboardOpenTable() {
 function openScenario(id) {
   const s = getSavedScenarios().find(x => x.id === id);
   if (!s) return;
+  if (s.mode === "beta") {
+    const setInput = (fieldId, value) => {
+      const el = document.getElementById(fieldId);
+      if (el) el.value = value;
+    };
+    setInput("betaScenarioId", s.id || "");
+    setInput("betaScenarioName", s.name || "");
+    setInput("betaProjectOrProductName", s.projectOrProductName || s.primaryProduct || "");
+    setSelectValueSafe("betaProductGroup", s.productGroup || productGroups[0] || "");
+    setSelectValueSafe("betaRiskDomain", s.riskDomain || riskDomains[0] || "");
+    setSelectValueSafe("betaScenarioStatus", s.scenarioStatus || "Pending");
+    setInput("betaScenarioOwner", s.scenarioOwner || "");
+    setInput("betaIdentifiedDate", s.identifiedDate || "");
+    setInput("betaPlannedDecisionDate", s.plannedDecisionDate || "");
+    setInput("betaPlannedGoLiveDate", s.plannedGoLiveDate || "");
+    setInput("betaScenarioDescription", s.description || "");
+    setInput("betaRandomScenarioCount", String(s.randomScenarioCount || 1000));
+    setInput("betaMin", s.betaInputs?.min || 0);
+    setInput("betaMode", s.betaInputs?.mode || 0);
+    setInput("betaMax", s.betaInputs?.max || 0);
+    lastBetaSummary = s;
+    renderBetaSummary(s);
+    activeMode = "beta";
+    activateView("beta");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
   if (s.mode === "single") {
     document.getElementById("singleScenarioId").value = s.id || "";
     document.getElementById("singleScenarioName").value = s.name || "";
@@ -1307,6 +1525,14 @@ function wireInputs() {
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
   document.getElementById("loadComplexTestBtn").addEventListener("click", loadComplexTestScenario);
+  const betaRunBtn = document.getElementById("runBetaScenarioBtn") || document.getElementById("runBetaBtn");
+  if (betaRunBtn) betaRunBtn.addEventListener("click", runBetaScenario);
+  const betaSaveBtn = document.getElementById("saveBetaScenarioBtn") || document.getElementById("saveBetaBtn");
+  if (betaSaveBtn) betaSaveBtn.addEventListener("click", saveBetaScenario);
+  const betaLoadBtn = document.getElementById("loadBetaTestScenarioBtn") || document.getElementById("loadBetaTestBtn");
+  if (betaLoadBtn) betaLoadBtn.addEventListener("click", loadBetaTestScenario);
+  const betaPromoteBtn = document.getElementById("promoteBetaScenarioBtn") || document.getElementById("promoteBetaBtn");
+  if (betaPromoteBtn) betaPromoteBtn.addEventListener("click", promoteBetaScenarioToActive);
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
