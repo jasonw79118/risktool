@@ -112,168 +112,6 @@ function runBetaScenarioSimulation(betaInputs, randomScenarioCount) {
 }
 
 
-let lastBetaSummary = null;
-
-function getBetaPayload() {
-  return {
-    mode: "beta",
-    distributionMethod: "beta",
-    id: document.getElementById("betaScenarioId").value,
-    name: document.getElementById("betaScenarioName").value || "Unnamed Beta Scenario",
-    projectOrProductName: document.getElementById("betaProjectOrProductName").value,
-    productGroup: document.getElementById("betaProductGroup").value,
-    riskDomain: document.getElementById("betaRiskDomain").value,
-    scenarioStatus: document.getElementById("betaScenarioStatus").value,
-    scenarioSource: "Risk",
-    scenarioOwner: document.getElementById("betaScenarioOwner").value,
-    identifiedDate: document.getElementById("betaIdentifiedDate").value,
-    plannedDecisionDate: document.getElementById("betaPlannedDecisionDate").value,
-    plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate").value,
-    description: document.getElementById("betaScenarioDescription").value,
-    randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount").value || 1000),
-    betaInputs: {
-      min: Number(document.getElementById("betaMin").value || 0),
-      mode: Number(document.getElementById("betaMode").value || 0),
-      max: Number(document.getElementById("betaMax").value || 0)
-    },
-    items: [],
-    mitigations: [],
-    promotion: {
-      eligible: true,
-      promoted: false,
-      targetMode: "",
-      promotedScenarioId: ""
-    }
-  };
-}
-
-function renderBetaSummary(summary) {
-  document.getElementById("betaRelativeMean").value = Number(summary.relativeMean || 0).toFixed(4);
-  document.getElementById("betaShapeA").value = Number(summary.a || 0).toFixed(4);
-  document.getElementById("betaShapeB").value = Number(summary.b || 0).toFixed(4);
-  document.getElementById("betaExpectedValue").value = summary.expectedValue || 0;
-  document.getElementById("betaP10").value = summary.p10 || 0;
-  document.getElementById("betaP50").value = summary.p50 || 0;
-  document.getElementById("betaP90").value = summary.p90 || 0;
-
-  document.getElementById("betaExpectedValueDisplay").textContent = summary.expectedValue || 0;
-  document.getElementById("betaP10Display").textContent = summary.p10 || 0;
-  document.getElementById("betaP50Display").textContent = summary.p50 || 0;
-  document.getElementById("betaP90Display").textContent = summary.p90 || 0;
-  document.getElementById("betaIterationsDisplay").textContent = summary.iterations || 0;
-  document.getElementById("betaNarrative").textContent = `${summary.name} produced an expected value of ${currency(summary.expectedValue)} with a P10 of ${currency(summary.p10)}, a P50 of ${currency(summary.p50)}, and a P90 of ${currency(summary.p90)} across ${summary.iterations} randomized beta scenarios.`;
-}
-
-function runBetaScenario() {
-  const payload = getBetaPayload();
-  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
-  lastBetaSummary = { ...payload, ...sim };
-  renderBetaSummary(lastBetaSummary);
-  activateView("beta");
-}
-
-function saveBetaScenario() {
-  const payload = getBetaPayload();
-  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
-  const summary = { ...payload, ...sim };
-
-  const saved = getSavedScenarios();
-  if (!summary.id) {
-    summary.id = generateScenarioId(saved);
-    document.getElementById("betaScenarioId").value = summary.id;
-  }
-  summary.scenarioId = summary.id;
-
-  const idx = saved.findIndex(x => x.id === summary.id);
-  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
-  setSavedScenarios(saved);
-  lastBetaSummary = summary;
-  renderBetaSummary(summary);
-  renderSavedScenarios();
-  renderDashboardOpenTable();
-  refreshLibraries();
-  activateView("saved");
-}
-
-function loadBetaTestScenario() {
-  document.getElementById("betaScenarioId").value = "";
-  document.getElementById("betaScenarioName").value = "Embedded Payments Launch Planning Scenario";
-  document.getElementById("betaProjectOrProductName").value = "Embedded Payments for SMB Clients";
-  document.getElementById("betaProductGroup").value = "Payment Services";
-  document.getElementById("betaRiskDomain").value = "Strategic & Business Model Risk";
-  document.getElementById("betaScenarioStatus").value = "Under Review";
-  document.getElementById("betaScenarioOwner").value = "Product Management";
-  document.getElementById("betaIdentifiedDate").value = todayIso();
-  document.getElementById("betaPlannedDecisionDate").value = todayIso();
-  document.getElementById("betaPlannedGoLiveDate").value = todayIso();
-  document.getElementById("betaMin").value = 125000;
-  document.getElementById("betaMode").value = 325000;
-  document.getElementById("betaMax").value = 900000;
-  document.getElementById("betaRandomScenarioCount").value = "1000";
-  document.getElementById("betaScenarioDescription").value = "This beta scenario evaluates whether the organization should proceed with a new embedded-payments product launch.";
-  runBetaScenario();
-}
-
-function promoteBetaScenarioToActive() {
-  const payload = getBetaPayload();
-  const sim = runBetaScenarioSimulation(payload.betaInputs, payload.randomScenarioCount);
-  const betaSummary = { ...payload, ...sim };
-
-  const saved = getSavedScenarios();
-  if (!betaSummary.id) {
-    betaSummary.id = generateScenarioId(saved);
-    document.getElementById("betaScenarioId").value = betaSummary.id;
-  }
-  betaSummary.scenarioId = betaSummary.id;
-
-  const promoted = {
-    id: generateScenarioId(saved.concat([betaSummary])),
-    mode: "complex",
-    sourceBetaScenarioId: betaSummary.id,
-    name: betaSummary.name,
-    productGroup: betaSummary.productGroup,
-    riskDomain: betaSummary.riskDomain,
-    scenarioStatus: "Open",
-    scenarioSource: "Risk",
-    primaryProduct: betaSummary.projectOrProductName || "",
-    primaryRegulation: "",
-    scenarioOwner: betaSummary.scenarioOwner || "",
-    identifiedDate: betaSummary.identifiedDate || "",
-    description: betaSummary.description || "",
-    likelihood: 0,
-    impact: 0,
-    inherent: 0,
-    control: 0,
-    items: [],
-    mitigations: [],
-    acceptedRisk: {
-      isAccepted: false,
-      authority: "",
-      acceptedBy: "",
-      acceptanceDate: "",
-      reviewDate: "",
-      decisionLogic: ""
-    }
-  };
-
-  betaSummary.promotion = {
-    eligible: true,
-    promoted: true,
-    targetMode: "complex",
-    promotedScenarioId: promoted.id
-  };
-  betaSummary.scenarioStatus = "Promoted to Active";
-
-  const withoutBeta = saved.filter(x => x.id !== betaSummary.id);
-  withoutBeta.unshift(promoted);
-  withoutBeta.unshift(betaSummary);
-  setSavedScenarios(withoutBeta);
-  refreshLibraries();
-  renderSavedScenarios();
-  renderDashboardOpenTable();
-  activateView("saved");
-}
-
 const DEFAULT_PRODUCT_GROUPS = ["Digital","Document Services","Education Services","Interfaces and Bridge Integrations","LOS","DOS","Managed Services","Core","Payment Services","Regulatory Compliance","Risk","Marketing","Legal","Executive Management","Physical Locations","Customer X","Relationship Management","CRC","Human Resources","Implementations","State Issues","Deployment","Internal","Vendor Due Diligence","Audit","3rd Party","Partnership","Vendors"];
 const DEFAULT_PRODUCTS = ["Deposits", "Checking", "Savings", "Certificates of Deposit", "IRA / Retirement Deposits", "Mobile Banking", "Internet Banking", "Online Account Opening", "ACH Processing", "Wire Transfers", "Debit Card Program", "ATM / EFT Network", "Consumer Lending", "Mortgage / HELOC", "Merchant Services", "API Banking / BaaS", "BSA / AML Monitoring", "Core Deposit Platform"];
 const DEFAULT_REGULATIONS = ["Reg D", "Reg E", "Reg O", "Reg P", "Reg X", "Reg Z", "Reg BB", "Reg CC", "Reg DD", "Reg GG", "FCRA / Reg V", "UDAAP", "BSA/AML", "CIP", "CTR", "SAR", "FinCEN Watchlist", "OFAC", "ID Theft Red Flags", "IRS Violations", "TIN Certification", "Escheatment", "FDIC Deposit Insurance", "Brokered Deposits", "Government Securities", "Public Funds", "ESIGN", "SCRA", "MLA", "CECL", "FASB 91", "NACHA", "FRB Clearing", "Basel III", "HIPAA", "Visa", "Mastercard", "FFIEC IT", "Record Retention", "GAAP", "Privacy", "Patriot Act", "California Consumer Privacy", "European Consumer Privacy", "SEC", "FINRA"];
@@ -290,6 +128,13 @@ const DEFAULT_ROTATION_RULES = [
 
 const STORAGE_KEY = "risk_manager_scenarios_v431";
 const LEGACY_STORAGE_KEY = "risk_manager_saved_evaluations_v2";
+const SUPABASE_URL = window.RISKTOOL_SUPABASE_URL || "PASTE_SUPABASE_URL_HERE";
+const SUPABASE_ANON_KEY = window.RISKTOOL_SUPABASE_ANON_KEY || "PASTE_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_SCENARIOS_TABLE = "scenarios";
+let supabaseClientPromise = null;
+let cloudSyncReady = false;
+let cloudSyncInProgress = false;
+let cloudSyncMessage = "Local browser storage only";
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
   products: "risk_manager_products_v431",
@@ -415,15 +260,188 @@ function getSavedScenarios() {
 function setSavedScenarios(items) {
   writeJSON(STORAGE_KEY, items);
 }
+function hasSupabaseConfig() {
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== "PASTE_SUPABASE_URL_HERE" && SUPABASE_ANON_KEY !== "PASTE_SUPABASE_ANON_KEY_HERE");
+}
+function setCloudSyncMessage(message) {
+  cloudSyncMessage = message;
+  const el = document.getElementById("savedStorageStatus");
+  if (el) el.textContent = message;
+}
+function mergeScenarioLists(primaryItems, secondaryItems) {
+  const byId = new Map();
+  [...secondaryItems, ...primaryItems].forEach(item => {
+    const normalized = normalizeScenario(item);
+    if (!normalized.id) normalized.id = generateScenarioId([]);
+    byId.set(normalized.id, normalized);
+  });
+  return Array.from(byId.values()).sort((a, b) => String(b.identifiedDate || b.updatedAt || "").localeCompare(String(a.identifiedDate || a.updatedAt || "")));
+}
+async function ensureSupabaseClient() {
+  if (!hasSupabaseConfig()) return null;
+  if (window.supabase?.createClient) return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!supabaseClientPromise) {
+    supabaseClientPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-risktool-supabase="true"]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null), { once: true });
+        existing.addEventListener("error", reject, { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+      script.async = true;
+      script.dataset.risktoolSupabase = "true";
+      script.onload = () => {
+        if (!window.supabase?.createClient) {
+          reject(new Error("Supabase client did not load."));
+          return;
+        }
+        resolve(window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
+      };
+      script.onerror = () => reject(new Error("Unable to load Supabase client."));
+      document.head.appendChild(script);
+    }).catch(error => {
+      console.error(error);
+      setCloudSyncMessage("Supabase client failed to load; using local browser storage");
+      return null;
+    });
+  }
+  return supabaseClientPromise;
+}
+async function fetchCloudScenarios() {
+  const client = await ensureSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from(SUPABASE_SCENARIOS_TABLE)
+    .select("id, username, scenario_name, scenario_type, payload, created_at, updated_at")
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map(row => normalizeScenario({
+    ...(row.payload || {}),
+    id: row.payload?.id || row.id || "",
+    name: row.payload?.name || row.scenario_name || "Unnamed Scenario",
+    mode: row.payload?.mode || row.scenario_type || "single",
+    scenarioOwner: row.payload?.scenarioOwner || row.username || "",
+    createdAt: row.created_at || row.payload?.createdAt || "",
+    updatedAt: row.updated_at || row.payload?.updatedAt || ""
+  }));
+}
+async function hydrateScenariosFromCloud() {
+  if (!hasSupabaseConfig()) {
+    setCloudSyncMessage("Supabase not configured; using local browser storage");
+    return;
+  }
+  try {
+    setCloudSyncMessage("Loading shared scenarios from Supabase...");
+    const cloudItems = await fetchCloudScenarios();
+    const localItems = getSavedScenarios();
+    const merged = mergeScenarioLists(cloudItems, localItems);
+    setSavedScenarios(merged);
+    cloudSyncReady = true;
+    setCloudSyncMessage(`Supabase sync active • ${cloudItems.length} shared scenario${cloudItems.length === 1 ? "" : "s"}`);
+    refreshLibraries();
+    renderHeatMap();
+  } catch (error) {
+    console.error(error);
+    setCloudSyncMessage("Supabase sync failed; using local browser storage");
+  }
+}
+async function upsertScenarioToCloud(summary) {
+  if (!hasSupabaseConfig()) return;
+  try {
+    const client = await ensureSupabaseClient();
+    if (!client) return;
+    const payload = JSON.parse(JSON.stringify(summary));
+    payload.updatedAt = new Date().toISOString();
+    const username = payload.scenarioOwner || "default";
+    const { data: existingRows, error: findError } = await client
+      .from(SUPABASE_SCENARIOS_TABLE)
+      .select("id")
+      .eq("username", username)
+      .contains("payload", { id: payload.id })
+      .limit(1);
+    if (findError) throw findError;
+    if (existingRows && existingRows.length) {
+      const { error } = await client
+        .from(SUPABASE_SCENARIOS_TABLE)
+        .update({
+          username,
+          scenario_name: payload.name || "Unnamed Scenario",
+          scenario_type: payload.mode || "single",
+          payload,
+          updated_at: payload.updatedAt
+        })
+        .eq("id", existingRows[0].id);
+      if (error) throw error;
+    } else {
+      const { error } = await client
+        .from(SUPABASE_SCENARIOS_TABLE)
+        .insert({
+          username,
+          scenario_name: payload.name || "Unnamed Scenario",
+          scenario_type: payload.mode || "single",
+          payload,
+          updated_at: payload.updatedAt
+        });
+      if (error) throw error;
+    }
+    cloudSyncReady = true;
+    setCloudSyncMessage("Supabase sync active");
+  } catch (error) {
+    console.error(error);
+    setCloudSyncMessage("Supabase save failed; local copy kept in browser storage");
+  }
+}
+async function deleteScenarioFromCloud(id) {
+  if (!hasSupabaseConfig() || !id) return;
+  try {
+    const client = await ensureSupabaseClient();
+    if (!client) return;
+    const { data: rows, error: findError } = await client
+      .from(SUPABASE_SCENARIOS_TABLE)
+      .select("id")
+      .contains("payload", { id });
+    if (findError) throw findError;
+    if (rows && rows.length) {
+      const rowIds = rows.map(row => row.id);
+      const { error } = await client
+        .from(SUPABASE_SCENARIOS_TABLE)
+        .delete()
+        .in("id", rowIds);
+      if (error) throw error;
+    }
+    setCloudSyncMessage("Supabase sync active");
+  } catch (error) {
+    console.error(error);
+    setCloudSyncMessage("Supabase delete failed; local copy removed but cloud copy may still exist");
+  }
+}
+function syncScenarioToCloud(summary) {
+  Promise.resolve().then(() => upsertScenarioToCloud(summary));
+}
+function syncScenarioLibraryToCloud(items) {
+  Promise.resolve().then(async () => {
+    if (cloudSyncInProgress) return;
+    cloudSyncInProgress = true;
+    try {
+      for (const item of items) {
+        await upsertScenarioToCloud(item);
+      }
+    } finally {
+      cloudSyncInProgress = false;
+    }
+  });
+}
 function generateScenarioId(existingScenarios) {
   const stamp = currentDateStamp();
-  const matching = existingScenarios
-    .map(x => String(x.id || ""))
-    .filter(x => x.startsWith(stamp + "-"))
-    .map(x => Number(x.split("-")[1]))
-    .filter(Number.isFinite);
-  const next = (matching.length ? Math.max(...matching) : 0) + 1;
-  return `${stamp}-${String(next).padStart(5, "0")}`;
+  const now = new Date();
+  const timePart = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}${String(now.getMilliseconds()).padStart(3, "0")}`;
+  const randomPart = Math.floor(Math.random() * 9000 + 1000);
+  const candidate = `${stamp}-${timePart}-${randomPart}`;
+  const existingIds = new Set((existingScenarios || []).map(x => String(x.id || "")));
+  if (!existingIds.has(candidate)) return candidate;
+  return `${candidate}-${Math.floor(Math.random() * 90 + 10)}`;
 }
 function refreshLibraries() {
   productGroups = sortedUnique([...DEFAULT_PRODUCT_GROUPS, ...getStoredArray(CAT_KEYS.productGroups)]);
@@ -442,10 +460,8 @@ function refreshLibraries() {
 
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
-  populateSelect("betaProductGroup", productGroups);
   populateSelect("singleRiskDomain", riskDomains);
   populateSelect("complexRiskDomain", riskDomains);
-  populateSelect("betaRiskDomain", riskDomains);
   populateSelect("singleScenarioStatus", scenarioStatuses);
   populateSelect("complexScenarioStatus", scenarioStatuses);
   populateSelect("singleScenarioSource", scenarioSources);
@@ -482,7 +498,6 @@ function activateView(viewName) {
   if (btn) btn.classList.add("active");
   if (viewName === "single") activeMode = "single";
   if (viewName === "complex") activeMode = "complex";
-  if (viewName === "beta") activeMode = "beta";
 }
 function getRiskTier(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
@@ -933,6 +948,7 @@ function saveScenario() {
   const existingIndex = saved.findIndex(x => x.id === summary.id);
   if (existingIndex >= 0) saved[existingIndex] = summary; else saved.unshift(summary);
   setSavedScenarios(saved);
+  syncScenarioToCloud(summary);
   lastSummary = summary;
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
@@ -1078,6 +1094,7 @@ function openScenario(id) {
 }
 function deleteScenario(id) {
   setSavedScenarios(getSavedScenarios().filter(x => x.id !== id));
+  Promise.resolve().then(() => deleteScenarioFromCloud(id));
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
@@ -1284,14 +1301,6 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
-  const loadBetaBtn = document.getElementById("loadBetaTestBtn");
-  if (loadBetaBtn) loadBetaBtn.addEventListener("click", loadBetaTestScenario);
-  const runBetaBtn = document.getElementById("runBetaScenarioBtn");
-  if (runBetaBtn) runBetaBtn.addEventListener("click", runBetaScenario);
-  const saveBetaBtn = document.getElementById("saveBetaScenarioBtn");
-  if (saveBetaBtn) saveBetaBtn.addEventListener("click", saveBetaScenario);
-  const promoteBetaBtn = document.getElementById("promoteBetaScenarioBtn");
-  if (promoteBetaBtn) promoteBetaBtn.addEventListener("click", promoteBetaScenarioToActive);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
@@ -1375,7 +1384,7 @@ function renderManual() {
     <h4>Future Scenario Types</h4>
     <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
-    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
+    <p>Saved scenarios are cached in local browser storage and can also sync to Supabase when the project URL and anon key are configured in app.js. This allows the scenario library to follow the user across different workstations while keeping a local fallback copy.</p>
   `;
 }
 
@@ -1590,7 +1599,9 @@ function importScenarioLibrary(file) {
       if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
       mergedMap.set(s.id, s);
     });
-    setSavedScenarios(Array.from(mergedMap.values()));
+    const mergedItems = Array.from(mergedMap.values());
+    setSavedScenarios(mergedItems);
+    syncScenarioLibraryToCloud(mergedItems);
     refreshLibraries();
     renderSavedScenarios();
     renderDashboardOpenTable();
@@ -1833,7 +1844,7 @@ function forceManualContent() {
     <h4>Future Scenario Types</h4>
     <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
-    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
+    <p>Saved scenarios are cached in local browser storage and can also sync to Supabase when the project URL and anon key are configured in app.js. This allows the scenario library to follow the user across different workstations while keeping a local fallback copy.</p>
   `;
 }
 
@@ -1850,7 +1861,18 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
+  const savedCountCard = document.getElementById("savedCount")?.closest(".metric-card");
+  if (savedCountCard && !document.getElementById("savedStorageStatus")) {
+    const status = document.createElement("div");
+    status.id = "savedStorageStatus";
+    status.style.marginTop = "6px";
+    status.style.fontSize = "12px";
+    status.style.opacity = "0.85";
+    status.textContent = cloudSyncMessage;
+    savedCountCard.appendChild(status);
+  }
   setupRandomOutcomesCsvButton();
+  hydrateScenariosFromCloud();
 }
 document.addEventListener("DOMContentLoaded", init);
 
