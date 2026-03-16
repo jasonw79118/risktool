@@ -945,7 +945,7 @@ function runScenario() {
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
   renderCharts(summary);
-  activateView("dashboard");
+  activateView("reports");
 }
 function saveScenario() {
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
