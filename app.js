@@ -751,6 +751,111 @@ function runFinancialMonteCarlo(payload) {
     randomOutcomeRows
   };
 }
+function buildSensitivityGuidance(drivers) {
+  if (!Array.isArray(drivers) || !drivers.length) {
+    return "Run a scenario to identify the assumptions driving uncertainty.";
+  }
+  const top = drivers[0];
+  const second = drivers[1];
+  const topPct = `${Math.round((top.influence || 0) * 100)}%`;
+  if (second) {
+    const secondPct = `${Math.round((second.influence || 0) * 100)}%`;
+    return `${top.driver} is currently the strongest driver of expected loss uncertainty at approximately ${topPct} of measured influence. The next best measurement target is ${second.driver} at approximately ${secondPct}. Better data on these assumptions should improve estimate quality the most.`;
+  }
+  return `${top.driver} is currently the strongest driver of expected loss uncertainty at approximately ${topPct} of measured influence. Better data on this assumption should improve estimate quality the most.`;
+}
+function calculateSensitivityDrivers(payload) {
+  const baseline = runFinancialMonteCarlo(payload);
+  const baselineLoss = Number(baseline.expectedLoss || 0);
+  const scenarios = [
+    {
+      label: "Hard Cost Most Likely",
+      mutate(testPayload) {
+        const original = Number(testPayload.hardCostLikely || 0);
+        const adjusted = Math.max(Number(testPayload.hardCostMin || 0), original * 1.10 || 0);
+        testPayload.hardCostLikely = adjusted;
+        testPayload.hardCostMax = Math.max(adjusted, Number(testPayload.hardCostMax || adjusted));
+      }
+    },
+    {
+      label: "Hard Cost Maximum",
+      mutate(testPayload) {
+        const original = Number(testPayload.hardCostMax || 0);
+        testPayload.hardCostMax = Math.max(Number(testPayload.hardCostLikely || 0), original * 1.10 || 0);
+      }
+    },
+    {
+      label: "Soft Cost Multiplier",
+      mutate(testPayload) {
+        const original = Number(testPayload.softCostLikely || 0);
+        const adjusted = Math.max(Number(testPayload.softCostMin || 0), original * 1.10 || 0);
+        testPayload.softCostLikely = adjusted;
+        testPayload.softCostMax = Math.max(adjusted, Number(testPayload.softCostMax || adjusted));
+      }
+    },
+    {
+      label: "Control Effectiveness",
+      mutate(testPayload) {
+        const original = Number(testPayload.control || 0);
+        testPayload.control = Math.min(100, Math.max(0, original + 10));
+      }
+    },
+    {
+      label: "Mitigation Cost",
+      mutate(testPayload) {
+        const original = Number(testPayload.mitigationCost || 0);
+        testPayload.mitigationCost = Math.max(0, original * 1.10 || 0);
+      }
+    }
+  ];
+
+  const raw = scenarios.map(driver => {
+    const testPayload = JSON.parse(JSON.stringify(payload || {}));
+    driver.mutate(testPayload);
+    const rerun = runFinancialMonteCarlo(testPayload);
+    const changedLoss = Number(rerun.expectedLoss || 0);
+    const delta = Math.abs(changedLoss - baselineLoss);
+    return { driver: driver.label, influence: baselineLoss > 0 ? delta / baselineLoss : 0 };
+  }).sort((a, b) => b.influence - a.influence);
+
+  const total = raw.reduce((acc, item) => acc + item.influence, 0);
+  return raw.map(item => ({
+    driver: item.driver,
+    influence: total > 0 ? item.influence / total : 0
+  }));
+}
+function renderSensitivityAnalysis(summary) {
+  const tbody = document.getElementById("sensitivityDriversBody");
+  const guidance = document.getElementById("sensitivityGuidanceBox");
+  const bars = document.getElementById("sensitivityBars");
+  if (!tbody || !guidance || !bars) return;
+  const drivers = Array.isArray(summary?.sensitivityDrivers) ? summary.sensitivityDrivers : [];
+  if (!drivers.length) {
+    tbody.innerHTML = '<tr><td colspan="3">Run a scenario to populate sensitivity analysis.</td></tr>';
+    bars.innerHTML = '<div class="note-box">No sensitivity chart available yet.</div>';
+    guidance.textContent = 'Run a scenario to identify the assumptions driving uncertainty.';
+    return;
+  }
+  tbody.innerHTML = drivers.map((item, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(item.driver)}</td>
+      <td>${Math.round((item.influence || 0) * 100)}%</td>
+    </tr>
+  `).join("");
+  bars.innerHTML = drivers.map(item => {
+    const pct = Math.max(0, Math.min(100, Math.round((item.influence || 0) * 100)));
+    return `
+      <div class="sensitivity-row">
+        <div class="sensitivity-label">${escapeHtml(item.driver)}</div>
+        <div class="sensitivity-bar-track"><div class="sensitivity-bar-fill" style="width:${pct}%"></div></div>
+        <div class="sensitivity-value">${pct}%</div>
+      </div>
+    `;
+  }).join("");
+  guidance.textContent = summary.measurementGuidance || buildSensitivityGuidance(drivers);
+}
+
 function currency(value) {
   return `$${Math.round(Number(value || 0)).toLocaleString()}`;
 }
@@ -762,6 +867,8 @@ function summarizePayload(payload) {
   const tier = getRiskTier(residual);
   const frequency = getReviewFrequency(residual);
   const mc = runFinancialMonteCarlo(payload);
+  const sensitivityDrivers = calculateSensitivityDrivers(payload);
+  const measurementGuidance = buildSensitivityGuidance(sensitivityDrivers);
 
   const monteCarloMethodRows = [
     ["Method", "Triangular Monte Carlo with bounded sampling"],
@@ -821,7 +928,9 @@ function summarizePayload(payload) {
     rangeLow: mc.rangeLow,
     rangeMedian: mc.rangeMedian,
     rangeHigh: mc.rangeHigh,
-    decisionText
+    decisionText,
+    sensitivityDrivers,
+    measurementGuidance
   };
 }
 function renderScenarioSummary(summary) {

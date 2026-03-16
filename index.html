@@ -9,6 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+
+  <style>
+    .sensitivity-bars { display: grid; gap: 10px; margin-bottom: 14px; }
+    .sensitivity-row { display: grid; grid-template-columns: 180px 1fr 56px; gap: 10px; align-items: center; }
+    .sensitivity-label, .sensitivity-value { font-size: 13px; font-weight: 600; }
+    .sensitivity-bar-track { width: 100%; height: 12px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .sensitivity-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4f46e5, #22c55e); }
+  </style>
 </head>
 <body>
   <aside class="sidebar">
@@ -752,6 +760,25 @@
               <tbody id="decisionMetricsBody"><tr><td colspan="2">Run a scenario to populate decision metrics.</td></tr></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+
+      <div class="grid two">
+        <div id="sensitivityAnalysisCard" class="card">
+          <div class="card-header"><h3><span class="help-label" data-help="Ranks which assumptions most influence the expected annual loss so management can see what is driving uncertainty.">Top Risk Drivers</span></h3><span>Sensitivity Analysis</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Driver</th><th>Influence</th></tr></thead>
+              <tbody id="sensitivityDriversBody"><tr><td colspan="3">Run a scenario to populate sensitivity analysis.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="measurementGuidanceCard" class="card">
+          <div class="card-header"><h3><span class="help-label" data-help="Shows where better measurement would improve the model most while keeping the executive presentation familiar.">What To Measure Next</span></h3><span>Guidance</span></div>
+          <div id="sensitivityBars" class="sensitivity-bars"><div class="note-box">No sensitivity chart available yet.</div></div>
+          <div id="sensitivityGuidanceBox" class="note-box">Run a scenario to identify the assumptions driving uncertainty.</div>
         </div>
       </div>
 
