@@ -380,96 +380,97 @@
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="form-grid">
-            <div>
-              <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
-              <input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk">
-            </div>
-            <div>
-              <label class="help-label" data-help="Risk domain classification for this item.">Risk Domain</label>
-              <select id="riskItemDomain"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
-              <select id="riskItemProduct"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Regulation or standard linked to this risk item.">Related Regulation</label>
-              <select id="riskItemReg"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label>
-              <input id="riskItemScore" type="number" min="0" max="100" value="65">
-            </div>
-            <div>
-              <label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label>
-              <input id="riskItemWeight" type="number" min="1" max="5" value="3">
-            </div>
+      <div class="card">
+        <div class="card-header"><h3>Risk Item Entry</h3><span>Add components to the current complex group</span></div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
+            <input id="riskItemName" type="text" placeholder="e.g. Overdraft fee disclosure risk">
           </div>
-          <div class="builder-actions">
-            <button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button>
+          <div>
+            <label class="help-label" data-help="Risk domain classification for this item.">Risk Domain</label>
+            <select id="riskItemDomain"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
+            <select id="riskItemProduct"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Regulation or standard linked to this risk item.">Related Regulation</label>
+            <select id="riskItemReg"></select>
+          </div>
+          <div>
+            <label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label>
+            <input id="riskItemScore" type="number" min="0" max="100" value="65">
+          </div>
+          <div>
+            <label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label>
+            <input id="riskItemWeight" type="number" min="1" max="5" value="3">
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
-          <div class="form-grid">
-            <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
-            <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
-            <div><label>Status</label><input id="complexMitStatus" type="text" placeholder="e.g. Planned"></div>
-            <div><label>Attachment Name</label><input id="complexMitAttachment" type="text" placeholder="e.g. gap_analysis.xlsx"></div>
-          </div>
-          <div class="builder-actions">
-            <button class="btn btn-secondary" id="addComplexMitigationBtn">Add Mitigation</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
-              <tbody id="complexMitigationBody"></tbody>
-            </table>
-          </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addRiskItemBtn">Add Risk Item</button>
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
-              <tbody id="riskItemsTableBody"></tbody>
-            </table>
-          </div>
+      <div class="card">
+        <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
+            <tbody id="riskItemsTableBody"></tbody>
+          </table>
         </div>
+      </div>
 
-        <div class="card">
-          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
-          <div class="checkbox-list">
-            <label><input id="complexAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
+          <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
+          <div><label>Status</label><input id="complexMitStatus" type="text" placeholder="e.g. Planned"></div>
+          <div><label>Attachment Name</label><input id="complexMitAttachment" type="text" placeholder="e.g. gap_analysis.xlsx"></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addComplexMitigationBtn">Add Mitigation</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Table</h3><span>Current mitigation entries</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
+            <tbody id="complexMitigationBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+        <div class="checkbox-list">
+          <label><input id="complexAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+            <select id="complexAcceptanceAuthority"></select>
           </div>
-          <div class="form-grid">
-            <div>
-              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
-              <select id="complexAcceptanceAuthority"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
-              <input id="complexAcceptedBy" type="text" placeholder="e.g. Risk Governance Committee">
-            </div>
-            <div>
-              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
-              <input id="complexAcceptanceDate" type="date">
-            </div>
-            <div>
-              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
-              <input id="complexReviewDate" type="date">
-            </div>
-            <div class="full-span">
-              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
-              <textarea id="complexDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
-            </div>
+          <div>
+            <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+            <input id="complexAcceptedBy" type="text" placeholder="e.g. Risk Governance Committee">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+            <input id="complexAcceptanceDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+            <input id="complexReviewDate" type="date">
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+            <textarea id="complexDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
         </div>
       </div>
