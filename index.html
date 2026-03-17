@@ -32,9 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.0.02</h4>
-      <p>Pass 2 insurance restoration with repeatable insurance entry and table support on the stacked builder baseline.
-</p>
+      <h4>Phase 20.0.03</h4>
+      <p>Hard Facts / Evidence restoration on the current stable baseline, while preserving save/open behavior, random outcomes export, and complex component flow.</p>
     </div>
   </aside>
 
@@ -115,7 +114,6 @@
         <div class="builder-actions">
           <button class="btn btn-secondary" id="loadSingleTestBtn">Load Test Scenario</button>
         </div>
-        <div class="card-header"><h3>Scenario Info</h3><span>Core</span></div>
         <div class="form-grid">
           <div>
             <label class="help-label" data-help="Name used to save, reopen, and print this scenario.">Scenario Name</label>
@@ -173,16 +171,7 @@
             <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
             <input id="singleControlEffectiveness" type="number" min="0" max="100" value="30">
           </div>
-          <div class="full-span">
-            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
-            <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
-          </div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="card-header"><h3>Financial Inputs</h3><span>Model Inputs</span></div>
-        <div class="form-grid">
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
             <input id="singleHardCostMin" type="number" min="0" step="1000" value="50000">
@@ -221,21 +210,27 @@
               <option value="100000">100,000</option>
             </select>
           </div>
+
+          <div class="full-span">
+            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+            <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
+          </div>
         </div>
       </div>
+
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
-          <div><label>Policy Name</label><input id="singleInsurancePolicyName" type="text" placeholder="e.g. Cyber Liability Primary"></div>
-          <div><label>Carrier</label><input id="singleInsuranceCarrier" type="text" placeholder="e.g. Travelers"></div>
-          <div><label>Coverage Type</label><input id="singleInsuranceCoverageType" type="text" placeholder="e.g. Cyber / E&O"></div>
-          <div><label>Premium ($)</label><input id="singleInsurancePremium" type="number" min="0" step="100" placeholder="25000"></div>
-          <div><label>Deductible ($)</label><input id="singleInsuranceDeductible" type="number" min="0" step="1000" placeholder="100000"></div>
-          <div><label>Coverage Amount ($)</label><input id="singleInsuranceCoverageAmount" type="number" min="0" step="1000" placeholder="1000000"></div>
-          <div><label>Coverage Dates</label><input id="singleInsuranceCoverageDates" type="text" placeholder="e.g. 01/01/2026 - 12/31/2026"></div>
-          <div><label>Source Link / Location</label><input id="singleInsuranceSource" type="text" placeholder="e.g. SharePoint / policy pdf"></div>
-          <div class="full-span"><label>Notes / Exclusions / Comments</label><textarea id="singleInsuranceNotes" rows="3" placeholder="Document exclusions, retention notes, carve-outs, or comments."></textarea></div>
+          <div><label>Policy Name</label><input id="singleInsurancePolicyName" type="text" placeholder="e.g. Card Services E&O"></div>
+          <div><label>Carrier</label><input id="singleInsuranceCarrier" type="text" placeholder="e.g. Acme Specialty"></div>
+          <div><label>Coverage Type</label><input id="singleInsuranceCoverageType" type="text" placeholder="e.g. Errors & Omissions"></div>
+          <div><label>Premium</label><input id="singleInsurancePremium" type="text" placeholder="e.g. 18000"></div>
+          <div><label>Deductible</label><input id="singleInsuranceDeductible" type="text" placeholder="e.g. 25000"></div>
+          <div><label>Coverage Amount</label><input id="singleInsuranceCoverageAmount" type="text" placeholder="e.g. 500000"></div>
+          <div><label>Coverage Dates</label><input id="singleInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
+          <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="singleInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
+          <div class="full-span"><label>Source Link / Document Location</label><input id="singleInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/card-services"></div>
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance</button>
@@ -253,68 +248,75 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Phase 20.0.02+</span></div>
-        <div class="note-box">Hard Facts / Evidence restoration is intentionally held for the next controlled phase after layout and Insurance are stabilized.</div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Placeholder</span></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source Link / Location</th></tr></thead>
-            <tbody><tr><td colspan="5">Hard Facts / Evidence placeholder only in Pass 1.</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h3>Mitigation Entry</h3><span>Repeatable</span></div>
+        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
-          <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
-          <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
-          <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
-          <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
+          <div><label>Source Type</label><select id="singleHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
+          <div><label>Loss / Cost Amount</label><input id="singleHardFactAmount" type="text" placeholder="e.g. 42000"></div>
+          <div><label>Date</label><input id="singleHardFactDate" type="date"></div>
+          <div class="full-span"><label>Description / Notes</label><input id="singleHardFactDescription" type="text" placeholder="Describe the factual loss, benchmark, or evidence"></div>
+          <div class="full-span"><label>Source Link / Internal Location</label><input id="singleHardFactSourceLink" type="text" placeholder="e.g. internal://evidence/reg-e-review"></div>
         </div>
         <div class="builder-actions">
-          <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
+          <button class="btn btn-secondary" id="addSingleHardFactBtn">Add Hard Fact</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Mitigation Table</h3><span>Repeatable</span></div>
+        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
-            <tbody id="singleMitigationBody"></tbody>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <tbody id="singleHardFactsBody"></tbody>
           </table>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
-        <div class="checkbox-list">
-          <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+      <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
+          <div class="form-grid">
+            <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
+            <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
+            <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
+            <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
+          </div>
+          <div class="builder-actions">
+            <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
+              <tbody id="singleMitigationBody"></tbody>
+            </table>
+          </div>
         </div>
-        <div class="form-grid">
-          <div>
-            <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
-            <select id="singleAcceptanceAuthority"></select>
+
+        <div class="card">
+          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+          <div class="checkbox-list">
+            <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
           </div>
-          <div>
-            <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
-            <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
-          </div>
-          <div>
-            <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
-            <input id="singleAcceptanceDate" type="date">
-          </div>
-          <div>
-            <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
-            <input id="singleReviewDate" type="date">
-          </div>
-          <div class="full-span">
-            <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
-            <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
+          <div class="form-grid">
+            <div>
+              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+              <select id="singleAcceptanceAuthority"></select>
+            </div>
+            <div>
+              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+              <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
+            </div>
+            <div>
+              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+              <input id="singleAcceptanceDate" type="date">
+            </div>
+            <div>
+              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+              <input id="singleReviewDate" type="date">
+            </div>
+            <div class="full-span">
+              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+              <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
+            </div>
           </div>
         </div>
       </div>
@@ -331,7 +333,6 @@
           <button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
           <button type="button" class="btn btn-primary" id="addComplexScenarioBtn">Add Scenario</button>
         </div>
-        <div class="card-header"><h3>Scenario Info</h3><span>Core</span></div>
         <div class="form-grid">
           <div>
             <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
@@ -389,16 +390,7 @@
             <label class="help-label" data-help="Estimated percentage reduction from the current control environment.">Control Effectiveness %</label>
             <input id="complexControlEffectiveness" type="number" min="0" max="100" value="28">
           </div>
-          <div class="full-span">
-            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
-            <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
-          </div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="card-header"><h3>Financial Inputs</h3><span>Model Inputs</span></div>
-        <div class="form-grid">
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
             <input id="complexHardCostMin" type="number" min="0" step="1000" value="100000">
@@ -436,6 +428,11 @@
               <option value="10000">10,000</option>
               <option value="100000">100,000</option>
             </select>
+          </div>
+
+          <div class="full-span">
+            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+            <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
           </div>
         </div>
       </div>
@@ -483,18 +480,19 @@
         </div>
       </div>
 
+
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
-          <div><label>Policy Name</label><input id="complexInsurancePolicyName" type="text" placeholder="e.g. Enterprise Liability Umbrella"></div>
-          <div><label>Carrier</label><input id="complexInsuranceCarrier" type="text" placeholder="e.g. Chubb"></div>
-          <div><label>Coverage Type</label><input id="complexInsuranceCoverageType" type="text" placeholder="e.g. D&O / Professional Liability"></div>
-          <div><label>Premium ($)</label><input id="complexInsurancePremium" type="number" min="0" step="100" placeholder="50000"></div>
-          <div><label>Deductible ($)</label><input id="complexInsuranceDeductible" type="number" min="0" step="1000" placeholder="250000"></div>
-          <div><label>Coverage Amount ($)</label><input id="complexInsuranceCoverageAmount" type="number" min="0" step="1000" placeholder="5000000"></div>
-          <div><label>Coverage Dates</label><input id="complexInsuranceCoverageDates" type="text" placeholder="e.g. 01/01/2026 - 12/31/2026"></div>
-          <div><label>Source Link / Location</label><input id="complexInsuranceSource" type="text" placeholder="e.g. Policy binder / internal docs"></div>
-          <div class="full-span"><label>Notes / Exclusions / Comments</label><textarea id="complexInsuranceNotes" rows="3" placeholder="Document exclusions, retention notes, carve-outs, or comments."></textarea></div>
+          <div><label>Policy Name</label><input id="complexInsurancePolicyName" type="text" placeholder="e.g. Program Tech E&O"></div>
+          <div><label>Carrier</label><input id="complexInsuranceCarrier" type="text" placeholder="e.g. National Mutual"></div>
+          <div><label>Coverage Type</label><input id="complexInsuranceCoverageType" type="text" placeholder="e.g. Cyber / Technology E&O"></div>
+          <div><label>Premium</label><input id="complexInsurancePremium" type="text" placeholder="e.g. 95000"></div>
+          <div><label>Deductible</label><input id="complexInsuranceDeductible" type="text" placeholder="e.g. 100000"></div>
+          <div><label>Coverage Amount</label><input id="complexInsuranceCoverageAmount" type="text" placeholder="e.g. 3000000"></div>
+          <div><label>Coverage Dates</label><input id="complexInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
+          <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="complexInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
+          <div class="full-span"><label>Source Link / Document Location</label><input id="complexInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/modernization-program"></div>
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance</button>
@@ -512,22 +510,31 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Phase 20.0.02+</span></div>
-        <div class="note-box">Hard Facts / Evidence restoration is intentionally held for the next controlled phase after layout and Insurance are stabilized.</div>
+        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Source Type</label><select id="complexHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
+          <div><label>Loss / Cost Amount</label><input id="complexHardFactAmount" type="text" placeholder="e.g. 275000"></div>
+          <div><label>Date</label><input id="complexHardFactDate" type="date"></div>
+          <div class="full-span"><label>Description / Notes</label><input id="complexHardFactDescription" type="text" placeholder="Describe the factual loss, benchmark, or evidence"></div>
+          <div class="full-span"><label>Source Link / Internal Location</label><input id="complexHardFactSourceLink" type="text" placeholder="e.g. internal://evidence/modernization-losses"></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addComplexHardFactBtn">Add Hard Fact</button>
+        </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Placeholder</span></div>
+        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source Link / Location</th></tr></thead>
-            <tbody><tr><td colspan="5">Hard Facts / Evidence placeholder only in Pass 1.</td></tr></tbody>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <tbody id="complexHardFactsBody"></tbody>
           </table>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Mitigation Entry</h3><span>Entry</span></div>
+        <div class="card-header"><h3>Mitigation Factors</h3><span>Entry</span></div>
         <div class="form-grid">
           <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
           <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
