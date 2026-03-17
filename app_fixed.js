@@ -1,3 +1,117 @@
+
+function setSelectValueSafe(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const wanted = String(value ?? "");
+  const hasOption = Array.from(el.options || []).some(opt => opt.value === wanted);
+  if (!hasOption && wanted) {
+    const opt = document.createElement("option");
+    opt.value = wanted;
+    opt.textContent = wanted;
+    el.appendChild(opt);
+  }
+  el.value = wanted;
+}
+
+
+
+function betaRelativeMean(min, mode, max) {
+  if (max <= min) return 0.5;
+  return ((((mode - min) / (max - min)) * 4) + 1) / 6;
+}
+function betaShapeA(relativeMean) {
+  return (relativeMean ** 2) * (1 - relativeMean) * (6 ** 2) - 1;
+}
+function betaShapeB(relativeMean, a) {
+  if (relativeMean <= 0) return 1;
+  return ((1 - relativeMean) / relativeMean) * a;
+}
+function normalSample() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function gammaSample(shape) {
+  if (shape < 1) {
+    const u = Math.random();
+    return gammaSample(1 + shape) * Math.pow(u, 1 / shape);
+  }
+  const d = shape - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  while (true) {
+    let x, v, u;
+    do {
+      x = normalSample();
+      v = 1 + c * x;
+    } while (v <= 0);
+    v = v * v * v;
+    u = Math.random();
+    if (u < 1 - 0.0331 * (x ** 4)) return d * v;
+    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+}
+function boundedBetaSample(min, mode, max) {
+  if (max <= min) return min;
+  const relMean = betaRelativeMean(min, mode, max);
+  const aRaw = betaShapeA(relMean);
+  const bRaw = betaShapeB(relMean, aRaw);
+
+  // Keep shapes positive and stable for browser-side simulation
+  const alpha = Math.max(0.5, Math.abs(aRaw));
+  const beta = Math.max(0.5, Math.abs(bRaw));
+
+  const x = gammaSample(alpha);
+  const y = gammaSample(beta);
+  const beta01 = x / (x + y);
+
+  return min + beta01 * (max - min);
+}
+function percentile(sortedValues, p) {
+  if (!sortedValues.length) return 0;
+  const index = Math.min(sortedValues.length - 1, Math.max(0, Math.floor(sortedValues.length * p)));
+  return sortedValues[index];
+}
+function runBetaScenarioSimulation(betaInputs, randomScenarioCount) {
+  const allowed = [100, 500, 1000, 10000, 100000];
+  const iterations = allowed.includes(Number(randomScenarioCount)) ? Number(randomScenarioCount) : 1000;
+
+  const min = Number(betaInputs.min || 0);
+  const mode = Number(betaInputs.mode || min);
+  const max = Number(betaInputs.max || mode);
+
+  const relativeMean = betaRelativeMean(min, mode, max);
+  const a = betaShapeA(relativeMean);
+  const b = betaShapeB(relativeMean, a);
+
+  const rows = [];
+  const values = [];
+  for (let i = 0; i < iterations; i++) {
+    const value = boundedBetaSample(min, mode, max);
+    rows.push({
+      scenarioNumber: i + 1,
+      sampledValue: Math.round(value)
+    });
+    values.push(value);
+  }
+
+  values.sort((x, y) => x - y);
+  const expectedValue = Math.round(values.reduce((acc, v) => acc + v, 0) / Math.max(values.length, 1));
+
+  return {
+    iterations,
+    relativeMean,
+    a,
+    b,
+    expectedValue,
+    p10: Math.round(percentile(values, 0.10)),
+    p50: Math.round(percentile(values, 0.50)),
+    p90: Math.round(percentile(values, 0.90)),
+    randomOutcomeRows: rows
+  };
+}
+
+
 const DEFAULT_PRODUCT_GROUPS = ["Digital","Document Services","Education Services","Interfaces and Bridge Integrations","LOS","DOS","Managed Services","Core","Payment Services","Regulatory Compliance","Risk","Marketing","Legal","Executive Management","Physical Locations","Customer X","Relationship Management","CRC","Human Resources","Implementations","State Issues","Deployment","Internal","Vendor Due Diligence","Audit","3rd Party","Partnership","Vendors"];
 const DEFAULT_PRODUCTS = ["Deposits", "Checking", "Savings", "Certificates of Deposit", "IRA / Retirement Deposits", "Mobile Banking", "Internet Banking", "Online Account Opening", "ACH Processing", "Wire Transfers", "Debit Card Program", "ATM / EFT Network", "Consumer Lending", "Mortgage / HELOC", "Merchant Services", "API Banking / BaaS", "BSA / AML Monitoring", "Core Deposit Platform"];
 const DEFAULT_REGULATIONS = ["Reg D", "Reg E", "Reg O", "Reg P", "Reg X", "Reg Z", "Reg BB", "Reg CC", "Reg DD", "Reg GG", "FCRA / Reg V", "UDAAP", "BSA/AML", "CIP", "CTR", "SAR", "FinCEN Watchlist", "OFAC", "ID Theft Red Flags", "IRS Violations", "TIN Certification", "Escheatment", "FDIC Deposit Insurance", "Brokered Deposits", "Government Securities", "Public Funds", "ESIGN", "SCRA", "MLA", "CECL", "FASB 91", "NACHA", "FRB Clearing", "Basel III", "HIPAA", "Visa", "Mastercard", "FFIEC IT", "Record Retention", "GAAP", "Privacy", "Patriot Act", "California Consumer Privacy", "European Consumer Privacy", "SEC", "FINRA"];
@@ -39,6 +153,10 @@ let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
 let lastSummary = null;
+let complexScenarioComponents = [];
+let activeComplexComponentId = "";
+let complexGroupCounter = 1;
+let componentCounter = 1;
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -67,6 +185,127 @@ function todayIso() {
 }
 function currentDateStamp() {
   return todayIso().replaceAll("-", "");
+}
+function generateComplexGroupId() {
+  const id = `CG-${currentDateStamp()}-${String(complexGroupCounter).padStart(3, "0")}`;
+  complexGroupCounter += 1;
+  return id;
+}
+function ensureComplexGroupId() {
+  const el = document.getElementById("complexGroupId");
+  if (!el) return "";
+  if (!el.value) el.value = generateComplexGroupId();
+  return el.value;
+}
+function generateComponentId() {
+  const existing = new Set(complexScenarioComponents.map(x => String(x.componentId || "")));
+  let id = "";
+  do {
+    id = `COMP-${String(componentCounter).padStart(6, "0")}`;
+    componentCounter += 1;
+  } while (existing.has(id));
+  return id;
+}
+function getCurrentComplexComponentSnapshot() {
+  const scenarioName = document.getElementById("complexScenarioName")?.value || "Unnamed Complex Component";
+  return {
+    componentId: activeComplexComponentId || generateComponentId(),
+    groupId: ensureComplexGroupId(),
+    scenarioName,
+    scenarioStatus: document.getElementById("complexScenarioStatus")?.value || "Open",
+    productGroup: document.getElementById("complexProductGroup")?.value || "",
+    riskDomain: document.getElementById("complexRiskDomain")?.value || "",
+    primaryProduct: document.getElementById("complexPrimaryProduct")?.value || "",
+    primaryRegulation: document.getElementById("complexPrimaryRegulation")?.value || "",
+    scenarioOwner: document.getElementById("complexScenarioOwner")?.value || "",
+    identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
+    description: document.getElementById("complexScenarioDescription")?.value || "",
+    control: Number(document.getElementById("complexControlEffectiveness")?.value || 0),
+    hardCostMin: Number(document.getElementById("complexHardCostMin")?.value || 0),
+    hardCostLikely: Number(document.getElementById("complexHardCostLikely")?.value || 0),
+    hardCostMax: Number(document.getElementById("complexHardCostMax")?.value || 0),
+    softCostMin: Number(document.getElementById("complexSoftCostMin")?.value || 0),
+    softCostLikely: Number(document.getElementById("complexSoftCostLikely")?.value || 0),
+    softCostMax: Number(document.getElementById("complexSoftCostMax")?.value || 0),
+    mitigationCost: Number(document.getElementById("complexMitigationCost")?.value || 0),
+    randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
+    items: currentComplexItems.map(item => ({ ...item })),
+    mitigations: complexMitigations.map(item => ({ ...item })),
+    acceptedRisk: JSON.parse(JSON.stringify(getAcceptedRisk("complex"))),
+    inherent: calculateComplexInherent()
+  };
+}
+function applyComplexComponentSnapshot(component) {
+  if (!component) return;
+  ensureComplexGroupId();
+  const groupEl = document.getElementById("complexGroupId");
+  if (groupEl) groupEl.value = component.groupId || groupEl.value || generateComplexGroupId();
+  activeComplexComponentId = component.componentId || "";
+  document.getElementById("complexScenarioName").value = component.scenarioName || "";
+  document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
+  document.getElementById("complexProductGroup").value = component.productGroup || productGroups[0] || "";
+  document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
+  document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
+  document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
+  document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
+  document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
+  document.getElementById("complexScenarioDescription").value = component.description || "";
+  document.getElementById("complexControlEffectiveness").value = component.control || 0;
+  document.getElementById("complexHardCostMin").value = component.hardCostMin || 0;
+  document.getElementById("complexHardCostLikely").value = component.hardCostLikely || 0;
+  document.getElementById("complexHardCostMax").value = component.hardCostMax || 0;
+  document.getElementById("complexSoftCostMin").value = component.softCostMin || 0;
+  document.getElementById("complexSoftCostLikely").value = component.softCostLikely || 0;
+  document.getElementById("complexSoftCostMax").value = component.softCostMax || 0;
+  document.getElementById("complexMitigationCost").value = component.mitigationCost || 0;
+  const complexRandom = document.getElementById("complexRandomScenarioCount");
+  if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
+  currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
+  complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
+  renderComplexItems();
+  renderMitigationTable("complexMitigationBody", complexMitigations);
+  document.getElementById("complexAcceptedRiskFlag").checked = !!component.acceptedRisk?.isAccepted;
+  document.getElementById("complexAcceptanceAuthority").value = component.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
+  document.getElementById("complexAcceptedBy").value = component.acceptedRisk?.acceptedBy || "";
+  document.getElementById("complexAcceptanceDate").value = component.acceptedRisk?.acceptanceDate || "";
+  document.getElementById("complexReviewDate").value = component.acceptedRisk?.reviewDate || "";
+  document.getElementById("complexDecisionLogic").value = component.acceptedRisk?.decisionLogic || "";
+  updateInherentScores();
+}
+function renderComplexScenarioComponents() {
+  const tbody = document.getElementById("complexScenarioComponentsBody");
+  if (!tbody) return;
+  if (!complexScenarioComponents.length) {
+    tbody.innerHTML = '<tr><td colspan="7">No component scenarios added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = complexScenarioComponents.map((component, idx) => `
+    <tr>
+      <td><button class="scenario-link" data-open-complex-component="${escapeHtml(component.componentId || "")}">${escapeHtml(component.componentId || `COMP-${String(idx + 1).padStart(6, "0")}`)}</button></td>
+      <td>${escapeHtml(component.scenarioName || "Unnamed Complex Component")}</td>
+      <td>${escapeHtml(component.productGroup || "")}</td>
+      <td>${escapeHtml(component.riskDomain || "")}</td>
+      <td>${Number(component.inherent || 0)}</td>
+      <td>${Array.isArray(component.items) ? component.items.length : 0}</td>
+      <td>${escapeHtml(component.scenarioStatus || "Open")}</td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-open-complex-component]").forEach(btn => btn.addEventListener("click", () => openComplexScenarioComponent(btn.dataset.openComplexComponent)));
+}
+function addComplexScenarioComponent() {
+  const component = getCurrentComplexComponentSnapshot();
+  activeComplexComponentId = component.componentId;
+  const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === component.componentId);
+  if (existingIndex >= 0) complexScenarioComponents[existingIndex] = component; else complexScenarioComponents.push(component);
+  renderComplexScenarioComponents();
+}
+function openComplexScenarioComponent(componentId) {
+  const component = complexScenarioComponents.find(x => x.componentId === componentId);
+  if (!component) return;
+  applyComplexComponentSnapshot(component);
+  activateView("complex");
+  const topCard = document.querySelector('#view-complex .card');
+  if (topCard?.scrollIntoView) topCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function escapeHtml(value) {
   return String(value ?? "")
@@ -185,6 +424,7 @@ function refreshLibraries() {
   renderCategoryAdmin();
   renderSavedScenarios();
   renderDashboardOpenTable();
+  renderComplexScenarioComponents();
   updateInherentScores();
   updateMonteCarloStatus();
 }
@@ -329,9 +569,20 @@ function getSinglePayload() {
   };
 }
 function getComplexPayload() {
+  const currentComponent = getCurrentComplexComponentSnapshot();
+  const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === currentComponent.componentId);
+  const allComponents = existingIndex >= 0
+    ? complexScenarioComponents.map((component, idx) => idx === existingIndex ? currentComponent : component)
+    : [...complexScenarioComponents, currentComponent];
+  const allItems = allComponents.flatMap(component => Array.isArray(component.items) ? component.items : []);
+  const allMitigations = allComponents.flatMap(component => Array.isArray(component.mitigations) ? component.mitigations : []);
+  const avgInherent = allComponents.length
+    ? Math.round(allComponents.reduce((sum, component) => sum + Number(component.inherent || 0), 0) / allComponents.length)
+    : calculateComplexInherent();
   return {
     mode: "complex",
     id: document.getElementById("complexScenarioId").value,
+    complexGroupId: ensureComplexGroupId(),
     name: document.getElementById("complexScenarioName").value || "Unnamed Complex Scenario",
     productGroup: document.getElementById("complexProductGroup").value,
     riskDomain: document.getElementById("complexRiskDomain").value,
@@ -344,7 +595,7 @@ function getComplexPayload() {
     description: document.getElementById("complexScenarioDescription").value,
     likelihood: 0,
     impact: 0,
-    inherent: calculateComplexInherent(),
+    inherent: avgInherent,
     control: Number(document.getElementById("complexControlEffectiveness").value || 0),
     hardCostMin: Number(document.getElementById("complexHardCostMin").value || 0),
     hardCostLikely: Number(document.getElementById("complexHardCostLikely").value || 0),
@@ -354,8 +605,9 @@ function getComplexPayload() {
     softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
     mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
-    items: currentComplexItems.slice(),
-    mitigations: complexMitigations.slice(),
+    items: allItems,
+    components: allComponents.map(component => ({ ...component })),
+    mitigations: allMitigations,
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
@@ -381,15 +633,12 @@ function runFinancialMonteCarlo(payload) {
   const allowedIterations = [100, 500, 1000, 10000, 100000];
   const requestedIterations = Number(payload.randomScenarioCount || 1000);
   const iterations = allowedIterations.includes(requestedIterations) ? requestedIterations : 1000;
-
   const hardMin = Math.max(0, Number(payload.hardCostMin || 0));
   const hardLikely = Math.max(hardMin, Number(payload.hardCostLikely || hardMin));
   const hardMax = Math.max(hardLikely, Number(payload.hardCostMax || hardLikely));
-
   const softMin = Math.max(0, Number(payload.softCostMin || 0));
   const softLikely = Math.max(softMin, Number(payload.softCostLikely || softMin));
   const softMax = Math.max(softLikely, Number(payload.softCostMax || softLikely));
-
   const effectiveness = clampNumber(payload.control || 0, 0, 100, 0) / 100;
   const mitigationCost = Math.max(0, Number(payload.mitigationCost || 0));
 
@@ -397,34 +646,31 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
-  const outcomeRows = [];
-
+  const randomOutcomeRows = [];
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
     const soft = hard * softMultiplier;
     const total = hard + soft;
     const residual = total * (1 - effectiveness);
-
+    const breakevenMet = mitigationCost <= Math.max(0, total - residual) ? "Yes" : "No";
     hardSamples.push(hard);
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
-
-    outcomeRows.push({
+    randomOutcomeRows.push({
       scenarioNumber: i + 1,
       hardCost: Math.round(hard),
       softCost: Math.round(soft),
       totalCost: Math.round(total),
       residualCost: Math.round(residual),
-      breakevenMet: Math.round(total - residual) >= mitigationCost ? 1 : 0
+      breakevenMet
     });
   }
+  totalSamples.sort((a,b) => a-b);
+  residualSamples.sort((a,b) => a-b);
 
-  totalSamples.sort((a, b) => a - b);
-  residualSamples.sort((a, b) => a - b);
-
-  const avg = arr => arr.reduce((a, b) => a + b, 0) / Math.max(arr.length, 1);
+  const avg = arr => arr.reduce((a,b)=>a+b,0) / Math.max(arr.length,1);
   const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * p)))];
 
   const expectedLoss = Math.round(avg(totalSamples));
@@ -434,7 +680,7 @@ function runFinancialMonteCarlo(payload) {
   const riskReductionValue = Math.max(0, expectedLoss - residualExpectedLoss);
   const mitigationROI = riskReductionValue - mitigationCost;
 
-  const horizons = [1, 3, 5, 10, 15, 20, 25, 30];
+  const horizons = [1,3,5,10,15,20,25,30];
   const horizonRows = horizons.map(years => {
     const withoutMitigation = expectedLoss * years;
     const withMitigation = residualExpectedLoss * years + mitigationCost;
@@ -460,7 +706,7 @@ function runFinancialMonteCarlo(payload) {
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
     horizonRows,
-    randomOutcomeRows: outcomeRows
+    randomOutcomeRows
   };
 }
 function currency(value) {
@@ -657,9 +903,13 @@ function runScenario() {
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
   renderCharts(summary);
-  activateView("dashboard");
+  activateView("reports");
 }
-function saveScenario() {
+function saveScenario(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  const activeViewEl = document.querySelector(".view.active");
+  const currentViewName = activeViewEl?.id?.replace(/^view-/, "") || (activeMode === "complex" ? "complex" : "single");
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const saved = getSavedScenarios();
   if (!payload.id) {
@@ -678,7 +928,7 @@ function saveScenario() {
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
-  activateView("saved");
+  activateView(currentViewName);
 }
 function renderSavedScenarios() {
   const tbody = document.getElementById("savedEvaluationsBody");
@@ -772,14 +1022,23 @@ function openScenario(id) {
     activateView("single");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
+    const firstComponent = Array.isArray(s.components) && s.components.length ? s.components[0] : null;
+    complexScenarioComponents = Array.isArray(s.components)
+      ? s.components.map(component => ({
+          ...component,
+          items: Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [],
+          mitigations: Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [],
+          acceptedRisk: component.acceptedRisk ? JSON.parse(JSON.stringify(component.acceptedRisk)) : undefined
+        }))
+      : [];
     document.getElementById("complexScenarioId").value = s.id || "";
     document.getElementById("complexScenarioName").value = s.name || "";
-    document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
-    document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
-    document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
-    document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
-    document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
+    setSelectValueSafe("complexProductGroup", s.productGroup || productGroups[0] || "");
+    setSelectValueSafe("complexRiskDomain", s.riskDomain || riskDomains[0] || "");
+    setSelectValueSafe("complexScenarioStatus", s.scenarioStatus || "Open");
+    setSelectValueSafe("complexScenarioSource", s.scenarioSource || scenarioSources[0] || "");
+    setSelectValueSafe("complexPrimaryProduct", s.primaryProduct || products[0] || "");
+    setSelectValueSafe("complexPrimaryRegulation", s.primaryRegulation || regulations[0] || "");
     document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
@@ -793,21 +1052,32 @@ function openScenario(id) {
     document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
-    currentComplexItems = Array.isArray(s.items) ? s.items.slice().map(item => ({
-      issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      parentScenarioMode: "complex",
-      description: item.description || "",
-      ...item
-    })) : [];
+    currentComplexItems = Array.isArray(firstComponent?.items)
+      ? firstComponent.items.map(item => ({
+          issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          parentScenarioMode: "complex",
+          description: item.description || "",
+          ...item
+        }))
+      : Array.isArray(s.items) ? s.items.slice().map(item => ({
+          issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          parentScenarioMode: "complex",
+          description: item.description || "",
+          ...item
+        })) : [];
     renderComplexItems();
-    complexMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    const groupEl = document.getElementById("complexGroupId");
+    if (groupEl) groupEl.value = s.complexGroupId || firstComponent?.groupId || ensureComplexGroupId();
+    complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    activeComplexComponentId = firstComponent?.componentId || "";
     renderMitigationTable("complexMitigationBody", complexMitigations);
-    document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
-    document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
-    document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
-    document.getElementById("complexAcceptanceDate").value = s.acceptedRisk?.acceptanceDate || "";
-    document.getElementById("complexReviewDate").value = s.acceptedRisk?.reviewDate || "";
-    document.getElementById("complexDecisionLogic").value = s.acceptedRisk?.decisionLogic || "";
+    renderComplexScenarioComponents();
+    document.getElementById("complexAcceptedRiskFlag").checked = !!(firstComponent?.acceptedRisk?.isAccepted ?? s.acceptedRisk?.isAccepted);
+    setSelectValueSafe("complexAcceptanceAuthority", firstComponent?.acceptedRisk?.authority || s.acceptedRisk?.authority || acceptanceAuthorities[0] || "");
+    document.getElementById("complexAcceptedBy").value = firstComponent?.acceptedRisk?.acceptedBy || s.acceptedRisk?.acceptedBy || "";
+    document.getElementById("complexAcceptanceDate").value = firstComponent?.acceptedRisk?.acceptanceDate || s.acceptedRisk?.acceptanceDate || "";
+    document.getElementById("complexReviewDate").value = firstComponent?.acceptedRisk?.reviewDate || s.acceptedRisk?.reviewDate || "";
+    document.getElementById("complexDecisionLogic").value = firstComponent?.acceptedRisk?.decisionLogic || s.acceptedRisk?.decisionLogic || "";
     activeMode = "complex";
     updateInherentScores();
     activateView("complex");
@@ -933,6 +1203,10 @@ function loadSingleTestScenario() {
 }
 function loadComplexTestScenario() {
   document.getElementById("complexScenarioId").value = "";
+  const complexGroupEl = document.getElementById("complexGroupId");
+  if (complexGroupEl) complexGroupEl.value = generateComplexGroupId();
+  complexScenarioComponents = [];
+  activeComplexComponentId = "";
   document.getElementById("complexScenarioName").value = "Enterprise Deposit Modernization Program";
   document.getElementById("complexProductGroup").value = "Core";
   document.getElementById("complexRiskDomain").value = "Operational Process Risk";
@@ -972,6 +1246,7 @@ function loadComplexTestScenario() {
   document.getElementById("complexReviewDate").value = todayIso();
   document.getElementById("complexDecisionLogic").value = "The committee accepted temporary residual risk while core conversion milestones and vendor resiliency controls are completed.";
   updateInherentScores();
+  addComplexScenarioComponent();
   activateView("complex");
 }
 function validateMonteCarloConfig(config) {
@@ -1022,9 +1297,10 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
+  document.getElementById("addComplexScenarioBtn").addEventListener("click", addComplexScenarioComponent);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
-  document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
+  document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
   document.getElementById("loadComplexTestBtn").addEventListener("click", loadComplexTestScenario);
@@ -1052,24 +1328,7 @@ function wireInputs() {
   const aiBtn = document.getElementById("downloadAIPacketBtn");
   if (aiBtn) aiBtn.addEventListener("click", () => textDownload(`ai_packet_${(lastSummary?.id || currentDateStamp())}.txt`, buildAIPacketText(lastSummary)));
   const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (outcomesBtn) outcomesBtn.addEventListener("click", () => {
-    if (!lastSummary) {
-      alert("Run or open a scenario first.");
-      return;
-    }
-
-    const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
-      ? summarizePayload(lastSummary)
-      : lastSummary;
-
-    if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) {
-      alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
-      return;
-    }
-
-    const csv = buildOutcomesTableText(exportSummary);
-    fileDownload(`random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`, csv, "text/csv;charset=utf-8");
-  });
+  if (outcomesBtn) outcomesBtn.addEventListener("click", handleRandomOutcomesDownload);
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1137,26 +1396,39 @@ function getBoardPacketScenarios() {
 }
 function buildOutcomesTableText(summary) {
   if (!summary) return "";
-  const rows = Array.isArray(summary.randomOutcomeRows) ? summary.randomOutcomeRows : [];
-
-  const escapeCsv = (value) => {
-    const s = String(value ?? "");
-    return /[",
-]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
-  };
-
-  const header = ["Scenario Number", "Hard Cost", "Soft Cost", "Total Cost", "Residual Cost", "Breakeven Met?"];
-  const body = rows.map(r => [
+  const rows = summary.randomOutcomeRows || [];
+  const header = ["Scenario Number","Hard Cost","Soft Cost","Total Cost","Residual Cost","Breakeven Met?"];
+  const xmlEscape = (value) => String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+  const rowXml = (cells) => "<Row>" + cells.map(cell => {
+    const isNum = typeof cell === "number" || /^[0-9]+(\.[0-9]+)?$/.test(String(cell));
+    const type = isNum ? "Number" : "String";
+    return `<Cell><Data ss:Type="${type}">${xmlEscape(cell)}</Data></Cell>`;
+  }).join("") + "</Row>";
+  const allRows = [header].concat(rows.map(r => [
     r.scenarioNumber,
     r.hardCost,
     r.softCost,
     r.totalCost,
     r.residualCost,
     r.breakevenMet
-  ]);
-
-  return [header].concat(body).map(row => row.map(escapeCsv).join(",")).join("
-");
+  ]));
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Worksheet ss:Name="Random Outcomes">
+  <Table>
+   ${allRows.map(rowXml).join("")}
+  </Table>
+ </Worksheet>
+</Workbook>`;
 }
 async function downloadBoardPacketDocx() {
   const scenarios = getBoardPacketScenarios();
@@ -1338,20 +1610,26 @@ function openScenarioReport(id) {
   activateView("reports");
 }
 
-function fileDownload(filename, content, mimeType = "text/plain") {
-  const blob = new Blob([content], { type: mimeType });
+function triggerDownload(filename, blob) {
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  const objectUrl = URL.createObjectURL(blob);
+  link.href = objectUrl;
   link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+    link.remove();
+  }, 0);
+}
+
+function fileDownload(filename, content, mimeType = "text/plain") {
+  triggerDownload(filename, new Blob([content], { type: mimeType }));
 }
 
 function textDownload(filename, content) {
-  const blob = new Blob([content], { type: "text/plain" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
+  triggerDownload(filename, new Blob([content], { type: "text/plain" }));
 }
 function buildBoardPacketText(summary) {
   if (!summary) return "No scenario has been run or selected.";
@@ -1564,8 +1842,51 @@ function forceManualContent() {
   `;
 }
 
+function installGlobalActionDelegation() {
+  document.addEventListener("click", (event) => {
+    const openBtn = event.target.closest("[data-open-id]");
+    if (openBtn) {
+      event.preventDefault();
+      openScenario(openBtn.dataset.openId);
+      return;
+    }
+    const reportBtn = event.target.closest("[data-report-id]");
+    if (reportBtn) {
+      event.preventDefault();
+      openScenarioReport(reportBtn.dataset.reportId);
+      return;
+    }
+    const savedBtn = event.target.closest("#savedEvaluationsBody [data-action]");
+    if (savedBtn) {
+      event.preventDefault();
+      const id = savedBtn.dataset.id;
+      if (savedBtn.dataset.action === "open") openScenario(id);
+      if (savedBtn.dataset.action === "delete") deleteScenario(id);
+      return;
+    }
+    const complexBtn = event.target.closest("#addComplexScenarioBtn");
+    if (complexBtn) {
+      event.preventDefault();
+      addComplexScenarioComponent();
+      return;
+    }
+    const componentBtn = event.target.closest("[data-open-complex-component]");
+    if (componentBtn) {
+      event.preventDefault();
+      openComplexScenarioComponent(componentBtn.dataset.openComplexComponent);
+      return;
+    }
+    const outcomesBtn = event.target.closest("#downloadOutcomesTableBtn");
+    if (outcomesBtn) {
+      event.preventDefault();
+      handleRandomOutcomesDownload(event);
+    }
+  });
+}
+
 function init() {
   loadStoredMonteCarloConfig();
+  installGlobalActionDelegation();
   wireInputs();
   renderManual();
   forceManualContent();
@@ -1577,11 +1898,63 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
-  // legacy csv setup disabled
+  setupRandomOutcomesCsvButton();
+  wireStabilityHandlers();
 }
 document.addEventListener("DOMContentLoaded", init);
 
 
+
+function getRandomOutcomesExportSummary() {
+  if (!lastSummary) return null;
+  const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
+    ? summarizePayload(lastSummary)
+    : lastSummary;
+  if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) return null;
+  return exportSummary;
+}
+
+function handleRandomOutcomesDownload(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const exportSummary = getRandomOutcomesExportSummary();
+  if (!lastSummary) {
+    alert("Run or open a scenario first.");
+    return;
+  }
+  if (!exportSummary) {
+    alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
+    return;
+  }
+  const csv = buildRandomOutcomesCsv(exportSummary);
+  fileDownload(`random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`, csv, "text/csv;charset=utf-8");
+}
+
+function handleAddComplexScenario(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  addComplexScenarioComponent();
+}
+
+function wireStabilityHandlers() {
+  const addBtn = document.getElementById("addComplexScenarioBtn");
+  if (addBtn && addBtn.parentNode) {
+    const cleanAddBtn = addBtn.cloneNode(true);
+    addBtn.parentNode.replaceChild(cleanAddBtn, addBtn);
+    cleanAddBtn.onclick = handleAddComplexScenario;
+  }
+  const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
+  if (outcomesBtn && outcomesBtn.parentNode) {
+    const cleanOutcomesBtn = outcomesBtn.cloneNode(true);
+    outcomesBtn.parentNode.replaceChild(cleanOutcomesBtn, outcomesBtn);
+    cleanOutcomesBtn.textContent = "Download Random Outcomes CSV";
+    cleanOutcomesBtn.onclick = handleRandomOutcomesDownload;
+  }
+}
 
 function buildRandomOutcomesWorkbookXml(summary) {
   if (!summary) return "";
@@ -1626,7 +1999,7 @@ function buildRandomOutcomesWorkbookXml(summary) {
 </Workbook>`;
 }
 
-function setupRandomOutcomesXlsButton_legacy_disabled() {
+function setupRandomOutcomesXlsButton() {
   const oldBtn = document.getElementById("downloadOutcomesTableBtn");
   if (!oldBtn) return;
   oldBtn.textContent = "Download Random Outcomes XLS";
@@ -1671,34 +2044,16 @@ function buildRandomOutcomesCsv(summary) {
   return [header].concat(body).map(row => row.map(escapeCsv).join(",")).join("\n");
 }
 
-function setupRandomOutcomesCsvButton_legacy_disabled() {
+function setupRandomOutcomesCsvButton() {
   const oldBtn = document.getElementById("downloadOutcomesTableBtn");
   if (!oldBtn) return;
   oldBtn.textContent = "Download Random Outcomes CSV";
 
   const newBtn = oldBtn.cloneNode(true);
   oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
-  newBtn.addEventListener("click", () => {
-    if (!lastSummary) {
-      alert("Run or open a scenario first.");
-      return;
-    }
-    const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
-      ? summarizePayload(lastSummary)
-      : lastSummary;
-
-    if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) {
-      alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
-      return;
-    }
-
-    const csv = buildRandomOutcomesCsv(exportSummary);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`;
-    link.click();
-  });
+  newBtn.addEventListener("click", handleRandomOutcomesDownload);
 }
+
+
+
 
