@@ -197,16 +197,6 @@ function ensureComplexGroupId() {
   if (!el.value) el.value = generateComplexGroupId();
   return el.value;
 }
-function ensureComplexComponentId() {
-  const el = document.getElementById("complexComponentId");
-  if (!el) {
-    if (!activeComplexComponentId) activeComplexComponentId = generateComponentId();
-    return activeComplexComponentId;
-  }
-  if (!el.value) el.value = activeComplexComponentId || generateComponentId();
-  activeComplexComponentId = el.value;
-  return el.value;
-}
 function generateComponentId() {
   const existing = new Set(complexScenarioComponents.map(x => String(x.componentId || "")));
   let id = "";
@@ -219,7 +209,7 @@ function generateComponentId() {
 function getCurrentComplexComponentSnapshot() {
   const scenarioName = document.getElementById("complexScenarioName")?.value || "Unnamed Complex Component";
   return {
-    componentId: ensureComplexComponentId(),
+    componentId: activeComplexComponentId || generateComponentId(),
     groupId: ensureComplexGroupId(),
     scenarioName,
     scenarioStatus: document.getElementById("complexScenarioStatus")?.value || "Open",
@@ -250,9 +240,7 @@ function applyComplexComponentSnapshot(component) {
   ensureComplexGroupId();
   const groupEl = document.getElementById("complexGroupId");
   if (groupEl) groupEl.value = component.groupId || groupEl.value || generateComplexGroupId();
-  activeComplexComponentId = component.componentId || generateComponentId();
-  const componentEl = document.getElementById("complexComponentId");
-  if (componentEl) componentEl.value = activeComplexComponentId;
+  activeComplexComponentId = component.componentId || "";
   document.getElementById("complexScenarioName").value = component.scenarioName || "";
   document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
   document.getElementById("complexProductGroup").value = component.productGroup || productGroups[0] || "";
@@ -304,35 +292,12 @@ function renderComplexScenarioComponents() {
   `).join("");
   tbody.querySelectorAll("[data-open-complex-component]").forEach(btn => btn.addEventListener("click", () => openComplexScenarioComponent(btn.dataset.openComplexComponent)));
 }
-function clearComplexComponentForNext() {
-  activeComplexComponentId = generateComponentId();
-  const componentEl = document.getElementById("complexComponentId");
-  if (componentEl) componentEl.value = activeComplexComponentId;
-  document.getElementById("complexScenarioName").value = "";
-  document.getElementById("complexScenarioStatus").value = scenarioStatuses[0] || "Open";
-  document.getElementById("complexScenarioSource").value = scenarioSources[0] || "Risk";
-  document.getElementById("complexScenarioOwner").value = "";
-  document.getElementById("complexIdentifiedDate").value = todayIso();
-  document.getElementById("complexScenarioDescription").value = "";
-  currentComplexItems = [];
-  complexMitigations = [];
-  renderComplexItems();
-  renderMitigationTable("complexMitigationBody", complexMitigations);
-  document.getElementById("complexAcceptedRiskFlag").checked = false;
-  document.getElementById("complexAcceptanceAuthority").value = acceptanceAuthorities[0] || "";
-  document.getElementById("complexAcceptedBy").value = "";
-  document.getElementById("complexAcceptanceDate").value = "";
-  document.getElementById("complexReviewDate").value = "";
-  document.getElementById("complexDecisionLogic").value = "";
-  updateInherentScores();
-}
 function addComplexScenarioComponent() {
   const component = getCurrentComplexComponentSnapshot();
   activeComplexComponentId = component.componentId;
   const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === component.componentId);
   if (existingIndex >= 0) complexScenarioComponents[existingIndex] = component; else complexScenarioComponents.push(component);
   renderComplexScenarioComponents();
-  clearComplexComponentForNext();
 }
 function openComplexScenarioComponent(componentId) {
   const component = complexScenarioComponents.find(x => x.componentId === componentId);
@@ -806,131 +771,6 @@ function summarizePayload(payload) {
     decisionText
   };
 }
-
-function normalizeEvidenceEntries(summary) {
-  return Array.isArray(summary?.evidenceEntries) ? summary.evidenceEntries
-    : Array.isArray(summary?.evidence) ? summary.evidence
-    : Array.isArray(summary?.historicalLosses) ? summary.historicalLosses
-    : [];
-}
-function normalizeInsuranceEntries(summary) {
-  return Array.isArray(summary?.insuranceEntries) ? summary.insuranceEntries
-    : Array.isArray(summary?.insurancePolicies) ? summary.insurancePolicies
-    : Array.isArray(summary?.insurance) ? summary.insurance
-    : [];
-}
-function getTopRiskDrivers(summary) {
-  const drivers = [];
-  if (Array.isArray(summary?.items) && summary.items.length) {
-    summary.items.forEach((item, idx) => {
-      const score = Number(item?.score || item?.inherent || 0);
-      const weight = Number(item?.weight || 1);
-      const influence = Math.max(0, score * weight);
-      drivers.push({
-        label: item?.name || `Component ${idx + 1}`,
-        reason: `${item?.domain || "Risk item"}${item?.regulation ? ` • ${item.regulation}` : ""}`,
-        weight: influence
-      });
-    });
-  }
-  const hardSpread = Math.max(0, Number(summary?.hardCostMax || 0) - Number(summary?.hardCostMin || 0));
-  const softSpread = Math.max(0, Number(summary?.softCostMax || 0) - Number(summary?.softCostMin || 0));
-  drivers.push(
-    { label: "Hard Cost Uncertainty", reason: `Range spread of ${currency(hardSpread)} between low and high hard-cost assumptions.`, weight: hardSpread },
-    { label: "Soft Cost Uncertainty", reason: `Range spread of ${currency(softSpread)} between low and high soft-cost assumptions.`, weight: softSpread },
-    { label: "Control Effectiveness", reason: `${Number(summary?.control || 0)}% modeled effectiveness directly affects residual loss.`, weight: Math.max(0, Number(summary?.expectedLoss || 0) - Number(summary?.residualExpectedLoss || 0)) },
-    { label: "Mitigation Cost", reason: `Implementation cost of ${currency(summary?.mitigationCost || 0)} influences the decision view.`, weight: Number(summary?.mitigationCost || 0) },
-    { label: "Inherent Risk Score", reason: `Starting score of ${Number(summary?.inherent || 0)} shapes tiering and review cadence.`, weight: Number(summary?.inherent || 0) * 1000 }
-  );
-  const filtered = drivers.filter(d => Number.isFinite(d.weight) && d.weight > 0);
-  const maxWeight = Math.max(...filtered.map(d => d.weight), 1);
-  return filtered.sort((a, b) => b.weight - a.weight).slice(0, 5).map(d => ({
-    ...d,
-    relativeWeight: `${Math.max(1, Math.round((d.weight / maxWeight) * 100))}%`
-  }));
-}
-function getMeasurementPriorities(summary) {
-  const priorities = [];
-  const hardSpread = Math.max(0, Number(summary?.hardCostMax || 0) - Number(summary?.hardCostMin || 0));
-  const softSpread = Math.max(0, Number(summary?.softCostMax || 0) - Number(summary?.softCostMin || 0));
-  const control = Number(summary?.control || 0);
-  const evidenceEntries = normalizeEvidenceEntries(summary);
-  const insuranceEntries = normalizeInsuranceEntries(summary);
-  priorities.push({ label: "Observed hard-cost losses", score: hardSpread, note: `The hard-cost range spans ${currency(hardSpread)}. More observed loss data would tighten the model.` });
-  priorities.push({ label: "Observed soft-cost impacts", score: softSpread, note: `The soft-cost range spans ${currency(softSpread)}. Complaint, disruption, and remediation data would help.` });
-  priorities.push({ label: "Control-effectiveness validation", score: Math.max(0, 100 - control) * Math.max(1, Number(summary?.expectedLoss || 0) / 1000), note: `${control}% effectiveness is assumed. Testing actual control performance could materially improve the estimate.` });
-  priorities.push({ label: "Historical loss evidence", score: evidenceEntries.length ? 25 : 250000, note: evidenceEntries.length ? `There are ${evidenceEntries.length} evidence entries, but more comparable observations may still improve calibration.` : "No evidence entries are attached yet. Capturing internal or external loss events is a high-value next step." });
-  priorities.push({ label: "Insurance recovery assumptions", score: insuranceEntries.length ? 50 : 175000, note: insuranceEntries.length ? `There are ${insuranceEntries.length} insurance entries. Validate coverage, deductible, and exclusions before relying on recovery assumptions.` : "No insurance entries are attached yet. If transfer options exist, documenting them could change retained-loss analysis." });
-  return priorities.sort((a, b) => b.score - a.score).slice(0, 4);
-}
-function renderHubbardReportSections(summary) {
-  const topBody = document.getElementById("topRiskDriversBody");
-  const measureList = document.getElementById("measureNextList");
-  const measureNote = document.getElementById("measureNextNote");
-  const evidenceBody = document.getElementById("evidenceSupportBody");
-  const evidenceNote = document.getElementById("evidenceSupportNote");
-  const insuranceBody = document.getElementById("insuranceSupportBody");
-  const insuranceNote = document.getElementById("insuranceSupportNote");
-  if (!summary) {
-    if (topBody) topBody.innerHTML = '<tr><td colspan="3">Run a scenario to populate the top drivers.</td></tr>';
-    if (measureList) measureList.innerHTML = '<li>Run a scenario to generate measurement priorities.</li>';
-    if (evidenceBody) evidenceBody.innerHTML = '<tr><td colspan="4">No evidence entries are attached to this scenario.</td></tr>';
-    if (insuranceBody) insuranceBody.innerHTML = '<tr><td colspan="4">No insurance entries are attached to this scenario.</td></tr>';
-    return;
-  }
-  const drivers = getTopRiskDrivers(summary);
-  if (topBody) {
-    topBody.innerHTML = drivers.length
-      ? drivers.map(driver => `<tr><td>${escapeHtml(driver.label)}</td><td>${escapeHtml(driver.reason)}</td><td>${escapeHtml(driver.relativeWeight)}</td></tr>`).join("")
-      : '<tr><td colspan="3">No driver data is available for this scenario yet.</td></tr>';
-  }
-  const priorities = getMeasurementPriorities(summary);
-  if (measureList) {
-    measureList.innerHTML = priorities.length
-      ? priorities.map(item => `<li><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.note)}</li>`).join("")
-      : '<li>No measurement priorities were generated for this scenario.</li>';
-  }
-  if (measureNote) {
-    measureNote.textContent = priorities.length
-      ? `Highest current measurement priority: ${priorities[0].label}. Focus first on the variable most likely to reduce decision uncertainty.`
-      : "The goal is to reduce uncertainty in the variables that most influence expected loss and decision quality.";
-  }
-  const evidenceEntries = normalizeEvidenceEntries(summary);
-  if (evidenceBody) {
-    evidenceBody.innerHTML = evidenceEntries.length
-      ? evidenceEntries.map(entry => {
-          const source = entry.source || entry.title || entry.type || "Evidence item";
-          const lossSignal = entry.lossAmount || entry.amount || entry.signal || entry.loss || "Observed signal";
-          const date = entry.lossDate || entry.date || entry.observedOn || "Date not provided";
-          const notes = entry.notes || entry.description || entry.link || entry.sourceLink || "";
-          return `<tr><td>${escapeHtml(source)}</td><td>${escapeHtml(String(lossSignal))}</td><td>${escapeHtml(String(date))}</td><td>${escapeHtml(String(notes))}</td></tr>`;
-        }).join("")
-      : '<tr><td colspan="4">No evidence entries are attached to this scenario.</td></tr>';
-  }
-  if (evidenceNote) {
-    evidenceNote.textContent = evidenceEntries.length
-      ? `${evidenceEntries.length} evidence item(s) are attached to this scenario and can be used to support assumptions or future calibration.`
-      : "Use this section to connect modeled assumptions to observed internal or external evidence.";
-  }
-  const insuranceEntries = normalizeInsuranceEntries(summary);
-  if (insuranceBody) {
-    insuranceBody.innerHTML = insuranceEntries.length
-      ? insuranceEntries.map(entry => {
-          const coverage = entry.title || entry.coverage || entry.policyName || "Policy";
-          const carrierType = [entry.carrier, entry.type].filter(Boolean).join(" / ") || entry.policyType || "Not specified";
-          const financialTerms = [entry.premium ? `Premium ${currency(entry.premium)}` : "", entry.deductible ? `Deductible ${currency(entry.deductible)}` : "", entry.limit ? `Limit ${currency(entry.limit)}` : "", entry.coverageDates || ""].filter(Boolean).join(" • ") || "Not specified";
-          const notes = entry.notes || entry.exclusions || entry.sourceLink || entry.link || "";
-          return `<tr><td>${escapeHtml(String(coverage))}</td><td>${escapeHtml(String(carrierType))}</td><td>${escapeHtml(String(financialTerms))}</td><td>${escapeHtml(String(notes))}</td></tr>`;
-        }).join("")
-      : '<tr><td colspan="4">No insurance entries are attached to this scenario.</td></tr>';
-  }
-  if (insuranceNote) {
-    insuranceNote.textContent = insuranceEntries.length
-      ? `${insuranceEntries.length} insurance / transfer item(s) are attached. Validate deductibles, limits, and exclusions before assuming recovery in retained-loss analysis.`
-      : "When insurance data is present, this section helps distinguish transferred loss from retained loss.";
-  }
-}
-
 function renderScenarioSummary(summary) {
   document.getElementById("scenarioIdDisplay").textContent = summary.id || "Not Saved";
   document.getElementById("inherentRiskScoreDisplay").textContent = summary.inherent;
@@ -985,7 +825,6 @@ function renderScenarioSummary(summary) {
       <td>${currency(row.riskReduction)}</td>
     </tr>
   `).join("");
-  renderHubbardReportSections(summary);
 }
 function drawSimpleBarChart(canvasId, summary) {
   const canvas = document.getElementById(canvasId);
@@ -1074,7 +913,6 @@ function saveScenario() {
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
-  activateView("saved");
 }
 function renderSavedScenarios() {
   const tbody = document.getElementById("savedEvaluationsBody");
@@ -1085,7 +923,7 @@ function renderSavedScenarios() {
     return;
   }
   tbody.innerHTML = saved.map(s => `<tr>
-    <td><button class="scenario-link" data-open-id="${escapeHtml(s.id)}">${escapeHtml(s.id)}</button></td>
+    <td>${escapeHtml(s.id)}</td>
     <td>${escapeHtml(s.name)}</td>
     <td>${s.mode === "single" ? "Single" : "Complex"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
@@ -1098,8 +936,7 @@ function renderSavedScenarios() {
       <button class="btn btn-secondary small-btn" data-action="delete" data-id="${escapeHtml(s.id)}">Delete</button>
     </td>
   </tr>`).join("");
-  tbody.querySelectorAll("[data-open-id]").forEach(btn => btn.addEventListener("click", () => openScenario(btn.dataset.openId)));
-  tbody.querySelectorAll("button[data-action]").forEach(btn => btn.addEventListener("click", () => {
+  tbody.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
     const id = btn.dataset.id;
     if (btn.dataset.action === "open") openScenario(id);
     if (btn.dataset.action === "delete") deleteScenario(id);
@@ -1169,57 +1006,17 @@ function openScenario(id) {
     activateView("single");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
-    const savedComponents = Array.isArray(s.components) ? s.components.map(component => ({ ...component })) : [];
-    const firstComponent = savedComponents[0] || null;
-    complexScenarioComponents = savedComponents;
-
     document.getElementById("complexScenarioId").value = s.id || "";
-    const groupEl = document.getElementById("complexGroupId");
-    if (groupEl) groupEl.value = s.complexGroupId || firstComponent?.groupId || ensureComplexGroupId();
-
-    if (firstComponent) {
-      applyComplexComponentSnapshot(firstComponent);
-    } else {
-      activeComplexComponentId = "";
-      const componentEl = document.getElementById("complexComponentId");
-      if (componentEl) componentEl.value = ensureComplexComponentId();
-      document.getElementById("complexScenarioName").value = s.name || "";
-      document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
-      document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
-      document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
-      document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-      document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
-      document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
-      document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
-      document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
-      document.getElementById("complexScenarioDescription").value = s.description || "";
-      currentComplexItems = Array.isArray(s.items) ? s.items.slice().map(item => ({
-        issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        parentScenarioMode: "complex",
-        description: item.description || "",
-        ...item
-      })) : [];
-      renderComplexItems();
-      complexMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
-      renderMitigationTable("complexMitigationBody", complexMitigations);
-      document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
-      document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
-      document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
-      document.getElementById("complexAcceptanceDate").value = s.acceptedRisk?.acceptanceDate || "";
-      document.getElementById("complexReviewDate").value = s.acceptedRisk?.reviewDate || "";
-      document.getElementById("complexDecisionLogic").value = s.acceptedRisk?.decisionLogic || "";
-    }
-
-    document.getElementById("complexScenarioId").value = s.id || "";
-    document.getElementById("complexProductGroup").value = s.productGroup || document.getElementById("complexProductGroup").value || productGroups[0] || "";
-    document.getElementById("complexRiskDomain").value = s.riskDomain || document.getElementById("complexRiskDomain").value || riskDomains[0] || "";
-    document.getElementById("complexScenarioStatus").value = s.scenarioStatus || document.getElementById("complexScenarioStatus").value || "Open";
-    document.getElementById("complexScenarioSource").value = s.scenarioSource || document.getElementById("complexScenarioSource").value || scenarioSources[0] || "";
-    document.getElementById("complexPrimaryProduct").value = s.primaryProduct || document.getElementById("complexPrimaryProduct").value || products[0] || "";
-    document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || document.getElementById("complexPrimaryRegulation").value || regulations[0] || "";
-    document.getElementById("complexScenarioOwner").value = s.scenarioOwner || document.getElementById("complexScenarioOwner").value || "";
-    document.getElementById("complexIdentifiedDate").value = s.identifiedDate || document.getElementById("complexIdentifiedDate").value || "";
-    document.getElementById("complexScenarioDescription").value = s.description || document.getElementById("complexScenarioDescription").value || "";
+    document.getElementById("complexScenarioName").value = s.name || "";
+    document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
+    document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
+    document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
+    document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
+    document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
+    document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
+    document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
+    document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
+    document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
     document.getElementById("complexHardCostMin").value = s.hardCostMin || 0;
     document.getElementById("complexHardCostLikely").value = s.hardCostLikely || 0;
@@ -1230,7 +1027,25 @@ function openScenario(id) {
     document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
-    if (!firstComponent) renderComplexScenarioComponents(); else renderComplexScenarioComponents();
+    currentComplexItems = Array.isArray(s.items) ? s.items.slice().map(item => ({
+      issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      parentScenarioMode: "complex",
+      description: item.description || "",
+      ...item
+    })) : [];
+    renderComplexItems();
+    const groupEl = document.getElementById("complexGroupId");
+    if (groupEl) groupEl.value = s.complexGroupId || ensureComplexGroupId();
+    complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    activeComplexComponentId = firstComponent?.componentId || "";
+    renderMitigationTable("complexMitigationBody", complexMitigations);
+    renderComplexScenarioComponents();
+    document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
+    document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
+    document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
+    document.getElementById("complexAcceptanceDate").value = s.acceptedRisk?.acceptanceDate || "";
+    document.getElementById("complexReviewDate").value = s.acceptedRisk?.reviewDate || "";
+    document.getElementById("complexDecisionLogic").value = s.acceptedRisk?.decisionLogic || "";
     activeMode = "complex";
     updateInherentScores();
     activateView("complex");
@@ -1359,9 +1174,7 @@ function loadComplexTestScenario() {
   const complexGroupEl = document.getElementById("complexGroupId");
   if (complexGroupEl) complexGroupEl.value = generateComplexGroupId();
   complexScenarioComponents = [];
-  activeComplexComponentId = generateComponentId();
-  const complexComponentEl = document.getElementById("complexComponentId");
-  if (complexComponentEl) complexComponentEl.value = activeComplexComponentId;
+  activeComplexComponentId = "";
   document.getElementById("complexScenarioName").value = "Enterprise Deposit Modernization Program";
   document.getElementById("complexProductGroup").value = "Core";
   document.getElementById("complexRiskDomain").value = "Operational Process Risk";
@@ -1680,70 +1493,6 @@ async function downloadBoardPacketDocx() {
       addSpacer();
     }
 
-    const topDrivers = getTopRiskDrivers(s);
-    children.push(new Paragraph({ text: "Top Risk Drivers", heading: HeadingLevel.HEADING_2 }));
-    if (topDrivers.length) {
-      children.push(new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [
-          new TableRow({ children: [cell("Driver", 28, true), cell("Why It Matters", 52, true), cell("Relative Weight", 20, true)] }),
-          ...topDrivers.map(driver => new TableRow({ children: [cell(driver.label, 28), cell(driver.reason, 52), cell(driver.relativeWeight, 20)] }))
-        ]
-      }));
-    } else {
-      children.push(new Paragraph("No driver data available."));
-    }
-    addSpacer();
-
-    const measureNext = getMeasurementPriorities(s);
-    children.push(new Paragraph({ text: "What To Measure Next", heading: HeadingLevel.HEADING_2 }));
-    if (measureNext.length) {
-      measureNext.forEach((item, i) => children.push(new Paragraph(`${i + 1}. ${item.label} - ${item.note}`)));
-    } else {
-      children.push(new Paragraph("No measurement priorities generated."));
-    }
-    addSpacer();
-
-    const evidenceEntries = normalizeEvidenceEntries(s);
-    children.push(new Paragraph({ text: "Evidence / Historical Loss Support", heading: HeadingLevel.HEADING_2 }));
-    if (evidenceEntries.length) {
-      children.push(new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [
-          new TableRow({ children: [cell("Source", 25, true), cell("Loss / Signal", 20, true), cell("Date", 15, true), cell("Notes", 40, true)] }),
-          ...evidenceEntries.map(entry => new TableRow({ children: [
-            cell(entry.source || entry.title || entry.type || "Evidence item", 25),
-            cell(String(entry.lossAmount || entry.amount || entry.signal || entry.loss || "Observed signal"), 20),
-            cell(String(entry.lossDate || entry.date || entry.observedOn || "Date not provided"), 15),
-            cell(String(entry.notes || entry.description || entry.link || entry.sourceLink || ""), 40)
-          ] }))
-        ]
-      }));
-    } else {
-      children.push(new Paragraph("No evidence entries attached to this scenario."));
-    }
-    addSpacer();
-
-    const insuranceEntries = normalizeInsuranceEntries(s);
-    children.push(new Paragraph({ text: "Insurance / Risk Transfer", heading: HeadingLevel.HEADING_2 }));
-    if (insuranceEntries.length) {
-      children.push(new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [
-          new TableRow({ children: [cell("Coverage", 22, true), cell("Carrier / Type", 23, true), cell("Financial Terms", 25, true), cell("Notes", 30, true)] }),
-          ...insuranceEntries.map(entry => new TableRow({ children: [
-            cell(String(entry.title || entry.coverage || entry.policyName || "Policy"), 22),
-            cell(String([entry.carrier, entry.type].filter(Boolean).join(" / ") || entry.policyType || "Not specified"), 23),
-            cell(String([entry.premium ? `Premium ${currency(entry.premium)}` : "", entry.deductible ? `Deductible ${currency(entry.deductible)}` : "", entry.limit ? `Limit ${currency(entry.limit)}` : "", entry.coverageDates || ""].filter(Boolean).join(" • ") || "Not specified"), 25),
-            cell(String(entry.notes || entry.exclusions || entry.sourceLink || entry.link || ""), 30)
-          ] }))
-        ]
-      }));
-    } else {
-      children.push(new Paragraph("No insurance entries attached to this scenario."));
-    }
-    addSpacer();
-
     children.push(new Paragraph({ text: "Time Horizon Outlook", heading: HeadingLevel.HEADING_2 }));
     children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1902,26 +1651,6 @@ function buildBoardPacketText(summary) {
       lines.push("");
     });
   }
-  const topDrivers = getTopRiskDrivers(summary);
-  lines.push("TOP RISK DRIVERS");
-  if (topDrivers.length) topDrivers.forEach((driver, i) => lines.push(`${i + 1}. ${driver.label} | ${driver.reason} | Relative weight: ${driver.relativeWeight}`));
-  else lines.push("No driver data available.");
-  lines.push("");
-  const measureNext = getMeasurementPriorities(summary);
-  lines.push("WHAT TO MEASURE NEXT");
-  if (measureNext.length) measureNext.forEach((item, i) => lines.push(`${i + 1}. ${item.label} | ${item.note}`));
-  else lines.push("No measurement priorities generated.");
-  lines.push("");
-  const evidenceEntries = normalizeEvidenceEntries(summary);
-  lines.push("EVIDENCE / HISTORICAL LOSS SUPPORT");
-  if (evidenceEntries.length) evidenceEntries.forEach((entry, i) => lines.push(`${i + 1}. ${(entry.source || entry.title || entry.type || "Evidence item")} | ${(entry.lossAmount || entry.amount || entry.signal || entry.loss || "Observed signal")} | ${(entry.lossDate || entry.date || entry.observedOn || "Date not provided")} | ${(entry.notes || entry.description || entry.link || entry.sourceLink || "")}`));
-  else lines.push("No evidence entries attached to this scenario.");
-  lines.push("");
-  const insuranceEntries = normalizeInsuranceEntries(summary);
-  lines.push("INSURANCE / RISK TRANSFER");
-  if (insuranceEntries.length) insuranceEntries.forEach((entry, i) => lines.push(`${i + 1}. ${(entry.title || entry.coverage || entry.policyName || "Policy")} | ${([entry.carrier, entry.type].filter(Boolean).join(" / ") || entry.policyType || "Not specified")} | ${([entry.premium ? `Premium ${currency(entry.premium)}` : "", entry.deductible ? `Deductible ${currency(entry.deductible)}` : "", entry.limit ? `Limit ${currency(entry.limit)}` : "", entry.coverageDates || ""].filter(Boolean).join(" • ") || "Not specified")} | ${(entry.notes || entry.exclusions || entry.sourceLink || entry.link || "")}`));
-  else lines.push("No insurance entries attached to this scenario.");
-  lines.push("");
   lines.push("TIME HORIZON OUTLOOK");
   (summary.horizonRows || []).forEach(row => {
     lines.push(`${row.horizonLabel}: Without mitigation ${currency(row.withoutMitigation)} | With mitigation ${currency(row.withMitigation)} | Reduction ${currency(row.riskReduction)}`);
@@ -1929,7 +1658,7 @@ function buildBoardPacketText(summary) {
   lines.push("");
   lines.push("MONTE CARLO METHOD");
   lines.push("The model uses bounded triangular sampling for hard cost and soft-cost multipliers. It estimates annual loss ranges and applies the stated control-effectiveness percentage to calculate residual loss.");
-  return lines.join("\n");
+  return lines.join("\\n");
 }
 function buildAIPacketText(summary) {
   if (!summary) return "No scenario has been run or selected.";
@@ -1970,34 +1699,14 @@ function buildAIPacketText(summary) {
     });
     lines.push("");
   }
-  const topDrivers = getTopRiskDrivers(summary);
-  lines.push("TOP RISK DRIVERS");
-  if (topDrivers.length) topDrivers.forEach((driver, i) => lines.push(`${i + 1}. ${driver.label} | ${driver.reason} | Relative weight: ${driver.relativeWeight}`));
-  else lines.push("No driver data available.");
-  lines.push("");
-  const measureNext = getMeasurementPriorities(summary);
-  lines.push("WHAT TO MEASURE NEXT");
-  if (measureNext.length) measureNext.forEach((item, i) => lines.push(`${i + 1}. ${item.label} | ${item.note}`));
-  else lines.push("No measurement priorities generated.");
-  lines.push("");
-  const evidenceEntries = normalizeEvidenceEntries(summary);
-  lines.push("EVIDENCE / HISTORICAL LOSS SUPPORT");
-  if (evidenceEntries.length) evidenceEntries.forEach((entry, i) => lines.push(`${i + 1}. ${(entry.source || entry.title || entry.type || "Evidence item")} | ${(entry.lossAmount || entry.amount || entry.signal || entry.loss || "Observed signal")} | ${(entry.lossDate || entry.date || entry.observedOn || "Date not provided")} | ${(entry.notes || entry.description || entry.link || entry.sourceLink || "")}`));
-  else lines.push("No evidence entries attached to this scenario.");
-  lines.push("");
-  const insuranceEntries = normalizeInsuranceEntries(summary);
-  lines.push("INSURANCE / RISK TRANSFER");
-  if (insuranceEntries.length) insuranceEntries.forEach((entry, i) => lines.push(`${i + 1}. ${(entry.title || entry.coverage || entry.policyName || "Policy")} | ${([entry.carrier, entry.type].filter(Boolean).join(" / ") || entry.policyType || "Not specified")} | ${([entry.premium ? `Premium ${currency(entry.premium)}` : "", entry.deductible ? `Deductible ${currency(entry.deductible)}` : "", entry.limit ? `Limit ${currency(entry.limit)}` : "", entry.coverageDates || ""].filter(Boolean).join(" • ") || "Not specified")} | ${(entry.notes || entry.exclusions || entry.sourceLink || entry.link || "")}`));
-  else lines.push("No insurance entries attached to this scenario.");
-  lines.push("");
   lines.push("TIME HORIZON OUTLOOK");
   (summary.horizonRows || []).forEach(row => {
     lines.push(`${row.horizonLabel}: ${currency(row.withoutMitigation)} without mitigation; ${currency(row.withMitigation)} with mitigation`);
   });
   lines.push("");
   lines.push("INSTRUCTION");
-  lines.push("Create a board-level PowerPoint presentation with executive summary, financial analysis, top risk drivers, what to measure next, evidence support, insurance / risk transfer analysis, complex risk item breakdown, mitigation analysis, time horizon outlook, and recommendation slides.");
-  return lines.join("\n");
+  lines.push("Create a board-level PowerPoint presentation with executive summary, financial analysis, complex risk item breakdown, mitigation analysis, time horizon outlook, and recommendation slides.");
+  return lines.join("\\n");
 }
 function renderHeatMap() {
   const canvas = document.getElementById("riskHeatMap");
