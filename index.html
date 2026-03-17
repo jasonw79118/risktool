@@ -32,8 +32,9 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.0.01</h4>
-      <p>Pass 1 layout standardization baseline with stacked builder sections and placeholder restoration blocks for Insurance and Hard Facts.</p>
+      <h4>Phase 20.0.02</h4>
+      <p>Pass 2 insurance restoration with repeatable insurance entry and table support on the stacked builder baseline.
+</p>
     </div>
   </aside>
 
@@ -224,16 +225,29 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Insurance Entry</h3><span>Phase 20.0.02</span></div>
-        <div class="note-box">Insurance restoration will be added in Pass 2. This placeholder locks the section into the correct stacked screen order now.</div>
+        <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Policy Name</label><input id="singleInsurancePolicyName" type="text" placeholder="e.g. Cyber Liability Primary"></div>
+          <div><label>Carrier</label><input id="singleInsuranceCarrier" type="text" placeholder="e.g. Travelers"></div>
+          <div><label>Coverage Type</label><input id="singleInsuranceCoverageType" type="text" placeholder="e.g. Cyber / E&O"></div>
+          <div><label>Premium ($)</label><input id="singleInsurancePremium" type="number" min="0" step="100" placeholder="25000"></div>
+          <div><label>Deductible ($)</label><input id="singleInsuranceDeductible" type="number" min="0" step="1000" placeholder="100000"></div>
+          <div><label>Coverage Amount ($)</label><input id="singleInsuranceCoverageAmount" type="number" min="0" step="1000" placeholder="1000000"></div>
+          <div><label>Coverage Dates</label><input id="singleInsuranceCoverageDates" type="text" placeholder="e.g. 01/01/2026 - 12/31/2026"></div>
+          <div><label>Source Link / Location</label><input id="singleInsuranceSource" type="text" placeholder="e.g. SharePoint / policy pdf"></div>
+          <div class="full-span"><label>Notes / Exclusions / Comments</label><textarea id="singleInsuranceNotes" rows="3" placeholder="Document exclusions, retention notes, carve-outs, or comments."></textarea></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance</button>
+        </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Insurance Table</h3><span>Placeholder</span></div>
+        <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Policy Name</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
-            <tbody><tr><td colspan="9">Insurance restoration placeholder only in Pass 1.</td></tr></tbody>
+            <tbody id="singleInsuranceBody"></tbody>
           </table>
         </div>
       </div>
@@ -470,16 +484,29 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Insurance Entry</h3><span>Phase 20.0.02</span></div>
-        <div class="note-box">Insurance restoration will be added in Pass 2. This placeholder locks the section into the correct stacked screen order now.</div>
+        <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Policy Name</label><input id="complexInsurancePolicyName" type="text" placeholder="e.g. Enterprise Liability Umbrella"></div>
+          <div><label>Carrier</label><input id="complexInsuranceCarrier" type="text" placeholder="e.g. Chubb"></div>
+          <div><label>Coverage Type</label><input id="complexInsuranceCoverageType" type="text" placeholder="e.g. D&O / Professional Liability"></div>
+          <div><label>Premium ($)</label><input id="complexInsurancePremium" type="number" min="0" step="100" placeholder="50000"></div>
+          <div><label>Deductible ($)</label><input id="complexInsuranceDeductible" type="number" min="0" step="1000" placeholder="250000"></div>
+          <div><label>Coverage Amount ($)</label><input id="complexInsuranceCoverageAmount" type="number" min="0" step="1000" placeholder="5000000"></div>
+          <div><label>Coverage Dates</label><input id="complexInsuranceCoverageDates" type="text" placeholder="e.g. 01/01/2026 - 12/31/2026"></div>
+          <div><label>Source Link / Location</label><input id="complexInsuranceSource" type="text" placeholder="e.g. Policy binder / internal docs"></div>
+          <div class="full-span"><label>Notes / Exclusions / Comments</label><textarea id="complexInsuranceNotes" rows="3" placeholder="Document exclusions, retention notes, carve-outs, or comments."></textarea></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance</button>
+        </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Insurance Table</h3><span>Placeholder</span></div>
+        <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Policy Name</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
-            <tbody><tr><td colspan="9">Insurance restoration placeholder only in Pass 1.</td></tr></tbody>
+            <tbody id="complexInsuranceBody"></tbody>
           </table>
         </div>
       </div>

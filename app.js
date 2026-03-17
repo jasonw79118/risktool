@@ -151,6 +151,8 @@ let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
 let currentComplexItems = [];
 let singleMitigations = [];
 let complexMitigations = [];
+let singleInsurance = [];
+let complexInsurance = [];
 let activeMode = "single";
 let lastSummary = null;
 let complexScenarioComponents = [];
@@ -231,6 +233,7 @@ function getCurrentComplexComponentSnapshot() {
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
     items: currentComplexItems.map(item => ({ ...item })),
     mitigations: complexMitigations.map(item => ({ ...item })),
+    insurance: complexInsurance.map(item => ({ ...item })),
     acceptedRisk: JSON.parse(JSON.stringify(getAcceptedRisk("complex"))),
     inherent: calculateComplexInherent()
   };
@@ -264,8 +267,10 @@ function applyComplexComponentSnapshot(component) {
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
+  complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(item => ({ ...item })) : [];
   renderComplexItems();
   renderMitigationTable("complexMitigationBody", complexMitigations);
+  renderInsuranceTable("complexInsuranceBody", complexInsurance);
   document.getElementById("complexAcceptedRiskFlag").checked = !!component.acceptedRisk?.isAccepted;
   document.getElementById("complexAcceptanceAuthority").value = component.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
   document.getElementById("complexAcceptedBy").value = component.acceptedRisk?.acceptedBy || "";
@@ -355,6 +360,7 @@ function normalizeScenario(saved) {
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
+    insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
     acceptedRisk: saved.acceptedRisk || {
       isAccepted: false,
       authority: "",
@@ -545,6 +551,32 @@ function addMitigation(mode) {
   });
   renderMitigationTable(`${prefix}MitigationBody`, list);
 }
+function renderInsuranceTable(targetId, items) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="9">No insurance entries added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${escapeHtml(x.premium)}</td><td>${escapeHtml(x.deductible)}</td><td>${escapeHtml(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.source)}</td></tr>`).join('');
+}
+function addInsurance(mode) {
+  const prefix = mode === "single" ? "single" : "complex";
+  const list = mode === "single" ? singleInsurance : complexInsurance;
+  list.push({
+    policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
+    carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
+    coverageType: document.getElementById(`${prefix}InsuranceCoverageType`).value || "",
+    premium: document.getElementById(`${prefix}InsurancePremium`).value || "",
+    deductible: document.getElementById(`${prefix}InsuranceDeductible`).value || "",
+    coverageAmount: document.getElementById(`${prefix}InsuranceCoverageAmount`).value || "",
+    coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
+    notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
+    source: document.getElementById(`${prefix}InsuranceSource`).value || ""
+  });
+  renderInsuranceTable(`${prefix}InsuranceBody`, list);
+}
+
 function getAcceptedRisk(prefix) {
   return {
     isAccepted: document.getElementById(`${prefix}AcceptedRiskFlag`).checked,
@@ -583,6 +615,7 @@ function getSinglePayload() {
     randomScenarioCount: Number(document.getElementById("singleRandomScenarioCount").value || 1000),
     items: [],
     mitigations: singleMitigations.slice(),
+    insurance: singleInsurance.slice(),
     acceptedRisk: getAcceptedRisk("single")
   };
 }
@@ -594,6 +627,7 @@ function getComplexPayload() {
     : [...complexScenarioComponents, currentComponent];
   const allItems = allComponents.flatMap(component => Array.isArray(component.items) ? component.items : []);
   const allMitigations = allComponents.flatMap(component => Array.isArray(component.mitigations) ? component.mitigations : []);
+  const allInsurance = allComponents.flatMap(component => Array.isArray(component.insurance) ? component.insurance : []);
   const avgInherent = allComponents.length
     ? Math.round(allComponents.reduce((sum, component) => sum + Number(component.inherent || 0), 0) / allComponents.length)
     : calculateComplexInherent();
@@ -626,6 +660,7 @@ function getComplexPayload() {
     items: allItems,
     components: allComponents.map(component => ({ ...component })),
     mitigations: allMitigations,
+    insurance: allInsurance,
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
@@ -1027,7 +1062,9 @@ function openScenario(id) {
     const singleRandom = document.getElementById("singleRandomScenarioCount");
     if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     renderMitigationTable("singleMitigationBody", singleMitigations);
+    renderInsuranceTable("singleInsuranceBody", singleInsurance);
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("singleAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("singleAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1072,9 +1109,11 @@ function openScenario(id) {
     const groupEl = document.getElementById("complexGroupId");
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
     complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
     syncComplexComponentIdField(!activeComplexComponentId);
     renderMitigationTable("complexMitigationBody", complexMitigations);
+    renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderComplexScenarioComponents();
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
@@ -1191,6 +1230,10 @@ function loadSingleTestScenario() {
   const singleRandom = document.getElementById("singleRandomScenarioCount");
   if (singleRandom) singleRandom.value = "1000";
   document.getElementById("singleScenarioDescription").value = "The card-services team changed the consumer dispute workflow and may have shortened key timing checkpoints. The scenario evaluates disclosure and procedural risk under Reg E.";
+  singleInsurance = [
+    { policyName: "Cyber Liability Primary", carrier: "Travelers", coverageType: "Cyber Liability", premium: "22000", deductible: "50000", coverageAmount: "1000000", coverageDates: "01/01/2026 - 12/31/2026", notes: "Privacy response panel included; ransomware sublimit applies.", source: "Policy Binder / Cyber 2026" }
+  ];
+  renderInsuranceTable("singleInsuranceBody", singleInsurance);
   singleMitigations = [
     { title: "Workflow validation", owner: "Operations", status: "In Progress", attachment: "workflow_review.xlsx" },
     { title: "Procedure rewrite", owner: "Compliance", status: "Planned", attachment: "reg_e_procedure.docx" }
@@ -1239,6 +1282,10 @@ function loadComplexTestScenario() {
     {name:"Complaint trend from account servicing", domain:"Reputation & Brand Risk", product:"Deposits", regulation:"UDAAP", score:71, weight:2}
   ];
   renderComplexItems();
+  complexInsurance = [
+    { policyName: "Enterprise Liability Umbrella", carrier: "Chubb", coverageType: "Professional Liability", premium: "54000", deductible: "250000", coverageAmount: "5000000", coverageDates: "01/01/2026 - 12/31/2026", notes: "Vendor carve-outs reviewed separately.", source: "Binder / Enterprise Renewal" }
+  ];
+  renderInsuranceTable("complexInsuranceBody", complexInsurance);
   complexMitigations = [
     { title: "Committee escalation", owner: "ERM", status: "Complete", attachment: "committee_packet.pdf" },
     { title: "Third-party resiliency review", owner: "Vendor Management", status: "In Progress", attachment: "vendor_resiliency.docx" }
@@ -1305,6 +1352,8 @@ function wireInputs() {
   document.getElementById("addComplexScenarioBtn")?.addEventListener("click", handleAddComplexScenario);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
+  document.getElementById("addSingleInsuranceBtn").addEventListener("click", () => addInsurance("single"));
+  document.getElementById("addComplexInsuranceBtn").addEventListener("click", () => addInsurance("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
@@ -1854,6 +1903,8 @@ function init() {
   forceManualContent();
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
+  renderInsuranceTable("singleInsuranceBody", singleInsurance);
+  renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderComplexItems();
   refreshLibraries();
   updateInherentScores();
