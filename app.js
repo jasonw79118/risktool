@@ -128,13 +128,6 @@ const DEFAULT_ROTATION_RULES = [
 
 const STORAGE_KEY = "risk_manager_scenarios_v431";
 const LEGACY_STORAGE_KEY = "risk_manager_saved_evaluations_v2";
-const SUPABASE_URL = window.RISKTOOL_SUPABASE_URL || "PASTE_SUPABASE_URL_HERE";
-const SUPABASE_ANON_KEY = window.RISKTOOL_SUPABASE_ANON_KEY || "PASTE_SUPABASE_ANON_KEY_HERE";
-const SUPABASE_SCENARIOS_TABLE = "scenarios";
-let supabaseClientPromise = null;
-let cloudSyncReady = false;
-let cloudSyncInProgress = false;
-let cloudSyncMessage = "Local browser storage only";
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
   products: "risk_manager_products_v431",
@@ -186,247 +179,6 @@ function setStoredArray(key, value) {
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
-
-function getInsuranceArray(mode) {
-  if (mode === "single") return singleInsurance;
-  if (mode === "complex") return complexInsurance;
-  if (mode === "beta") return betaInsurance;
-  return [];
-}
-function setInsuranceArray(mode, items) {
-  const next = Array.isArray(items) ? items.slice() : [];
-  if (mode === "single") singleInsurance = next;
-  if (mode === "complex") complexInsurance = next;
-  if (mode === "beta") betaInsurance = next;
-}
-function insuranceFieldId(mode, suffix) {
-  const prefix = mode === "single" ? "singleInsurance" : mode === "complex" ? "complexInsurance" : "betaInsurance";
-  return `${prefix}${suffix}`;
-}
-function readInsuranceEntry(mode) {
-  const get = suffix => document.getElementById(insuranceFieldId(mode, suffix));
-  return {
-    title: get("Title")?.value || "",
-    carrier: get("Carrier")?.value || "",
-    coverageType: get("CoverageType")?.value || "",
-    policyNumber: get("PolicyNumber")?.value || "",
-    premiumCost: Number(get("PremiumCost")?.value || 0),
-    deductible: Number(get("Deductible")?.value || 0),
-    coverageLimit: Number(get("CoverageLimit")?.value || 0),
-    reimbursementRate: clampNumber(get("ReimbursementRate")?.value || 100, 0, 100, 100),
-    coverageStartDate: get("CoverageStartDate")?.value || "",
-    coverageEndDate: get("CoverageEndDate")?.value || "",
-    coverageDuration: get("CoverageDuration")?.value || "",
-    waitingPeriodDays: Number(get("WaitingPeriodDays")?.value || 0),
-    exclusions: get("Exclusions")?.value || "",
-    claimStatus: get("ClaimStatus")?.value || "Potential",
-    notes: get("Notes")?.value || "",
-    link: safeLink(get("Link")?.value || "")
-  };
-}
-function clearInsuranceInputs(mode) {
-  ["Title","Carrier","PolicyNumber","PremiumCost","Deductible","CoverageLimit","CoverageStartDate","CoverageEndDate","CoverageDuration","WaitingPeriodDays","Exclusions","Notes","Link"].forEach(suffix => {
-    const el = document.getElementById(insuranceFieldId(mode, suffix));
-    if (el) el.value = "";
-  });
-  const type = document.getElementById(insuranceFieldId(mode, "CoverageType"));
-  if (type) type.value = "Cyber / Technology";
-  const rate = document.getElementById(insuranceFieldId(mode, "ReimbursementRate"));
-  if (rate) rate.value = 100;
-  const claim = document.getElementById(insuranceFieldId(mode, "ClaimStatus"));
-  if (claim) claim.value = "Potential";
-}
-function policyActiveForDate(policy, scenarioDate) {
-  const checkDate = String(scenarioDate || todayIso());
-  const start = String(policy?.coverageStartDate || "");
-  const end = String(policy?.coverageEndDate || "");
-  if (start && checkDate < start) return false;
-  if (end && checkDate > end) return false;
-  return true;
-}
-function renderInsuranceTable(mode) {
-  const tbodyId = mode === "single" ? "singleInsuranceBody" : mode === "complex" ? "complexInsuranceBody" : "betaInsuranceBody";
-  const tbody = document.getElementById(tbodyId);
-  if (!tbody) return;
-  const items = getInsuranceArray(mode);
-  if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="10">No insurance records added yet.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = items.map((item, index) => `
-    <tr>
-      <td>${escapeHtml(item.title || "")}</td>
-      <td>${escapeHtml(item.carrier || "")}</td>
-      <td>${escapeHtml(item.coverageType || "")}</td>
-      <td>${currency(item.premiumCost || 0)}</td>
-      <td>${currency(item.deductible || 0)}</td>
-      <td>${currency(item.coverageLimit || 0)}</td>
-      <td>${escapeHtml(item.coverageStartDate || "")}</td>
-      <td>${escapeHtml(item.coverageEndDate || "")}</td>
-      <td>${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">Open</a>` : ""}</td>
-      <td><button class="btn btn-secondary small-btn" data-insurance-delete="${mode}:${index}">Delete</button></td>
-    </tr>
-  `).join("");
-  tbody.querySelectorAll("[data-insurance-delete]").forEach(btn => btn.addEventListener("click", () => {
-    const [targetMode, idx] = String(btn.dataset.insuranceDelete || "").split(":");
-    const list = getInsuranceArray(targetMode);
-    list.splice(Number(idx), 1);
-    renderInsuranceTable(targetMode);
-    if (lastSummary && lastSummary.mode === targetMode) renderInsuranceReport({ ...lastSummary, insurance: list.slice() });
-  }));
-}
-function addInsurance(mode) {
-  const entry = readInsuranceEntry(mode);
-  if (!entry.title && !entry.carrier && !entry.coverageType && !entry.coverageLimit && !entry.premiumCost) {
-    alert("Add at least a title, carrier, coverage type, limit, or premium before saving insurance.");
-    return;
-  }
-  const list = getInsuranceArray(mode);
-  list.push(entry);
-  renderInsuranceTable(mode);
-  clearInsuranceInputs(mode);
-}
-function summarizeInsurance(insurance, scenarioDate) {
-  const rows = Array.isArray(insurance) ? insurance : [];
-  const activeRows = rows.filter(item => policyActiveForDate(item, scenarioDate));
-  const premiumTotal = rows.reduce((sum, item) => sum + Math.max(0, Number(item.premiumCost || 0)), 0);
-  const activePremiumTotal = activeRows.reduce((sum, item) => sum + Math.max(0, Number(item.premiumCost || 0)), 0);
-  const totalCoverageLimit = activeRows.reduce((sum, item) => sum + Math.max(0, Number(item.coverageLimit || 0)), 0);
-  const avgDeductible = activeRows.length ? Math.round(activeRows.reduce((sum, item) => sum + Math.max(0, Number(item.deductible || 0)), 0) / activeRows.length) : 0;
-  return {
-    count: rows.length,
-    activeCount: activeRows.length,
-    inactiveCount: Math.max(0, rows.length - activeRows.length),
-    premiumTotal: Math.round(premiumTotal),
-    activePremiumTotal: Math.round(activePremiumTotal),
-    totalCoverageLimit: Math.round(totalCoverageLimit),
-    avgDeductible: Math.round(avgDeductible)
-  };
-}
-function applyInsuranceToLoss(lossAmount, insurance, scenarioDate) {
-  let remaining = Math.max(0, Number(lossAmount || 0));
-  let recovery = 0;
-  const activePolicies = (Array.isArray(insurance) ? insurance : []).filter(item => policyActiveForDate(item, scenarioDate));
-  activePolicies.forEach(policy => {
-    const deductible = Math.max(0, Number(policy.deductible || 0));
-    const limit = Math.max(0, Number(policy.coverageLimit || 0));
-    const rate = clampNumber(policy.reimbursementRate || 100, 0, 100, 100) / 100;
-    if (remaining <= deductible || limit <= 0 || rate <= 0) return;
-    const eligible = Math.max(0, remaining - deductible);
-    const payout = Math.min(limit, eligible * rate);
-    recovery += payout;
-    remaining = Math.max(0, remaining - payout);
-  });
-  return { recovery, retainedLoss: remaining, activePolicyCount: activePolicies.length };
-}
-function modelInsuranceResults(sampledLosses, insurance, scenarioDate) {
-  const losses = Array.isArray(sampledLosses) ? sampledLosses : [];
-  const summary = summarizeInsurance(insurance, scenarioDate);
-  let totalRecovery = 0;
-  let totalRetained = 0;
-  const detailRows = [];
-  losses.forEach((loss, index) => {
-    const applied = applyInsuranceToLoss(loss, insurance, scenarioDate);
-    totalRecovery += applied.recovery;
-    totalRetained += applied.retainedLoss;
-    detailRows.push({
-      scenarioNumber: index + 1,
-      insuranceRecovery: Math.round(applied.recovery),
-      retainedAfterInsurance: Math.round(applied.retainedLoss)
-    });
-  });
-  const expectedRecovery = losses.length ? Math.round(totalRecovery / losses.length) : 0;
-  const retainedAfterInsurance = losses.length ? Math.round(totalRetained / losses.length) : 0;
-  return {
-    ...summary,
-    expectedRecovery,
-    retainedAfterInsurance,
-    retainedAfterInsuranceWithPremium: retainedAfterInsurance + summary.activePremiumTotal,
-    detailRows
-  };
-}
-function renderInsuranceReport(summary) {
-  const tbody = document.getElementById("insuranceReportBody");
-  const statsBox = document.getElementById("insuranceSummaryBox");
-  if (!tbody || !statsBox) return;
-  const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
-  if (!insurance.length) {
-    tbody.innerHTML = '<tr><td colspan="10">No insurance coverage records are attached to this scenario.</td></tr>';
-    statsBox.textContent = "No insurance coverage has been recorded for this scenario yet.";
-    return;
-  }
-  tbody.innerHTML = insurance.map(item => `
-    <tr>
-      <td>${escapeHtml(item.title || "")}</td>
-      <td>${escapeHtml(item.carrier || "")}</td>
-      <td>${escapeHtml(item.coverageType || "")}</td>
-      <td>${currency(item.premiumCost || 0)}</td>
-      <td>${currency(item.deductible || 0)}</td>
-      <td>${currency(item.coverageLimit || 0)}</td>
-      <td>${escapeHtml(item.coverageStartDate || "")}</td>
-      <td>${escapeHtml(item.coverageEndDate || "")}</td>
-      <td>${escapeHtml(item.claimStatus || "")}</td>
-      <td>${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">Source</a>` : ""}</td>
-    </tr>
-  `).join("");
-  const stats = summarizeInsurance(insurance, summary?.identifiedDate);
-  const modeled = summary?.insuranceModel || { expectedRecovery: 0, retainedAfterInsurance: summary?.residualExpectedLoss || 0, retainedAfterInsuranceWithPremium: (summary?.residualExpectedLoss || 0) + stats.activePremiumTotal };
-  statsBox.textContent = `Insurance library includes ${stats.count} polic${stats.count === 1 ? "y" : "ies"}, with ${stats.activeCount} active for the scenario date. Active premium cost: ${currency(stats.activePremiumTotal)}. Total active stated coverage limit: ${currency(stats.totalCoverageLimit)}. Average deductible: ${currency(stats.avgDeductible)}. Modeled annual recovery: ${currency(modeled.expectedRecovery || 0)}. Modeled retained annual loss after insurance and premium: ${currency(modeled.retainedAfterInsuranceWithPremium || 0)}.`;
-}
-function buildInsuranceEntryCard(mode, titleText) {
-  return `
-    <div class="card" id="${mode}InsuranceCard">
-      <div class="card-header"><h3>Insurance Coverage</h3><span>${titleText}</span></div>
-      <div class="form-grid">
-        <div><label class="help-label" data-help="Coverage title or policy nickname used for the scenario.">Insurance Title</label><input id="${mode}InsuranceTitle" type="text" placeholder="e.g. Cyber Liability"></div>
-        <div><label class="help-label" data-help="Carrier, provider, or underwriter.">Carrier / Provider</label><input id="${mode}InsuranceCarrier" type="text" placeholder="e.g. Chubb"></div>
-        <div><label class="help-label" data-help="General policy type used for reporting and modeling.">Coverage Type</label><select id="${mode}InsuranceCoverageType"><option>Cyber / Technology</option><option>E&O / Professional Liability</option><option>Crime / Fraud</option><option>D&O</option><option>General Liability</option><option>Vendor / Indemnification</option><option>Other</option></select></div>
-        <div><label class="help-label" data-help="Policy number or internal reference.">Policy Number</label><input id="${mode}InsurancePolicyNumber" type="text" placeholder="Optional"></div>
-        <div><label class="help-label" data-help="Annual premium or direct policy cost.">Premium Cost ($)</label><input id="${mode}InsurancePremiumCost" type="number" min="0" step="1000" placeholder="e.g. 25000"></div>
-        <div><label class="help-label" data-help="Deductible or self-insured retention applied before recovery begins.">Deductible ($)</label><input id="${mode}InsuranceDeductible" type="number" min="0" step="1000" placeholder="e.g. 50000"></div>
-        <div><label class="help-label" data-help="Maximum stated limit available from the policy.">Coverage Limit ($)</label><input id="${mode}InsuranceCoverageLimit" type="number" min="0" step="1000" placeholder="e.g. 500000"></div>
-        <div><label class="help-label" data-help="Percent of eligible loss the policy is expected to reimburse.">Reimbursement %</label><input id="${mode}InsuranceReimbursementRate" type="number" min="0" max="100" step="1" value="100"></div>
-        <div><label class="help-label" data-help="Policy effective date.">Coverage Start Date</label><input id="${mode}InsuranceCoverageStartDate" type="date"></div>
-        <div><label class="help-label" data-help="Policy expiration date.">Coverage End Date</label><input id="${mode}InsuranceCoverageEndDate" type="date"></div>
-        <div><label class="help-label" data-help="Free-text duration such as 12 months or per project.">Coverage Duration</label><input id="${mode}InsuranceCoverageDuration" type="text" placeholder="e.g. 12 months"></div>
-        <div><label class="help-label" data-help="Waiting period before coverage responds, if applicable.">Waiting Period (Days)</label><input id="${mode}InsuranceWaitingPeriodDays" type="number" min="0" step="1" value="0"></div>
-        <div><label class="help-label" data-help="Current claim or response status.">Claim Status</label><select id="${mode}InsuranceClaimStatus"><option>Potential</option><option>Not Triggered</option><option>Open</option><option>Closed</option><option>Denied</option></select></div>
-        <div><label class="help-label" data-help="Link to policy copy, broker summary, or supporting file location.">Source Link / Policy Location</label><input id="${mode}InsuranceLink" type="url" placeholder="https://..."></div>
-        <div class="full-span"><label class="help-label" data-help="Known exclusions, key limitations, or carve-outs that matter for this scenario.">Exclusions / Limitations</label><textarea id="${mode}InsuranceExclusions" rows="2" placeholder="Describe exclusions or important coverage limitations."></textarea></div>
-        <div class="full-span"><label class="help-label" data-help="Additional notes about the coverage, broker comments, or modeling assumptions.">Notes</label><textarea id="${mode}InsuranceNotes" rows="2" placeholder="Optional notes."></textarea></div>
-      </div>
-      <div class="builder-actions"><button class="btn btn-secondary" id="add${mode[0].toUpperCase()+mode.slice(1)}InsuranceBtn">Add Insurance Coverage</button></div>
-      <div class="table-wrap"><table><thead><tr><th>Title</th><th>Carrier</th><th>Type</th><th>Premium</th><th>Deductible</th><th>Limit</th><th>Start</th><th>End</th><th>Link</th><th>Action</th></tr></thead><tbody id="${mode}InsuranceBody"></tbody></table></div>
-    </div>
-  `;
-}
-function ensureInsuranceUi() {
-  const insertAfterCardContaining = (selector, htmlToInsert) => {
-    const node = document.querySelector(selector);
-    if (!node) return;
-    const card = node.closest('.card');
-    if (!card) return;
-    card.insertAdjacentHTML('afterend', htmlToInsert);
-  };
-  if (!document.getElementById('singleInsuranceCard')) insertAfterCardContaining('#singleEvidenceBody', buildInsuranceEntryCard('single', 'Risk Transfer'));
-  if (!document.getElementById('complexInsuranceCard')) insertAfterCardContaining('#complexEvidenceBody', buildInsuranceEntryCard('complex', 'Risk Transfer'));
-  if (!document.getElementById('betaInsuranceCard')) insertAfterCardContaining('#betaEvidenceBody', buildInsuranceEntryCard('beta', 'Risk Transfer'));
-  if (!document.getElementById('insuranceReportCard')) {
-    const evidenceCard = document.getElementById('evidenceReportCard');
-    if (evidenceCard) evidenceCard.insertAdjacentHTML('afterend', `
-      <div id="insuranceReportCard" class="card">
-        <div class="card-header"><h3><span class="help-label" data-help="Insurance policies, coverage limits, deductibles, and source links recorded for the active scenario.">Insurance Coverage Summary</span></h3><span>Risk Transfer</span></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Title</th><th>Carrier</th><th>Type</th><th>Premium</th><th>Deductible</th><th>Limit</th><th>Start</th><th>End</th><th>Status</th><th>Link</th></tr></thead>
-            <tbody id="insuranceReportBody"><tr><td colspan="10">Run or open a scenario to populate insurance coverage.</td></tr></tbody>
-          </table>
-        </div>
-        <div id="insuranceSummaryBox" class="note-box">No insurance coverage has been recorded for this scenario yet.</div>
-      </div>
-    `);
-  }
-}
 function currentDateStamp() {
   return todayIso().replaceAll("-", "");
 }
@@ -450,7 +202,6 @@ function normalizeScenario(saved) {
     primaryProduct: saved.primaryProduct || "",
     primaryRegulation: saved.primaryRegulation || "",
     scenarioOwner: saved.scenarioOwner || "",
-    complexGroupId: saved.complexGroupId || "",
     identifiedDate: saved.identifiedDate || "",
     description: saved.description || "",
     likelihood: Number(saved.likelihood || 0),
@@ -502,233 +253,15 @@ function getSavedScenarios() {
 function setSavedScenarios(items) {
   writeJSON(STORAGE_KEY, items);
 }
-function hasSupabaseConfig() {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== "PASTE_SUPABASE_URL_HERE" && SUPABASE_ANON_KEY !== "PASTE_SUPABASE_ANON_KEY_HERE");
-}
-function setCloudSyncMessage(message) {
-  cloudSyncMessage = message;
-  const el = document.getElementById("savedStorageStatus");
-  if (el) el.textContent = message;
-}
-function mergeScenarioLists(primaryItems, secondaryItems) {
-  const byId = new Map();
-  [...secondaryItems, ...primaryItems].forEach(item => {
-    const normalized = normalizeScenario(item);
-    if (!normalized.id) normalized.id = generateScenarioId([]);
-    byId.set(normalized.id, normalized);
-  });
-  return Array.from(byId.values()).sort((a, b) => String(b.identifiedDate || b.updatedAt || "").localeCompare(String(a.identifiedDate || a.updatedAt || "")));
-}
-async function ensureSupabaseClient() {
-  if (!hasSupabaseConfig()) return null;
-  if (window.supabase?.createClient) return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  if (!supabaseClientPromise) {
-    supabaseClientPromise = new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-risktool-supabase="true"]');
-      if (existing) {
-        existing.addEventListener("load", () => resolve(window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null), { once: true });
-        existing.addEventListener("error", reject, { once: true });
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-      script.async = true;
-      script.dataset.risktoolSupabase = "true";
-      script.onload = () => {
-        if (!window.supabase?.createClient) {
-          reject(new Error("Supabase client did not load."));
-          return;
-        }
-        resolve(window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
-      };
-      script.onerror = () => reject(new Error("Unable to load Supabase client."));
-      document.head.appendChild(script);
-    }).catch(error => {
-      console.error(error);
-      setCloudSyncMessage("Supabase client failed to load; using local browser storage");
-      return null;
-    });
-  }
-  return supabaseClientPromise;
-}
-async function fetchCloudScenarios() {
-  const client = await ensureSupabaseClient();
-  if (!client) return [];
-  const { data, error } = await client
-    .from(SUPABASE_SCENARIOS_TABLE)
-    .select("id, username, scenario_name, scenario_type, payload, created_at, updated_at")
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
-  return (data || []).map(row => normalizeScenario({
-    ...(row.payload || {}),
-    id: row.payload?.id || row.id || "",
-    name: row.payload?.name || row.scenario_name || "Unnamed Scenario",
-    mode: row.payload?.mode || row.scenario_type || "single",
-    scenarioOwner: row.payload?.scenarioOwner || row.username || "",
-    createdAt: row.created_at || row.payload?.createdAt || "",
-    updatedAt: row.updated_at || row.payload?.updatedAt || ""
-  }));
-}
-async function hydrateScenariosFromCloud() {
-  if (!hasSupabaseConfig()) {
-    setCloudSyncMessage("Supabase not configured; using local browser storage");
-    return;
-  }
-  try {
-    setCloudSyncMessage("Loading shared scenarios from Supabase...");
-    const cloudItems = await fetchCloudScenarios();
-    const localItems = getSavedScenarios();
-    const merged = mergeScenarioLists(cloudItems, localItems);
-    setSavedScenarios(merged);
-    cloudSyncReady = true;
-    setCloudSyncMessage(`Supabase sync active • ${cloudItems.length} shared scenario${cloudItems.length === 1 ? "" : "s"}`);
-    refreshLibraries();
-    renderHeatMap();
-  } catch (error) {
-    console.error(error);
-    setCloudSyncMessage("Supabase sync failed; using local browser storage");
-  }
-}
-async function upsertScenarioToCloud(summary) {
-  if (!hasSupabaseConfig()) return;
-  try {
-    const client = await ensureSupabaseClient();
-    if (!client) return;
-    const payload = JSON.parse(JSON.stringify(summary));
-    payload.updatedAt = new Date().toISOString();
-    const username = payload.scenarioOwner || "default";
-    const { data: existingRows, error: findError } = await client
-      .from(SUPABASE_SCENARIOS_TABLE)
-      .select("id")
-      .eq("username", username)
-      .contains("payload", { id: payload.id })
-      .limit(1);
-    if (findError) throw findError;
-    if (existingRows && existingRows.length) {
-      const { error } = await client
-        .from(SUPABASE_SCENARIOS_TABLE)
-        .update({
-          username,
-          scenario_name: payload.name || "Unnamed Scenario",
-          scenario_type: payload.mode || "single",
-          payload,
-          updated_at: payload.updatedAt
-        })
-        .eq("id", existingRows[0].id);
-      if (error) throw error;
-    } else {
-      const { error } = await client
-        .from(SUPABASE_SCENARIOS_TABLE)
-        .insert({
-          username,
-          scenario_name: payload.name || "Unnamed Scenario",
-          scenario_type: payload.mode || "single",
-          payload,
-          updated_at: payload.updatedAt
-        });
-      if (error) throw error;
-    }
-    cloudSyncReady = true;
-    setCloudSyncMessage("Supabase sync active");
-  } catch (error) {
-    console.error(error);
-    setCloudSyncMessage("Supabase save failed; local copy kept in browser storage");
-  }
-}
-async function deleteScenarioFromCloud(id) {
-  if (!hasSupabaseConfig() || !id) return;
-  try {
-    const client = await ensureSupabaseClient();
-    if (!client) return;
-    const { data: rows, error: findError } = await client
-      .from(SUPABASE_SCENARIOS_TABLE)
-      .select("id")
-      .contains("payload", { id });
-    if (findError) throw findError;
-    if (rows && rows.length) {
-      const rowIds = rows.map(row => row.id);
-      const { error } = await client
-        .from(SUPABASE_SCENARIOS_TABLE)
-        .delete()
-        .in("id", rowIds);
-      if (error) throw error;
-    }
-    setCloudSyncMessage("Supabase sync active");
-  } catch (error) {
-    console.error(error);
-    setCloudSyncMessage("Supabase delete failed; local copy removed but cloud copy may still exist");
-  }
-}
-function syncScenarioToCloud(summary) {
-  Promise.resolve().then(() => upsertScenarioToCloud(summary));
-}
-function syncScenarioLibraryToCloud(items) {
-  Promise.resolve().then(async () => {
-    if (cloudSyncInProgress) return;
-    cloudSyncInProgress = true;
-    try {
-      for (const item of items) {
-        await upsertScenarioToCloud(item);
-      }
-    } finally {
-      cloudSyncInProgress = false;
-    }
-  });
-}
 function generateScenarioId(existingScenarios) {
   const stamp = currentDateStamp();
-  const now = new Date();
-  const timePart = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}${String(now.getMilliseconds()).padStart(3, "0")}`;
-  const randomPart = Math.floor(Math.random() * 9000 + 1000);
-  const candidate = `${stamp}-${timePart}-${randomPart}`;
-  const existingIds = new Set((existingScenarios || []).map(x => String(x.id || "")));
-  if (!existingIds.has(candidate)) return candidate;
-  return `${candidate}-${Math.floor(Math.random() * 90 + 10)}`;
-}
-function generateComplexGroupId() {
-  const stamp = currentDateStamp();
-  const randomPart = Math.floor(Math.random() * 9000 + 1000);
-  return `CG-${stamp}-${randomPart}`;
-}
-function ensureComplexGroupId() {
-  const el = document.getElementById("complexGroupId");
-  if (!el) return "";
-  if (!String(el.value || "").trim()) el.value = generateComplexGroupId();
-  return el.value.trim();
-}
-function generateComplexComponentId() {
-  return `CMP-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`;
-}
-function ensureComplexScenarioUi() {
-  const complexIdField = document.getElementById("complexScenarioId")?.closest("div");
-  if (complexIdField && !document.getElementById("complexGroupId")) {
-    complexIdField.insertAdjacentHTML("afterend", `
-      <div>
-        <label class="help-label" data-help="Umbrella identifier for all component scenarios rolled into this complex build.">Complex Group ID</label>
-        <input id="complexGroupId" type="text" placeholder="Generated for the complex build">
-      </div>
-    `);
-  }
-
-  const addRiskItemBtn = document.getElementById("addRiskItemBtn");
-  if (addRiskItemBtn && !document.getElementById("addComplexScenarioBtn")) {
-    addRiskItemBtn.insertAdjacentHTML("afterend", `<button class="btn btn-primary" id="addComplexScenarioBtn">Add Another Scenario</button>`);
-  }
-
-  const tableBody = document.getElementById("riskItemsTableBody");
-  const complexView = document.getElementById("view-complex");
-  const tableCard = tableBody?.closest(".card");
-  if (tableCard && complexView) {
-    const headerTitle = tableCard.querySelector(".card-header h3");
-    const headerSub = tableCard.querySelector(".card-header span");
-    if (headerTitle) headerTitle.textContent = "Complex Build Scenarios";
-    if (headerSub) headerSub.textContent = "All component scenarios rolled into the complex group";
-    const theadRow = tableCard.querySelector("thead tr");
-    if (theadRow) {
-      theadRow.innerHTML = "<th>Group ID</th><th>Component ID</th><th>Scenario</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th>";
-    }
-    complexView.appendChild(tableCard);
-  }
+  const matching = existingScenarios
+    .map(x => String(x.id || ""))
+    .filter(x => x.startsWith(stamp + "-"))
+    .map(x => Number(x.split("-")[1]))
+    .filter(Number.isFinite);
+  const next = (matching.length ? Math.max(...matching) : 0) + 1;
+  return `${stamp}-${String(next).padStart(5, "0")}`;
 }
 function refreshLibraries() {
   productGroups = sortedUnique([...DEFAULT_PRODUCT_GROUPS, ...getStoredArray(CAT_KEYS.productGroups)]);
@@ -824,9 +357,9 @@ function renderComplexItems() {
   const tbody = document.getElementById("riskItemsTableBody");
   if (!tbody) return;
   if (!currentComplexItems.length) {
-    tbody.innerHTML = '<tr><td colspan="8">No component scenarios added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">No risk items added yet.</td></tr>';
   } else {
-    tbody.innerHTML = currentComplexItems.map(item => `<tr data-issue-id="${escapeHtml(item.issueId || "")}"><td>${escapeHtml(item.complexGroupId || ensureComplexGroupId())}</td><td><button class="scenario-link" data-issue-open="${escapeHtml(item.issueId || "")}">${escapeHtml(item.componentId || item.issueId || "")}</button></td><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.domain)}</td><td>${escapeHtml(item.product)}</td><td>${escapeHtml(item.regulation)}</td><td>${item.score}</td><td>${item.weight}</td></tr>`).join("");
+    tbody.innerHTML = currentComplexItems.map(item => `<tr data-issue-id="${escapeHtml(item.issueId || "")}"><td><button class="scenario-link" data-issue-open="${escapeHtml(item.issueId || "")}">${escapeHtml(item.name)}</button></td><td>${escapeHtml(item.domain)}</td><td>${escapeHtml(item.product)}</td><td>${escapeHtml(item.regulation)}</td><td>${item.score}</td><td>${item.weight}</td></tr>`).join("");
     tbody.querySelectorAll("[data-issue-open]").forEach(btn => btn.addEventListener("click", () => {
       const issueId = btn.dataset.issueOpen;
       highlightIssueRow(issueId);
@@ -835,13 +368,10 @@ function renderComplexItems() {
   updateInherentScores();
 }
 function addRiskItem() {
-  const complexGroupId = ensureComplexGroupId();
   currentComplexItems.push({
     issueId: `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    componentId: generateComplexComponentId(),
-    complexGroupId,
     parentScenarioMode: "complex",
-    name: document.getElementById("riskItemName").value || "Unnamed Scenario Component",
+    name: document.getElementById("riskItemName").value || "Unnamed Risk Item",
     domain: document.getElementById("riskItemDomain").value,
     product: document.getElementById("riskItemProduct").value,
     regulation: document.getElementById("riskItemReg").value,
@@ -913,11 +443,9 @@ function getSinglePayload() {
   };
 }
 function getComplexPayload() {
-  const complexGroupId = ensureComplexGroupId();
   return {
     mode: "complex",
     id: document.getElementById("complexScenarioId").value,
-    complexGroupId,
     name: document.getElementById("complexScenarioName").value || "Unnamed Complex Scenario",
     productGroup: document.getElementById("complexProductGroup").value,
     riskDomain: document.getElementById("complexRiskDomain").value,
@@ -940,7 +468,7 @@ function getComplexPayload() {
     softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
     mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
-    items: currentComplexItems.map(item => ({ ...item, complexGroupId })),
+    items: currentComplexItems.slice(),
     mitigations: complexMitigations.slice(),
     acceptedRisk: getAcceptedRisk("complex")
   };
@@ -980,30 +508,16 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
-  const randomOutcomeRows = [];
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
     const soft = hard * softMultiplier;
     const total = hard + soft;
     const residual = total * (1 - effectiveness);
-    const insuranceApplied = applyInsuranceToLoss(residual, payload.insurance || [], payload.identifiedDate || todayIso());
-    const retainedAfterInsurance = insuranceApplied.retainedLoss;
-    const breakevenMet = residual <= mitigationCost ? "Yes" : "No";
     hardSamples.push(hard);
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
-    randomOutcomeRows.push({
-      scenarioNumber: i + 1,
-      hardCost: Math.round(hard),
-      softCost: Math.round(soft),
-      totalCost: Math.round(total),
-      residualCost: Math.round(residual),
-      insuranceRecovery: Math.round(insuranceApplied.recovery),
-      retainedAfterInsurance: Math.round(retainedAfterInsurance),
-      breakevenMet
-    });
   }
   totalSamples.sort((a,b) => a-b);
   residualSamples.sort((a,b) => a-b);
@@ -1017,7 +531,6 @@ function runFinancialMonteCarlo(payload) {
   const softCostExpected = Math.round(avg(softSamples));
   const riskReductionValue = Math.max(0, expectedLoss - residualExpectedLoss);
   const mitigationROI = riskReductionValue - mitigationCost;
-  const insuranceModel = modelInsuranceResults(residualSamples, payload.insurance || [], payload.identifiedDate || todayIso());
 
   const horizons = [1,3,5,10,15,20,25,30];
   const horizonRows = horizons.map(years => {
@@ -1044,9 +557,7 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows,
-    randomOutcomeRows,
-    insuranceModel
+    horizonRows
   };
 }
 function currency(value) {
@@ -1060,17 +571,14 @@ function summarizePayload(payload) {
   const tier = getRiskTier(residual);
   const frequency = getReviewFrequency(residual);
   const mc = runFinancialMonteCarlo(payload);
-  const evidenceStats = summarizeEvidence(payload.evidence || []);
-  const insuranceStats = summarizeInsurance(payload.insurance || [], payload.identifiedDate || todayIso());
 
   const monteCarloMethodRows = [
     ["Method", "Triangular Monte Carlo with bounded sampling"],
     ["Iterations", mc.iterations],
     ["Randomization Basis", "Triangular draws for hard cost and soft-cost multipliers"],
     ["Control Effectiveness Applied", `${payload.control}% reduction to expected simulated cost`],
-    ["Insurance Applied", insuranceStats.count ? `Yes • ${insuranceStats.activeCount} active polic${insuranceStats.activeCount === 1 ? "y" : "ies"}` : "No active insurance modeled"],
     ["Output Range Basis", "P10 / P50 / P90 of simulated annual total cost"],
-    ["Model Purpose", "Estimate hard cost, soft cost, residual loss, insurance recovery, and mitigation economics"]
+    ["Model Purpose", "Estimate hard cost, soft cost, residual loss, and mitigation economics"]
   ];
   const monteCarloInputRows = [
     ["Hard Cost Min", currency(payload.hardCostMin)],
@@ -1080,7 +588,6 @@ function summarizePayload(payload) {
     ["Soft Cost Multiplier Most Likely", payload.softCostLikely],
     ["Soft Cost Multiplier Max", payload.softCostMax],
     ["Mitigation Cost", currency(payload.mitigationCost)],
-    ["Insurance Premium (Active)", currency(insuranceStats.activePremiumTotal)],
     ["Control Effectiveness", `${payload.control}%`]
   ];
   const monteCarloOutputRows = [
@@ -1088,9 +595,6 @@ function summarizePayload(payload) {
     ["Expected Annual Soft Cost", currency(mc.softCostExpected)],
     ["Expected Annual Loss", currency(mc.expectedLoss)],
     ["Residual Annual Loss", currency(mc.residualExpectedLoss)],
-    ["Modeled Insurance Recovery", currency(mc.insuranceModel.expectedRecovery)],
-    ["Retained Annual Loss After Insurance", currency(mc.insuranceModel.retainedAfterInsurance)],
-    ["Retained Annual Loss After Insurance + Premium", currency(mc.insuranceModel.retainedAfterInsuranceWithPremium)],
     ["Annual Risk Reduction Value", currency(mc.riskReductionValue)],
     ["Mitigation Cost", currency(mc.mitigationCost)],
     ["Net Benefit / ROI", currency(mc.mitigationROI)],
@@ -1101,7 +605,6 @@ function summarizePayload(payload) {
   const decisionText = mc.mitigationROI >= 0
     ? `Mitigation appears cost effective. Estimated annual risk reduction of ${currency(mc.riskReductionValue)} exceeds the direct mitigation cost of ${currency(mc.mitigationCost)} by approximately ${currency(mc.mitigationROI)}.`
     : `Direct mitigation cost appears to exceed the estimated annual reduction in loss by approximately ${currency(Math.abs(mc.mitigationROI))}. Leadership should consider partial controls, transfer options, or alternative mitigating factors.`;
-  const insuranceText = insuranceStats.count ? ` Insurance includes ${insuranceStats.activeCount} active polic${insuranceStats.activeCount === 1 ? "y" : "ies"} with annual premium of ${currency(insuranceStats.activePremiumTotal)} and modeled annual recovery of ${currency(mc.insuranceModel?.expectedRecovery || 0)}.` : "";
 
   return {
     ...payload,
@@ -1110,7 +613,7 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}${insuranceText}`,
+    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}`,
     monteCarloRows: [],
     monteCarloMethodRows,
     monteCarloInputRows,
@@ -1127,12 +630,7 @@ function summarizePayload(payload) {
     rangeLow: mc.rangeLow,
     rangeMedian: mc.rangeMedian,
     rangeHigh: mc.rangeHigh,
-    decisionText,
-    evidence: Array.isArray(payload.evidence) ? payload.evidence.slice() : [],
-    evidenceStats,
-    insurance: Array.isArray(payload.insurance) ? payload.insurance.slice() : [],
-    insuranceStats,
-    insuranceModel: mc.insuranceModel
+    decisionText
   };
 }
 function renderScenarioSummary(summary) {
@@ -1162,31 +660,25 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Estimated direct cost to implement the planned full mitigation approach."><strong>Mitigation Cost:</strong></span> ${currency(summary.mitigationCost)}</li>
     <li><span class="help-label" data-help="Estimated annual reduction in loss from mitigation, before subtracting mitigation cost."><strong>Annual Risk Reduction Value:</strong></span> ${currency(summary.riskReductionValue)}</li>
     <li><span class="help-label" data-help="Risk-reduction value minus mitigation cost; used as a cost-effectiveness screen."><strong>Net Benefit / ROI:</strong></span> ${currency(summary.mitigationROI)}</li>
-    <li><span class="help-label" data-help="Insurance records attached to the scenario and whether they appear active for the scenario date."><strong>Insurance Policies:</strong></span> ${(summary.insuranceStats?.count || 0)} total / ${(summary.insuranceStats?.activeCount || 0)} active</li>
-    <li><span class="help-label" data-help="Historical loss evidence count recorded for this scenario, including internal and external support."><strong>Evidence Records:</strong></span> ${summary.evidenceStats?.count || 0}</li>
+    <li><span class="help-label" data-help="Suggested review cadence based on the mapped residual-risk tier."><strong>Review Frequency:</strong></span> ${escapeHtml(summary.frequency)}</li>
   `;
   document.getElementById("executiveDecisionBox").innerHTML = `
     <strong>Executive Decision Summary</strong><br>
     There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
     Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
     The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
-    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.${summary.evidenceStats?.count ? ` The scenario currently includes ${summary.evidenceStats.count} historical evidence record${summary.evidenceStats.count === 1 ? "" : "s"} with source links to support the facts.` : ""}${summary.insuranceStats?.count ? ` Insurance review shows ${summary.insuranceStats.activeCount} active polic${summary.insuranceStats.activeCount === 1 ? "y" : "ies"}, modeled annual recovery of ${currency(summary.insuranceModel?.expectedRecovery || 0)}, and retained annual loss after insurance plus premium of ${currency(summary.insuranceModel?.retainedAfterInsuranceWithPremium || 0)}.` : ""}
+    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
   `;
 
   document.getElementById("decisionMetricsBody").innerHTML = `
     <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
     <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
     <tr><td>Mitigation Cost</td><td>${currency(summary.mitigationCost)}</td></tr>
-    <tr><td>Modeled Insurance Recovery</td><td>${currency(summary.insuranceModel?.expectedRecovery || 0)}</td></tr>
-    <tr><td>Retained Loss After Insurance</td><td>${currency(summary.insuranceModel?.retainedAfterInsurance || summary.residualExpectedLoss)}</td></tr>
-    <tr><td>Retained Loss After Insurance + Premium</td><td>${currency(summary.insuranceModel?.retainedAfterInsuranceWithPremium || summary.residualExpectedLoss)}</td></tr>
     <tr><td>Annual Risk Reduction Value</td><td>${currency(summary.riskReductionValue)}</td></tr>
     <tr><td>Net Benefit / ROI</td><td>${currency(summary.mitigationROI)}</td></tr>
     <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
   `;
 
-  renderEvidenceReport(summary);
-  renderInsuranceReport(summary);
   document.getElementById("horizonExposureBody").innerHTML = summary.horizonRows.map(row => `
     <tr>
       <td>${escapeHtml(row.horizonLabel)}</td>
@@ -1262,7 +754,7 @@ function runScenario() {
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
   renderCharts(summary);
-  activateView("reports");
+  activateView("dashboard");
 }
 function saveScenario() {
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
@@ -1276,7 +768,6 @@ function saveScenario() {
   const existingIndex = saved.findIndex(x => x.id === summary.id);
   if (existingIndex >= 0) saved[existingIndex] = summary; else saved.unshift(summary);
   setSavedScenarios(saved);
-  syncScenarioToCloud(summary);
   lastSummary = summary;
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
@@ -1387,7 +878,6 @@ function openScenario(id) {
     document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
     document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
-    if (document.getElementById("complexGroupId")) document.getElementById("complexGroupId").value = s.complexGroupId || generateComplexGroupId();
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
@@ -1402,8 +892,6 @@ function openScenario(id) {
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
     currentComplexItems = Array.isArray(s.items) ? s.items.slice().map(item => ({
       issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      componentId: item.componentId || generateComplexComponentId(),
-      complexGroupId: item.complexGroupId || s.complexGroupId || ensureComplexGroupId(),
       parentScenarioMode: "complex",
       description: item.description || "",
       ...item
@@ -1425,7 +913,6 @@ function openScenario(id) {
 }
 function deleteScenario(id) {
   setSavedScenarios(getSavedScenarios().filter(x => x.id !== id));
-  Promise.resolve().then(() => deleteScenarioFromCloud(id));
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
@@ -1538,11 +1025,6 @@ function loadSingleTestScenario() {
   document.getElementById("singleAcceptanceDate").value = "";
   document.getElementById("singleReviewDate").value = "";
   document.getElementById("singleDecisionLogic").value = "";
-  singleInsurance = [
-    { title: "Cyber Liability", carrier: "Example Carrier", coverageType: "Cyber / Technology", policyNumber: "CY-1001", premiumCost: 18000, deductible: 50000, coverageLimit: 300000, reimbursementRate: 90, coverageStartDate: todayIso(), coverageEndDate: "", coverageDuration: "12 months", waitingPeriodDays: 0, exclusions: "Social engineering carve-out.", claimStatus: "Potential", notes: "Primary policy considered in decisioning.", link: "" },
-    { title: "Crime Rider", carrier: "Example Carrier", coverageType: "Crime / Fraud", policyNumber: "CR-2200", premiumCost: 9000, deductible: 25000, coverageLimit: 150000, reimbursementRate: 80, coverageStartDate: todayIso(), coverageEndDate: "", coverageDuration: "12 months", waitingPeriodDays: 0, exclusions: "Customer reimbursement outside defined events.", claimStatus: "Potential", notes: "Secondary rider for fraud-driven losses.", link: "" }
-  ];
-  renderInsuranceTable("single");
   updateInherentScores();
   activateView("single");
 }
@@ -1556,7 +1038,6 @@ function loadComplexTestScenario() {
   document.getElementById("complexPrimaryProduct").value = "Deposits";
   document.getElementById("complexPrimaryRegulation").value = "Reg DD";
   document.getElementById("complexScenarioOwner").value = "Enterprise Risk";
-  if (document.getElementById("complexGroupId")) document.getElementById("complexGroupId").value = generateComplexGroupId();
   document.getElementById("complexIdentifiedDate").value = todayIso();
   document.getElementById("complexControlEffectiveness").value = 28;
   document.getElementById("complexHardCostMin").value = 125000;
@@ -1587,11 +1068,6 @@ function loadComplexTestScenario() {
   document.getElementById("complexAcceptanceDate").value = todayIso();
   document.getElementById("complexReviewDate").value = todayIso();
   document.getElementById("complexDecisionLogic").value = "The committee accepted temporary residual risk while core conversion milestones and vendor resiliency controls are completed.";
-  complexInsurance = [
-    { title: "Technology E&O", carrier: "Example Carrier", coverageType: "E&O / Professional Liability", policyNumber: "EO-4100", premiumCost: 28000, deductible: 75000, coverageLimit: 500000, reimbursementRate: 85, coverageStartDate: todayIso(), coverageEndDate: "", coverageDuration: "12 months", waitingPeriodDays: 0, exclusions: "Known issues prior to binding date excluded.", claimStatus: "Potential", notes: "Primary modernization program coverage.", link: "" },
-    { title: "Vendor Indemnification", carrier: "Key Vendor", coverageType: "Vendor / Indemnification", policyNumber: "IND-88", premiumCost: 0, deductible: 0, coverageLimit: 250000, reimbursementRate: 100, coverageStartDate: todayIso(), coverageEndDate: "", coverageDuration: "Contract term", waitingPeriodDays: 0, exclusions: "Limited to vendor-caused outages.", claimStatus: "Potential", notes: "Contractual recovery path rather than purchased insurance.", link: "" }
-  ];
-  renderInsuranceTable("complex");
   updateInherentScores();
   activateView("complex");
 }
@@ -1643,8 +1119,6 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
-  const addComplexScenarioBtn = document.getElementById("addComplexScenarioBtn");
-  if (addComplexScenarioBtn) addComplexScenarioBtn.addEventListener("click", addRiskItem);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
@@ -1728,7 +1202,7 @@ function renderManual() {
     <h4>Future Scenario Types</h4>
     <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
-    <p>Saved scenarios are cached in local browser storage and can also sync to Supabase when the project URL and anon key are configured in app.js. This allows the scenario library to follow the user across different workstations while keeping a local fallback copy.</p>
+    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
 }
 
@@ -1943,9 +1417,7 @@ function importScenarioLibrary(file) {
       if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
       mergedMap.set(s.id, s);
     });
-    const mergedItems = Array.from(mergedMap.values());
-    setSavedScenarios(mergedItems);
-    syncScenarioLibraryToCloud(mergedItems);
+    setSavedScenarios(Array.from(mergedMap.values()));
     refreshLibraries();
     renderSavedScenarios();
     renderDashboardOpenTable();
@@ -2188,14 +1660,12 @@ function forceManualContent() {
     <h4>Future Scenario Types</h4>
     <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
-    <p>Saved scenarios are cached in local browser storage and can also sync to Supabase when the project URL and anon key are configured in app.js. This allows the scenario library to follow the user across different workstations while keeping a local fallback copy.</p>
+    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
 }
 
 function init() {
   loadStoredMonteCarloConfig();
-  ensureInsuranceUi();
-  ensureComplexScenarioUi();
   wireInputs();
   renderManual();
   forceManualContent();
@@ -2207,18 +1677,7 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
-  const savedCountCard = document.getElementById("savedCount")?.closest(".metric-card");
-  if (savedCountCard && !document.getElementById("savedStorageStatus")) {
-    const status = document.createElement("div");
-    status.id = "savedStorageStatus";
-    status.style.marginTop = "6px";
-    status.style.fontSize = "12px";
-    status.style.opacity = "0.85";
-    status.textContent = cloudSyncMessage;
-    savedCountCard.appendChild(status);
-  }
   setupRandomOutcomesCsvButton();
-  hydrateScenariosFromCloud();
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -2343,3 +1802,36 @@ function setupRandomOutcomesCsvButton() {
   });
 }
 
+
+
+/* --- Component ID generator --- */
+let componentCounter = 1;
+function generateComponentId(){
+  const id = "COMP-" + String(componentCounter).padStart(6,'0');
+  componentCounter++;
+  return id;
+}
+
+/* Attach component id when adding complex scenario */
+function assignComponentId(row){
+  if(!row.dataset.componentId){
+    row.dataset.componentId = generateComponentId();
+  }
+}
+
+/* Add link column back to scenario */
+function addScenarioLink(componentId){
+  return `<a href="#" class="open-component-link" data-comp="${componentId}">Open</a>`;
+}
+
+document.addEventListener("click", function(e){
+  if(e.target.classList.contains("open-component-link")){
+      const comp = e.target.dataset.comp;
+      const rows = document.querySelectorAll("[data-component-id='"+comp+"']");
+      if(rows.length){
+          const viewBtn = document.querySelector('[data-view="complex"]');
+          if(viewBtn) viewBtn.click();
+          rows[0].scrollIntoView({behavior:"smooth",block:"center"});
+      }
+  }
+});
