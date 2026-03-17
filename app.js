@@ -894,7 +894,11 @@ function runScenario() {
   renderCharts(summary);
   activateView("reports");
 }
-function saveScenario() {
+function saveScenario(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  const activeViewEl = document.querySelector(".view.active");
+  const currentViewName = activeViewEl?.id?.replace(/^view-/, "") || (activeMode === "complex" ? "complex" : "single");
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const saved = getSavedScenarios();
   if (!payload.id) {
@@ -913,6 +917,7 @@ function saveScenario() {
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
+  activateView(currentViewName);
 }
 function renderSavedScenarios() {
   const tbody = document.getElementById("savedEvaluationsBody");
@@ -1268,7 +1273,7 @@ function wireInputs() {
   document.getElementById("addComplexScenarioBtn").addEventListener("click", addComplexScenarioComponent);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
-  document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
+  document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
   document.getElementById("loadComplexTestBtn").addEventListener("click", loadComplexTestScenario);
@@ -1585,20 +1590,26 @@ function openScenarioReport(id) {
   activateView("reports");
 }
 
-function fileDownload(filename, content, mimeType = "text/plain") {
-  const blob = new Blob([content], { type: mimeType });
+function triggerDownload(filename, blob) {
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  const objectUrl = URL.createObjectURL(blob);
+  link.href = objectUrl;
   link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+    link.remove();
+  }, 0);
+}
+
+function fileDownload(filename, content, mimeType = "text/plain") {
+  triggerDownload(filename, new Blob([content], { type: mimeType }));
 }
 
 function textDownload(filename, content) {
-  const blob = new Blob([content], { type: "text/plain" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
+  triggerDownload(filename, new Blob([content], { type: "text/plain" }));
 }
 function buildBoardPacketText(summary) {
   if (!summary) return "No scenario has been run or selected.";
@@ -1941,11 +1952,7 @@ function setupRandomOutcomesCsvButton() {
     }
 
     const csv = buildRandomOutcomesCsv(exportSummary);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`;
-    link.click();
+    fileDownload(`random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`, csv, "text/csv;charset=utf-8");
   });
 }
 
