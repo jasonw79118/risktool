@@ -1301,14 +1301,7 @@ function wireInputs() {
   const aiBtn = document.getElementById("downloadAIPacketBtn");
   if (aiBtn) aiBtn.addEventListener("click", () => textDownload(`ai_packet_${(lastSummary?.id || currentDateStamp())}.txt`, buildAIPacketText(lastSummary)));
   const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (outcomesBtn) outcomesBtn.addEventListener("click", () => {
-    if (!lastSummary) {
-      alert("Run or open a scenario first.");
-      return;
-    }
-    const xml = buildOutcomesTableText(lastSummary);
-    fileDownload(`random_outcomes_${(lastSummary?.id || currentDateStamp())}.xls`, xml, "application/vnd.ms-excel");
-  });
+  if (outcomesBtn) outcomesBtn.addEventListener("click", handleRandomOutcomesDownload);
   document.getElementById("customMonteCarloFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1836,10 +1829,62 @@ function init() {
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
   setupRandomOutcomesCsvButton();
+  wireStabilityHandlers();
 }
 document.addEventListener("DOMContentLoaded", init);
 
 
+
+function getRandomOutcomesExportSummary() {
+  if (!lastSummary) return null;
+  const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
+    ? summarizePayload(lastSummary)
+    : lastSummary;
+  if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) return null;
+  return exportSummary;
+}
+
+function handleRandomOutcomesDownload(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const exportSummary = getRandomOutcomesExportSummary();
+  if (!lastSummary) {
+    alert("Run or open a scenario first.");
+    return;
+  }
+  if (!exportSummary) {
+    alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
+    return;
+  }
+  const csv = buildRandomOutcomesCsv(exportSummary);
+  fileDownload(`random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`, csv, "text/csv;charset=utf-8");
+}
+
+function handleAddComplexScenario(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  addComplexScenarioComponent();
+}
+
+function wireStabilityHandlers() {
+  const addBtn = document.getElementById("addComplexScenarioBtn");
+  if (addBtn && addBtn.parentNode) {
+    const cleanAddBtn = addBtn.cloneNode(true);
+    addBtn.parentNode.replaceChild(cleanAddBtn, addBtn);
+    cleanAddBtn.onclick = handleAddComplexScenario;
+  }
+  const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
+  if (outcomesBtn && outcomesBtn.parentNode) {
+    const cleanOutcomesBtn = outcomesBtn.cloneNode(true);
+    outcomesBtn.parentNode.replaceChild(cleanOutcomesBtn, outcomesBtn);
+    cleanOutcomesBtn.textContent = "Download Random Outcomes CSV";
+    cleanOutcomesBtn.onclick = handleRandomOutcomesDownload;
+  }
+}
 
 function buildRandomOutcomesWorkbookXml(summary) {
   if (!summary) return "";
@@ -1936,25 +1981,9 @@ function setupRandomOutcomesCsvButton() {
 
   const newBtn = oldBtn.cloneNode(true);
   oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
-  newBtn.addEventListener("click", () => {
-    if (!lastSummary) {
-      alert("Run or open a scenario first.");
-      return;
-    }
-    const exportSummary = (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)
-      ? summarizePayload(lastSummary)
-      : lastSummary;
-
-    if (!Array.isArray(exportSummary.randomOutcomeRows) || !exportSummary.randomOutcomeRows.length) {
-      alert("No randomized outcome rows were generated. Run the scenario again and try once more.");
-      return;
-    }
-
-    const csv = buildRandomOutcomesCsv(exportSummary);
-    fileDownload(`random_outcomes_${(exportSummary?.id || currentDateStamp())}.csv`, csv, "text/csv;charset=utf-8");
-  });
+  newBtn.addEventListener("click", handleRandomOutcomesDownload);
 }
+
 
 
 
