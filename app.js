@@ -241,6 +241,7 @@ function applyComplexComponentSnapshot(component) {
   const groupEl = document.getElementById("complexGroupId");
   if (groupEl) groupEl.value = component.groupId || groupEl.value || generateComplexGroupId();
   activeComplexComponentId = component.componentId || "";
+  syncComplexComponentIdField();
   document.getElementById("complexScenarioName").value = component.scenarioName || "";
   document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
   document.getElementById("complexProductGroup").value = component.productGroup || productGroups[0] || "";
@@ -292,11 +293,19 @@ function renderComplexScenarioComponents() {
   `).join("");
   tbody.querySelectorAll("[data-open-complex-component]").forEach(btn => btn.addEventListener("click", () => openComplexScenarioComponent(btn.dataset.openComplexComponent)));
 }
+function syncComplexComponentIdField(forceNew = false) {
+  const field = document.getElementById("complexComponentId");
+  if (forceNew || !activeComplexComponentId) activeComplexComponentId = generateComponentId();
+  if (field) field.value = activeComplexComponentId || "";
+  return activeComplexComponentId || "";
+}
 function addComplexScenarioComponent() {
+  syncComplexComponentIdField();
   const component = getCurrentComplexComponentSnapshot();
   activeComplexComponentId = component.componentId;
   const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === component.componentId);
   if (existingIndex >= 0) complexScenarioComponents[existingIndex] = component; else complexScenarioComponents.push(component);
+  syncComplexComponentIdField();
   renderComplexScenarioComponents();
 }
 function openComplexScenarioComponent(componentId) {
@@ -1011,6 +1020,8 @@ function openScenario(id) {
     activateView("single");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
+    const firstComponent = Array.isArray(s.components) && s.components.length ? s.components[0] : null;
+    complexScenarioComponents = Array.isArray(s.components) ? s.components.map(component => ({ ...component })) : [];
     document.getElementById("complexScenarioId").value = s.id || "";
     document.getElementById("complexScenarioName").value = s.name || "";
     document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
@@ -1032,33 +1043,18 @@ function openScenario(id) {
     document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
-    const restoredComponents = Array.isArray(s.components) ? s.components.map(component => ({ ...component })) : [];
-    const firstComponent = restoredComponents[0] || null;
-    complexScenarioComponents = restoredComponents;
-    currentComplexItems = Array.isArray(firstComponent?.items)
-      ? firstComponent.items.map(item => ({
-          issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          parentScenarioMode: "complex",
-          description: item.description || "",
-          ...item
-        }))
-      : Array.isArray(s.items)
-        ? s.items.slice().map(item => ({
-            issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            parentScenarioMode: "complex",
-            description: item.description || "",
-            ...item
-          }))
-        : [];
+    currentComplexItems = (firstComponent && Array.isArray(firstComponent.items) ? firstComponent.items : Array.isArray(s.items) ? s.items : []).slice().map(item => ({
+      issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      parentScenarioMode: "complex",
+      description: item.description || "",
+      ...item
+    }));
     renderComplexItems();
     const groupEl = document.getElementById("complexGroupId");
-    if (groupEl) groupEl.value = s.complexGroupId || firstComponent?.groupId || ensureComplexGroupId();
-    complexMitigations = Array.isArray(firstComponent?.mitigations)
-      ? firstComponent.mitigations.slice()
-      : Array.isArray(s.mitigations)
-        ? s.mitigations.slice()
-        : [];
+    if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
+    complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
+    syncComplexComponentIdField(!activeComplexComponentId);
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
@@ -1196,6 +1192,7 @@ function loadComplexTestScenario() {
   if (complexGroupEl) complexGroupEl.value = generateComplexGroupId();
   complexScenarioComponents = [];
   activeComplexComponentId = "";
+  syncComplexComponentIdField(true);
   document.getElementById("complexScenarioName").value = "Enterprise Deposit Modernization Program";
   document.getElementById("complexProductGroup").value = "Core";
   document.getElementById("complexRiskDomain").value = "Operational Process Risk";
@@ -1847,6 +1844,7 @@ function init() {
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
+  syncComplexComponentIdField(true);
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -1887,38 +1885,11 @@ function handleAddComplexScenario(event) {
   addComplexScenarioComponent();
 }
 
-function wireDelegatedActionHandlers() {
-  document.addEventListener("click", (event) => {
-    const addScenarioBtn = event.target.closest("#addComplexScenarioBtn");
-    if (addScenarioBtn) {
-      event.preventDefault();
-      event.stopPropagation();
-      addComplexScenarioComponent();
-      return;
-    }
-
-    const savedOpenBtn = event.target.closest('[data-action="open"][data-id]');
-    if (savedOpenBtn) {
-      event.preventDefault();
-      event.stopPropagation();
-      openScenario(savedOpenBtn.dataset.id);
-      return;
-    }
-
-    const dashboardIdBtn = event.target.closest('[data-open-id]');
-    if (dashboardIdBtn) {
-      event.preventDefault();
-      event.stopPropagation();
-      openScenario(dashboardIdBtn.dataset.openId);
-      return;
-    }
-  });
-}
-
 function wireStabilityHandlers() {
   const addBtn = document.getElementById("addComplexScenarioBtn");
   if (addBtn && addBtn.parentNode) {
     const cleanAddBtn = addBtn.cloneNode(true);
+    cleanAddBtn.type = "button";
     addBtn.parentNode.replaceChild(cleanAddBtn, addBtn);
     cleanAddBtn.onclick = handleAddComplexScenario;
   }
@@ -1929,6 +1900,30 @@ function wireStabilityHandlers() {
     cleanOutcomesBtn.textContent = "Download Random Outcomes CSV";
     cleanOutcomesBtn.onclick = handleRandomOutcomesDownload;
   }
+}
+
+
+function wireDelegatedActionHandlers() {
+  document.addEventListener("click", (event) => {
+    const addScenarioBtn = event.target.closest("#addComplexScenarioBtn");
+    if (addScenarioBtn) {
+      handleAddComplexScenario(event);
+      return;
+    }
+    const savedOpenBtn = event.target.closest('[data-action="open"][data-id]');
+    if (savedOpenBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      openScenario(savedOpenBtn.dataset.id || "");
+      return;
+    }
+    const dashboardOpenBtn = event.target.closest('[data-open-id]');
+    if (dashboardOpenBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      openScenario(dashboardOpenBtn.dataset.openId || "");
+    }
+  }, true);
 }
 
 function buildRandomOutcomesWorkbookXml(summary) {
