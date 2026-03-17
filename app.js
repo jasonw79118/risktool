@@ -1906,18 +1906,16 @@ function handleAddComplexScenario(event) {
 
 function wireStabilityHandlers() {
   const addBtn = document.getElementById("addComplexScenarioBtn");
-  if (addBtn && addBtn.parentNode) {
-    const cleanAddBtn = addBtn.cloneNode(true);
-    cleanAddBtn.type = "button";
-    addBtn.parentNode.replaceChild(cleanAddBtn, addBtn);
-    cleanAddBtn.onclick = handleAddComplexScenario;
+  if (addBtn) {
+    addBtn.type = "button";
+    addBtn.textContent = "Add Scenario";
+    addBtn.onclick = handleAddComplexScenario;
   }
   const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (outcomesBtn && outcomesBtn.parentNode) {
-    const cleanOutcomesBtn = outcomesBtn.cloneNode(true);
-    outcomesBtn.parentNode.replaceChild(cleanOutcomesBtn, outcomesBtn);
-    cleanOutcomesBtn.textContent = "Download Random Outcomes CSV";
-    cleanOutcomesBtn.onclick = handleRandomOutcomesDownload;
+  if (outcomesBtn) {
+    outcomesBtn.type = "button";
+    outcomesBtn.textContent = "Download Random Outcomes CSV";
+    outcomesBtn.onclick = handleRandomOutcomesDownload;
   }
 }
 
@@ -1927,6 +1925,11 @@ function wireDelegatedActionHandlers() {
     const addScenarioBtn = event.target.closest("#addComplexScenarioBtn");
     if (addScenarioBtn) {
       handleAddComplexScenario(event);
+      return;
+    }
+    const outcomesBtn = event.target.closest("#downloadOutcomesTableBtn");
+    if (outcomesBtn) {
+      handleRandomOutcomesDownload(event);
       return;
     }
     const savedOpenBtn = event.target.closest('[data-action="open"][data-id]');
@@ -2034,13 +2037,11 @@ function buildRandomOutcomesCsv(summary) {
 }
 
 function setupRandomOutcomesCsvButton() {
-  const oldBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (!oldBtn) return;
-  oldBtn.textContent = "Download Random Outcomes CSV";
-
-  const newBtn = oldBtn.cloneNode(true);
-  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-  newBtn.addEventListener("click", handleRandomOutcomesDownload);
+  const btn = document.getElementById("downloadOutcomesTableBtn");
+  if (!btn) return;
+  btn.type = "button";
+  btn.textContent = "Download Random Outcomes CSV";
+  btn.onclick = handleRandomOutcomesDownload;
 }
 
 
