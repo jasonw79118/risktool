@@ -646,7 +646,6 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
-  const randomOutcomeRows = [];
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
@@ -657,14 +656,6 @@ function runFinancialMonteCarlo(payload) {
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
-    randomOutcomeRows.push({
-      scenarioNumber: i + 1,
-      hardCost: Math.round(hard),
-      softCost: Math.round(soft),
-      totalCost: Math.round(total),
-      residualCost: Math.round(residual),
-      breakevenMet: mitigationCost <= 0 ? "N/A" : (residual <= mitigationCost ? "Yes" : "No")
-    });
   }
   totalSamples.sort((a,b) => a-b);
   residualSamples.sort((a,b) => a-b);
@@ -704,8 +695,7 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows,
-    randomOutcomeRows
+    horizonRows
   };
 }
 function currency(value) {
@@ -1042,16 +1032,32 @@ function openScenario(id) {
     document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
-    currentComplexItems = Array.isArray(s.items) ? s.items.slice().map(item => ({
-      issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      parentScenarioMode: "complex",
-      description: item.description || "",
-      ...item
-    })) : [];
+    const restoredComponents = Array.isArray(s.components) ? s.components.map(component => ({ ...component })) : [];
+    const firstComponent = restoredComponents[0] || null;
+    complexScenarioComponents = restoredComponents;
+    currentComplexItems = Array.isArray(firstComponent?.items)
+      ? firstComponent.items.map(item => ({
+          issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          parentScenarioMode: "complex",
+          description: item.description || "",
+          ...item
+        }))
+      : Array.isArray(s.items)
+        ? s.items.slice().map(item => ({
+            issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            parentScenarioMode: "complex",
+            description: item.description || "",
+            ...item
+          }))
+        : [];
     renderComplexItems();
     const groupEl = document.getElementById("complexGroupId");
-    if (groupEl) groupEl.value = s.complexGroupId || ensureComplexGroupId();
-    complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    if (groupEl) groupEl.value = s.complexGroupId || firstComponent?.groupId || ensureComplexGroupId();
+    complexMitigations = Array.isArray(firstComponent?.mitigations)
+      ? firstComponent.mitigations.slice()
+      : Array.isArray(s.mitigations)
+        ? s.mitigations.slice()
+        : [];
     activeComplexComponentId = firstComponent?.componentId || "";
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
@@ -1840,6 +1846,7 @@ function init() {
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
+  wireDelegatedActionHandlers();
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -1880,19 +1887,48 @@ function handleAddComplexScenario(event) {
   addComplexScenarioComponent();
 }
 
-function replaceButtonWithStableHandler(buttonId, handler, label) {
-  const button = document.getElementById(buttonId);
-  if (!button || !button.parentNode) return;
-  const cleanButton = button.cloneNode(true);
-  if (label) cleanButton.textContent = label;
-  cleanButton.setAttribute("type", "button");
-  button.parentNode.replaceChild(cleanButton, button);
-  cleanButton.addEventListener("click", handler);
+function wireDelegatedActionHandlers() {
+  document.addEventListener("click", (event) => {
+    const addScenarioBtn = event.target.closest("#addComplexScenarioBtn");
+    if (addScenarioBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      addComplexScenarioComponent();
+      return;
+    }
+
+    const savedOpenBtn = event.target.closest('[data-action="open"][data-id]');
+    if (savedOpenBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      openScenario(savedOpenBtn.dataset.id);
+      return;
+    }
+
+    const dashboardIdBtn = event.target.closest('[data-open-id]');
+    if (dashboardIdBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      openScenario(dashboardIdBtn.dataset.openId);
+      return;
+    }
+  });
 }
 
 function wireStabilityHandlers() {
-  replaceButtonWithStableHandler("addComplexScenarioBtn", handleAddComplexScenario);
-  replaceButtonWithStableHandler("downloadOutcomesTableBtn", handleRandomOutcomesDownload, "Download Random Outcomes CSV");
+  const addBtn = document.getElementById("addComplexScenarioBtn");
+  if (addBtn && addBtn.parentNode) {
+    const cleanAddBtn = addBtn.cloneNode(true);
+    addBtn.parentNode.replaceChild(cleanAddBtn, addBtn);
+    cleanAddBtn.onclick = handleAddComplexScenario;
+  }
+  const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
+  if (outcomesBtn && outcomesBtn.parentNode) {
+    const cleanOutcomesBtn = outcomesBtn.cloneNode(true);
+    outcomesBtn.parentNode.replaceChild(cleanOutcomesBtn, outcomesBtn);
+    cleanOutcomesBtn.textContent = "Download Random Outcomes CSV";
+    cleanOutcomesBtn.onclick = handleRandomOutcomesDownload;
+  }
 }
 
 function buildRandomOutcomesWorkbookXml(summary) {
