@@ -153,6 +153,10 @@ let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
 let lastSummary = null;
+let complexScenarioComponents = [];
+let activeComplexComponentId = "";
+let complexGroupCounter = 1;
+let componentCounter = 1;
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -181,6 +185,127 @@ function todayIso() {
 }
 function currentDateStamp() {
   return todayIso().replaceAll("-", "");
+}
+function generateComplexGroupId() {
+  const id = `CG-${currentDateStamp()}-${String(complexGroupCounter).padStart(3, "0")}`;
+  complexGroupCounter += 1;
+  return id;
+}
+function ensureComplexGroupId() {
+  const el = document.getElementById("complexGroupId");
+  if (!el) return "";
+  if (!el.value) el.value = generateComplexGroupId();
+  return el.value;
+}
+function generateComponentId() {
+  const existing = new Set(complexScenarioComponents.map(x => String(x.componentId || "")));
+  let id = "";
+  do {
+    id = `COMP-${String(componentCounter).padStart(6, "0")}`;
+    componentCounter += 1;
+  } while (existing.has(id));
+  return id;
+}
+function getCurrentComplexComponentSnapshot() {
+  const scenarioName = document.getElementById("complexScenarioName")?.value || "Unnamed Complex Component";
+  return {
+    componentId: activeComplexComponentId || generateComponentId(),
+    groupId: ensureComplexGroupId(),
+    scenarioName,
+    scenarioStatus: document.getElementById("complexScenarioStatus")?.value || "Open",
+    productGroup: document.getElementById("complexProductGroup")?.value || "",
+    riskDomain: document.getElementById("complexRiskDomain")?.value || "",
+    primaryProduct: document.getElementById("complexPrimaryProduct")?.value || "",
+    primaryRegulation: document.getElementById("complexPrimaryRegulation")?.value || "",
+    scenarioOwner: document.getElementById("complexScenarioOwner")?.value || "",
+    identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
+    description: document.getElementById("complexScenarioDescription")?.value || "",
+    control: Number(document.getElementById("complexControlEffectiveness")?.value || 0),
+    hardCostMin: Number(document.getElementById("complexHardCostMin")?.value || 0),
+    hardCostLikely: Number(document.getElementById("complexHardCostLikely")?.value || 0),
+    hardCostMax: Number(document.getElementById("complexHardCostMax")?.value || 0),
+    softCostMin: Number(document.getElementById("complexSoftCostMin")?.value || 0),
+    softCostLikely: Number(document.getElementById("complexSoftCostLikely")?.value || 0),
+    softCostMax: Number(document.getElementById("complexSoftCostMax")?.value || 0),
+    mitigationCost: Number(document.getElementById("complexMitigationCost")?.value || 0),
+    randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
+    items: currentComplexItems.map(item => ({ ...item })),
+    mitigations: complexMitigations.map(item => ({ ...item })),
+    acceptedRisk: JSON.parse(JSON.stringify(getAcceptedRisk("complex"))),
+    inherent: calculateComplexInherent()
+  };
+}
+function applyComplexComponentSnapshot(component) {
+  if (!component) return;
+  ensureComplexGroupId();
+  const groupEl = document.getElementById("complexGroupId");
+  if (groupEl) groupEl.value = component.groupId || groupEl.value || generateComplexGroupId();
+  activeComplexComponentId = component.componentId || "";
+  document.getElementById("complexScenarioName").value = component.scenarioName || "";
+  document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
+  document.getElementById("complexProductGroup").value = component.productGroup || productGroups[0] || "";
+  document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
+  document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
+  document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
+  document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
+  document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
+  document.getElementById("complexScenarioDescription").value = component.description || "";
+  document.getElementById("complexControlEffectiveness").value = component.control || 0;
+  document.getElementById("complexHardCostMin").value = component.hardCostMin || 0;
+  document.getElementById("complexHardCostLikely").value = component.hardCostLikely || 0;
+  document.getElementById("complexHardCostMax").value = component.hardCostMax || 0;
+  document.getElementById("complexSoftCostMin").value = component.softCostMin || 0;
+  document.getElementById("complexSoftCostLikely").value = component.softCostLikely || 0;
+  document.getElementById("complexSoftCostMax").value = component.softCostMax || 0;
+  document.getElementById("complexMitigationCost").value = component.mitigationCost || 0;
+  const complexRandom = document.getElementById("complexRandomScenarioCount");
+  if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
+  currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
+  complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
+  renderComplexItems();
+  renderMitigationTable("complexMitigationBody", complexMitigations);
+  document.getElementById("complexAcceptedRiskFlag").checked = !!component.acceptedRisk?.isAccepted;
+  document.getElementById("complexAcceptanceAuthority").value = component.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
+  document.getElementById("complexAcceptedBy").value = component.acceptedRisk?.acceptedBy || "";
+  document.getElementById("complexAcceptanceDate").value = component.acceptedRisk?.acceptanceDate || "";
+  document.getElementById("complexReviewDate").value = component.acceptedRisk?.reviewDate || "";
+  document.getElementById("complexDecisionLogic").value = component.acceptedRisk?.decisionLogic || "";
+  updateInherentScores();
+}
+function renderComplexScenarioComponents() {
+  const tbody = document.getElementById("complexScenarioComponentsBody");
+  if (!tbody) return;
+  if (!complexScenarioComponents.length) {
+    tbody.innerHTML = '<tr><td colspan="7">No component scenarios added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = complexScenarioComponents.map((component, idx) => `
+    <tr>
+      <td><button class="scenario-link" data-open-complex-component="${escapeHtml(component.componentId || "")}">${escapeHtml(component.componentId || `COMP-${String(idx + 1).padStart(6, "0")}`)}</button></td>
+      <td>${escapeHtml(component.scenarioName || "Unnamed Complex Component")}</td>
+      <td>${escapeHtml(component.productGroup || "")}</td>
+      <td>${escapeHtml(component.riskDomain || "")}</td>
+      <td>${Number(component.inherent || 0)}</td>
+      <td>${Array.isArray(component.items) ? component.items.length : 0}</td>
+      <td>${escapeHtml(component.scenarioStatus || "Open")}</td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-open-complex-component]").forEach(btn => btn.addEventListener("click", () => openComplexScenarioComponent(btn.dataset.openComplexComponent)));
+}
+function addComplexScenarioComponent() {
+  const component = getCurrentComplexComponentSnapshot();
+  activeComplexComponentId = component.componentId;
+  const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === component.componentId);
+  if (existingIndex >= 0) complexScenarioComponents[existingIndex] = component; else complexScenarioComponents.push(component);
+  renderComplexScenarioComponents();
+}
+function openComplexScenarioComponent(componentId) {
+  const component = complexScenarioComponents.find(x => x.componentId === componentId);
+  if (!component) return;
+  applyComplexComponentSnapshot(component);
+  activateView("complex");
+  const topCard = document.querySelector('#view-complex .card');
+  if (topCard?.scrollIntoView) topCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function escapeHtml(value) {
   return String(value ?? "")
@@ -299,6 +424,7 @@ function refreshLibraries() {
   renderCategoryAdmin();
   renderSavedScenarios();
   renderDashboardOpenTable();
+  renderComplexScenarioComponents();
   updateInherentScores();
   updateMonteCarloStatus();
 }
@@ -443,9 +569,20 @@ function getSinglePayload() {
   };
 }
 function getComplexPayload() {
+  const currentComponent = getCurrentComplexComponentSnapshot();
+  const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === currentComponent.componentId);
+  const allComponents = existingIndex >= 0
+    ? complexScenarioComponents.map((component, idx) => idx === existingIndex ? currentComponent : component)
+    : [...complexScenarioComponents, currentComponent];
+  const allItems = allComponents.flatMap(component => Array.isArray(component.items) ? component.items : []);
+  const allMitigations = allComponents.flatMap(component => Array.isArray(component.mitigations) ? component.mitigations : []);
+  const avgInherent = allComponents.length
+    ? Math.round(allComponents.reduce((sum, component) => sum + Number(component.inherent || 0), 0) / allComponents.length)
+    : calculateComplexInherent();
   return {
     mode: "complex",
     id: document.getElementById("complexScenarioId").value,
+    complexGroupId: ensureComplexGroupId(),
     name: document.getElementById("complexScenarioName").value || "Unnamed Complex Scenario",
     productGroup: document.getElementById("complexProductGroup").value,
     riskDomain: document.getElementById("complexRiskDomain").value,
@@ -458,7 +595,7 @@ function getComplexPayload() {
     description: document.getElementById("complexScenarioDescription").value,
     likelihood: 0,
     impact: 0,
-    inherent: calculateComplexInherent(),
+    inherent: avgInherent,
     control: Number(document.getElementById("complexControlEffectiveness").value || 0),
     hardCostMin: Number(document.getElementById("complexHardCostMin").value || 0),
     hardCostLikely: Number(document.getElementById("complexHardCostLikely").value || 0),
@@ -468,8 +605,9 @@ function getComplexPayload() {
     softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
     mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
-    items: currentComplexItems.slice(),
-    mitigations: complexMitigations.slice(),
+    items: allItems,
+    components: allComponents.map(component => ({ ...component })),
+    mitigations: allMitigations,
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
@@ -754,7 +892,7 @@ function runScenario() {
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
   renderCharts(summary);
-  activateView("dashboard");
+  activateView("reports");
 }
 function saveScenario() {
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
@@ -897,8 +1035,12 @@ function openScenario(id) {
       ...item
     })) : [];
     renderComplexItems();
-    complexMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    const groupEl = document.getElementById("complexGroupId");
+    if (groupEl) groupEl.value = s.complexGroupId || ensureComplexGroupId();
+    complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    activeComplexComponentId = firstComponent?.componentId || "";
     renderMitigationTable("complexMitigationBody", complexMitigations);
+    renderComplexScenarioComponents();
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1030,6 +1172,10 @@ function loadSingleTestScenario() {
 }
 function loadComplexTestScenario() {
   document.getElementById("complexScenarioId").value = "";
+  const complexGroupEl = document.getElementById("complexGroupId");
+  if (complexGroupEl) complexGroupEl.value = generateComplexGroupId();
+  complexScenarioComponents = [];
+  activeComplexComponentId = "";
   document.getElementById("complexScenarioName").value = "Enterprise Deposit Modernization Program";
   document.getElementById("complexProductGroup").value = "Core";
   document.getElementById("complexRiskDomain").value = "Operational Process Risk";
@@ -1069,6 +1215,7 @@ function loadComplexTestScenario() {
   document.getElementById("complexReviewDate").value = todayIso();
   document.getElementById("complexDecisionLogic").value = "The committee accepted temporary residual risk while core conversion milestones and vendor resiliency controls are completed.";
   updateInherentScores();
+  addComplexScenarioComponent();
   activateView("complex");
 }
 function validateMonteCarloConfig(config) {
@@ -1119,6 +1266,7 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
+  document.getElementById("addComplexScenarioBtn").addEventListener("click", addComplexScenarioComponent);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", saveScenario);
@@ -1801,4 +1949,6 @@ function setupRandomOutcomesCsvButton() {
     link.click();
   });
 }
+
+
 
