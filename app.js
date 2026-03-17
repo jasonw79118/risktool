@@ -241,6 +241,7 @@ function applyComplexComponentSnapshot(component) {
   const groupEl = document.getElementById("complexGroupId");
   if (groupEl) groupEl.value = component.groupId || groupEl.value || generateComplexGroupId();
   activeComplexComponentId = component.componentId || "";
+  syncComplexComponentIdField(false);
   syncComplexComponentIdField();
   document.getElementById("complexScenarioName").value = component.scenarioName || "";
   document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
@@ -304,9 +305,14 @@ function addComplexScenarioComponent() {
   const component = getCurrentComplexComponentSnapshot();
   activeComplexComponentId = component.componentId;
   const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === component.componentId);
-  if (existingIndex >= 0) complexScenarioComponents[existingIndex] = component; else complexScenarioComponents.push(component);
-  syncComplexComponentIdField();
+  if (existingIndex >= 0) {
+    complexScenarioComponents[existingIndex] = component;
+  } else {
+    complexScenarioComponents.push(component);
+  }
   renderComplexScenarioComponents();
+  activeComplexComponentId = "";
+  syncComplexComponentIdField(true);
 }
 function openComplexScenarioComponent(componentId) {
   const component = complexScenarioComponents.find(x => x.componentId === componentId);
@@ -452,7 +458,10 @@ function activateView(viewName) {
   if (view) view.classList.add("active");
   if (btn) btn.classList.add("active");
   if (viewName === "single") activeMode = "single";
-  if (viewName === "complex") activeMode = "complex";
+  if (viewName === "complex") {
+    activeMode = "complex";
+    syncComplexComponentIdField(false);
+  }
 }
 function getRiskTier(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
@@ -655,6 +664,7 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
+  const randomOutcomeRows = [];
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
@@ -665,6 +675,14 @@ function runFinancialMonteCarlo(payload) {
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
+    randomOutcomeRows.push({
+      scenarioNumber: i + 1,
+      hardCost: Math.round(hard),
+      softCost: Math.round(soft),
+      totalCost: Math.round(total),
+      residualCost: Math.round(residual),
+      breakevenMet: residual <= mitigationCost ? 'Yes' : 'No'
+    });
   }
   totalSamples.sort((a,b) => a-b);
   residualSamples.sort((a,b) => a-b);
@@ -684,7 +702,7 @@ function runFinancialMonteCarlo(payload) {
     const withoutMitigation = expectedLoss * years;
     const withMitigation = residualExpectedLoss * years + mitigationCost;
     return {
-      horizonLabel: years === 30 ? "30+ Years" : `${years} Year${years > 1 ? "s" : ""}`,
+      horizonLabel: years === 30 ? '30+ Years' : `${years} Year${years > 1 ? 's' : ''}`,
       years,
       withoutMitigation: Math.round(withoutMitigation),
       withMitigation: Math.round(withMitigation),
@@ -704,7 +722,8 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows
+    horizonRows,
+    randomOutcomeRows
   };
 }
 function currency(value) {
@@ -1283,7 +1302,7 @@ function loadStoredMonteCarloConfig() {
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
-  document.getElementById("addComplexScenarioBtn").addEventListener("click", addComplexScenarioComponent);
+  document.getElementById("addComplexScenarioBtn")?.addEventListener("click", handleAddComplexScenario);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
