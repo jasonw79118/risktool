@@ -290,6 +290,10 @@
             <input id="complexScenarioId" type="text" readonly placeholder="Generated on save">
           </div>
           <div>
+            <label class="help-label" data-help="Auto-generated component scenario ID for each sub-scenario inside the complex builder.">Comp Scenario ID</label>
+            <input id="complexComponentId" type="text" readonly placeholder="Generated automatically">
+          </div>
+          <div>
             <label class="help-label" data-help="Shared umbrella ID for all scenarios added inside this complex build.">Complex Group ID</label>
             <input id="complexGroupId" type="text" readonly placeholder="Generated automatically">
           </div>
@@ -771,8 +775,49 @@
         </div>
       </div>
 
-      <div id="reportGraphCard" class="card">
+      <div class="grid two">
+        <div id="topRiskDriversCard" class="card">
+          <div class="card-header"><h3><span class="help-label" data-help="Ranks the largest modeled contributors to the current scenario so management can see what is driving the result.">Top Risk Drivers</span></h3><span>Hubbard</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Driver</th><th>Why It Matters</th><th>Relative Weight</th></tr></thead>
+              <tbody id="topRiskDriversBody"><tr><td colspan="3">Run a scenario to populate the top drivers.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
 
+        <div id="measureNextCard" class="card">
+          <div class="card-header"><h3><span class="help-label" data-help="Highlights which assumptions are most worth measuring next so uncertainty can be reduced where it matters most.">What To Measure Next</span></h3><span>Hubbard</span></div>
+          <ul id="measureNextList" class="simple-list"><li>Run a scenario to generate measurement priorities.</li></ul>
+          <div id="measureNextNote" class="note-box">The goal is to reduce uncertainty in the variables that most influence expected loss and decision quality.</div>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div id="evidenceSupportCard" class="card">
+          <div class="card-header"><h3><span class="help-label" data-help="Displays historical loss and evidence support tied to the current scenario when entries are available.">Evidence / Historical Loss Support</span></h3><span>Hubbard</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Source</th><th>Loss / Signal</th><th>Date</th><th>Notes</th></tr></thead>
+              <tbody id="evidenceSupportBody"><tr><td colspan="4">No evidence entries are attached to this scenario.</td></tr></tbody>
+            </table>
+          </div>
+          <div id="evidenceSupportNote" class="note-box">Use this section to connect modeled assumptions to observed internal or external evidence.</div>
+        </div>
+
+        <div id="insuranceSupportCard" class="card">
+          <div class="card-header"><h3><span class="help-label" data-help="Displays insurance and risk-transfer support tied to the current scenario when entries are available.">Insurance / Risk Transfer</span></h3><span>Hubbard</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Coverage</th><th>Carrier / Type</th><th>Financial Terms</th><th>Notes</th></tr></thead>
+              <tbody id="insuranceSupportBody"><tr><td colspan="4">No insurance entries are attached to this scenario.</td></tr></tbody>
+            </table>
+          </div>
+          <div id="insuranceSupportNote" class="note-box">When insurance data is present, this section helps distinguish transferred loss from retained loss.</div>
+        </div>
+      </div>
+
+      <div id="reportGraphCard" class="card">
         <div class="card-header"><h3>Report Graph</h3><span>Optional</span></div>
         <canvas id="reportChart" width="760" height="260"></canvas>
       </div>
