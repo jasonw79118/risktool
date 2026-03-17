@@ -646,6 +646,7 @@ function runFinancialMonteCarlo(payload) {
   const residualSamples = [];
   const hardSamples = [];
   const softSamples = [];
+  const randomOutcomeRows = [];
   for (let i = 0; i < iterations; i++) {
     const hard = triangularSample(hardMin, hardLikely, hardMax);
     const softMultiplier = triangularSample(softMin, softLikely, softMax);
@@ -656,6 +657,14 @@ function runFinancialMonteCarlo(payload) {
     softSamples.push(soft);
     totalSamples.push(total);
     residualSamples.push(residual);
+    randomOutcomeRows.push({
+      scenarioNumber: i + 1,
+      hardCost: Math.round(hard),
+      softCost: Math.round(soft),
+      totalCost: Math.round(total),
+      residualCost: Math.round(residual),
+      breakevenMet: mitigationCost <= 0 ? "N/A" : (residual <= mitigationCost ? "Yes" : "No")
+    });
   }
   totalSamples.sort((a,b) => a-b);
   residualSamples.sort((a,b) => a-b);
@@ -695,7 +704,8 @@ function runFinancialMonteCarlo(payload) {
     rangeLow: Math.round(pct(totalSamples, 0.10)),
     rangeMedian: Math.round(pct(totalSamples, 0.50)),
     rangeHigh: Math.round(pct(totalSamples, 0.90)),
-    horizonRows
+    horizonRows,
+    randomOutcomeRows
   };
 }
 function currency(value) {
@@ -1870,20 +1880,19 @@ function handleAddComplexScenario(event) {
   addComplexScenarioComponent();
 }
 
+function replaceButtonWithStableHandler(buttonId, handler, label) {
+  const button = document.getElementById(buttonId);
+  if (!button || !button.parentNode) return;
+  const cleanButton = button.cloneNode(true);
+  if (label) cleanButton.textContent = label;
+  cleanButton.setAttribute("type", "button");
+  button.parentNode.replaceChild(cleanButton, button);
+  cleanButton.addEventListener("click", handler);
+}
+
 function wireStabilityHandlers() {
-  const addBtn = document.getElementById("addComplexScenarioBtn");
-  if (addBtn && addBtn.parentNode) {
-    const cleanAddBtn = addBtn.cloneNode(true);
-    addBtn.parentNode.replaceChild(cleanAddBtn, addBtn);
-    cleanAddBtn.onclick = handleAddComplexScenario;
-  }
-  const outcomesBtn = document.getElementById("downloadOutcomesTableBtn");
-  if (outcomesBtn && outcomesBtn.parentNode) {
-    const cleanOutcomesBtn = outcomesBtn.cloneNode(true);
-    outcomesBtn.parentNode.replaceChild(cleanOutcomesBtn, outcomesBtn);
-    cleanOutcomesBtn.textContent = "Download Random Outcomes CSV";
-    cleanOutcomesBtn.onclick = handleRandomOutcomesDownload;
-  }
+  replaceButtonWithStableHandler("addComplexScenarioBtn", handleAddComplexScenario);
+  replaceButtonWithStableHandler("downloadOutcomesTableBtn", handleRandomOutcomesDownload, "Download Random Outcomes CSV");
 }
 
 function buildRandomOutcomesWorkbookXml(summary) {
