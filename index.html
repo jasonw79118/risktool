@@ -32,8 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 5.0</h4>
-      <p>Executive outputs, portability, board packet generation, report hover help, outcomes export, and dashboard heat-map enhancements on the stable 4.3.2a baseline.</p>
+      <h4>Phase 20.0.01</h4>
+      <p>Pass 1 layout standardization baseline with stacked builder sections and placeholder restoration blocks for Insurance and Hard Facts.</p>
     </div>
   </aside>
 
@@ -114,6 +114,7 @@
         <div class="builder-actions">
           <button class="btn btn-secondary" id="loadSingleTestBtn">Load Test Scenario</button>
         </div>
+        <div class="card-header"><h3>Scenario Info</h3><span>Core</span></div>
         <div class="form-grid">
           <div>
             <label class="help-label" data-help="Name used to save, reopen, and print this scenario.">Scenario Name</label>
@@ -171,7 +172,16 @@
             <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
             <input id="singleControlEffectiveness" type="number" min="0" max="100" value="30">
           </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+            <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
+          </div>
+        </div>
+      </div>
 
+      <div class="card">
+        <div class="card-header"><h3>Financial Inputs</h3><span>Model Inputs</span></div>
+        <div class="form-grid">
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
             <input id="singleHardCostMin" type="number" min="0" step="1000" value="50000">
@@ -210,60 +220,87 @@
               <option value="100000">100,000</option>
             </select>
           </div>
-
-          <div class="full-span">
-            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
-            <textarea id="singleScenarioDescription" rows="4" placeholder="Describe the issue, trigger, scope, and why it matters."></textarea>
-          </div>
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
-          <div class="form-grid">
-            <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
-            <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
-            <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
-            <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
-          </div>
-          <div class="builder-actions">
-            <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
-              <tbody id="singleMitigationBody"></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="card">
+        <div class="card-header"><h3>Insurance Entry</h3><span>Phase 20.0.02</span></div>
+        <div class="note-box">Insurance restoration will be added in Pass 2. This placeholder locks the section into the correct stacked screen order now.</div>
+      </div>
 
-        <div class="card">
-          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
-          <div class="checkbox-list">
-            <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+      <div class="card">
+        <div class="card-header"><h3>Insurance Table</h3><span>Placeholder</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Policy Name</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <tbody><tr><td colspan="9">Insurance restoration placeholder only in Pass 1.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Phase 20.0.02+</span></div>
+        <div class="note-box">Hard Facts / Evidence restoration is intentionally held for the next controlled phase after layout and Insurance are stabilized.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Placeholder</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source Link / Location</th></tr></thead>
+            <tbody><tr><td colspan="5">Hard Facts / Evidence placeholder only in Pass 1.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
+          <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
+          <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
+          <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Table</h3><span>Repeatable</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
+            <tbody id="singleMitigationBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+        <div class="checkbox-list">
+          <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+            <select id="singleAcceptanceAuthority"></select>
           </div>
-          <div class="form-grid">
-            <div>
-              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
-              <select id="singleAcceptanceAuthority"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
-              <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
-            </div>
-            <div>
-              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
-              <input id="singleAcceptanceDate" type="date">
-            </div>
-            <div>
-              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
-              <input id="singleReviewDate" type="date">
-            </div>
-            <div class="full-span">
-              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
-              <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
-            </div>
+          <div>
+            <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+            <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+            <input id="singleAcceptanceDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+            <input id="singleReviewDate" type="date">
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+            <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
         </div>
       </div>
@@ -280,6 +317,7 @@
           <button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
           <button type="button" class="btn btn-primary" id="addComplexScenarioBtn">Add Scenario</button>
         </div>
+        <div class="card-header"><h3>Scenario Info</h3><span>Core</span></div>
         <div class="form-grid">
           <div>
             <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
@@ -337,7 +375,16 @@
             <label class="help-label" data-help="Estimated percentage reduction from the current control environment.">Control Effectiveness %</label>
             <input id="complexControlEffectiveness" type="number" min="0" max="100" value="28">
           </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+            <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
+          </div>
+        </div>
+      </div>
 
+      <div class="card">
+        <div class="card-header"><h3>Financial Inputs</h3><span>Model Inputs</span></div>
+        <div class="form-grid">
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
             <input id="complexHardCostMin" type="number" min="0" step="1000" value="100000">
@@ -375,11 +422,6 @@
               <option value="10000">10,000</option>
               <option value="100000">100,000</option>
             </select>
-          </div>
-
-          <div class="full-span">
-            <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
-            <textarea id="complexScenarioDescription" rows="4" placeholder="Describe the broader project, business area, or problem set."></textarea>
           </div>
         </div>
       </div>
@@ -428,7 +470,37 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Mitigation Factors</h3><span>Entry</span></div>
+        <div class="card-header"><h3>Insurance Entry</h3><span>Phase 20.0.02</span></div>
+        <div class="note-box">Insurance restoration will be added in Pass 2. This placeholder locks the section into the correct stacked screen order now.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Insurance Table</h3><span>Placeholder</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Policy Name</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <tbody><tr><td colspan="9">Insurance restoration placeholder only in Pass 1.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Phase 20.0.02+</span></div>
+        <div class="note-box">Hard Facts / Evidence restoration is intentionally held for the next controlled phase after layout and Insurance are stabilized.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Placeholder</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source Link / Location</th></tr></thead>
+            <tbody><tr><td colspan="5">Hard Facts / Evidence placeholder only in Pass 1.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Entry</h3><span>Entry</span></div>
         <div class="form-grid">
           <div><label>Mitigation Title</label><input id="complexMitTitle" type="text" placeholder="e.g. Control redesign"></div>
           <div><label>Owner</label><input id="complexMitOwner" type="text" placeholder="e.g. Operations"></div>
