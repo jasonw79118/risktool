@@ -1802,36 +1802,3 @@ function setupRandomOutcomesCsvButton() {
   });
 }
 
-
-
-/* --- Component ID generator --- */
-let componentCounter = 1;
-function generateComponentId(){
-  const id = "COMP-" + String(componentCounter).padStart(6,'0');
-  componentCounter++;
-  return id;
-}
-
-/* Attach component id when adding complex scenario */
-function assignComponentId(row){
-  if(!row.dataset.componentId){
-    row.dataset.componentId = generateComponentId();
-  }
-}
-
-/* Add link column back to scenario */
-function addScenarioLink(componentId){
-  return `<a href="#" class="open-component-link" data-comp="${componentId}">Open</a>`;
-}
-
-document.addEventListener("click", function(e){
-  if(e.target.classList.contains("open-component-link")){
-      const comp = e.target.dataset.comp;
-      const rows = document.querySelectorAll("[data-component-id='"+comp+"']");
-      if(rows.length){
-          const viewBtn = document.querySelector('[data-view="complex"]');
-          if(viewBtn) viewBtn.click();
-          rows[0].scrollIntoView({behavior:"smooth",block:"center"});
-      }
-  }
-});
