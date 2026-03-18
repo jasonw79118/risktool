@@ -544,10 +544,12 @@ function refreshLibraries() {
   acceptanceAuthorities = sortedUnique([...DEFAULT_ACCEPTANCE_AUTHORITIES, ...getStoredArray(CAT_KEYS.acceptanceAuthorities)]);
 
   const saved = getSavedScenarios();
-  document.getElementById("productGroupCount").textContent = productGroups.length;
-  document.getElementById("regCount").textContent = regulations.length;
-  document.getElementById("domainCount").textContent = riskDomains.length;
-  document.getElementById("savedCount").textContent = saved.length;
+  const betaSavedCount = saved.filter(s => String(s.mode || "") === "beta").length;
+  setTextIfPresent("categoryProductGroupCount", productGroups.length);
+  setTextIfPresent("categoryRegCount", regulations.length);
+  setTextIfPresent("categoryDomainCount", riskDomains.length);
+  setTextIfPresent("savedCount", saved.length);
+  setTextIfPresent("betaScenarioCount", betaSavedCount);
 
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
@@ -582,6 +584,10 @@ function populateSelect(id, items) {
   const current = select.value;
   select.innerHTML = items.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
   if (items.includes(current)) select.value = current;
+}
+function setTextIfPresent(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
 }
 function activateView(viewName) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
@@ -1287,7 +1293,8 @@ function saveScenario(event) {
 function renderSavedScenarios() {
   const tbody = document.getElementById("savedEvaluationsBody");
   const saved = getSavedScenarios();
-  document.getElementById("savedCount").textContent = saved.length;
+  setTextIfPresent("savedCount", saved.length);
+  setTextIfPresent("betaScenarioCount", saved.filter(s => String(s.mode || "") === "beta").length);
   if (!saved.length) {
     tbody.innerHTML = '<tr><td colspan="9">No saved scenarios yet.</td></tr>';
     return;
