@@ -32,8 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.0.04</h4>
-      <p>Beta alignment + insurance policy number enhancement across Single, Complex, and Beta, while preserving save/open behavior, random outcomes export, and complex component flow.</p>
+      <h4>Phase 20.0.05</h4>
+      <p>Reporting restoration plus U.S. currency standardization, including report sections for Insurance and Hard Facts / Evidence.</p>
     </div>
   </aside>
 
@@ -174,15 +174,15 @@
 
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
-            <input id="singleHardCostMin" type="number" min="0" step="1000" value="50000">
+            <input id="singleHardCostMin" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="50000">
           </div>
           <div>
             <label class="help-label" data-help="Most likely direct hard-cost loss estimate for the scenario.">Hard Cost Most Likely ($)</label>
-            <input id="singleHardCostLikely" type="number" min="0" step="1000" value="150000">
+            <input id="singleHardCostLikely" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="150000">
           </div>
           <div>
             <label class="help-label" data-help="Maximum direct hard-cost loss estimate for the scenario.">Hard Cost Max ($)</label>
-            <input id="singleHardCostMax" type="number" min="0" step="1000" value="400000">
+            <input id="singleHardCostMax" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="400000">
           </div>
           <div>
             <label class="help-label" data-help="Minimum soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Min</label>
@@ -198,7 +198,7 @@
           </div>
           <div>
             <label class="help-label" data-help="Estimated direct cost to fully mitigate the identified risk.">Mitigation Cost ($)</label>
-            <input id="singleMitigationCost" type="number" min="0" step="1000" value="75000">
+            <input id="singleMitigationCost" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="75000">
           </div>
           <div>
             <label class="help-label" data-help="Number of randomized Monte Carlo scenarios to run for the financial model and outcomes table.">Random Scenarios</label>
@@ -226,9 +226,9 @@
           <div><label>Policy Number</label><input id="singleInsurancePolicyNumber" type="text" placeholder="e.g. PL-100245"></div>
           <div><label>Carrier</label><input id="singleInsuranceCarrier" type="text" placeholder="e.g. Acme Specialty"></div>
           <div><label>Coverage Type</label><input id="singleInsuranceCoverageType" type="text" placeholder="e.g. Errors & Omissions"></div>
-          <div><label>Premium</label><input id="singleInsurancePremium" type="text" placeholder="e.g. 18000"></div>
-          <div><label>Deductible</label><input id="singleInsuranceDeductible" type="text" placeholder="e.g. 25000"></div>
-          <div><label>Coverage Amount</label><input id="singleInsuranceCoverageAmount" type="text" placeholder="e.g. 500000"></div>
+          <div><label>Premium</label><input id="singleInsurancePremium" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 18000"></div>
+          <div><label>Deductible</label><input id="singleInsuranceDeductible" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 25000"></div>
+          <div><label>Coverage Amount</label><input id="singleInsuranceCoverageAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 500000"></div>
           <div><label>Coverage Dates</label><input id="singleInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="singleInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="singleInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/card-services"></div>
@@ -252,7 +252,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
           <div><label>Source Type</label><select id="singleHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
-          <div><label>Loss / Cost Amount</label><input id="singleHardFactAmount" type="text" placeholder="e.g. 42000"></div>
+          <div><label>Loss / Cost Amount</label><input id="singleHardFactAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 42000"></div>
           <div><label>Date</label><input id="singleHardFactDate" type="date"></div>
           <div class="full-span"><label>Description / Notes</label><input id="singleHardFactDescription" type="text" placeholder="Describe the factual loss, benchmark, or evidence"></div>
           <div class="full-span"><label>Source Link / Internal Location</label><input id="singleHardFactSourceLink" type="text" placeholder="e.g. internal://evidence/reg-e-review"></div>
@@ -394,15 +394,15 @@
 
           <div>
             <label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
-            <input id="complexHardCostMin" type="number" min="0" step="1000" value="100000">
+            <input id="complexHardCostMin" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="100000">
           </div>
           <div>
             <label class="help-label" data-help="Most likely direct hard-cost loss estimate for the scenario.">Hard Cost Most Likely ($)</label>
-            <input id="complexHardCostLikely" type="number" min="0" step="1000" value="350000">
+            <input id="complexHardCostLikely" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="350000">
           </div>
           <div>
             <label class="help-label" data-help="Maximum direct hard-cost loss estimate for the scenario.">Hard Cost Max ($)</label>
-            <input id="complexHardCostMax" type="number" min="0" step="1000" value="900000">
+            <input id="complexHardCostMax" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="900000">
           </div>
           <div>
             <label class="help-label" data-help="Minimum soft-cost multiplier applied to hard cost for secondary or incidental impacts.">Soft Cost Multiplier Min</label>
@@ -418,7 +418,7 @@
           </div>
           <div>
             <label class="help-label" data-help="Estimated direct cost to fully mitigate the identified risk.">Mitigation Cost ($)</label>
-            <input id="complexMitigationCost" type="number" min="0" step="1000" value="150000">
+            <input id="complexMitigationCost" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="150000">
           </div>
           <div>
             <label class="help-label" data-help="Number of randomized Monte Carlo scenarios to run for the financial model and outcomes table.">Random Scenarios</label>
@@ -489,9 +489,9 @@
           <div><label>Policy Number</label><input id="complexInsurancePolicyNumber" type="text" placeholder="e.g. CX-440018"></div>
           <div><label>Carrier</label><input id="complexInsuranceCarrier" type="text" placeholder="e.g. National Mutual"></div>
           <div><label>Coverage Type</label><input id="complexInsuranceCoverageType" type="text" placeholder="e.g. Cyber / Technology E&O"></div>
-          <div><label>Premium</label><input id="complexInsurancePremium" type="text" placeholder="e.g. 95000"></div>
-          <div><label>Deductible</label><input id="complexInsuranceDeductible" type="text" placeholder="e.g. 100000"></div>
-          <div><label>Coverage Amount</label><input id="complexInsuranceCoverageAmount" type="text" placeholder="e.g. 3000000"></div>
+          <div><label>Premium</label><input id="complexInsurancePremium" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 95000"></div>
+          <div><label>Deductible</label><input id="complexInsuranceDeductible" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 100000"></div>
+          <div><label>Coverage Amount</label><input id="complexInsuranceCoverageAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 3000000"></div>
           <div><label>Coverage Dates</label><input id="complexInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="complexInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="complexInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/modernization-program"></div>
@@ -515,7 +515,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
           <div><label>Source Type</label><select id="complexHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
-          <div><label>Loss / Cost Amount</label><input id="complexHardFactAmount" type="text" placeholder="e.g. 275000"></div>
+          <div><label>Loss / Cost Amount</label><input id="complexHardFactAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 275000"></div>
           <div><label>Date</label><input id="complexHardFactDate" type="date"></div>
           <div class="full-span"><label>Description / Notes</label><input id="complexHardFactDescription" type="text" placeholder="Describe the factual loss, benchmark, or evidence"></div>
           <div class="full-span"><label>Source Link / Internal Location</label><input id="complexHardFactSourceLink" type="text" placeholder="e.g. internal://evidence/modernization-losses"></div>
@@ -664,15 +664,15 @@
           </div>
           <div>
             <label class="help-label" data-help="Minimum modeled value.">Min</label>
-            <input id="betaMin" type="number" min="0" step="1000" value="100000">
+            <input id="betaMin" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="100000">
           </div>
           <div>
             <label class="help-label" data-help="Most likely modeled value.">Mode</label>
-            <input id="betaMode" type="number" min="0" step="1000" value="250000">
+            <input id="betaMode" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="250000">
           </div>
           <div>
             <label class="help-label" data-help="Maximum modeled value.">Max</label>
-            <input id="betaMax" type="number" min="0" step="1000" value="700000">
+            <input id="betaMax" type="text" inputmode="decimal" data-currency="usd" min="0" step="1000" value="700000">
           </div>
           <div>
             <label class="help-label" data-help="Number of randomized beta scenarios to run.">Random Scenarios</label>
@@ -726,9 +726,9 @@
           <div><label>Policy Number</label><input id="betaInsurancePolicyNumber" type="text" placeholder="e.g. BETA-PL-1001"></div>
           <div><label>Carrier</label><input id="betaInsuranceCarrier" type="text" placeholder="e.g. Acme Specialty"></div>
           <div><label>Coverage Type</label><input id="betaInsuranceCoverageType" type="text" placeholder="e.g. Technology E&amp;O"></div>
-          <div><label>Premium</label><input id="betaInsurancePremium" type="text" placeholder="e.g. 42000"></div>
-          <div><label>Deductible</label><input id="betaInsuranceDeductible" type="text" placeholder="e.g. 50000"></div>
-          <div><label>Coverage Amount</label><input id="betaInsuranceCoverageAmount" type="text" placeholder="e.g. 2000000"></div>
+          <div><label>Premium</label><input id="betaInsurancePremium" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 42000"></div>
+          <div><label>Deductible</label><input id="betaInsuranceDeductible" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 50000"></div>
+          <div><label>Coverage Amount</label><input id="betaInsuranceCoverageAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 2000000"></div>
           <div><label>Coverage Dates</label><input id="betaInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="betaInsuranceNotes" type="text" placeholder="e.g. Quoted launch coverage tower"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="betaInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/embedded-payments"></div>
@@ -752,7 +752,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
           <div><label>Source Type</label><select id="betaHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
-          <div><label>Loss / Cost Amount</label><input id="betaHardFactAmount" type="text" placeholder="e.g. 175000"></div>
+          <div><label>Loss / Cost Amount</label><input id="betaHardFactAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 175000"></div>
           <div><label>Date</label><input id="betaHardFactDate" type="date"></div>
           <div class="full-span"><label>Description / Notes</label><input id="betaHardFactDescription" type="text" placeholder="Describe the factual cost, benchmark, or evidence"></div>
           <div class="full-span"><label>Source Link / Internal Location</label><input id="betaHardFactSourceLink" type="text" placeholder="e.g. internal://planning/embedded-payments-costing"></div>
@@ -931,6 +931,30 @@
             <table>
               <thead><tr><th>Measure</th><th>Value</th></tr></thead>
               <tbody id="decisionMetricsBody"><tr><td colspan="2">Run a scenario to populate decision metrics.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="grid two">
+        <div class="card">
+          <div class="card-header"><h3>Insurance in Report</h3><span>U.S. Currency</span></div>
+          <div class="note-box" id="reportInsuranceTotals">Insurance totals: Premium $0 | Deductible $0 | Coverage $0</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+              <tbody id="reportInsuranceBody"><tr><td colspan="10">Run or open a scenario to populate insurance reporting.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Hard Facts / Evidence in Report</h3><span>U.S. Currency</span></div>
+          <div class="note-box" id="reportHardFactsTotals">Hard facts total documented loss / cost: $0</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+              <tbody id="reportHardFactsBody"><tr><td colspan="5">Run or open a scenario to populate hard facts reporting.</td></tr></tbody>
             </table>
           </div>
         </div>

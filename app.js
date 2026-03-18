@@ -213,6 +213,50 @@ function generateComponentId() {
   return id;
 }
 
+const USD_FORMATTER = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0
+});
+function parseCurrencyValue(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
+  if (!cleaned || cleaned === "-" || cleaned === "." || cleaned === "-.") return 0;
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+function currency(value) {
+  return USD_FORMATTER.format(Math.round(parseCurrencyValue(value)));
+}
+function formatCurrencyInputValue(value) {
+  const parsed = parseCurrencyValue(value);
+  return parsed ? currency(parsed) : "";
+}
+function unformatCurrencyInputValue(value) {
+  const parsed = parseCurrencyValue(value);
+  return parsed ? String(Math.round(parsed)) : "";
+}
+function setCurrencyFieldValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = formatCurrencyInputValue(value);
+}
+function wireCurrencyFields() {
+  document.querySelectorAll('[data-currency="usd"]').forEach((input) => {
+    input.addEventListener("focus", () => {
+      input.value = unformatCurrencyInputValue(input.value);
+    });
+    input.addEventListener("blur", () => {
+      input.value = formatCurrencyInputValue(input.value);
+    });
+    input.value = formatCurrencyInputValue(input.value);
+  });
+}
+function totalCurrencyField(items, key) {
+  return (items || []).reduce((sum, item) => sum + parseCurrencyValue(item?.[key]), 0);
+}
+
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
@@ -220,7 +264,7 @@ function renderInsuranceTable(targetId, items) {
     tbody.innerHTML = '<tr><td colspan="10">No insurance entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${escapeHtml(x.premium)}</td><td>${escapeHtml(x.deductible)}</td><td>${escapeHtml(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -229,7 +273,7 @@ function renderHardFactsTable(targetId, items) {
     tbody.innerHTML = '<tr><td colspan="5">No hard facts / evidence entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.sourceType)}</td><td>${escapeHtml(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.sourceType)}</td><td>${currency(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
@@ -239,9 +283,9 @@ function addInsurance(mode) {
     policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
     carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
     coverageType: document.getElementById(`${prefix}InsuranceCoverageType`).value || "",
-    premium: document.getElementById(`${prefix}InsurancePremium`).value || "",
-    deductible: document.getElementById(`${prefix}InsuranceDeductible`).value || "",
-    coverageAmount: document.getElementById(`${prefix}InsuranceCoverageAmount`).value || "",
+    premium: parseCurrencyValue(document.getElementById(`${prefix}InsurancePremium`).value || 0),
+    deductible: parseCurrencyValue(document.getElementById(`${prefix}InsuranceDeductible`).value || 0),
+    coverageAmount: parseCurrencyValue(document.getElementById(`${prefix}InsuranceCoverageAmount`).value || 0),
     coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
     notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
@@ -253,7 +297,7 @@ function addHardFact(mode) {
   const list = mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
   list.push({
     sourceType: document.getElementById(`${prefix}HardFactSourceType`).value || "Internal",
-    amount: document.getElementById(`${prefix}HardFactAmount`).value || "",
+    amount: parseCurrencyValue(document.getElementById(`${prefix}HardFactAmount`).value || 0),
     factDate: document.getElementById(`${prefix}HardFactDate`).value || "",
     description: document.getElementById(`${prefix}HardFactDescription`).value || "",
     sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
@@ -276,13 +320,13 @@ function getCurrentComplexComponentSnapshot() {
     identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
     description: document.getElementById("complexScenarioDescription")?.value || "",
     control: Number(document.getElementById("complexControlEffectiveness")?.value || 0),
-    hardCostMin: Number(document.getElementById("complexHardCostMin")?.value || 0),
-    hardCostLikely: Number(document.getElementById("complexHardCostLikely")?.value || 0),
-    hardCostMax: Number(document.getElementById("complexHardCostMax")?.value || 0),
+    hardCostMin: parseCurrencyValue(document.getElementById("complexHardCostMin")?.value || 0),
+    hardCostLikely: parseCurrencyValue(document.getElementById("complexHardCostLikely")?.value || 0),
+    hardCostMax: parseCurrencyValue(document.getElementById("complexHardCostMax")?.value || 0),
     softCostMin: Number(document.getElementById("complexSoftCostMin")?.value || 0),
     softCostLikely: Number(document.getElementById("complexSoftCostLikely")?.value || 0),
     softCostMax: Number(document.getElementById("complexSoftCostMax")?.value || 0),
-    mitigationCost: Number(document.getElementById("complexMitigationCost")?.value || 0),
+    mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost")?.value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
     items: currentComplexItems.map(item => ({ ...item })),
     insurance: complexInsurance.map(item => ({ ...item })),
@@ -652,13 +696,13 @@ function getSinglePayload() {
     impact: Number(document.getElementById("singleImpact").value || 0),
     inherent: calculateSingleInherent(),
     control: Number(document.getElementById("singleControlEffectiveness").value || 0),
-    hardCostMin: Number(document.getElementById("singleHardCostMin").value || 0),
-    hardCostLikely: Number(document.getElementById("singleHardCostLikely").value || 0),
-    hardCostMax: Number(document.getElementById("singleHardCostMax").value || 0),
+    hardCostMin: parseCurrencyValue(document.getElementById("singleHardCostMin").value || 0),
+    hardCostLikely: parseCurrencyValue(document.getElementById("singleHardCostLikely").value || 0),
+    hardCostMax: parseCurrencyValue(document.getElementById("singleHardCostMax").value || 0),
     softCostMin: Number(document.getElementById("singleSoftCostMin").value || 0),
     softCostLikely: Number(document.getElementById("singleSoftCostLikely").value || 0),
     softCostMax: Number(document.getElementById("singleSoftCostMax").value || 0),
-    mitigationCost: Number(document.getElementById("singleMitigationCost").value || 0),
+    mitigationCost: parseCurrencyValue(document.getElementById("singleMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("singleRandomScenarioCount").value || 1000),
     items: [],
     insurance: singleInsurance.slice(),
@@ -698,13 +742,13 @@ function getComplexPayload() {
     impact: 0,
     inherent: avgInherent,
     control: Number(document.getElementById("complexControlEffectiveness").value || 0),
-    hardCostMin: Number(document.getElementById("complexHardCostMin").value || 0),
-    hardCostLikely: Number(document.getElementById("complexHardCostLikely").value || 0),
-    hardCostMax: Number(document.getElementById("complexHardCostMax").value || 0),
+    hardCostMin: parseCurrencyValue(document.getElementById("complexHardCostMin").value || 0),
+    hardCostLikely: parseCurrencyValue(document.getElementById("complexHardCostLikely").value || 0),
+    hardCostMax: parseCurrencyValue(document.getElementById("complexHardCostMax").value || 0),
     softCostMin: Number(document.getElementById("complexSoftCostMin").value || 0),
     softCostLikely: Number(document.getElementById("complexSoftCostLikely").value || 0),
     softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
-    mitigationCost: Number(document.getElementById("complexMitigationCost").value || 0),
+    mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: allItems,
     insurance: allInsurance,
@@ -811,10 +855,6 @@ function runFinancialMonteCarlo(payload) {
     randomOutcomeRows
   };
 }
-function currency(value) {
-  return `$${Math.round(Number(value || 0)).toLocaleString()}`;
-}
-
 function summarizePayload(payload) {
   const total = payload.inherent;
   const itemCount = payload.mode === "complex" ? Math.max(payload.items.length, 1) : 1;
@@ -884,6 +924,53 @@ function summarizePayload(payload) {
     decisionText
   };
 }
+function renderReportSupplements(summary) {
+  const insuranceBody = document.getElementById("reportInsuranceBody");
+  const hardFactsBody = document.getElementById("reportHardFactsBody");
+  const insuranceTotalEl = document.getElementById("reportInsuranceTotals");
+  const hardFactsTotalEl = document.getElementById("reportHardFactsTotals");
+  if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl) return;
+  const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
+  const hardFacts = Array.isArray(summary?.hardFacts) ? summary.hardFacts : [];
+
+  if (!insurance.length) {
+    insuranceBody.innerHTML = '<tr><td colspan="10">No insurance data loaded for this scenario.</td></tr>';
+    insuranceTotalEl.textContent = 'Insurance totals: Premium $0 | Deductible $0 | Coverage $0';
+  } else {
+    insuranceBody.innerHTML = insurance.map(item => `
+      <tr>
+        <td>${escapeHtml(item.policyName)}</td>
+        <td>${escapeHtml(item.policyNumber)}</td>
+        <td>${escapeHtml(item.carrier)}</td>
+        <td>${escapeHtml(item.coverageType)}</td>
+        <td>${currency(item.premium)}</td>
+        <td>${currency(item.deductible)}</td>
+        <td>${currency(item.coverageAmount)}</td>
+        <td>${escapeHtml(item.coverageDates)}</td>
+        <td>${escapeHtml(item.notes)}</td>
+        <td>${escapeHtml(item.sourceLink)}</td>
+      </tr>
+    `).join("");
+    insuranceTotalEl.textContent = `Insurance totals: Premium ${currency(totalCurrencyField(insurance, "premium"))} | Deductible ${currency(totalCurrencyField(insurance, "deductible"))} | Coverage ${currency(totalCurrencyField(insurance, "coverageAmount"))}`;
+  }
+
+  if (!hardFacts.length) {
+    hardFactsBody.innerHTML = '<tr><td colspan="5">No hard facts / evidence loaded for this scenario.</td></tr>';
+    hardFactsTotalEl.textContent = 'Hard facts total documented loss / cost: $0';
+  } else {
+    hardFactsBody.innerHTML = hardFacts.map(item => `
+      <tr>
+        <td>${escapeHtml(item.sourceType)}</td>
+        <td>${currency(item.amount)}</td>
+        <td>${escapeHtml(item.factDate)}</td>
+        <td>${escapeHtml(item.description)}</td>
+        <td>${escapeHtml(item.sourceLink)}</td>
+      </tr>
+    `).join("");
+    hardFactsTotalEl.textContent = `Hard facts total documented loss / cost: ${currency(totalCurrencyField(hardFacts, "amount"))}`;
+  }
+}
+
 function renderScenarioSummary(summary) {
   document.getElementById("scenarioIdDisplay").textContent = summary.id || "Not Saved";
   document.getElementById("inherentRiskScoreDisplay").textContent = summary.inherent;
@@ -912,7 +999,11 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Estimated annual reduction in loss from mitigation, before subtracting mitigation cost."><strong>Annual Risk Reduction Value:</strong></span> ${currency(summary.riskReductionValue)}</li>
     <li><span class="help-label" data-help="Risk-reduction value minus mitigation cost; used as a cost-effectiveness screen."><strong>Net Benefit / ROI:</strong></span> ${currency(summary.mitigationROI)}</li>
     <li><span class="help-label" data-help="Suggested review cadence based on the mapped residual-risk tier."><strong>Review Frequency:</strong></span> ${escapeHtml(summary.frequency)}</li>
+    <li><span class="help-label" data-help="Count of insurance records loaded into the scenario and available for reporting."><strong>Insurance Records:</strong></span> ${(summary.insurance || []).length}</li>
+    <li><span class="help-label" data-help="Documented insurance premium total across all listed policies."><strong>Insurance Premium Total:</strong></span> ${currency(totalCurrencyField(summary.insurance, "premium"))}</li>
+    <li><span class="help-label" data-help="Documented factual loss or cost evidence total across all listed hard facts."><strong>Hard Facts Total:</strong></span> ${currency(totalCurrencyField(summary.hardFacts, "amount"))}</li>
   `;
+  renderReportSupplements(summary);
   document.getElementById("executiveDecisionBox").innerHTML = `
     <strong>Executive Decision Summary</strong><br>
     There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
@@ -924,6 +1015,8 @@ function renderScenarioSummary(summary) {
   document.getElementById("decisionMetricsBody").innerHTML = `
     <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
     <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
+    <tr><td>Total Insurance Premium</td><td>${currency(totalCurrencyField(summary.insurance, "premium"))}</td></tr>
+    <tr><td>Total Hard Facts / Evidence Cost</td><td>${currency(totalCurrencyField(summary.hardFacts, "amount"))}</td></tr>
     <tr><td>Mitigation Cost</td><td>${currency(summary.mitigationCost)}</td></tr>
     <tr><td>Annual Risk Reduction Value</td><td>${currency(summary.riskReductionValue)}</td></tr>
     <tr><td>Net Benefit / ROI</td><td>${currency(summary.mitigationROI)}</td></tr>
@@ -1007,18 +1100,18 @@ function setBetaOutputs(result) {
   document.getElementById("betaP10").value = safe.p10 || 0;
   document.getElementById("betaP50").value = safe.p50 || 0;
   document.getElementById("betaP90").value = safe.p90 || 0;
-  document.getElementById("betaExpectedValueDisplay").textContent = String(safe.expectedValue || 0);
-  document.getElementById("betaP10Display").textContent = String(safe.p10 || 0);
-  document.getElementById("betaP50Display").textContent = String(safe.p50 || 0);
-  document.getElementById("betaP90Display").textContent = String(safe.p90 || 0);
+  document.getElementById("betaExpectedValueDisplay").textContent = currency(safe.expectedValue || 0);
+  document.getElementById("betaP10Display").textContent = currency(safe.p10 || 0);
+  document.getElementById("betaP50Display").textContent = currency(safe.p50 || 0);
+  document.getElementById("betaP90Display").textContent = currency(safe.p90 || 0);
   document.getElementById("betaIterationsDisplay").textContent = String(safe.iterations || 0);
   document.getElementById("betaNarrative").textContent = safe.narrative || "Run a beta scenario to populate projected future-state outcomes.";
 }
 function getBetaPayload() {
   const result = runBetaScenarioSimulation({
-    min: Number(document.getElementById("betaMin").value || 0),
-    mode: Number(document.getElementById("betaMode").value || 0),
-    max: Number(document.getElementById("betaMax").value || 0)
+    min: parseCurrencyValue(document.getElementById("betaMin").value || 0),
+    mode: parseCurrencyValue(document.getElementById("betaMode").value || 0),
+    max: parseCurrencyValue(document.getElementById("betaMax").value || 0)
   }, Number(document.getElementById("betaRandomScenarioCount").value || 1000));
   return {
     mode: "beta",
@@ -1035,9 +1128,9 @@ function getBetaPayload() {
     plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate").value || "",
     description: document.getElementById("betaScenarioDescription").value || "",
     randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount").value || 1000),
-    betaMin: Number(document.getElementById("betaMin").value || 0),
-    betaMode: Number(document.getElementById("betaMode").value || 0),
-    betaMax: Number(document.getElementById("betaMax").value || 0),
+    betaMin: parseCurrencyValue(document.getElementById("betaMin").value || 0),
+    betaMode: parseCurrencyValue(document.getElementById("betaMode").value || 0),
+    betaMax: parseCurrencyValue(document.getElementById("betaMax").value || 0),
     betaRelativeMean: Number(result.relativeMean || 0),
     betaShapeA: Number(result.a || 0),
     betaShapeB: Number(result.b || 0),
@@ -1110,9 +1203,9 @@ function loadBetaTestScenario() {
   document.getElementById("betaIdentifiedDate").value = todayIso();
   document.getElementById("betaPlannedDecisionDate").value = todayIso();
   document.getElementById("betaPlannedGoLiveDate").value = todayIso();
-  document.getElementById("betaMin").value = 150000;
-  document.getElementById("betaMode").value = 325000;
-  document.getElementById("betaMax").value = 900000;
+  setCurrencyFieldValue("betaMin", 150000);
+  setCurrencyFieldValue("betaMode", 325000);
+  setCurrencyFieldValue("betaMax", 900000);
   const betaRandom = document.getElementById("betaRandomScenarioCount");
   if (betaRandom) betaRandom.value = "1000";
   document.getElementById("betaScenarioDescription").value = "This beta scenario models projected launch economics and uncertainty for an embedded payments offering while documenting insurance coverage and factual planning evidence.";
@@ -1246,13 +1339,13 @@ function openScenario(id) {
     document.getElementById("singleLikelihood").value = s.likelihood || 0;
     document.getElementById("singleImpact").value = s.impact || 0;
     document.getElementById("singleControlEffectiveness").value = s.control || 0;
-    document.getElementById("singleHardCostMin").value = s.hardCostMin || 0;
-    document.getElementById("singleHardCostLikely").value = s.hardCostLikely || 0;
-    document.getElementById("singleHardCostMax").value = s.hardCostMax || 0;
+    setCurrencyFieldValue("singleHardCostMin", s.hardCostMin || 0);
+    setCurrencyFieldValue("singleHardCostLikely", s.hardCostLikely || 0);
+    setCurrencyFieldValue("singleHardCostMax", s.hardCostMax || 0);
     document.getElementById("singleSoftCostMin").value = s.softCostMin || 0;
     document.getElementById("singleSoftCostLikely").value = s.softCostLikely || 0;
     document.getElementById("singleSoftCostMax").value = s.softCostMax || 0;
-    document.getElementById("singleMitigationCost").value = s.mitigationCost || 0;
+    setCurrencyFieldValue("singleMitigationCost", s.mitigationCost || 0);
     const singleRandom = document.getElementById("singleRandomScenarioCount");
     if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
     singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
@@ -1282,9 +1375,9 @@ function openScenario(id) {
     document.getElementById("betaIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("betaPlannedDecisionDate").value = s.plannedDecisionDate || "";
     document.getElementById("betaPlannedGoLiveDate").value = s.plannedGoLiveDate || "";
-    document.getElementById("betaMin").value = s.betaMin || 0;
-    document.getElementById("betaMode").value = s.betaMode || 0;
-    document.getElementById("betaMax").value = s.betaMax || 0;
+    setCurrencyFieldValue("betaMin", s.betaMin || 0);
+    setCurrencyFieldValue("betaMode", s.betaMode || 0);
+    setCurrencyFieldValue("betaMax", s.betaMax || 0);
     const betaRandom = document.getElementById("betaRandomScenarioCount");
     if (betaRandom) betaRandom.value = String(s.randomScenarioCount || 1000);
     document.getElementById("betaScenarioDescription").value = s.description || "";
@@ -1310,13 +1403,13 @@ function openScenario(id) {
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
-    document.getElementById("complexHardCostMin").value = s.hardCostMin || 0;
-    document.getElementById("complexHardCostLikely").value = s.hardCostLikely || 0;
-    document.getElementById("complexHardCostMax").value = s.hardCostMax || 0;
+    setCurrencyFieldValue("complexHardCostMin", s.hardCostMin || 0);
+    setCurrencyFieldValue("complexHardCostLikely", s.hardCostLikely || 0);
+    setCurrencyFieldValue("complexHardCostMax", s.hardCostMax || 0);
     document.getElementById("complexSoftCostMin").value = s.softCostMin || 0;
     document.getElementById("complexSoftCostLikely").value = s.softCostLikely || 0;
     document.getElementById("complexSoftCostMax").value = s.softCostMax || 0;
-    document.getElementById("complexMitigationCost").value = s.mitigationCost || 0;
+    setCurrencyFieldValue("complexMitigationCost", s.mitigationCost || 0);
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
     currentComplexItems = (firstComponent && Array.isArray(firstComponent.items) ? firstComponent.items : Array.isArray(s.items) ? s.items : []).slice().map(item => ({
@@ -1800,6 +1893,29 @@ async function downloadBoardPacketDocx() {
       addSpacer();
     }
 
+    if (Array.isArray(s.insurance) && s.insurance.length) {
+      children.push(new Paragraph({ text: "Insurance", heading: HeadingLevel.HEADING_2 }));
+      children.push(new Paragraph(`Insurance totals: Premium ${currency(totalCurrencyField(s.insurance, "premium"))} | Deductible ${currency(totalCurrencyField(s.insurance, "deductible"))} | Coverage ${currency(totalCurrencyField(s.insurance, "coverageAmount"))}`));
+      s.insurance.forEach((ins, i) => {
+        children.push(new Paragraph({ text: `${i + 1}. ${ins.policyName || "Policy"}`, heading: HeadingLevel.HEADING_3 }));
+        children.push(new Paragraph(`Policy Number: ${ins.policyNumber || ""} | Carrier: ${ins.carrier || ""} | Coverage Type: ${ins.coverageType || ""}`));
+        children.push(new Paragraph(`Premium: ${currency(ins.premium)} | Deductible: ${currency(ins.deductible)} | Coverage Amount: ${currency(ins.coverageAmount)} | Dates: ${ins.coverageDates || ""}`));
+        children.push(new Paragraph(`Notes: ${ins.notes || ""} | Source: ${ins.sourceLink || ""}`));
+      });
+      addSpacer();
+    }
+
+    if (Array.isArray(s.hardFacts) && s.hardFacts.length) {
+      children.push(new Paragraph({ text: "Hard Facts / Evidence", heading: HeadingLevel.HEADING_2 }));
+      children.push(new Paragraph(`Total documented loss / cost: ${currency(totalCurrencyField(s.hardFacts, "amount"))}`));
+      s.hardFacts.forEach((fact, i) => {
+        children.push(new Paragraph({ text: `${i + 1}. ${fact.description || "Hard Fact"}`, heading: HeadingLevel.HEADING_3 }));
+        children.push(new Paragraph(`Source Type: ${fact.sourceType || ""} | Amount: ${currency(fact.amount)} | Date: ${fact.factDate || ""}`));
+        children.push(new Paragraph(`Source: ${fact.sourceLink || ""}`));
+      });
+      addSpacer();
+    }
+
     if (Array.isArray(s.mitigations) && s.mitigations.length) {
       children.push(new Paragraph({ text: "Mitigation Factors", heading: HeadingLevel.HEADING_2 }));
       s.mitigations.forEach((m, i) => {
@@ -1962,6 +2078,48 @@ function buildBoardPacketText(summary) {
       lines.push(`   Explanation: ${item.description || "This line item represents an individual weighted contributor to the overall complex-scenario risk result."}`);
       lines.push("");
     });
+  }
+  if (Array.isArray(summary.insurance) && summary.insurance.length) {
+    lines.push("INSURANCE");
+    lines.push(`Insurance totals: Premium ${currency(totalCurrencyField(summary.insurance, "premium"))} | Deductible ${currency(totalCurrencyField(summary.insurance, "deductible"))} | Coverage ${currency(totalCurrencyField(summary.insurance, "coverageAmount"))}`);
+    summary.insurance.forEach((ins, i) => {
+      lines.push(`${i + 1}. ${ins.policyName || "Policy"}`);
+      lines.push(`   Policy Number: ${ins.policyNumber || ""}`);
+      lines.push(`   Carrier: ${ins.carrier || ""} | Coverage Type: ${ins.coverageType || ""}`);
+      lines.push(`   Premium: ${currency(ins.premium)} | Deductible: ${currency(ins.deductible)} | Coverage Amount: ${currency(ins.coverageAmount)}`);
+      lines.push(`   Dates: ${ins.coverageDates || ""} | Source: ${ins.sourceLink || ""}`);
+      lines.push(`   Notes: ${ins.notes || ""}`);
+      lines.push("");
+    });
+  }
+  if (Array.isArray(summary.hardFacts) && summary.hardFacts.length) {
+    lines.push("HARD FACTS / EVIDENCE");
+    lines.push(`Total documented loss / cost: ${currency(totalCurrencyField(summary.hardFacts, "amount"))}`);
+    summary.hardFacts.forEach((fact, i) => {
+      lines.push(`${i + 1}. ${fact.description || "Hard Fact"}`);
+      lines.push(`   Source Type: ${fact.sourceType || ""} | Amount: ${currency(fact.amount)} | Date: ${fact.factDate || ""}`);
+      lines.push(`   Source: ${fact.sourceLink || ""}`);
+      lines.push("");
+    });
+  }
+  if (Array.isArray(summary.insurance) && summary.insurance.length) {
+    lines.push("INSURANCE");
+    lines.push(`Insurance totals: Premium ${currency(totalCurrencyField(summary.insurance, "premium"))} | Deductible ${currency(totalCurrencyField(summary.insurance, "deductible"))} | Coverage ${currency(totalCurrencyField(summary.insurance, "coverageAmount"))}`);
+    summary.insurance.forEach((ins, i) => {
+      lines.push(`${i + 1}. ${ins.policyName || "Policy"} | ${ins.carrier || ""} | ${ins.coverageType || ""}`);
+      lines.push(`Policy Number: ${ins.policyNumber || ""} | Premium: ${currency(ins.premium)} | Deductible: ${currency(ins.deductible)} | Coverage Amount: ${currency(ins.coverageAmount)}`);
+      lines.push(`Dates: ${ins.coverageDates || ""} | Source: ${ins.sourceLink || ""}`);
+    });
+    lines.push("");
+  }
+  if (Array.isArray(summary.hardFacts) && summary.hardFacts.length) {
+    lines.push("HARD FACTS / EVIDENCE");
+    lines.push(`Total documented loss / cost: ${currency(totalCurrencyField(summary.hardFacts, "amount"))}`);
+    summary.hardFacts.forEach((fact, i) => {
+      lines.push(`${i + 1}. ${fact.description || "Hard Fact"} | ${currency(fact.amount)} | ${fact.factDate || ""}`);
+      lines.push(`Source Type: ${fact.sourceType || ""} | Source: ${fact.sourceLink || ""}`);
+    });
+    lines.push("");
   }
   if (Array.isArray(summary.mitigations) && summary.mitigations.length) {
     lines.push("MITIGATION FACTORS");
@@ -2137,6 +2295,7 @@ function forceManualContent() {
 function init() {
   loadStoredMonteCarloConfig();
   wireInputs();
+  wireCurrencyFields();
   renderManual();
   forceManualContent();
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
