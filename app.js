@@ -1022,7 +1022,8 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Documented factual loss or cost evidence total across all listed hard facts."><strong>Hard Facts Total:</strong></span> ${currency(totalCurrencyField(summary.hardFacts, "amount"))}</li>
   `;
   renderReportSupplements(summary);
-  document.getElementById("executiveDecisionBox").innerHTML = `
+  const executiveDecisionEl = document.getElementById("executiveDecisionBox");
+  if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
     <strong>Executive Decision Summary</strong><br>
     There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
     Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
@@ -1030,7 +1031,8 @@ function renderScenarioSummary(summary) {
     ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
   `;
 
-  document.getElementById("decisionMetricsBody").innerHTML = `
+  const decisionMetricsEl = document.getElementById("decisionMetricsBody");
+  if (decisionMetricsEl) decisionMetricsEl.innerHTML = `
     <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
     <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
     <tr><td>Total Insurance Premium</td><td>${currency(totalCurrencyField(summary.insurance, "premium"))}</td></tr>
@@ -1041,7 +1043,8 @@ function renderScenarioSummary(summary) {
     <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
   `;
 
-  document.getElementById("horizonExposureBody").innerHTML = summary.horizonRows.map(row => `
+  const horizonExposureEl = document.getElementById("horizonExposureBody");
+  if (horizonExposureEl) horizonExposureEl.innerHTML = summary.horizonRows.map(row => `
     <tr>
       <td>${escapeHtml(row.horizonLabel)}</td>
       <td>${currency(row.withoutMitigation)}</td>
