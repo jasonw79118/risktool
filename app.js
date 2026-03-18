@@ -186,6 +186,12 @@ function getStoredArray(key) {
 function setStoredArray(key, value) {
   writeJSON(key, sortedUnique(value));
 }
+
+function setTextIfPresent(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = String(value ?? "");
+}
+
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -544,12 +550,11 @@ function refreshLibraries() {
   acceptanceAuthorities = sortedUnique([...DEFAULT_ACCEPTANCE_AUTHORITIES, ...getStoredArray(CAT_KEYS.acceptanceAuthorities)]);
 
   const saved = getSavedScenarios();
-  const betaSavedCount = saved.filter(s => String(s.mode || "") === "beta").length;
-  setTextIfPresent("categoryProductGroupCount", productGroups.length);
-  setTextIfPresent("categoryRegCount", regulations.length);
-  setTextIfPresent("categoryDomainCount", riskDomains.length);
+  setTextIfPresent("productGroupCount", productGroups.length);
+  setTextIfPresent("regCount", regulations.length);
+  setTextIfPresent("domainCount", riskDomains.length);
   setTextIfPresent("savedCount", saved.length);
-  setTextIfPresent("betaScenarioCount", betaSavedCount);
+  setTextIfPresent("betaCount", saved.filter(x => x.mode === "beta").length);
 
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
@@ -584,10 +589,6 @@ function populateSelect(id, items) {
   const current = select.value;
   select.innerHTML = items.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
   if (items.includes(current)) select.value = current;
-}
-function setTextIfPresent(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
 }
 function activateView(viewName) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
@@ -988,15 +989,16 @@ function renderReportSupplements(summary) {
 }
 
 function renderScenarioSummary(summary) {
-  setTextIfPresent("scenarioIdDisplay", summary.id || "Not Saved");
-  setTextIfPresent("inherentRiskScoreDisplay", summary.inherent);
-  setTextIfPresent("residualRiskScore", summary.residual);
-  setTextIfPresent("riskTier", summary.tier);
-  setTextIfPresent("reviewFrequency", summary.frequency);
-  setTextIfPresent("itemCount", summary.itemCount);
-  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
-  document.getElementById("aiSummaryBox").textContent = summary.generatedSummary;
-  document.getElementById("reportSummary").innerHTML = `
+  document.getElementById("scenarioIdDisplay").textContent = summary.id || "Not Saved";
+  document.getElementById("inherentRiskScoreDisplay").textContent = summary.inherent;
+  document.getElementById("residualRiskScore").textContent = summary.residual;
+  document.getElementById("riskTier").textContent = summary.tier;
+  document.getElementById("reviewFrequency").textContent = summary.frequency;
+  document.getElementById("itemCount").textContent = summary.itemCount;
+  document.getElementById("dashboardNarrative").textContent = `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`;
+  setTextIfPresent("aiSummaryBox", summary.generatedSummary);
+  const reportSummaryEl = document.getElementById("reportSummary");
+  if (reportSummaryEl) reportSummaryEl.innerHTML = `
     <li><span class="help-label" data-help="Auto-generated scenario identifier used for tracking and reporting."><strong>Scenario ID:</strong></span> ${escapeHtml(summary.id || "Not Saved")}</li>
     <li><span class="help-label" data-help="The scenario currently being evaluated or reported."><strong>Scenario:</strong></span> ${escapeHtml(summary.name)}</li>
     <li><span class="help-label" data-help="Shows whether the report is based on a single or complex scenario builder."><strong>Builder:</strong></span> ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}</li>
@@ -1081,8 +1083,10 @@ function drawSimpleBarChart(canvasId, summary) {
 function renderCharts(summary) {
   const showDash = document.getElementById("showDashboardGraphToggle").checked;
   const showReport = document.getElementById("includeGraphInReport").checked;
-  document.getElementById("dashboardChartCard").classList.toggle("hidden", !showDash);
-  document.getElementById("reportGraphCard").classList.toggle("hidden", !showReport);
+  const dashCard = document.getElementById("dashboardChartCard");
+  const reportCard = document.getElementById("reportGraphCard");
+  if (dashCard) dashCard.classList.toggle("hidden", !showDash);
+  if (reportCard) reportCard.classList.toggle("hidden", !showReport);
   if (showDash) drawSimpleBarChart("dashboardChart", summary);
   if (showReport) drawSimpleBarChart("reportChart", summary);
 }
@@ -1293,8 +1297,7 @@ function saveScenario(event) {
 function renderSavedScenarios() {
   const tbody = document.getElementById("savedEvaluationsBody");
   const saved = getSavedScenarios();
-  setTextIfPresent("savedCount", saved.length);
-  setTextIfPresent("betaScenarioCount", saved.filter(s => String(s.mode || "") === "beta").length);
+  document.getElementById("savedCount").textContent = saved.length;
   if (!saved.length) {
     tbody.innerHTML = '<tr><td colspan="9">No saved scenarios yet.</td></tr>';
     return;
