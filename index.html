@@ -223,6 +223,7 @@
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="singleInsurancePolicyName" type="text" placeholder="e.g. Card Services E&O"></div>
+          <div><label>Policy Number</label><input id="singleInsurancePolicyNumber" type="text" placeholder="e.g. PL-100245"></div>
           <div><label>Carrier</label><input id="singleInsuranceCarrier" type="text" placeholder="e.g. Acme Specialty"></div>
           <div><label>Coverage Type</label><input id="singleInsuranceCoverageType" type="text" placeholder="e.g. Errors & Omissions"></div>
           <div><label>Premium</label><input id="singleInsurancePremium" type="text" placeholder="e.g. 18000"></div>
@@ -241,7 +242,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="singleInsuranceBody"></tbody>
           </table>
         </div>
@@ -485,6 +486,7 @@
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="complexInsurancePolicyName" type="text" placeholder="e.g. Program Tech E&O"></div>
+          <div><label>Policy Number</label><input id="complexInsurancePolicyNumber" type="text" placeholder="e.g. CX-440018"></div>
           <div><label>Carrier</label><input id="complexInsuranceCarrier" type="text" placeholder="e.g. National Mutual"></div>
           <div><label>Coverage Type</label><input id="complexInsuranceCoverageType" type="text" placeholder="e.g. Cyber / Technology E&O"></div>
           <div><label>Premium</label><input id="complexInsurancePremium" type="text" placeholder="e.g. 95000"></div>
@@ -503,7 +505,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="complexInsuranceBody"></tbody>
           </table>
         </div>
@@ -714,6 +716,59 @@
             <label class="help-label" data-help="Narrative description of the future-state proposal or project.">Description</label>
             <textarea id="betaScenarioDescription" rows="4" placeholder="Describe the future-state proposal, uncertainty, risks, and why the scenario matters."></textarea>
           </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Policy Name</label><input id="betaInsurancePolicyName" type="text" placeholder="e.g. Launch Liability Program"></div>
+          <div><label>Policy Number</label><input id="betaInsurancePolicyNumber" type="text" placeholder="e.g. BETA-PL-1001"></div>
+          <div><label>Carrier</label><input id="betaInsuranceCarrier" type="text" placeholder="e.g. Acme Specialty"></div>
+          <div><label>Coverage Type</label><input id="betaInsuranceCoverageType" type="text" placeholder="e.g. Technology E&amp;O"></div>
+          <div><label>Premium</label><input id="betaInsurancePremium" type="text" placeholder="e.g. 42000"></div>
+          <div><label>Deductible</label><input id="betaInsuranceDeductible" type="text" placeholder="e.g. 50000"></div>
+          <div><label>Coverage Amount</label><input id="betaInsuranceCoverageAmount" type="text" placeholder="e.g. 2000000"></div>
+          <div><label>Coverage Dates</label><input id="betaInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
+          <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="betaInsuranceNotes" type="text" placeholder="e.g. Quoted launch coverage tower"></div>
+          <div class="full-span"><label>Source Link / Document Location</label><input id="betaInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/embedded-payments"></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addBetaInsuranceBtn">Add Insurance</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <tbody id="betaInsuranceBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Source Type</label><select id="betaHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
+          <div><label>Loss / Cost Amount</label><input id="betaHardFactAmount" type="text" placeholder="e.g. 175000"></div>
+          <div><label>Date</label><input id="betaHardFactDate" type="date"></div>
+          <div class="full-span"><label>Description / Notes</label><input id="betaHardFactDescription" type="text" placeholder="Describe the factual cost, benchmark, or evidence"></div>
+          <div class="full-span"><label>Source Link / Internal Location</label><input id="betaHardFactSourceLink" type="text" placeholder="e.g. internal://planning/embedded-payments-costing"></div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addBetaHardFactBtn">Add Hard Fact</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <tbody id="betaHardFactsBody"></tbody>
+          </table>
         </div>
       </div>
 

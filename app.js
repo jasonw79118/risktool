@@ -153,6 +153,8 @@ let singleInsurance = [];
 let complexInsurance = [];
 let singleHardFacts = [];
 let complexHardFacts = [];
+let betaInsurance = [];
+let betaHardFacts = [];
 let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
@@ -215,10 +217,10 @@ function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="9">No insurance entries added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10">No insurance entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${escapeHtml(x.premium)}</td><td>${escapeHtml(x.deductible)}</td><td>${escapeHtml(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${escapeHtml(x.premium)}</td><td>${escapeHtml(x.deductible)}</td><td>${escapeHtml(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -230,10 +232,11 @@ function renderHardFactsTable(targetId, items) {
   tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.sourceType)}</td><td>${escapeHtml(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
 function addInsurance(mode) {
-  const prefix = mode === "single" ? "single" : "complex";
-  const list = mode === "single" ? singleInsurance : complexInsurance;
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  const list = mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
   list.push({
     policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
+    policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
     carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
     coverageType: document.getElementById(`${prefix}InsuranceCoverageType`).value || "",
     premium: document.getElementById(`${prefix}InsurancePremium`).value || "",
@@ -246,8 +249,8 @@ function addInsurance(mode) {
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
 }
 function addHardFact(mode) {
-  const prefix = mode === "single" ? "single" : "complex";
-  const list = mode === "single" ? singleHardFacts : complexHardFacts;
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  const list = mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
   list.push({
     sourceType: document.getElementById(`${prefix}HardFactSourceType`).value || "Internal",
     amount: document.getElementById(`${prefix}HardFactAmount`).value || "",
@@ -401,6 +404,20 @@ function normalizeScenario(saved) {
     primaryRegulation: saved.primaryRegulation || "",
     scenarioOwner: saved.scenarioOwner || "",
     identifiedDate: saved.identifiedDate || "",
+    plannedDecisionDate: saved.plannedDecisionDate || "",
+    plannedGoLiveDate: saved.plannedGoLiveDate || "",
+    projectOrProductName: saved.projectOrProductName || "",
+    betaMin: Number(saved.betaMin || 0),
+    betaMode: Number(saved.betaMode || 0),
+    betaMax: Number(saved.betaMax || 0),
+    betaRelativeMean: Number(saved.betaRelativeMean || 0),
+    betaShapeA: Number(saved.betaShapeA || 0),
+    betaShapeB: Number(saved.betaShapeB || 0),
+    betaExpectedValue: Number(saved.betaExpectedValue || 0),
+    betaP10: Number(saved.betaP10 || 0),
+    betaP50: Number(saved.betaP50 || 0),
+    betaP90: Number(saved.betaP90 || 0),
+    betaIterations: Number(saved.betaIterations || 0),
     description: saved.description || "",
     likelihood: Number(saved.likelihood || 0),
     impact: Number(saved.impact || 0),
@@ -480,8 +497,10 @@ function refreshLibraries() {
 
   populateSelect("singleProductGroup", productGroups);
   populateSelect("complexProductGroup", productGroups);
+  populateSelect("betaProductGroup", productGroups);
   populateSelect("singleRiskDomain", riskDomains);
   populateSelect("complexRiskDomain", riskDomains);
+  populateSelect("betaRiskDomain", riskDomains);
   populateSelect("singleScenarioStatus", scenarioStatuses);
   populateSelect("complexScenarioStatus", scenarioStatuses);
   populateSelect("singleScenarioSource", scenarioSources);
@@ -979,6 +998,150 @@ function renderMonteCarloTable(summary) {
     explain.textContent = "This report section documents the Monte Carlo method, inputs, and outputs used in the current scenario. The model uses bounded triangular sampling for hard cost and soft-cost multipliers, applies the stated control-effectiveness assumption, and estimates a distribution of annual loss outcomes. This structure is intended to support transparency, reproducibility, and examiner review.";
   }
 }
+function setBetaOutputs(result) {
+  const safe = result || {};
+  document.getElementById("betaRelativeMean").value = safe.relativeMean ? Number(safe.relativeMean).toFixed(4) : "";
+  document.getElementById("betaShapeA").value = safe.a ? Number(safe.a).toFixed(4) : "";
+  document.getElementById("betaShapeB").value = safe.b ? Number(safe.b).toFixed(4) : "";
+  document.getElementById("betaExpectedValue").value = safe.expectedValue || 0;
+  document.getElementById("betaP10").value = safe.p10 || 0;
+  document.getElementById("betaP50").value = safe.p50 || 0;
+  document.getElementById("betaP90").value = safe.p90 || 0;
+  document.getElementById("betaExpectedValueDisplay").textContent = String(safe.expectedValue || 0);
+  document.getElementById("betaP10Display").textContent = String(safe.p10 || 0);
+  document.getElementById("betaP50Display").textContent = String(safe.p50 || 0);
+  document.getElementById("betaP90Display").textContent = String(safe.p90 || 0);
+  document.getElementById("betaIterationsDisplay").textContent = String(safe.iterations || 0);
+  document.getElementById("betaNarrative").textContent = safe.narrative || "Run a beta scenario to populate projected future-state outcomes.";
+}
+function getBetaPayload() {
+  const result = runBetaScenarioSimulation({
+    min: Number(document.getElementById("betaMin").value || 0),
+    mode: Number(document.getElementById("betaMode").value || 0),
+    max: Number(document.getElementById("betaMax").value || 0)
+  }, Number(document.getElementById("betaRandomScenarioCount").value || 1000));
+  return {
+    mode: "beta",
+    id: document.getElementById("betaScenarioId").value,
+    name: document.getElementById("betaScenarioName").value || "Unnamed Beta Scenario",
+    productGroup: document.getElementById("betaProductGroup").value || "",
+    riskDomain: document.getElementById("betaRiskDomain").value || "",
+    scenarioStatus: document.getElementById("betaScenarioStatus").value || "Draft",
+    primaryProduct: document.getElementById("betaProjectOrProductName").value || "",
+    projectOrProductName: document.getElementById("betaProjectOrProductName").value || "",
+    scenarioOwner: document.getElementById("betaScenarioOwner").value || "",
+    identifiedDate: document.getElementById("betaIdentifiedDate").value || "",
+    plannedDecisionDate: document.getElementById("betaPlannedDecisionDate").value || "",
+    plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate").value || "",
+    description: document.getElementById("betaScenarioDescription").value || "",
+    randomScenarioCount: Number(document.getElementById("betaRandomScenarioCount").value || 1000),
+    betaMin: Number(document.getElementById("betaMin").value || 0),
+    betaMode: Number(document.getElementById("betaMode").value || 0),
+    betaMax: Number(document.getElementById("betaMax").value || 0),
+    betaRelativeMean: Number(result.relativeMean || 0),
+    betaShapeA: Number(result.a || 0),
+    betaShapeB: Number(result.b || 0),
+    betaExpectedValue: Number(result.expectedValue || 0),
+    betaP10: Number(result.p10 || 0),
+    betaP50: Number(result.p50 || 0),
+    betaP90: Number(result.p90 || 0),
+    betaIterations: Number(result.iterations || 0),
+    randomOutcomeRows: Array.isArray(result.randomOutcomeRows) ? result.randomOutcomeRows : [],
+    insurance: betaInsurance.slice(),
+    hardFacts: betaHardFacts.slice(),
+    inherent: 0,
+    residual: 0,
+    itemCount: 1,
+    tier: "Projected",
+    frequency: "As Needed",
+    generatedSummary: `Beta scenario projection for ${document.getElementById("betaProjectOrProductName").value || document.getElementById("betaScenarioName").value || "the proposal"} shows an expected value of ${currency(result.expectedValue || 0)}, with a P10 of ${currency(result.p10 || 0)} and a P90 of ${currency(result.p90 || 0)} across ${result.iterations || 0} randomized draws.`
+  };
+}
+function runBetaScenario() {
+  const payload = getBetaPayload();
+  setBetaOutputs({
+    relativeMean: payload.betaRelativeMean,
+    a: payload.betaShapeA,
+    b: payload.betaShapeB,
+    expectedValue: payload.betaExpectedValue,
+    p10: payload.betaP10,
+    p50: payload.betaP50,
+    p90: payload.betaP90,
+    iterations: payload.betaIterations,
+    narrative: payload.generatedSummary
+  });
+}
+function saveBetaScenario(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  const payload = getBetaPayload();
+  const saved = getSavedScenarios();
+  if (!payload.id) {
+    payload.id = generateScenarioId(saved);
+    document.getElementById("betaScenarioId").value = payload.id;
+  }
+  const existingIndex = saved.findIndex(x => x.id === payload.id);
+  if (existingIndex >= 0) saved[existingIndex] = normalizeScenario(payload); else saved.unshift(normalizeScenario(payload));
+  setSavedScenarios(saved);
+  setBetaOutputs({
+    relativeMean: payload.betaRelativeMean,
+    a: payload.betaShapeA,
+    b: payload.betaShapeB,
+    expectedValue: payload.betaExpectedValue,
+    p10: payload.betaP10,
+    p50: payload.betaP50,
+    p90: payload.betaP90,
+    iterations: payload.betaIterations,
+    narrative: payload.generatedSummary
+  });
+  renderSavedScenarios();
+  renderDashboardOpenTable();
+  refreshLibraries();
+  activateView("beta");
+}
+function loadBetaTestScenario() {
+  document.getElementById("betaScenarioId").value = "";
+  document.getElementById("betaScenarioName").value = "Embedded Payments Launch Readiness";
+  setSelectValueSafe("betaProductGroup", "Payment Services");
+  setSelectValueSafe("betaRiskDomain", "Strategic & Business Model Risk");
+  document.getElementById("betaScenarioStatus").value = "Under Review";
+  document.getElementById("betaProjectOrProductName").value = "Embedded Payments Launch";
+  document.getElementById("betaScenarioOwner").value = "Product Management";
+  document.getElementById("betaIdentifiedDate").value = todayIso();
+  document.getElementById("betaPlannedDecisionDate").value = todayIso();
+  document.getElementById("betaPlannedGoLiveDate").value = todayIso();
+  document.getElementById("betaMin").value = 150000;
+  document.getElementById("betaMode").value = 325000;
+  document.getElementById("betaMax").value = 900000;
+  const betaRandom = document.getElementById("betaRandomScenarioCount");
+  if (betaRandom) betaRandom.value = "1000";
+  document.getElementById("betaScenarioDescription").value = "This beta scenario models projected launch economics and uncertainty for an embedded payments offering while documenting insurance coverage and factual planning evidence.";
+  betaInsurance = [
+    { policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" }
+  ];
+  betaHardFacts = [
+    { sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing" }
+  ];
+  renderInsuranceTable("betaInsuranceBody", betaInsurance);
+  renderHardFactsTable("betaHardFactsBody", betaHardFacts);
+  runBetaScenario();
+  activateView("beta");
+}
+function promoteBetaScenario() {
+  const payload = getBetaPayload();
+  document.getElementById("singleScenarioName").value = payload.name || "";
+  setSelectValueSafe("singleProductGroup", payload.productGroup || productGroups[0] || "");
+  setSelectValueSafe("singleRiskDomain", payload.riskDomain || riskDomains[0] || "");
+  document.getElementById("singleScenarioOwner").value = payload.scenarioOwner || "";
+  document.getElementById("singleIdentifiedDate").value = payload.identifiedDate || "";
+  document.getElementById("singleScenarioDescription").value = payload.description || "";
+  singleInsurance = Array.isArray(payload.insurance) ? payload.insurance.slice() : [];
+  singleHardFacts = Array.isArray(payload.hardFacts) ? payload.hardFacts.slice() : [];
+  renderInsuranceTable("singleInsuranceBody", singleInsurance);
+  renderHardFactsTable("singleHardFactsBody", singleHardFacts);
+  activateView("single");
+}
+
 function runScenario() {
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const summary = summarizePayload(payload);
@@ -1024,7 +1187,7 @@ function renderSavedScenarios() {
   tbody.innerHTML = saved.map(s => `<tr>
     <td>${escapeHtml(s.id)}</td>
     <td>${escapeHtml(s.name)}</td>
-    <td>${s.mode === "single" ? "Single" : "Complex"}</td>
+    <td>${s.mode === "single" ? "Single" : s.mode === "complex" ? "Complex" : s.mode === "beta" ? "Beta" : "Unknown"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -1053,7 +1216,7 @@ function renderDashboardOpenTable() {
   }
   tbody.innerHTML = rows.map(s => `<tr>
     <td><button class="scenario-link" data-open-id="${escapeHtml(s.id)}">${escapeHtml(s.id)}</button></td>
-    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : "Unknown"}</td>
+    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : s.mode === "beta" ? "Beta Scenario" : "Unknown"}</td>
     <td>${escapeHtml(s.name)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
     <td>${s.inherent}</td>
@@ -1107,6 +1270,30 @@ function openScenario(id) {
     activeMode = "single";
     updateInherentScores();
     activateView("single");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (s.mode === "beta") {
+    document.getElementById("betaScenarioId").value = s.id || "";
+    document.getElementById("betaScenarioName").value = s.name || "";
+    setSelectValueSafe("betaProductGroup", s.productGroup || productGroups[0] || "");
+    setSelectValueSafe("betaRiskDomain", s.riskDomain || riskDomains[0] || "");
+    setSelectValueSafe("betaScenarioStatus", s.scenarioStatus || "Draft");
+    document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || s.primaryProduct || "";
+    document.getElementById("betaScenarioOwner").value = s.scenarioOwner || "";
+    document.getElementById("betaIdentifiedDate").value = s.identifiedDate || "";
+    document.getElementById("betaPlannedDecisionDate").value = s.plannedDecisionDate || "";
+    document.getElementById("betaPlannedGoLiveDate").value = s.plannedGoLiveDate || "";
+    document.getElementById("betaMin").value = s.betaMin || 0;
+    document.getElementById("betaMode").value = s.betaMode || 0;
+    document.getElementById("betaMax").value = s.betaMax || 0;
+    const betaRandom = document.getElementById("betaRandomScenarioCount");
+    if (betaRandom) betaRandom.value = String(s.randomScenarioCount || 1000);
+    document.getElementById("betaScenarioDescription").value = s.description || "";
+    betaInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
+    betaHardFacts = Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
+    renderInsuranceTable("betaInsuranceBody", betaInsurance);
+    renderHardFactsTable("betaHardFactsBody", betaHardFacts);
+    setBetaOutputs({ relativeMean: s.betaRelativeMean, a: s.betaShapeA, b: s.betaShapeB, expectedValue: s.betaExpectedValue, p10: s.betaP10, p50: s.betaP50, p90: s.betaP90, iterations: s.betaIterations, narrative: s.generatedSummary });
+    activateView("beta");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
     const firstComponent = Array.isArray(s.components) && s.components.length ? s.components[0] : null;
@@ -1266,7 +1453,7 @@ function loadSingleTestScenario() {
   if (singleRandom) singleRandom.value = "1000";
   document.getElementById("singleScenarioDescription").value = "The card-services team changed the consumer dispute workflow and may have shortened key timing checkpoints. The scenario evaluates disclosure and procedural risk under Reg E.";
   singleInsurance = [
-    { policyName: "Card Services E&O", carrier: "Acme Specialty", coverageType: "Errors & Omissions", premium: "18000", deductible: "25000", coverageAmount: "500000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Workflow and servicing coverage", sourceLink: "internal://insurance/card-services-eo" }
+    { policyName: "Card Services E&O", policyNumber: "PL-100245", carrier: "Acme Specialty", coverageType: "Errors & Omissions", premium: "18000", deductible: "25000", coverageAmount: "500000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Workflow and servicing coverage", sourceLink: "internal://insurance/card-services-eo" }
   ];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   singleHardFacts = [
@@ -1322,7 +1509,7 @@ function loadComplexTestScenario() {
   ];
   renderComplexItems();
   complexInsurance = [
-    { policyName: "Program Cyber / Tech E&O", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
+    { policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
   ];
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   complexHardFacts = [
@@ -1403,6 +1590,12 @@ function wireInputs() {
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
   document.getElementById("loadComplexTestBtn").addEventListener("click", loadComplexTestScenario);
+  document.getElementById("loadBetaTestBtn")?.addEventListener("click", loadBetaTestScenario);
+  document.getElementById("runBetaScenarioBtn")?.addEventListener("click", runBetaScenario);
+  document.getElementById("saveBetaScenarioBtn")?.addEventListener("click", (event) => saveBetaScenario(event));
+  document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
+  document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
+  document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
@@ -1471,7 +1664,7 @@ function renderManual() {
     <h4>Category Admin</h4>
     <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, or remove values.</p>
     <h4>Future Scenario Types</h4>
-    <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
+    <p>The current tool supports Single Scenario, Complex Scenario, and Beta Scenario builders. The beta builder supports bounded beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
@@ -1935,7 +2128,7 @@ function forceManualContent() {
     <h4>Category Admin</h4>
     <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, remove, and now restore the default libraries if needed.</p>
     <h4>Future Scenario Types</h4>
-    <p>The current tool supports Single Scenario and Complex Scenario builders. A future phase is planned for a dedicated scenario menu supporting beta-distribution-based project planning and related forecasting use cases.</p>
+    <p>The current tool supports Single Scenario, Complex Scenario, and Beta Scenario builders. The beta builder supports bounded beta-distribution-based project planning and related forecasting use cases.</p>
     <h4>Storage Limitation</h4>
     <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
   `;
@@ -1948,8 +2141,10 @@ function init() {
   forceManualContent();
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
+  renderInsuranceTable("betaInsuranceBody", betaInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+  renderHardFactsTable("betaHardFactsBody", betaHardFacts);
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   renderComplexItems();
