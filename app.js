@@ -244,12 +244,22 @@ function setCurrencyFieldValue(id, value) {
 }
 function wireCurrencyFields() {
   document.querySelectorAll('[data-currency="usd"]').forEach((input) => {
+    if (input.dataset.currencyWired === "true") return;
+    input.dataset.currencyWired = "true";
     input.addEventListener("focus", () => {
       input.value = unformatCurrencyInputValue(input.value);
+    });
+    input.addEventListener("change", () => {
+      input.value = formatCurrencyInputValue(input.value);
     });
     input.addEventListener("blur", () => {
       input.value = formatCurrencyInputValue(input.value);
     });
+    input.value = formatCurrencyInputValue(input.value);
+  });
+}
+function formatAllCurrencyFields() {
+  document.querySelectorAll('[data-currency="usd"]').forEach((input) => {
     input.value = formatCurrencyInputValue(input.value);
   });
 }
@@ -354,13 +364,13 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
   document.getElementById("complexScenarioDescription").value = component.description || "";
   document.getElementById("complexControlEffectiveness").value = component.control || 0;
-  document.getElementById("complexHardCostMin").value = component.hardCostMin || 0;
-  document.getElementById("complexHardCostLikely").value = component.hardCostLikely || 0;
-  document.getElementById("complexHardCostMax").value = component.hardCostMax || 0;
+  setCurrencyFieldValue("complexHardCostMin", component.hardCostMin || 0);
+  setCurrencyFieldValue("complexHardCostLikely", component.hardCostLikely || 0);
+  setCurrencyFieldValue("complexHardCostMax", component.hardCostMax || 0);
   document.getElementById("complexSoftCostMin").value = component.softCostMin || 0;
   document.getElementById("complexSoftCostLikely").value = component.softCostLikely || 0;
   document.getElementById("complexSoftCostMax").value = component.softCostMax || 0;
-  document.getElementById("complexMitigationCost").value = component.mitigationCost || 0;
+  setCurrencyFieldValue("complexMitigationCost", component.mitigationCost || 0);
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
@@ -1190,6 +1200,7 @@ function saveBetaScenario(event) {
   renderSavedScenarios();
   renderDashboardOpenTable();
   refreshLibraries();
+  formatAllCurrencyFields();
   activateView("beta");
 }
 function loadBetaTestScenario() {
@@ -1249,6 +1260,10 @@ function saveScenario(event) {
   if (event?.stopPropagation) event.stopPropagation();
   const activeViewEl = document.querySelector(".view.active");
   const currentViewName = activeViewEl?.id?.replace(/^view-/, "") || (activeMode === "complex" ? "complex" : "single");
+  if (currentViewName === "beta") {
+    saveBetaScenario(event);
+    return;
+  }
   const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const saved = getSavedScenarios();
   if (!payload.id) {
@@ -1362,6 +1377,7 @@ function openScenario(id) {
     document.getElementById("singleDecisionLogic").value = s.acceptedRisk?.decisionLogic || "";
     activeMode = "single";
     updateInherentScores();
+    formatAllCurrencyFields();
     activateView("single");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else if (s.mode === "beta") {
@@ -1386,6 +1402,7 @@ function openScenario(id) {
     renderInsuranceTable("betaInsuranceBody", betaInsurance);
     renderHardFactsTable("betaHardFactsBody", betaHardFacts);
     setBetaOutputs({ relativeMean: s.betaRelativeMean, a: s.betaShapeA, b: s.betaShapeB, expectedValue: s.betaExpectedValue, p10: s.betaP10, p50: s.betaP50, p90: s.betaP90, iterations: s.betaIterations, narrative: s.generatedSummary });
+    formatAllCurrencyFields();
     activateView("beta");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
@@ -1430,6 +1447,7 @@ function openScenario(id) {
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
+    formatAllCurrencyFields();
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("complexAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("complexAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1535,13 +1553,13 @@ function loadSingleTestScenario() {
   document.getElementById("singleLikelihood").value = 8;
   document.getElementById("singleImpact").value = 9;
   document.getElementById("singleControlEffectiveness").value = 32;
-  document.getElementById("singleHardCostMin").value = 40000;
-  document.getElementById("singleHardCostLikely").value = 135000;
-  document.getElementById("singleHardCostMax").value = 325000;
+  setCurrencyFieldValue("singleHardCostMin", 40000);
+  setCurrencyFieldValue("singleHardCostLikely", 135000);
+  setCurrencyFieldValue("singleHardCostMax", 325000);
   document.getElementById("singleSoftCostMin").value = 0.15;
   document.getElementById("singleSoftCostLikely").value = 0.35;
   document.getElementById("singleSoftCostMax").value = 0.65;
-  document.getElementById("singleMitigationCost").value = 60000;
+  setCurrencyFieldValue("singleMitigationCost", 60000);
   const singleRandom = document.getElementById("singleRandomScenarioCount");
   if (singleRandom) singleRandom.value = "1000";
   document.getElementById("singleScenarioDescription").value = "The card-services team changed the consumer dispute workflow and may have shortened key timing checkpoints. The scenario evaluates disclosure and procedural risk under Reg E.";
@@ -1565,6 +1583,7 @@ function loadSingleTestScenario() {
   document.getElementById("singleReviewDate").value = "";
   document.getElementById("singleDecisionLogic").value = "";
   updateInherentScores();
+  formatAllCurrencyFields();
   activateView("single");
 }
 function loadComplexTestScenario() {
@@ -1584,13 +1603,13 @@ function loadComplexTestScenario() {
   document.getElementById("complexScenarioOwner").value = "Enterprise Risk";
   document.getElementById("complexIdentifiedDate").value = todayIso();
   document.getElementById("complexControlEffectiveness").value = 28;
-  document.getElementById("complexHardCostMin").value = 125000;
-  document.getElementById("complexHardCostLikely").value = 475000;
-  document.getElementById("complexHardCostMax").value = 1200000;
+  setCurrencyFieldValue("complexHardCostMin", 125000);
+  setCurrencyFieldValue("complexHardCostLikely", 475000);
+  setCurrencyFieldValue("complexHardCostMax", 1200000);
   document.getElementById("complexSoftCostMin").value = 0.20;
   document.getElementById("complexSoftCostLikely").value = 0.45;
   document.getElementById("complexSoftCostMax").value = 0.90;
-  document.getElementById("complexMitigationCost").value = 210000;
+  setCurrencyFieldValue("complexMitigationCost", 210000);
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = "1000";
   document.getElementById("complexScenarioDescription").value = "This scenario covers a cross-functional modernization effort touching deposit operations, dispute servicing, disclosures, and third-party integrations.";

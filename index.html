@@ -32,7 +32,7 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.0.05</h4>
+      <h4>Phase 20.0.06</h4>
       <p>Reporting restoration plus U.S. currency standardization, including report sections for Insurance and Hard Facts / Evidence.</p>
     </div>
   </aside>
@@ -889,81 +889,70 @@
         <button class="btn btn-secondary" id="downloadAIPacketBtn">Download AI PPT Brief TXT</button>
         <button type="button" class="btn btn-secondary" id="downloadOutcomesTableBtn">Download Random Outcomes CSV</button>
       </div>
-      <div class="grid two">
-        <div class="card">
-          <h3><span class="help-label" data-help="Controls what appears in the active report and dashboard.">Report Options</span></h3>
-          <div class="checkbox-list">
-            <label><input id="showDashboardGraphToggle" type="checkbox" checked> <span class="help-label" data-help="Displays the current scenario chart on the dashboard view.">Show graph on dashboard</span></label>
-            <label><input id="includeGraphInReport" type="checkbox" checked> <span class="help-label" data-help="Includes the scenario comparison chart in the report section.">Include graph in report</span></label>
-            <label><input id="includeMonteCarloTable" type="checkbox" checked> <span class="help-label" data-help="Includes the Monte Carlo method, input, and output tables used to support the financial model.">Include Monte Carlo table in report</span></label>
-            <label><input id="includeMonteCarloExplanation" type="checkbox" checked> <span class="help-label" data-help="Adds plain-language methodology text explaining the Monte Carlo approach for management and examiners.">Include Monte Carlo table explanation</span></label>
-          </div>
-          <hr class="soft-line">
-          <h3>Monte Carlo Configuration</h3>
-          <p class="muted">Keep the default model or load a custom JSON configuration with risk tiers and review frequency rules.</p>
-          <div class="builder-actions">
-            <input id="customMonteCarloFile" type="file" accept=".json">
-            <button class="btn btn-secondary" id="resetMonteCarloBtn">Reset to Default Model</button>
-          </div>
-          <div class="note-box" id="monteCarloConfigStatus">Using default Monte Carlo model.</div>
+      <div class="card">
+        <h3><span class="help-label" data-help="Controls what appears in the active report and dashboard.">Report Options</span></h3>
+        <div class="checkbox-list">
+          <label><input id="showDashboardGraphToggle" type="checkbox" checked> <span class="help-label" data-help="Displays the current scenario chart on the dashboard view.">Show graph on dashboard</span></label>
+          <label><input id="includeGraphInReport" type="checkbox" checked> <span class="help-label" data-help="Includes the scenario comparison chart in the report section.">Include graph in report</span></label>
+          <label><input id="includeMonteCarloTable" type="checkbox" checked> <span class="help-label" data-help="Includes the Monte Carlo method, input, and output tables used to support the financial model.">Include Monte Carlo table in report</span></label>
+          <label><input id="includeMonteCarloExplanation" type="checkbox" checked> <span class="help-label" data-help="Adds plain-language methodology text explaining the Monte Carlo approach for management and examiners.">Include Monte Carlo table explanation</span></label>
         </div>
-        <div class="card">
-          <h3><span class="help-label" data-help="Summarizes the active scenario in plain language for management, examiners, and board reporting.">Report Summary</span></h3>
-          <ul id="reportSummary" class="simple-list"><li>No scenario has been run yet.</li></ul>
-          <div id="executiveDecisionBox" class="note-box">Run a scenario to generate the executive decision summary.</div>
+        <hr class="soft-line">
+        <h3>Monte Carlo Configuration</h3>
+        <p class="muted">Keep the default model or load a custom JSON configuration with risk tiers and review frequency rules.</p>
+        <div class="builder-actions">
+          <input id="customMonteCarloFile" type="file" accept=".json">
+          <button class="btn btn-secondary" id="resetMonteCarloBtn">Reset to Default Model</button>
+        </div>
+        <div class="note-box" id="monteCarloConfigStatus">Using default Monte Carlo model.</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="help-label" data-help="Summarizes the active scenario in plain language for management, examiners, and board reporting.">Report Summary</span></h3>
+        <ul id="reportSummary" class="simple-list"><li>No scenario has been run yet.</li></ul>
+        <div id="executiveDecisionBox" class="note-box">Run a scenario to generate the executive decision summary.</div>
+      </div>
+
+      <div id="riskPriorityCard" class="card">
+        <div class="card-header"><h3><span class="help-label" data-help="Summarizes expected loss, mitigation cost, risk reduction value, and net benefit for executive decision making.">Decision Metrics</span></h3><span>Executive</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Measure</th><th>Value</th></tr></thead>
+            <tbody id="decisionMetricsBody"><tr><td colspan="2">Run a scenario to populate decision metrics.</td></tr></tbody>
+          </table>
         </div>
       </div>
 
-      <div class="grid two">
-        <div id="horizonExposureCard" class="card">
-          <div class="card-header"><h3><span class="help-label" data-help="Shows projected exposure over 1, 3, 5, 10, 15, 20, 25, and 30+ year outlooks with and without mitigation.">Time Horizon Exposure</span></h3><span>Always Included</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Horizon</th><th>Without Mitigation</th><th>With Mitigation</th><th>Risk Reduction</th></tr></thead>
-              <tbody id="horizonExposureBody"><tr><td colspan="4">Run a scenario to populate time-horizon projections.</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="riskPriorityCard" class="card">
-          <div class="card-header"><h3><span class="help-label" data-help="Summarizes expected loss, mitigation cost, risk reduction value, and net benefit for executive decision making.">Decision Metrics</span></h3><span>Executive</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Measure</th><th>Value</th></tr></thead>
-              <tbody id="decisionMetricsBody"><tr><td colspan="2">Run a scenario to populate decision metrics.</td></tr></tbody>
-            </table>
-          </div>
+      <div id="horizonExposureCard" class="card">
+        <div class="card-header"><h3><span class="help-label" data-help="Shows projected exposure over 1, 3, 5, 10, 15, 20, 25, and 30+ year outlooks with and without mitigation.">Time Horizon Exposure</span></h3><span>Always Included</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Horizon</th><th>Without Mitigation</th><th>With Mitigation</th><th>Risk Reduction</th></tr></thead>
+            <tbody id="horizonExposureBody"><tr><td colspan="4">Run a scenario to populate time-horizon projections.</td></tr></tbody>
+          </table>
         </div>
       </div>
 
-
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Insurance in Report</h3><span>U.S. Currency</span></div>
-          <div class="note-box" id="reportInsuranceTotals">Insurance totals: Premium $0 | Deductible $0 | Coverage $0</div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
-              <tbody id="reportInsuranceBody"><tr><td colspan="10">Run or open a scenario to populate insurance reporting.</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><h3>Hard Facts / Evidence in Report</h3><span>U.S. Currency</span></div>
-          <div class="note-box" id="reportHardFactsTotals">Hard facts total documented loss / cost: $0</div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
-              <tbody id="reportHardFactsBody"><tr><td colspan="5">Run or open a scenario to populate hard facts reporting.</td></tr></tbody>
-            </table>
-          </div>
+      <div class="card">
+        <div class="card-header"><h3>Insurance in Report</h3><span>U.S. Currency</span></div>
+        <div class="note-box" id="reportInsuranceTotals">Insurance totals: Premium $0 | Deductible $0 | Coverage $0</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <tbody id="reportInsuranceBody"><tr><td colspan="10">Run or open a scenario to populate insurance reporting.</td></tr></tbody>
+          </table>
         </div>
       </div>
 
-      <div id="reportGraphCard" class="card">
-
-        <div class="card-header"><h3>Report Graph</h3><span>Optional</span></div>
-        <canvas id="reportChart" width="760" height="260"></canvas>
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence in Report</h3><span>U.S. Currency</span></div>
+        <div class="note-box" id="reportHardFactsTotals">Hard facts total documented loss / cost: $0</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <tbody id="reportHardFactsBody"><tr><td colspan="5">Run or open a scenario to populate hard facts reporting.</td></tr></tbody>
+          </table>
+        </div>
       </div>
 
       <div id="monteCarloTableCard" class="card hidden">
@@ -975,6 +964,11 @@
           </table>
         </div>
         <div id="monteCarloExplanationBox" class="note-box hidden"></div>
+      </div>
+
+      <div id="reportGraphCard" class="card">
+        <div class="card-header"><h3>Report Graph</h3><span>Optional</span></div>
+        <canvas id="reportChart" width="760" height="260"></canvas>
       </div>
     </section>
 
