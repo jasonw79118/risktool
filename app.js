@@ -989,13 +989,13 @@ function renderReportSupplements(summary) {
 }
 
 function renderScenarioSummary(summary) {
-  document.getElementById("scenarioIdDisplay").textContent = summary.id || "Not Saved";
-  document.getElementById("inherentRiskScoreDisplay").textContent = summary.inherent;
-  document.getElementById("residualRiskScore").textContent = summary.residual;
-  document.getElementById("riskTier").textContent = summary.tier;
-  document.getElementById("reviewFrequency").textContent = summary.frequency;
-  document.getElementById("itemCount").textContent = summary.itemCount;
-  document.getElementById("dashboardNarrative").textContent = `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`;
+  setTextIfPresent("scenarioIdDisplay", summary.id || "Not Saved");
+  setTextIfPresent("inherentRiskScoreDisplay", summary.inherent);
+  setTextIfPresent("residualRiskScore", summary.residual);
+  setTextIfPresent("riskTier", summary.tier);
+  setTextIfPresent("reviewFrequency", summary.frequency);
+  setTextIfPresent("itemCount", summary.itemCount);
+  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
   setTextIfPresent("aiSummaryBox", summary.generatedSummary);
   const reportSummaryEl = document.getElementById("reportSummary");
   if (reportSummaryEl) reportSummaryEl.innerHTML = `
