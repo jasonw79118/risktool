@@ -32,7 +32,7 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.0.06</h4>
+      <h4>Phase 20.0.07</h4>
       <p>Reporting restoration plus U.S. currency standardization, including report sections for Insurance and Hard Facts / Evidence.</p>
     </div>
   </aside>
@@ -272,52 +272,54 @@
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="card">
-          <div class="card-header"><h3>Mitigation Factors</h3><span>Repeatable</span></div>
-          <div class="form-grid">
-            <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
-            <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
-            <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
-            <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
-          </div>
-          <div class="builder-actions">
-            <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
-              <tbody id="singleMitigationBody"></tbody>
-            </table>
-          </div>
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Entry</h3><span>Repeatable</span></div>
+        <div class="form-grid">
+          <div><label>Mitigation Title</label><input id="singleMitTitle" type="text" placeholder="e.g. Update disclosure language"></div>
+          <div><label>Owner</label><input id="singleMitOwner" type="text" placeholder="e.g. Compliance"></div>
+          <div><label>Status</label><input id="singleMitStatus" type="text" placeholder="e.g. In Progress"></div>
+          <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
         </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
+        </div>
+      </div>
 
-        <div class="card">
-          <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
-          <div class="checkbox-list">
-            <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+      <div class="card">
+        <div class="card-header"><h3>Mitigation Table</h3><span>Repeatable</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
+            <tbody id="singleMitigationBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
+        <div class="checkbox-list">
+          <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
+            <select id="singleAcceptanceAuthority"></select>
           </div>
-          <div class="form-grid">
-            <div>
-              <label class="help-label" data-help="Role or governance body that accepted the risk.">Acceptance Authority</label>
-              <select id="singleAcceptanceAuthority"></select>
-            </div>
-            <div>
-              <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
-              <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
-            </div>
-            <div>
-              <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
-              <input id="singleAcceptanceDate" type="date">
-            </div>
-            <div>
-              <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
-              <input id="singleReviewDate" type="date">
-            </div>
-            <div class="full-span">
-              <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
-              <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
-            </div>
+          <div>
+            <label class="help-label" data-help="Name of the person or named body that accepted the risk.">Accepted By</label>
+            <input id="singleAcceptedBy" type="text" placeholder="e.g. Jane Smith">
+          </div>
+          <div>
+            <label class="help-label" data-help="Date of the acceptance decision.">Acceptance Date</label>
+            <input id="singleAcceptanceDate" type="date">
+          </div>
+          <div>
+            <label class="help-label" data-help="When the accepted risk should be reviewed again.">Review Date</label>
+            <input id="singleReviewDate" type="date">
+          </div>
+          <div class="full-span">
+            <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
+            <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
         </div>
       </div>
