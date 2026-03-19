@@ -151,11 +151,12 @@ let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
 let currentComplexItems = [];
 let singleInsurance = [];
 let complexInsurance = [];
-let complexSharedInsurance = [];
 let singleHardFacts = [];
 let complexHardFacts = [];
 let betaInsurance = [];
 let betaHardFacts = [];
+let insuranceCounter = 1;
+const insuranceEditState = { single: "", complex: "", beta: "" };
 let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
@@ -274,39 +275,123 @@ function totalCurrencyField(items, key) {
   return (items || []).reduce((sum, item) => sum + parseCurrencyValue(item?.[key]), 0);
 }
 
-function getInsuranceScopeText(item) {
-  return item?.scope === "shared" ? "Shared Across Complex" : item?.scope === "component" ? "Component Only" : "Scenario";
+function generateInsuranceId() {
+  const id = `INS-${String(insuranceCounter).padStart(6, "0")}`;
+  insuranceCounter += 1;
+  return id;
 }
-function getInsuranceAppliesToText(item) {
-  if (item?.scope === "shared") return item?.groupId || "Entire Complex";
-  if (item?.scope === "component") return item?.componentId || item?.appliesTo || "Active Component";
-  return item?.appliesTo || "Scenario";
+function normalizeInsuranceRecord(item) {
+  if (!item || typeof item !== "object") {
+    return {
+      insuranceId: generateInsuranceId(),
+      policyName: "Untitled Policy",
+      policyNumber: "",
+      carrier: "",
+      coverageType: "",
+      premium: 0,
+      deductible: 0,
+      coverageAmount: 0,
+      coverageDates: "",
+      notes: "",
+      sourceLink: ""
+    };
+  }
+  return {
+    insuranceId: item.insuranceId || generateInsuranceId(),
+    policyName: item.policyName || "Untitled Policy",
+    policyNumber: item.policyNumber || "",
+    carrier: item.carrier || "",
+    coverageType: item.coverageType || "",
+    premium: parseCurrencyValue(item.premium || 0),
+    deductible: parseCurrencyValue(item.deductible || 0),
+    coverageAmount: parseCurrencyValue(item.coverageAmount || 0),
+    coverageDates: item.coverageDates || "",
+    notes: item.notes || "",
+    sourceLink: item.sourceLink || ""
+  };
+}
+function getInsuranceList(mode) {
+  if (mode === "single") return singleInsurance;
+  if (mode === "complex") return complexInsurance;
+  return betaInsurance;
+}
+function setInsuranceEditStatus(mode, text) {
+  const el = document.getElementById(`${mode}InsuranceEditStatus`);
+  if (el) el.textContent = text;
+}
+function setInsuranceButtonLabel(mode, isEditing) {
+  const btn = document.getElementById(`add${mode.charAt(0).toUpperCase()}${mode.slice(1)}InsuranceBtn`);
+  if (btn) btn.textContent = isEditing ? "Update Insurance" : "Add Insurance";
+}
+function resetInsuranceForm(mode) {
+  insuranceEditState[mode] = "";
+  const prefix = mode;
+  ["PolicyName","PolicyNumber","Carrier","CoverageType","CoverageDates","Notes","SourceLink"].forEach(suffix => {
+    const el = document.getElementById(`${prefix}Insurance${suffix}`);
+    if (el) el.value = "";
+  });
+  ["Premium","Deductible","CoverageAmount"].forEach(suffix => {
+    const el = document.getElementById(`${prefix}Insurance${suffix}`);
+    if (el) el.value = "";
+  });
+  formatAllCurrencyFields();
+  setInsuranceButtonLabel(mode, false);
+  const defaultText = mode === "complex"
+    ? "Add a new insurance record for the active complex scenario component."
+    : mode === "beta"
+      ? "Add a new insurance record for this beta scenario."
+      : "Add a new insurance record for this single scenario.";
+  setInsuranceEditStatus(mode, defaultText);
+}
+function loadInsuranceIntoForm(mode, insuranceId) {
+  const record = getInsuranceList(mode).find(item => item.insuranceId === insuranceId);
+  if (!record) return;
+  insuranceEditState[mode] = insuranceId;
+  const prefix = mode;
+  const setValue = (suffix, value) => {
+    const el = document.getElementById(`${prefix}Insurance${suffix}`);
+    if (el) el.value = value ?? "";
+  };
+  setValue("PolicyName", record.policyName || "");
+  setValue("PolicyNumber", record.policyNumber || "");
+  setValue("Carrier", record.carrier || "");
+  setValue("CoverageType", record.coverageType || "");
+  setValue("Premium", formatCurrencyInputValue(record.premium));
+  setValue("Deductible", formatCurrencyInputValue(record.deductible));
+  setValue("CoverageAmount", formatCurrencyInputValue(record.coverageAmount));
+  setValue("CoverageDates", record.coverageDates || "");
+  setValue("Notes", record.notes || "");
+  setValue("SourceLink", record.sourceLink || "");
+  setInsuranceButtonLabel(mode, true);
+  setInsuranceEditStatus(mode, `Editing insurance record: ${record.policyName || record.policyNumber || record.insuranceId}`);
+}
+function deleteInsurance(mode, insuranceId) {
+  const list = getInsuranceList(mode);
+  const nextItems = list.filter(item => item.insuranceId !== insuranceId);
+  if (mode === "single") singleInsurance = nextItems;
+  else if (mode === "complex") complexInsurance = nextItems;
+  else betaInsurance = nextItems;
+  if (insuranceEditState[mode] === insuranceId) resetInsuranceForm(mode);
+  renderInsuranceTable(`${mode}InsuranceBody`, nextItems);
 }
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
-  const isComplexTable = targetId === "complexInsuranceBody" || targetId === "reportInsuranceBody";
-  const emptyColspan = isComplexTable ? 12 : 10;
+  const mode = targetId.replace(/InsuranceBody$/, "");
   if (!items.length) {
-    tbody.innerHTML = `<tr><td colspan="${emptyColspan}">No insurance entries added yet.</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="11">No insurance entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => {
-    const scopeCells = isComplexTable
-      ? `<td>${escapeHtml(getInsuranceScopeText(x))}</td><td>${escapeHtml(getInsuranceAppliesToText(x))}</td>`
-      : "";
-    return `<tr>${scopeCells}<td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`;
+  const normalizedItems = items.map((item, index) => {
+    const normalized = normalizeInsuranceRecord(item);
+    items[index] = normalized;
+    return normalized;
+  });
+  tbody.innerHTML = normalizedItems.map(x => {
+    const normalized = x;
+    const editingClass = insuranceEditState[mode] && insuranceEditState[mode] === normalized.insuranceId ? ' class="active-edit-row"' : "";
+    return `<tr${editingClass}><td>${escapeHtml(normalized.policyName)}</td><td>${escapeHtml(normalized.policyNumber)}</td><td>${escapeHtml(normalized.carrier)}</td><td>${escapeHtml(normalized.coverageType)}</td><td>${currency(normalized.premium)}</td><td>${currency(normalized.deductible)}</td><td>${currency(normalized.coverageAmount)}</td><td>${escapeHtml(normalized.coverageDates)}</td><td>${escapeHtml(normalized.notes)}</td><td>${escapeHtml(normalized.sourceLink)}</td><td><button type="button" class="btn btn-secondary" data-insurance-edit="${escapeHtml(normalized.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Edit</button> <button type="button" class="btn btn-secondary" data-insurance-delete="${escapeHtml(normalized.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Delete</button></td></tr>`;
   }).join("");
-}
-function getComplexInsuranceDisplayItems(componentItems = complexInsurance) {
-  return [...complexSharedInsurance, ...componentItems];
-}
-function renderComplexInsuranceSection() {
-  renderInsuranceTable("complexInsuranceBody", getComplexInsuranceDisplayItems(complexInsurance));
-  const note = document.getElementById("complexInsuranceScopeNote");
-  if (!note) return;
-  const componentLabel = activeComplexComponentId || "No active component selected yet";
-  note.textContent = `Shared policies apply one time across the full complex scenario. Component-only policies attach to ${componentLabel} and are not added to other components.`;
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -319,7 +404,9 @@ function renderHardFactsTable(targetId, items) {
 }
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const baseRecord = {
+  const list = getInsuranceList(mode);
+  const record = normalizeInsuranceRecord({
+    insuranceId: insuranceEditState[mode] || "",
     policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
     policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
     carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
@@ -330,27 +417,12 @@ function addInsurance(mode) {
     coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
     notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
-  };
-  if (mode === "complex") {
-    const scope = document.getElementById("complexInsuranceScope")?.value === "shared" ? "shared" : "component";
-    const record = {
-      ...baseRecord,
-      scope,
-      groupId: ensureComplexGroupId(),
-      componentId: scope === "component" ? syncComplexComponentIdField() : "",
-      appliesTo: scope === "shared" ? "Entire Complex" : (activeComplexComponentId || syncComplexComponentIdField())
-    };
-    if (scope === "shared") {
-      complexSharedInsurance.push(record);
-    } else {
-      complexInsurance.push(record);
-    }
-    renderComplexInsuranceSection();
-    return;
-  }
-  const list = mode === "single" ? singleInsurance : betaInsurance;
-  list.push(baseRecord);
+  });
+  const existingIndex = list.findIndex(item => item.insuranceId === record.insuranceId);
+  if (existingIndex >= 0) list[existingIndex] = record;
+  else list.push(record);
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
+  resetInsuranceForm(mode);
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
@@ -389,7 +461,7 @@ function getCurrentComplexComponentSnapshot() {
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost")?.value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
     items: currentComplexItems.map(item => ({ ...item })),
-    insurance: complexInsurance.map(item => ({ ...item })),
+    insurance: complexInsurance.map(item => normalizeInsuranceRecord(item)),
     hardFacts: complexHardFacts.map(item => ({ ...item })),
     mitigations: complexMitigations.map(item => ({ ...item })),
     acceptedRisk: JSON.parse(JSON.stringify(getAcceptedRisk("complex"))),
@@ -424,11 +496,12 @@ function applyComplexComponentSnapshot(component) {
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
-  complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(item => ({ ...item })) : [];
+  complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(normalizeInsuranceRecord) : [];
+  resetInsuranceForm("complex");
   complexHardFacts = Array.isArray(component.hardFacts) ? component.hardFacts.map(item => ({ ...item })) : [];
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
   renderComplexItems();
-  renderComplexInsuranceSection();
+  renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   document.getElementById("complexAcceptedRiskFlag").checked = !!component.acceptedRisk?.isAccepted;
@@ -533,8 +606,7 @@ function normalizeScenario(saved) {
     frequency: saved.frequency || getReviewFrequency(Number(saved.residual || 0)),
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
-    insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
-    sharedInsurance: Array.isArray(saved.sharedInsurance) ? saved.sharedInsurance : [],
+    insurance: Array.isArray(saved.insurance) ? saved.insurance.map(normalizeInsuranceRecord) : [],
     hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
     acceptedRisk: saved.acceptedRisk || {
@@ -767,7 +839,7 @@ function getSinglePayload() {
     mitigationCost: parseCurrencyValue(document.getElementById("singleMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("singleRandomScenarioCount").value || 1000),
     items: [],
-    insurance: singleInsurance.slice(),
+    insurance: singleInsurance.map(normalizeInsuranceRecord),
     hardFacts: singleHardFacts.slice(),
     mitigations: singleMitigations.slice(),
     acceptedRisk: getAcceptedRisk("single")
@@ -780,7 +852,7 @@ function getComplexPayload() {
     ? complexScenarioComponents.map((component, idx) => idx === existingIndex ? currentComponent : component)
     : [...complexScenarioComponents, currentComponent];
   const allItems = allComponents.flatMap(component => Array.isArray(component.items) ? component.items : []);
-  const allInsurance = [...complexSharedInsurance, ...allComponents.flatMap(component => Array.isArray(component.insurance) ? component.insurance : [])];
+  const allInsurance = allComponents.flatMap(component => Array.isArray(component.insurance) ? component.insurance : []);
   const allHardFacts = allComponents.flatMap(component => Array.isArray(component.hardFacts) ? component.hardFacts : []);
   const allMitigations = allComponents.flatMap(component => Array.isArray(component.mitigations) ? component.mitigations : []);
   const avgInherent = allComponents.length
@@ -813,8 +885,7 @@ function getComplexPayload() {
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: allItems,
-    insurance: allInsurance,
-    sharedInsurance: complexSharedInsurance.map(item => ({ ...item })),
+    insurance: allInsurance.map(normalizeInsuranceRecord),
     hardFacts: allHardFacts,
     components: allComponents.map(component => ({ ...component })),
     mitigations: allMitigations,
@@ -995,15 +1066,26 @@ function renderReportSupplements(summary) {
   if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl) return;
   const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
   const hardFacts = Array.isArray(summary?.hardFacts) ? summary.hardFacts : [];
-  const sharedInsurance = insurance.filter(item => item?.scope === "shared");
-  const componentInsurance = insurance.filter(item => item?.scope !== "shared");
 
   if (!insurance.length) {
-    insuranceBody.innerHTML = '<tr><td colspan="12">No insurance data loaded for this scenario.</td></tr>';
-    insuranceTotalEl.textContent = 'Insurance totals: Shared Premium $0 | Shared Coverage $0 | Component Premium $0 | Component Coverage $0 | Combined Coverage $0';
+    insuranceBody.innerHTML = '<tr><td colspan="10">No insurance data loaded for this scenario.</td></tr>';
+    insuranceTotalEl.textContent = 'Insurance totals: Premium $0 | Deductible $0 | Coverage $0';
   } else {
-    renderInsuranceTable("reportInsuranceBody", insurance);
-    insuranceTotalEl.textContent = `Insurance totals: Shared Premium ${currency(totalCurrencyField(sharedInsurance, "premium"))} | Shared Coverage ${currency(totalCurrencyField(sharedInsurance, "coverageAmount"))} | Component Premium ${currency(totalCurrencyField(componentInsurance, "premium"))} | Component Coverage ${currency(totalCurrencyField(componentInsurance, "coverageAmount"))} | Combined Coverage ${currency(totalCurrencyField(insurance, "coverageAmount"))}`;
+    insuranceBody.innerHTML = insurance.map(item => `
+      <tr>
+        <td>${escapeHtml(item.policyName)}</td>
+        <td>${escapeHtml(item.policyNumber)}</td>
+        <td>${escapeHtml(item.carrier)}</td>
+        <td>${escapeHtml(item.coverageType)}</td>
+        <td>${currency(item.premium)}</td>
+        <td>${currency(item.deductible)}</td>
+        <td>${currency(item.coverageAmount)}</td>
+        <td>${escapeHtml(item.coverageDates)}</td>
+        <td>${escapeHtml(item.notes)}</td>
+        <td>${escapeHtml(item.sourceLink)}</td>
+      </tr>
+    `).join("");
+    insuranceTotalEl.textContent = `Insurance totals: Premium ${currency(totalCurrencyField(insurance, "premium"))} | Deductible ${currency(totalCurrencyField(insurance, "deductible"))} | Coverage ${currency(totalCurrencyField(insurance, "coverageAmount"))}`;
   }
 
   if (!hardFacts.length) {
@@ -1022,7 +1104,6 @@ function renderReportSupplements(summary) {
     hardFactsTotalEl.textContent = `Hard facts total documented loss / cost: ${currency(totalCurrencyField(hardFacts, "amount"))}`;
   }
 }
-
 
 function renderScenarioSummary(summary) {
   setTextIfPresent("scenarioIdDisplay", summary.id || "Not Saved");
@@ -1199,7 +1280,7 @@ function getBetaPayload() {
     betaP90: Number(result.p90 || 0),
     betaIterations: Number(result.iterations || 0),
     randomOutcomeRows: Array.isArray(result.randomOutcomeRows) ? result.randomOutcomeRows : [],
-    insurance: betaInsurance.slice(),
+    insurance: betaInsurance.map(normalizeInsuranceRecord),
     hardFacts: betaHardFacts.slice(),
     inherent: 0,
     residual: 0,
@@ -1270,8 +1351,9 @@ function loadBetaTestScenario() {
   if (betaRandom) betaRandom.value = "1000";
   document.getElementById("betaScenarioDescription").value = "This beta scenario models projected launch economics and uncertainty for an embedded payments offering while documenting insurance coverage and factual planning evidence.";
   betaInsurance = [
-    { policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" }
+    normalizeInsuranceRecord({ policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" })
   ];
+  resetInsuranceForm("beta");
   betaHardFacts = [
     { sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing" }
   ];
@@ -1288,7 +1370,8 @@ function promoteBetaScenario() {
   document.getElementById("singleScenarioOwner").value = payload.scenarioOwner || "";
   document.getElementById("singleIdentifiedDate").value = payload.identifiedDate || "";
   document.getElementById("singleScenarioDescription").value = payload.description || "";
-  singleInsurance = Array.isArray(payload.insurance) ? payload.insurance.slice() : [];
+  singleInsurance = Array.isArray(payload.insurance) ? payload.insurance.map(normalizeInsuranceRecord) : [];
+  resetInsuranceForm("single");
   singleHardFacts = Array.isArray(payload.hardFacts) ? payload.hardFacts.slice() : [];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
@@ -1412,7 +1495,8 @@ function openScenario(id) {
     setCurrencyFieldValue("singleMitigationCost", s.mitigationCost || 0);
     const singleRandom = document.getElementById("singleRandomScenarioCount");
     if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
-    singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
+    singleInsurance = Array.isArray(s.insurance) ? s.insurance.map(normalizeInsuranceRecord) : [];
+    resetInsuranceForm("single");
     singleHardFacts = Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderInsuranceTable("singleInsuranceBody", singleInsurance);
@@ -1446,7 +1530,8 @@ function openScenario(id) {
     const betaRandom = document.getElementById("betaRandomScenarioCount");
     if (betaRandom) betaRandom.value = String(s.randomScenarioCount || 1000);
     document.getElementById("betaScenarioDescription").value = s.description || "";
-    betaInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
+    betaInsurance = Array.isArray(s.insurance) ? s.insurance.map(normalizeInsuranceRecord) : [];
+    resetInsuranceForm("beta");
     betaHardFacts = Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     renderInsuranceTable("betaInsuranceBody", betaInsurance);
     renderHardFactsTable("betaHardFactsBody", betaHardFacts);
@@ -1487,13 +1572,13 @@ function openScenario(id) {
     renderComplexItems();
     const groupEl = document.getElementById("complexGroupId");
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
-    complexSharedInsurance = Array.isArray(s.sharedInsurance) ? s.sharedInsurance.slice() : (Array.isArray(s.insurance) ? s.insurance.filter(item => item && item.scope === "shared") : []);
-    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.filter(item => !item || item.scope !== "shared") : [];
+    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.map(normalizeInsuranceRecord) : Array.isArray(s.insurance) ? s.insurance.map(normalizeInsuranceRecord) : [];
+    resetInsuranceForm("complex");
     complexHardFacts = firstComponent && Array.isArray(firstComponent.hardFacts) ? firstComponent.hardFacts.slice() : Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
     syncComplexComponentIdField(!activeComplexComponentId);
-    renderComplexInsuranceSection();
+    renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
@@ -1641,7 +1726,6 @@ function loadComplexTestScenario() {
   const complexGroupEl = document.getElementById("complexGroupId");
   if (complexGroupEl) complexGroupEl.value = generateComplexGroupId();
   complexScenarioComponents = [];
-  complexSharedInsurance = [];
   activeComplexComponentId = "";
   syncComplexComponentIdField(true);
   document.getElementById("complexScenarioName").value = "Enterprise Deposit Modernization Program";
@@ -1672,9 +1756,10 @@ function loadComplexTestScenario() {
   ];
   renderComplexItems();
   complexInsurance = [
-    { policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
+    normalizeInsuranceRecord({ policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" })
   ];
-  renderComplexInsuranceSection();
+  resetInsuranceForm("complex");
+  renderInsuranceTable("complexInsuranceBody", complexInsurance);
   complexHardFacts = [
     { sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark" }
   ];
@@ -1746,7 +1831,9 @@ function wireInputs() {
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("addSingleInsuranceBtn")?.addEventListener("click", () => addInsurance("single"));
+  document.getElementById("cancelSingleInsuranceEditBtn")?.addEventListener("click", () => resetInsuranceForm("single"));
   document.getElementById("addComplexInsuranceBtn")?.addEventListener("click", () => addInsurance("complex"));
+  document.getElementById("cancelComplexInsuranceEditBtn")?.addEventListener("click", () => resetInsuranceForm("complex"));
   document.getElementById("addSingleHardFactBtn")?.addEventListener("click", () => addHardFact("single"));
   document.getElementById("addComplexHardFactBtn")?.addEventListener("click", () => addHardFact("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
@@ -1758,6 +1845,7 @@ function wireInputs() {
   document.getElementById("saveBetaScenarioBtn")?.addEventListener("click", (event) => saveBetaScenario(event));
   document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
   document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
+  document.getElementById("cancelBetaInsuranceEditBtn")?.addEventListener("click", () => resetInsuranceForm("beta"));
   document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
@@ -1818,11 +1906,8 @@ function renderManual() {
     <h4>Financial Risk Modeling</h4>
     <p>The report separately considers direct hard cost and secondary or incidental soft cost. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a multiplier applied to hard cost to reflect reputational, operational, complaint, and related secondary impacts.</p>
     <h4>Monte Carlo Method</h4>
-    <p>The financial model uses bounded Monte Carlo simulation with <strong>triangular sampling</strong>. For each iteration, the system draws a hard-cost value and a soft-cost multiplier using user-provided minimum, most-likely, and maximum values. Hard cost is calculated with a triangular random draw. Soft cost equals the simulated hard cost multiplied by the simulated soft-cost multiplier. Total loss equals hard cost plus soft cost, and residual loss applies the stated control-effectiveness percentage to the simulated total.</p>
-    <p>Triangular random draw formula: if <code>u &lt; c</code>, then <code>x = min + sqrt(u(max-min)(mode-min))</code>; otherwise <code>x = max - sqrt((1-u)(max-min)(max-mode))</code>, where <code>u</code> is a random value between 0 and 1 and <code>c = (mode-min)/(max-min)</code>.</p>
+    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
     <p>This approach is designed to support U.S. regulatory examiner expectations by documenting assumptions, preserving bounded input ranges, showing the method used, and producing transparent output tables that can be reproduced and reviewed later.</p>
-    <h4>Insurance Scope in Complex Scenarios</h4>
-    <p>Complex scenarios now support two insurance scopes. <strong>Shared Across Complex</strong> applies one policy across the full complex scenario and is counted one time in reporting. <strong>Component Only</strong> attaches a policy only to the active component scenario so coverage and premium are not double-added across unrelated components.</p>
     <h4>Executive Decision Analysis</h4>
     <p>Reports now explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether other mitigating factors should be considered.</p>
     <h4>Time Horizons</h4>
@@ -2350,11 +2435,8 @@ function forceManualContent() {
     <h4>Financial Modeling</h4>
     <p>The report separately evaluates direct <strong>hard cost</strong> and secondary or incidental <strong>soft cost</strong>. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a bounded multiplier applied to hard cost to reflect secondary impacts such as reputational damage, customer complaints, operational disruption, and related indirect effects.</p>
     <h4>Monte Carlo Method</h4>
-    <p>The financial model uses bounded Monte Carlo simulation with <strong>triangular sampling</strong>. For each iteration, the system draws a hard-cost value and a soft-cost multiplier using user-provided minimum, most-likely, and maximum values. Hard cost is calculated with a triangular random draw. Soft cost equals the simulated hard cost multiplied by the simulated soft-cost multiplier. Total loss equals hard cost plus soft cost, and residual loss applies the stated control-effectiveness percentage to the simulated total.</p>
-    <p>Triangular random draw formula: if <code>u &lt; c</code>, then <code>x = min + sqrt(u(max-min)(mode-min))</code>; otherwise <code>x = max - sqrt((1-u)(max-min)(max-mode))</code>, where <code>u</code> is a random value between 0 and 1 and <code>c = (mode-min)/(max-min)</code>.</p>
+    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard-cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
     <p>This approach is intended to satisfy U.S. examiner expectations by documenting assumptions, using bounded inputs, identifying the method used, preserving transparency in the output tables, and allowing the methodology to be reviewed later.</p>
-    <h4>Insurance Scope in Complex Scenarios</h4>
-    <p>Complex scenarios now support two insurance scopes. <strong>Shared Across Complex</strong> applies one policy across the full complex scenario and is counted one time in reporting. <strong>Component Only</strong> attaches a policy only to the active component scenario so coverage and premium are not double-added across unrelated components.</p>
     <h4>Executive Decision Analysis</h4>
     <p>Reports explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether alternative mitigating factors should be considered.</p>
     <h4>Time Horizons</h4>
@@ -2375,8 +2457,11 @@ function init() {
   renderManual();
   forceManualContent();
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
-  renderComplexInsuranceSection();
+  renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderInsuranceTable("betaInsuranceBody", betaInsurance);
+  resetInsuranceForm("single");
+  resetInsuranceForm("complex");
+  resetInsuranceForm("beta");
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
@@ -2472,6 +2557,20 @@ function wireDelegatedActionHandlers() {
       event.preventDefault();
       event.stopPropagation();
       openScenario(dashboardOpenBtn.dataset.openId || "");
+      return;
+    }
+    const insuranceEditBtn = event.target.closest('[data-insurance-edit][data-insurance-mode]');
+    if (insuranceEditBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      loadInsuranceIntoForm(insuranceEditBtn.dataset.insuranceMode || "single", insuranceEditBtn.dataset.insuranceEdit || "");
+      return;
+    }
+    const insuranceDeleteBtn = event.target.closest('[data-insurance-delete][data-insurance-mode]');
+    if (insuranceDeleteBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteInsurance(insuranceDeleteBtn.dataset.insuranceMode || "single", insuranceDeleteBtn.dataset.insuranceDelete || "");
     }
   }, true);
 }

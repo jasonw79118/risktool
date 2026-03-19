@@ -32,8 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.1.02</h4>
-      <p>Information screen methodology detail added with complex insurance scope controls and reporting separation.</p>
+      <h4>Phase 20.1.03</h4>
+      <p>Insurance record maintenance with edit/delete controls while preserving stable run, save, and reporting flows.</p>
     </div>
   </aside>
 
@@ -206,6 +206,7 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
+        <div class="note-box" id="singleInsuranceEditStatus">Add a new insurance record for this single scenario.</div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="singleInsurancePolicyName" type="text" placeholder="e.g. Card Services E&O"></div>
           <div><label>Policy Number</label><input id="singleInsurancePolicyNumber" type="text" placeholder="e.g. PL-100245"></div>
@@ -220,6 +221,7 @@
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance</button>
+          <button class="btn btn-secondary" id="cancelSingleInsuranceEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -227,7 +229,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="singleInsuranceBody"></tbody>
           </table>
         </div>
@@ -471,7 +473,7 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
-        <div class="note-box" id="complexInsuranceScopeNote">Shared policies apply one time across the full complex scenario. Component-only policies attach to the active component and are not duplicated across other components.</div>
+        <div class="note-box" id="complexInsuranceEditStatus">Add a new insurance record for the active complex scenario component.</div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="complexInsurancePolicyName" type="text" placeholder="e.g. Program Tech E&O"></div>
           <div><label>Policy Number</label><input id="complexInsurancePolicyNumber" type="text" placeholder="e.g. CX-440018"></div>
@@ -481,12 +483,12 @@
           <div><label>Deductible</label><input id="complexInsuranceDeductible" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 100000"></div>
           <div><label>Coverage Amount</label><input id="complexInsuranceCoverageAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 3000000"></div>
           <div><label>Coverage Dates</label><input id="complexInsuranceCoverageDates" type="text" placeholder="e.g. 2026-01-01 to 2026-12-31"></div>
-          <div><label>Coverage Scope</label><select id="complexInsuranceScope"><option value="shared">Shared Across Complex</option><option value="component">Component Only</option></select></div>
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="complexInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="complexInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/modernization-program"></div>
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance</button>
+          <button class="btn btn-secondary" id="cancelComplexInsuranceEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -494,7 +496,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Scope</th><th>Applies To</th><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="complexInsuranceBody"></tbody>
           </table>
         </div>
@@ -710,6 +712,7 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
+        <div class="note-box" id="betaInsuranceEditStatus">Add a new insurance record for this beta scenario.</div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="betaInsurancePolicyName" type="text" placeholder="e.g. Launch Liability Program"></div>
           <div><label>Policy Number</label><input id="betaInsurancePolicyNumber" type="text" placeholder="e.g. BETA-PL-1001"></div>
@@ -724,6 +727,7 @@
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addBetaInsuranceBtn">Add Insurance</button>
+          <button class="btn btn-secondary" id="cancelBetaInsuranceEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -731,7 +735,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="betaInsuranceBody"></tbody>
           </table>
         </div>
@@ -929,11 +933,11 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance in Report</h3><span>U.S. Currency</span></div>
-        <div class="note-box" id="reportInsuranceTotals">Insurance totals: Shared Premium $0 | Shared Coverage $0 | Component Premium $0 | Component Coverage $0 | Combined Coverage $0</div>
+        <div class="note-box" id="reportInsuranceTotals">Insurance totals: Premium $0 | Deductible $0 | Coverage $0</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Scope</th><th>Applies To</th><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
-            <tbody id="reportInsuranceBody"><tr><td colspan="12">Run or open a scenario to populate insurance reporting.</td></tr></tbody>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
+            <tbody id="reportInsuranceBody"><tr><td colspan="10">Run or open a scenario to populate insurance reporting.</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -986,30 +990,6 @@
             <li>Consider role-based report signatures once storage is upgraded.</li>
           </ul>
           <div class="note-box">Current limitation: scenarios are still stored in the local browser until a shared storage layer is added.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><h3>Monte Carlo Methodology</h3><span>Examiner Reference</span></div>
-        <div class="manual-copy">
-          <h4>Random Draw Formula Used</h4>
-          <p>The financial Monte Carlo model uses triangular sampling for both hard cost and the soft-cost multiplier. Each iteration generates a random value <code>u</code> between 0 and 1 and computes a triangular draw inside the user-provided minimum, most-likely, and maximum range.</p>
-          <p><strong>Step 1:</strong> <code>c = (mode - min) / (max - min)</code></p>
-          <p><strong>Step 2:</strong> If <code>u &lt; c</code>, then <code>x = min + sqrt(u(max-min)(mode-min))</code></p>
-          <p><strong>Step 3:</strong> Otherwise, <code>x = max - sqrt((1-u)(max-min)(max-mode))</code></p>
-          <p><strong>Hard Cost:</strong> one triangular draw using hard-cost min, most-likely, and max.</p>
-          <p><strong>Soft Cost:</strong> triangular draw of the soft-cost multiplier, then <code>soft cost = hard cost × soft multiplier</code>.</p>
-          <p><strong>Total Loss:</strong> <code>total = hard cost + soft cost</code></p>
-          <p><strong>Residual Loss:</strong> <code>residual = total × (1 - control effectiveness)</code></p>
-          <p><strong>Expected Loss:</strong> average of all simulated total-loss draws across the selected number of iterations.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h3>Complex Insurance Scope</h3><span>Control Design</span></div>
-        <div class="manual-copy">
-          <p><strong>Shared Across Complex</strong> is used for one policy that applies to the full complex scenario and should only be counted one time in reporting.</p>
-          <p><strong>Component Only</strong> is used when a policy applies only to the active complex component. This prevents premium and coverage from being copied into unrelated components.</p>
-          <p>Complex report totals now separate shared policies from component-only policies so examiners and management can see where coverage is enterprise-wide versus component-specific.</p>
         </div>
       </div>
     </section>
