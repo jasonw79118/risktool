@@ -611,10 +611,84 @@ function getReviewFrequency(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
   return rule ? rule.review_frequency : "Needs Review";
 }
-function buildSummary(name, mode, product, reg, total, residual, tier, frequency, itemCount) {
-  const modeText = mode === "single" ? "single focused scenario" : "complex multi-item scenario";
-  const significance = residual >= 85 ? "very high" : residual >= 70 ? "high" : residual >= 50 ? "moderate" : "lower";
-  return `${name} was evaluated as a ${modeText} tied primarily to ${product}${reg ? ` and ${reg}` : ""}. The model produced an inherent risk score of ${total} and a residual risk score of ${residual}, placing it in the ${tier} tier with a recommended ${frequency} review cycle. ${itemCount > 1 ? `This scenario includes ${itemCount} weighted risk items, so the result should be interpreted as an aggregate view across several components. ` : ""}Overall, the remaining exposure appears ${significance} after control effectiveness is applied.`;
+function getExposureDescriptor(residual) {
+  if (residual >= 85) return "very high";
+  if (residual >= 70) return "high";
+  if (residual >= 50) return "moderate";
+  return "lower";
+}
+function buildDecisionNarrative(details) {
+  const name = details.name || "This scenario";
+  const modeText = details.mode === "single" ? "single focused scenario" : "complex multi-item scenario";
+  const product = details.primaryProduct || "the stated product area";
+  const regulationText = details.primaryRegulation ? ` and ${details.primaryRegulation}` : "";
+  const exposureDescriptor = getExposureDescriptor(details.residual || 0);
+  const insuranceCount = Array.isArray(details.insurance) ? details.insurance.length : 0;
+  const hardFactsCount = Array.isArray(details.hardFacts) ? details.hardFacts.length : 0;
+  const totalCoverage = totalCurrencyField(details.insurance, "coverageAmount");
+  const totalDeductible = totalCurrencyField(details.insurance, "deductible");
+  const hardFactsTotal = totalCurrencyField(details.hardFacts, "amount");
+  const uninsuredExposure = Math.max(0, Number(details.expectedLoss || 0) - totalCoverage);
+  const componentText = details.itemCount > 1
+    ? ` The scenario includes ${details.itemCount} weighted component items, so the result should be read as an aggregate view across several risk drivers.`
+    : "";
+
+  const executiveSummary = `${name} is currently assessed as a ${modeText} tied primarily to ${product}${regulationText}. The scenario carries an inherent risk score of ${details.total} and a residual risk score of ${details.residual}, placing it in the ${details.tier} tier with a recommended ${details.frequency} review cycle. Overall, the remaining exposure appears ${exposureDescriptor} after current controls are applied.${componentText}`;
+
+  const financialInterpretation = `Expected annual loss is approximately ${currency(details.expectedLoss)}, with modeled outcomes ranging from ${currency(details.rangeLow)} at the P10 level to ${currency(details.rangeHigh)} at the P90 level and a most likely annual impact near ${currency(details.rangeMedian)}. Direct hard cost is estimated at ${currency(details.hardCostExpected)} and secondary or incidental soft cost at ${currency(details.softCostExpected)}. Residual annual loss is modeled at ${currency(details.residualExpectedLoss)}, and the current mitigation plan ${details.mitigationROI >= 0 ? `appears cost effective because the estimated annual risk reduction of ${currency(details.riskReductionValue)} exceeds the direct mitigation cost of ${currency(details.mitigationCost)} by ${currency(details.mitigationROI)}` : `does not yet appear fully cost effective because the direct mitigation cost of ${currency(details.mitigationCost)} exceeds the estimated annual risk reduction by ${currency(Math.abs(details.mitigationROI))}`}.`;
+
+  let contextSummary = "No insurance records or hard facts are currently loaded, so the narrative should be treated as a modeled view that still benefits from additional supporting evidence.";
+  if (insuranceCount || hardFactsCount) {
+    const insuranceText = insuranceCount
+      ? `Insurance records show ${insuranceCount} loaded polic${insuranceCount === 1 ? "y" : "ies"} with total documented coverage of ${currency(totalCoverage)}, total deductible of ${currency(totalDeductible)}, and an estimated uninsured annual exposure of ${currency(uninsuredExposure)} before any later-phase coverage modeling.`
+      : "No insurance records are currently loaded for this scenario.";
+    const hardFactsText = hardFactsCount
+      ? `Hard facts include ${hardFactsCount} supporting entr${hardFactsCount === 1 ? "y" : "ies"} totaling ${currency(hardFactsTotal)}, which ${hardFactsTotal > 0 ? "helps ground the scenario in observed evidence and benchmarks." : "should still be reviewed for stronger quantitative support."}`
+      : "No hard facts are currently loaded, so assumptions should be validated against internal loss data or external benchmarks.";
+    contextSummary = `${insuranceText} ${hardFactsText}`;
+  }
+
+  let recommendedAction = "Gather more information and validate assumptions before making a final treatment decision.";
+  if (details.acceptedRisk?.isAccepted) {
+    recommendedAction = `The scenario is currently marked as accepted risk. Maintain governance documentation, review by ${details.frequency.toLowerCase()}, and confirm that the acceptance rationale still aligns with the modeled residual exposure.`;
+  } else if ((details.residual || 0) >= 85) {
+    recommendedAction = "Escalate this scenario for management or committee review. Residual exposure remains very high, so mitigation, transfer, or formal acceptance should not be left implicit.";
+  } else if (details.mitigationROI >= 0 && (details.residual || 0) >= 50) {
+    recommendedAction = "Proceed with mitigation planning. The modeled reduction in loss supports action, and the remaining exposure is still meaningful enough to justify treatment rather than passive monitoring.";
+  } else if (insuranceCount && uninsuredExposure <= Math.max(0, Number(details.rangeMedian || 0) * 0.5)) {
+    recommendedAction = "Review transfer strategy and confirm policy response. Insurance appears meaningful relative to the modeled loss range, but deductible, exclusions, and recovery timing should still be validated.";
+  } else if (hardFactsCount === 0) {
+    recommendedAction = "Collect additional evidence and benchmark data before committing to a final treatment path. The modeled view is directionally useful, but decision confidence would improve with supporting hard facts.";
+  } else if (details.mitigationROI < 0) {
+    recommendedAction = "Consider partial controls, staged mitigation, or alternative treatments. The current mitigation package does not yet show a positive modeled net benefit on an annual basis.";
+  }
+
+  const fullText = [executiveSummary, financialInterpretation, contextSummary, recommendedAction].join(" ");
+  const dashboardText = `${executiveSummary} ${financialInterpretation}`;
+  const reportHtml = `
+    <strong>Executive Summary</strong><br>
+    ${escapeHtml(executiveSummary)}<br><br>
+    <strong>Financial Interpretation</strong><br>
+    ${escapeHtml(financialInterpretation)}<br><br>
+    <strong>Insurance + Hard Facts Context</strong><br>
+    ${escapeHtml(contextSummary)}<br><br>
+    <strong>Recommended Action</strong><br>
+    ${escapeHtml(recommendedAction)}
+  `;
+
+  return {
+    executiveSummary,
+    financialInterpretation,
+    contextSummary,
+    recommendedAction,
+    fullText,
+    dashboardText,
+    reportHtml,
+    totalCoverage,
+    totalDeductible,
+    hardFactsTotal,
+    uninsuredExposure
+  };
 }
 function calculateSingleInherent() {
   const likelihood = Number(document.getElementById("singleLikelihood").value || 0);
@@ -914,6 +988,25 @@ function summarizePayload(payload) {
     ? `Mitigation appears cost effective. Estimated annual risk reduction of ${currency(mc.riskReductionValue)} exceeds the direct mitigation cost of ${currency(mc.mitigationCost)} by approximately ${currency(mc.mitigationROI)}.`
     : `Direct mitigation cost appears to exceed the estimated annual reduction in loss by approximately ${currency(Math.abs(mc.mitigationROI))}. Leadership should consider partial controls, transfer options, or alternative mitigating factors.`;
 
+  const narrative = buildDecisionNarrative({
+    ...payload,
+    total,
+    residual,
+    tier,
+    frequency,
+    itemCount,
+    expectedLoss: mc.expectedLoss,
+    residualExpectedLoss: mc.residualExpectedLoss,
+    hardCostExpected: mc.hardCostExpected,
+    softCostExpected: mc.softCostExpected,
+    riskReductionValue: mc.riskReductionValue,
+    mitigationROI: mc.mitigationROI,
+    rangeLow: mc.rangeLow,
+    rangeMedian: mc.rangeMedian,
+    rangeHigh: mc.rangeHigh,
+    decisionText
+  });
+
   return {
     ...payload,
     total,
@@ -921,7 +1014,16 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}`,
+    generatedSummary: narrative.fullText,
+    dashboardSummary: narrative.dashboardText,
+    reportNarrativeHtml: narrative.reportHtml,
+    executiveSummaryText: narrative.executiveSummary,
+    financialInterpretationText: narrative.financialInterpretation,
+    insuranceHardFactsText: narrative.contextSummary,
+    recommendedActionText: narrative.recommendedAction,
+    totalCoverage: narrative.totalCoverage,
+    totalDeductible: narrative.totalDeductible,
+    uninsuredExposure: narrative.uninsuredExposure,
     monteCarloRows: [],
     monteCarloMethodRows,
     monteCarloInputRows,
@@ -995,8 +1097,9 @@ function renderScenarioSummary(summary) {
   setTextIfPresent("riskTier", summary.tier);
   setTextIfPresent("reviewFrequency", summary.frequency);
   setTextIfPresent("itemCount", summary.itemCount);
-  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
-  setTextIfPresent("aiSummaryBox", summary.generatedSummary);
+  setTextIfPresent("dashboardNarrative", summary.dashboardSummary || `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
+  const aiSummaryBox = document.getElementById("aiSummaryBox");
+  if (aiSummaryBox) aiSummaryBox.innerHTML = summary.reportNarrativeHtml || escapeHtml(summary.generatedSummary || "");
   const reportSummaryEl = document.getElementById("reportSummary");
   if (reportSummaryEl) reportSummaryEl.innerHTML = `
     <li><span class="help-label" data-help="Auto-generated scenario identifier used for tracking and reporting."><strong>Scenario ID:</strong></span> ${escapeHtml(summary.id || "Not Saved")}</li>
@@ -1023,13 +1126,7 @@ function renderScenarioSummary(summary) {
   `;
   renderReportSupplements(summary);
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
-  if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
-    <strong>Executive Decision Summary</strong><br>
-    There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
-    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
-    The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
-    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
-  `;
+  if (executiveDecisionEl) executiveDecisionEl.innerHTML = summary.reportNarrativeHtml || escapeHtml(summary.generatedSummary || "");
 
   const decisionMetricsEl = document.getElementById("decisionMetricsBody");
   if (decisionMetricsEl) decisionMetricsEl.innerHTML = `
