@@ -151,6 +151,7 @@ let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
 let currentComplexItems = [];
 let singleInsurance = [];
 let complexInsurance = [];
+let complexSharedInsurance = [];
 let singleHardFacts = [];
 let complexHardFacts = [];
 let betaInsurance = [];
@@ -273,14 +274,39 @@ function totalCurrencyField(items, key) {
   return (items || []).reduce((sum, item) => sum + parseCurrencyValue(item?.[key]), 0);
 }
 
+function getInsuranceScopeText(item) {
+  return item?.scope === "shared" ? "Shared Across Complex" : item?.scope === "component" ? "Component Only" : "Scenario";
+}
+function getInsuranceAppliesToText(item) {
+  if (item?.scope === "shared") return item?.groupId || "Entire Complex";
+  if (item?.scope === "component") return item?.componentId || item?.appliesTo || "Active Component";
+  return item?.appliesTo || "Scenario";
+}
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
+  const isComplexTable = targetId === "complexInsuranceBody" || targetId === "reportInsuranceBody";
+  const emptyColspan = isComplexTable ? 12 : 10;
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="10">No insurance entries added yet.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${emptyColspan}">No insurance entries added yet.</td></tr>`;
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => {
+    const scopeCells = isComplexTable
+      ? `<td>${escapeHtml(getInsuranceScopeText(x))}</td><td>${escapeHtml(getInsuranceAppliesToText(x))}</td>`
+      : "";
+    return `<tr>${scopeCells}<td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`;
+  }).join("");
+}
+function getComplexInsuranceDisplayItems(componentItems = complexInsurance) {
+  return [...complexSharedInsurance, ...componentItems];
+}
+function renderComplexInsuranceSection() {
+  renderInsuranceTable("complexInsuranceBody", getComplexInsuranceDisplayItems(complexInsurance));
+  const note = document.getElementById("complexInsuranceScopeNote");
+  if (!note) return;
+  const componentLabel = activeComplexComponentId || "No active component selected yet";
+  note.textContent = `Shared policies apply one time across the full complex scenario. Component-only policies attach to ${componentLabel} and are not added to other components.`;
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -293,8 +319,7 @@ function renderHardFactsTable(targetId, items) {
 }
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const list = mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
-  list.push({
+  const baseRecord = {
     policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
     policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
     carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
@@ -305,7 +330,26 @@ function addInsurance(mode) {
     coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
     notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
-  });
+  };
+  if (mode === "complex") {
+    const scope = document.getElementById("complexInsuranceScope")?.value === "shared" ? "shared" : "component";
+    const record = {
+      ...baseRecord,
+      scope,
+      groupId: ensureComplexGroupId(),
+      componentId: scope === "component" ? syncComplexComponentIdField() : "",
+      appliesTo: scope === "shared" ? "Entire Complex" : (activeComplexComponentId || syncComplexComponentIdField())
+    };
+    if (scope === "shared") {
+      complexSharedInsurance.push(record);
+    } else {
+      complexInsurance.push(record);
+    }
+    renderComplexInsuranceSection();
+    return;
+  }
+  const list = mode === "single" ? singleInsurance : betaInsurance;
+  list.push(baseRecord);
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
 }
 function addHardFact(mode) {
@@ -384,7 +428,7 @@ function applyComplexComponentSnapshot(component) {
   complexHardFacts = Array.isArray(component.hardFacts) ? component.hardFacts.map(item => ({ ...item })) : [];
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
   renderComplexItems();
-  renderInsuranceTable("complexInsuranceBody", complexInsurance);
+  renderComplexInsuranceSection();
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   document.getElementById("complexAcceptedRiskFlag").checked = !!component.acceptedRisk?.isAccepted;
@@ -490,6 +534,7 @@ function normalizeScenario(saved) {
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
     insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
+    sharedInsurance: Array.isArray(saved.sharedInsurance) ? saved.sharedInsurance : [],
     hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
     acceptedRisk: saved.acceptedRisk || {
@@ -611,84 +656,10 @@ function getReviewFrequency(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
   return rule ? rule.review_frequency : "Needs Review";
 }
-function getExposureDescriptor(residual) {
-  if (residual >= 85) return "very high";
-  if (residual >= 70) return "high";
-  if (residual >= 50) return "moderate";
-  return "lower";
-}
-function buildDecisionNarrative(details) {
-  const name = details.name || "This scenario";
-  const modeText = details.mode === "single" ? "single focused scenario" : "complex multi-item scenario";
-  const product = details.primaryProduct || "the stated product area";
-  const regulationText = details.primaryRegulation ? ` and ${details.primaryRegulation}` : "";
-  const exposureDescriptor = getExposureDescriptor(details.residual || 0);
-  const insuranceCount = Array.isArray(details.insurance) ? details.insurance.length : 0;
-  const hardFactsCount = Array.isArray(details.hardFacts) ? details.hardFacts.length : 0;
-  const totalCoverage = totalCurrencyField(details.insurance, "coverageAmount");
-  const totalDeductible = totalCurrencyField(details.insurance, "deductible");
-  const hardFactsTotal = totalCurrencyField(details.hardFacts, "amount");
-  const uninsuredExposure = Math.max(0, Number(details.expectedLoss || 0) - totalCoverage);
-  const componentText = details.itemCount > 1
-    ? ` The scenario includes ${details.itemCount} weighted component items, so the result should be read as an aggregate view across several risk drivers.`
-    : "";
-
-  const executiveSummary = `${name} is currently assessed as a ${modeText} tied primarily to ${product}${regulationText}. The scenario carries an inherent risk score of ${details.total} and a residual risk score of ${details.residual}, placing it in the ${details.tier} tier with a recommended ${details.frequency} review cycle. Overall, the remaining exposure appears ${exposureDescriptor} after current controls are applied.${componentText}`;
-
-  const financialInterpretation = `Expected annual loss is approximately ${currency(details.expectedLoss)}, with modeled outcomes ranging from ${currency(details.rangeLow)} at the P10 level to ${currency(details.rangeHigh)} at the P90 level and a most likely annual impact near ${currency(details.rangeMedian)}. Direct hard cost is estimated at ${currency(details.hardCostExpected)} and secondary or incidental soft cost at ${currency(details.softCostExpected)}. Residual annual loss is modeled at ${currency(details.residualExpectedLoss)}, and the current mitigation plan ${details.mitigationROI >= 0 ? `appears cost effective because the estimated annual risk reduction of ${currency(details.riskReductionValue)} exceeds the direct mitigation cost of ${currency(details.mitigationCost)} by ${currency(details.mitigationROI)}` : `does not yet appear fully cost effective because the direct mitigation cost of ${currency(details.mitigationCost)} exceeds the estimated annual risk reduction by ${currency(Math.abs(details.mitigationROI))}`}.`;
-
-  let contextSummary = "No insurance records or hard facts are currently loaded, so the narrative should be treated as a modeled view that still benefits from additional supporting evidence.";
-  if (insuranceCount || hardFactsCount) {
-    const insuranceText = insuranceCount
-      ? `Insurance records show ${insuranceCount} loaded polic${insuranceCount === 1 ? "y" : "ies"} with total documented coverage of ${currency(totalCoverage)}, total deductible of ${currency(totalDeductible)}, and an estimated uninsured annual exposure of ${currency(uninsuredExposure)} before any later-phase coverage modeling.`
-      : "No insurance records are currently loaded for this scenario.";
-    const hardFactsText = hardFactsCount
-      ? `Hard facts include ${hardFactsCount} supporting entr${hardFactsCount === 1 ? "y" : "ies"} totaling ${currency(hardFactsTotal)}, which ${hardFactsTotal > 0 ? "helps ground the scenario in observed evidence and benchmarks." : "should still be reviewed for stronger quantitative support."}`
-      : "No hard facts are currently loaded, so assumptions should be validated against internal loss data or external benchmarks.";
-    contextSummary = `${insuranceText} ${hardFactsText}`;
-  }
-
-  let recommendedAction = "Gather more information and validate assumptions before making a final treatment decision.";
-  if (details.acceptedRisk?.isAccepted) {
-    recommendedAction = `The scenario is currently marked as accepted risk. Maintain governance documentation, review by ${details.frequency.toLowerCase()}, and confirm that the acceptance rationale still aligns with the modeled residual exposure.`;
-  } else if ((details.residual || 0) >= 85) {
-    recommendedAction = "Escalate this scenario for management or committee review. Residual exposure remains very high, so mitigation, transfer, or formal acceptance should not be left implicit.";
-  } else if (details.mitigationROI >= 0 && (details.residual || 0) >= 50) {
-    recommendedAction = "Proceed with mitigation planning. The modeled reduction in loss supports action, and the remaining exposure is still meaningful enough to justify treatment rather than passive monitoring.";
-  } else if (insuranceCount && uninsuredExposure <= Math.max(0, Number(details.rangeMedian || 0) * 0.5)) {
-    recommendedAction = "Review transfer strategy and confirm policy response. Insurance appears meaningful relative to the modeled loss range, but deductible, exclusions, and recovery timing should still be validated.";
-  } else if (hardFactsCount === 0) {
-    recommendedAction = "Collect additional evidence and benchmark data before committing to a final treatment path. The modeled view is directionally useful, but decision confidence would improve with supporting hard facts.";
-  } else if (details.mitigationROI < 0) {
-    recommendedAction = "Consider partial controls, staged mitigation, or alternative treatments. The current mitigation package does not yet show a positive modeled net benefit on an annual basis.";
-  }
-
-  const fullText = [executiveSummary, financialInterpretation, contextSummary, recommendedAction].join(" ");
-  const dashboardText = `${executiveSummary} ${financialInterpretation}`;
-  const reportHtml = `
-    <strong>Executive Summary</strong><br>
-    ${escapeHtml(executiveSummary)}<br><br>
-    <strong>Financial Interpretation</strong><br>
-    ${escapeHtml(financialInterpretation)}<br><br>
-    <strong>Insurance + Hard Facts Context</strong><br>
-    ${escapeHtml(contextSummary)}<br><br>
-    <strong>Recommended Action</strong><br>
-    ${escapeHtml(recommendedAction)}
-  `;
-
-  return {
-    executiveSummary,
-    financialInterpretation,
-    contextSummary,
-    recommendedAction,
-    fullText,
-    dashboardText,
-    reportHtml,
-    totalCoverage,
-    totalDeductible,
-    hardFactsTotal,
-    uninsuredExposure
-  };
+function buildSummary(name, mode, product, reg, total, residual, tier, frequency, itemCount) {
+  const modeText = mode === "single" ? "single focused scenario" : "complex multi-item scenario";
+  const significance = residual >= 85 ? "very high" : residual >= 70 ? "high" : residual >= 50 ? "moderate" : "lower";
+  return `${name} was evaluated as a ${modeText} tied primarily to ${product}${reg ? ` and ${reg}` : ""}. The model produced an inherent risk score of ${total} and a residual risk score of ${residual}, placing it in the ${tier} tier with a recommended ${frequency} review cycle. ${itemCount > 1 ? `This scenario includes ${itemCount} weighted risk items, so the result should be interpreted as an aggregate view across several components. ` : ""}Overall, the remaining exposure appears ${significance} after control effectiveness is applied.`;
 }
 function calculateSingleInherent() {
   const likelihood = Number(document.getElementById("singleLikelihood").value || 0);
@@ -809,7 +780,7 @@ function getComplexPayload() {
     ? complexScenarioComponents.map((component, idx) => idx === existingIndex ? currentComponent : component)
     : [...complexScenarioComponents, currentComponent];
   const allItems = allComponents.flatMap(component => Array.isArray(component.items) ? component.items : []);
-  const allInsurance = allComponents.flatMap(component => Array.isArray(component.insurance) ? component.insurance : []);
+  const allInsurance = [...complexSharedInsurance, ...allComponents.flatMap(component => Array.isArray(component.insurance) ? component.insurance : [])];
   const allHardFacts = allComponents.flatMap(component => Array.isArray(component.hardFacts) ? component.hardFacts : []);
   const allMitigations = allComponents.flatMap(component => Array.isArray(component.mitigations) ? component.mitigations : []);
   const avgInherent = allComponents.length
@@ -843,6 +814,7 @@ function getComplexPayload() {
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: allItems,
     insurance: allInsurance,
+    sharedInsurance: complexSharedInsurance.map(item => ({ ...item })),
     hardFacts: allHardFacts,
     components: allComponents.map(component => ({ ...component })),
     mitigations: allMitigations,
@@ -988,25 +960,6 @@ function summarizePayload(payload) {
     ? `Mitigation appears cost effective. Estimated annual risk reduction of ${currency(mc.riskReductionValue)} exceeds the direct mitigation cost of ${currency(mc.mitigationCost)} by approximately ${currency(mc.mitigationROI)}.`
     : `Direct mitigation cost appears to exceed the estimated annual reduction in loss by approximately ${currency(Math.abs(mc.mitigationROI))}. Leadership should consider partial controls, transfer options, or alternative mitigating factors.`;
 
-  const narrative = buildDecisionNarrative({
-    ...payload,
-    total,
-    residual,
-    tier,
-    frequency,
-    itemCount,
-    expectedLoss: mc.expectedLoss,
-    residualExpectedLoss: mc.residualExpectedLoss,
-    hardCostExpected: mc.hardCostExpected,
-    softCostExpected: mc.softCostExpected,
-    riskReductionValue: mc.riskReductionValue,
-    mitigationROI: mc.mitigationROI,
-    rangeLow: mc.rangeLow,
-    rangeMedian: mc.rangeMedian,
-    rangeHigh: mc.rangeHigh,
-    decisionText
-  });
-
   return {
     ...payload,
     total,
@@ -1014,16 +967,7 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    generatedSummary: narrative.fullText,
-    dashboardSummary: narrative.dashboardText,
-    reportNarrativeHtml: narrative.reportHtml,
-    executiveSummaryText: narrative.executiveSummary,
-    financialInterpretationText: narrative.financialInterpretation,
-    insuranceHardFactsText: narrative.contextSummary,
-    recommendedActionText: narrative.recommendedAction,
-    totalCoverage: narrative.totalCoverage,
-    totalDeductible: narrative.totalDeductible,
-    uninsuredExposure: narrative.uninsuredExposure,
+    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}`,
     monteCarloRows: [],
     monteCarloMethodRows,
     monteCarloInputRows,
@@ -1051,26 +995,15 @@ function renderReportSupplements(summary) {
   if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl) return;
   const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
   const hardFacts = Array.isArray(summary?.hardFacts) ? summary.hardFacts : [];
+  const sharedInsurance = insurance.filter(item => item?.scope === "shared");
+  const componentInsurance = insurance.filter(item => item?.scope !== "shared");
 
   if (!insurance.length) {
-    insuranceBody.innerHTML = '<tr><td colspan="10">No insurance data loaded for this scenario.</td></tr>';
-    insuranceTotalEl.textContent = 'Insurance totals: Premium $0 | Deductible $0 | Coverage $0';
+    insuranceBody.innerHTML = '<tr><td colspan="12">No insurance data loaded for this scenario.</td></tr>';
+    insuranceTotalEl.textContent = 'Insurance totals: Shared Premium $0 | Shared Coverage $0 | Component Premium $0 | Component Coverage $0 | Combined Coverage $0';
   } else {
-    insuranceBody.innerHTML = insurance.map(item => `
-      <tr>
-        <td>${escapeHtml(item.policyName)}</td>
-        <td>${escapeHtml(item.policyNumber)}</td>
-        <td>${escapeHtml(item.carrier)}</td>
-        <td>${escapeHtml(item.coverageType)}</td>
-        <td>${currency(item.premium)}</td>
-        <td>${currency(item.deductible)}</td>
-        <td>${currency(item.coverageAmount)}</td>
-        <td>${escapeHtml(item.coverageDates)}</td>
-        <td>${escapeHtml(item.notes)}</td>
-        <td>${escapeHtml(item.sourceLink)}</td>
-      </tr>
-    `).join("");
-    insuranceTotalEl.textContent = `Insurance totals: Premium ${currency(totalCurrencyField(insurance, "premium"))} | Deductible ${currency(totalCurrencyField(insurance, "deductible"))} | Coverage ${currency(totalCurrencyField(insurance, "coverageAmount"))}`;
+    renderInsuranceTable("reportInsuranceBody", insurance);
+    insuranceTotalEl.textContent = `Insurance totals: Shared Premium ${currency(totalCurrencyField(sharedInsurance, "premium"))} | Shared Coverage ${currency(totalCurrencyField(sharedInsurance, "coverageAmount"))} | Component Premium ${currency(totalCurrencyField(componentInsurance, "premium"))} | Component Coverage ${currency(totalCurrencyField(componentInsurance, "coverageAmount"))} | Combined Coverage ${currency(totalCurrencyField(insurance, "coverageAmount"))}`;
   }
 
   if (!hardFacts.length) {
@@ -1090,6 +1023,7 @@ function renderReportSupplements(summary) {
   }
 }
 
+
 function renderScenarioSummary(summary) {
   setTextIfPresent("scenarioIdDisplay", summary.id || "Not Saved");
   setTextIfPresent("inherentRiskScoreDisplay", summary.inherent);
@@ -1097,9 +1031,8 @@ function renderScenarioSummary(summary) {
   setTextIfPresent("riskTier", summary.tier);
   setTextIfPresent("reviewFrequency", summary.frequency);
   setTextIfPresent("itemCount", summary.itemCount);
-  setTextIfPresent("dashboardNarrative", summary.dashboardSummary || `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
-  const aiSummaryBox = document.getElementById("aiSummaryBox");
-  if (aiSummaryBox) aiSummaryBox.innerHTML = summary.reportNarrativeHtml || escapeHtml(summary.generatedSummary || "");
+  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
+  setTextIfPresent("aiSummaryBox", summary.generatedSummary);
   const reportSummaryEl = document.getElementById("reportSummary");
   if (reportSummaryEl) reportSummaryEl.innerHTML = `
     <li><span class="help-label" data-help="Auto-generated scenario identifier used for tracking and reporting."><strong>Scenario ID:</strong></span> ${escapeHtml(summary.id || "Not Saved")}</li>
@@ -1126,7 +1059,13 @@ function renderScenarioSummary(summary) {
   `;
   renderReportSupplements(summary);
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
-  if (executiveDecisionEl) executiveDecisionEl.innerHTML = summary.reportNarrativeHtml || escapeHtml(summary.generatedSummary || "");
+  if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
+    <strong>Executive Decision Summary</strong><br>
+    There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
+    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
+    The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
+    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
+  `;
 
   const decisionMetricsEl = document.getElementById("decisionMetricsBody");
   if (decisionMetricsEl) decisionMetricsEl.innerHTML = `
@@ -1548,12 +1487,13 @@ function openScenario(id) {
     renderComplexItems();
     const groupEl = document.getElementById("complexGroupId");
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
-    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.slice() : [];
+    complexSharedInsurance = Array.isArray(s.sharedInsurance) ? s.sharedInsurance.slice() : (Array.isArray(s.insurance) ? s.insurance.filter(item => item && item.scope === "shared") : []);
+    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.filter(item => !item || item.scope !== "shared") : [];
     complexHardFacts = firstComponent && Array.isArray(firstComponent.hardFacts) ? firstComponent.hardFacts.slice() : Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
     syncComplexComponentIdField(!activeComplexComponentId);
-    renderInsuranceTable("complexInsuranceBody", complexInsurance);
+    renderComplexInsuranceSection();
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
@@ -1701,6 +1641,7 @@ function loadComplexTestScenario() {
   const complexGroupEl = document.getElementById("complexGroupId");
   if (complexGroupEl) complexGroupEl.value = generateComplexGroupId();
   complexScenarioComponents = [];
+  complexSharedInsurance = [];
   activeComplexComponentId = "";
   syncComplexComponentIdField(true);
   document.getElementById("complexScenarioName").value = "Enterprise Deposit Modernization Program";
@@ -1733,7 +1674,7 @@ function loadComplexTestScenario() {
   complexInsurance = [
     { policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
   ];
-  renderInsuranceTable("complexInsuranceBody", complexInsurance);
+  renderComplexInsuranceSection();
   complexHardFacts = [
     { sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark" }
   ];
@@ -1877,8 +1818,11 @@ function renderManual() {
     <h4>Financial Risk Modeling</h4>
     <p>The report separately considers direct hard cost and secondary or incidental soft cost. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a multiplier applied to hard cost to reflect reputational, operational, complaint, and related secondary impacts.</p>
     <h4>Monte Carlo Method</h4>
-    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
+    <p>The financial model uses bounded Monte Carlo simulation with <strong>triangular sampling</strong>. For each iteration, the system draws a hard-cost value and a soft-cost multiplier using user-provided minimum, most-likely, and maximum values. Hard cost is calculated with a triangular random draw. Soft cost equals the simulated hard cost multiplied by the simulated soft-cost multiplier. Total loss equals hard cost plus soft cost, and residual loss applies the stated control-effectiveness percentage to the simulated total.</p>
+    <p>Triangular random draw formula: if <code>u &lt; c</code>, then <code>x = min + sqrt(u(max-min)(mode-min))</code>; otherwise <code>x = max - sqrt((1-u)(max-min)(max-mode))</code>, where <code>u</code> is a random value between 0 and 1 and <code>c = (mode-min)/(max-min)</code>.</p>
     <p>This approach is designed to support U.S. regulatory examiner expectations by documenting assumptions, preserving bounded input ranges, showing the method used, and producing transparent output tables that can be reproduced and reviewed later.</p>
+    <h4>Insurance Scope in Complex Scenarios</h4>
+    <p>Complex scenarios now support two insurance scopes. <strong>Shared Across Complex</strong> applies one policy across the full complex scenario and is counted one time in reporting. <strong>Component Only</strong> attaches a policy only to the active component scenario so coverage and premium are not double-added across unrelated components.</p>
     <h4>Executive Decision Analysis</h4>
     <p>Reports now explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether other mitigating factors should be considered.</p>
     <h4>Time Horizons</h4>
@@ -2406,8 +2350,11 @@ function forceManualContent() {
     <h4>Financial Modeling</h4>
     <p>The report separately evaluates direct <strong>hard cost</strong> and secondary or incidental <strong>soft cost</strong>. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a bounded multiplier applied to hard cost to reflect secondary impacts such as reputational damage, customer complaints, operational disruption, and related indirect effects.</p>
     <h4>Monte Carlo Method</h4>
-    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard-cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
+    <p>The financial model uses bounded Monte Carlo simulation with <strong>triangular sampling</strong>. For each iteration, the system draws a hard-cost value and a soft-cost multiplier using user-provided minimum, most-likely, and maximum values. Hard cost is calculated with a triangular random draw. Soft cost equals the simulated hard cost multiplied by the simulated soft-cost multiplier. Total loss equals hard cost plus soft cost, and residual loss applies the stated control-effectiveness percentage to the simulated total.</p>
+    <p>Triangular random draw formula: if <code>u &lt; c</code>, then <code>x = min + sqrt(u(max-min)(mode-min))</code>; otherwise <code>x = max - sqrt((1-u)(max-min)(max-mode))</code>, where <code>u</code> is a random value between 0 and 1 and <code>c = (mode-min)/(max-min)</code>.</p>
     <p>This approach is intended to satisfy U.S. examiner expectations by documenting assumptions, using bounded inputs, identifying the method used, preserving transparency in the output tables, and allowing the methodology to be reviewed later.</p>
+    <h4>Insurance Scope in Complex Scenarios</h4>
+    <p>Complex scenarios now support two insurance scopes. <strong>Shared Across Complex</strong> applies one policy across the full complex scenario and is counted one time in reporting. <strong>Component Only</strong> attaches a policy only to the active component scenario so coverage and premium are not double-added across unrelated components.</p>
     <h4>Executive Decision Analysis</h4>
     <p>Reports explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether alternative mitigating factors should be considered.</p>
     <h4>Time Horizons</h4>
@@ -2428,7 +2375,7 @@ function init() {
   renderManual();
   forceManualContent();
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
-  renderInsuranceTable("complexInsuranceBody", complexInsurance);
+  renderComplexInsuranceSection();
   renderInsuranceTable("betaInsuranceBody", betaInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
