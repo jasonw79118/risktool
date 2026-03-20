@@ -32,8 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.1.03</h4>
-      <p>Insurance record maintenance with edit/delete controls while preserving stable run, save, and reporting flows.</p>
+      <h4>Phase 20.1.03b</h4>
+      <p>Insurance edit hotfix with clickable edit/delete actions and updated insurance maintenance workflow.</p>
     </div>
   </aside>
 
@@ -206,7 +206,6 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
-        <div class="note-box" id="singleInsuranceEditStatus">Add a new insurance record for this single scenario.</div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="singleInsurancePolicyName" type="text" placeholder="e.g. Card Services E&O"></div>
           <div><label>Policy Number</label><input id="singleInsurancePolicyNumber" type="text" placeholder="e.g. PL-100245"></div>
@@ -219,9 +218,10 @@
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="singleInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="singleInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/card-services"></div>
         </div>
+        <div id="singleInsuranceEditStatus" class="note-box hidden"></div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance</button>
-          <button class="btn btn-secondary" id="cancelSingleInsuranceEditBtn" type="button">Cancel Edit</button>
+          <button class="btn btn-secondary hidden" id="singleInsuranceCancelEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -473,7 +473,6 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
-        <div class="note-box" id="complexInsuranceEditStatus">Add a new insurance record for the active complex scenario component.</div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="complexInsurancePolicyName" type="text" placeholder="e.g. Program Tech E&O"></div>
           <div><label>Policy Number</label><input id="complexInsurancePolicyNumber" type="text" placeholder="e.g. CX-440018"></div>
@@ -486,9 +485,10 @@
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="complexInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="complexInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/modernization-program"></div>
         </div>
+        <div id="complexInsuranceEditStatus" class="note-box hidden"></div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance</button>
-          <button class="btn btn-secondary" id="cancelComplexInsuranceEditBtn" type="button">Cancel Edit</button>
+          <button class="btn btn-secondary hidden" id="complexInsuranceCancelEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -712,7 +712,6 @@
 
       <div class="card">
         <div class="card-header"><h3>Insurance Entry</h3><span>Repeatable</span></div>
-        <div class="note-box" id="betaInsuranceEditStatus">Add a new insurance record for this beta scenario.</div>
         <div class="form-grid">
           <div><label>Policy Name</label><input id="betaInsurancePolicyName" type="text" placeholder="e.g. Launch Liability Program"></div>
           <div><label>Policy Number</label><input id="betaInsurancePolicyNumber" type="text" placeholder="e.g. BETA-PL-1001"></div>
@@ -725,9 +724,10 @@
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="betaInsuranceNotes" type="text" placeholder="e.g. Quoted launch coverage tower"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="betaInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/embedded-payments"></div>
         </div>
+        <div id="betaInsuranceEditStatus" class="note-box hidden"></div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addBetaInsuranceBtn">Add Insurance</button>
-          <button class="btn btn-secondary" id="cancelBetaInsuranceEditBtn" type="button">Cancel Edit</button>
+          <button class="btn btn-secondary hidden" id="betaInsuranceCancelEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 

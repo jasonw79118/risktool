@@ -155,8 +155,7 @@ let singleHardFacts = [];
 let complexHardFacts = [];
 let betaInsurance = [];
 let betaHardFacts = [];
-let insuranceCounter = 1;
-const insuranceEditState = { single: "", complex: "", beta: "" };
+let insuranceEditState = { single: null, complex: null, beta: null };
 let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
@@ -274,139 +273,124 @@ function formatAllCurrencyFields() {
 function totalCurrencyField(items, key) {
   return (items || []).reduce((sum, item) => sum + parseCurrencyValue(item?.[key]), 0);
 }
-
-function generateInsuranceId() {
-  const id = `INS-${String(insuranceCounter).padStart(6, "0")}`;
-  insuranceCounter += 1;
-  return id;
+function getInsuranceModeFromTargetId(targetId) {
+  if (String(targetId).startsWith("single")) return "single";
+  if (String(targetId).startsWith("complex")) return "complex";
+  return "beta";
 }
-function normalizeInsuranceRecord(item) {
-  if (!item || typeof item !== "object") {
-    return {
-      insuranceId: generateInsuranceId(),
-      policyName: "Untitled Policy",
-      policyNumber: "",
-      carrier: "",
-      coverageType: "",
-      premium: 0,
-      deductible: 0,
-      coverageAmount: 0,
-      coverageDates: "",
-      notes: "",
-      sourceLink: ""
-    };
-  }
-  return {
-    insuranceId: item.insuranceId || generateInsuranceId(),
-    policyName: item.policyName || "Untitled Policy",
-    policyNumber: item.policyNumber || "",
-    carrier: item.carrier || "",
-    coverageType: item.coverageType || "",
-    premium: parseCurrencyValue(item.premium || 0),
-    deductible: parseCurrencyValue(item.deductible || 0),
-    coverageAmount: parseCurrencyValue(item.coverageAmount || 0),
-    coverageDates: item.coverageDates || "",
-    notes: item.notes || "",
-    sourceLink: item.sourceLink || ""
-  };
+function getInsuranceListByMode(mode) {
+  return mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
 }
-function getInsuranceList(mode) {
-  if (mode === "single") return singleInsurance;
-  if (mode === "complex") return complexInsurance;
-  return betaInsurance;
+function nextInsuranceId() {
+  return `INS-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
 }
-function setInsuranceEditStatus(mode, text) {
-  const el = document.getElementById(`${mode}InsuranceEditStatus`);
-  if (el) el.textContent = text;
+function ensureInsuranceIds(items) {
+  (items || []).forEach((item) => {
+    if (!item.insuranceId) item.insuranceId = nextInsuranceId();
+  });
+  return items;
 }
-function setInsuranceButtonLabel(mode, isEditing) {
-  const btn = document.getElementById(`add${mode.charAt(0).toUpperCase()}${mode.slice(1)}InsuranceBtn`);
-  if (btn) btn.textContent = isEditing ? "Update Insurance" : "Add Insurance";
+function getInsuranceFieldValue(prefix, field) {
+  return document.getElementById(`${prefix}Insurance${field}`)?.value || "";
+}
+function setInsuranceFieldValue(prefix, field, value) {
+  const el = document.getElementById(`${prefix}Insurance${field}`);
+  if (!el) return;
+  el.value = value ?? "";
 }
 function resetInsuranceForm(mode) {
-  insuranceEditState[mode] = "";
-  const prefix = mode;
-  ["PolicyName","PolicyNumber","Carrier","CoverageType","CoverageDates","Notes","SourceLink"].forEach(suffix => {
-    const el = document.getElementById(`${prefix}Insurance${suffix}`);
-    if (el) el.value = "";
-  });
-  ["Premium","Deductible","CoverageAmount"].forEach(suffix => {
-    const el = document.getElementById(`${prefix}Insurance${suffix}`);
-    if (el) el.value = "";
-  });
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  ["PolicyName","PolicyNumber","Carrier","CoverageType","CoverageDates","Notes","SourceLink"].forEach((field) => setInsuranceFieldValue(prefix, field, ""));
+  ["Premium","Deductible","CoverageAmount"].forEach((field) => setInsuranceFieldValue(prefix, field, ""));
+  insuranceEditState[mode] = null;
+  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase()}${prefix.slice(1)}InsuranceBtn`);
+  if (addBtn) addBtn.textContent = "Add Insurance";
+  const cancelBtn = document.getElementById(`${prefix}InsuranceCancelEditBtn`);
+  if (cancelBtn) cancelBtn.classList.add("hidden");
+  const statusBox = document.getElementById(`${prefix}InsuranceEditStatus`);
+  if (statusBox) {
+    statusBox.textContent = "";
+    statusBox.classList.add("hidden");
+  }
   formatAllCurrencyFields();
-  setInsuranceButtonLabel(mode, false);
-  const defaultText = mode === "complex"
-    ? "Add a new insurance record for the active complex scenario component."
-    : mode === "beta"
-      ? "Add a new insurance record for this beta scenario."
-      : "Add a new insurance record for this single scenario.";
-  setInsuranceEditStatus(mode, defaultText);
 }
-function loadInsuranceIntoForm(mode, insuranceId) {
-  const record = getInsuranceList(mode).find(item => item.insuranceId === insuranceId);
-  if (!record) return;
+function populateInsuranceForm(mode, item) {
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  setInsuranceFieldValue(prefix, "PolicyName", item.policyName || "");
+  setInsuranceFieldValue(prefix, "PolicyNumber", item.policyNumber || "");
+  setInsuranceFieldValue(prefix, "Carrier", item.carrier || "");
+  setInsuranceFieldValue(prefix, "CoverageType", item.coverageType || "");
+  setInsuranceFieldValue(prefix, "Premium", item.premium || "");
+  setInsuranceFieldValue(prefix, "Deductible", item.deductible || "");
+  setInsuranceFieldValue(prefix, "CoverageAmount", item.coverageAmount || "");
+  setInsuranceFieldValue(prefix, "CoverageDates", item.coverageDates || "");
+  setInsuranceFieldValue(prefix, "Notes", item.notes || "");
+  setInsuranceFieldValue(prefix, "SourceLink", item.sourceLink || "");
+  formatAllCurrencyFields();
+}
+function beginEditInsurance(mode, insuranceId) {
+  const items = getInsuranceListByMode(mode);
+  ensureInsuranceIds(items);
+  const item = items.find((x) => x.insuranceId === insuranceId);
+  if (!item) return;
   insuranceEditState[mode] = insuranceId;
-  const prefix = mode;
-  const setValue = (suffix, value) => {
-    const el = document.getElementById(`${prefix}Insurance${suffix}`);
-    if (el) el.value = value ?? "";
-  };
-  setValue("PolicyName", record.policyName || "");
-  setValue("PolicyNumber", record.policyNumber || "");
-  setValue("Carrier", record.carrier || "");
-  setValue("CoverageType", record.coverageType || "");
-  setValue("Premium", formatCurrencyInputValue(record.premium));
-  setValue("Deductible", formatCurrencyInputValue(record.deductible));
-  setValue("CoverageAmount", formatCurrencyInputValue(record.coverageAmount));
-  setValue("CoverageDates", record.coverageDates || "");
-  setValue("Notes", record.notes || "");
-  setValue("SourceLink", record.sourceLink || "");
-  setInsuranceButtonLabel(mode, true);
-  setInsuranceEditStatus(mode, `Editing insurance record: ${record.policyName || record.policyNumber || record.insuranceId}`);
+  populateInsuranceForm(mode, item);
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase()}${prefix.slice(1)}InsuranceBtn`);
+  if (addBtn) addBtn.textContent = "Update Insurance";
+  const cancelBtn = document.getElementById(`${prefix}InsuranceCancelEditBtn`);
+  if (cancelBtn) cancelBtn.classList.remove("hidden");
+  const statusBox = document.getElementById(`${prefix}InsuranceEditStatus`);
+  if (statusBox) {
+    statusBox.textContent = `Editing insurance: ${item.policyName || item.policyNumber || insuranceId}`;
+    statusBox.classList.remove("hidden");
+  }
 }
 function deleteInsurance(mode, insuranceId) {
-  const list = getInsuranceList(mode);
-  const nextItems = list.filter(item => item.insuranceId !== insuranceId);
-  if (mode === "single") singleInsurance = nextItems;
-  else if (mode === "complex") complexInsurance = nextItems;
-  else betaInsurance = nextItems;
+  const items = getInsuranceListByMode(mode);
+  ensureInsuranceIds(items);
+  const idx = items.findIndex((x) => x.insuranceId === insuranceId);
+  if (idx < 0) return;
+  items.splice(idx, 1);
   if (insuranceEditState[mode] === insuranceId) resetInsuranceForm(mode);
-  renderInsuranceTable(`${mode}InsuranceBody`, nextItems);
+  renderInsuranceTable(`${mode}InsuranceBody`, items);
 }
+
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
-  const mode = targetId.replace(/InsuranceBody$/, "");
+  const mode = getInsuranceModeFromTargetId(targetId);
+  ensureInsuranceIds(items);
   if (!items.length) {
     tbody.innerHTML = '<tr><td colspan="11">No insurance entries added yet.</td></tr>';
     return;
   }
-  const normalizedItems = items.map((item, index) => {
-    const normalized = normalizeInsuranceRecord(item);
-    items[index] = normalized;
-    return normalized;
+  tbody.innerHTML = items.map(x => `
+    <tr data-insurance-id="${escapeHtml(x.insuranceId)}">
+      <td>${escapeHtml(x.policyName)}</td>
+      <td>${escapeHtml(x.policyNumber)}</td>
+      <td>${escapeHtml(x.carrier)}</td>
+      <td>${escapeHtml(x.coverageType)}</td>
+      <td>${currency(x.premium)}</td>
+      <td>${currency(x.deductible)}</td>
+      <td>${currency(x.coverageAmount)}</td>
+      <td>${escapeHtml(x.coverageDates)}</td>
+      <td>${escapeHtml(x.notes)}</td>
+      <td>${escapeHtml(x.sourceLink)}</td>
+      <td>
+        <button type="button" class="btn btn-secondary insurance-edit-btn" data-insurance-id="${escapeHtml(x.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Edit</button>
+        <button type="button" class="btn btn-secondary insurance-delete-btn" data-insurance-id="${escapeHtml(x.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Delete</button>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll('.insurance-edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => beginEditInsurance(btn.dataset.insuranceMode, btn.dataset.insuranceId));
   });
-  tbody.innerHTML = normalizedItems.map(x => {
-    const normalized = x;
-    const editingClass = insuranceEditState[mode] && insuranceEditState[mode] === normalized.insuranceId ? ' class="active-edit-row"' : "";
-    return `<tr${editingClass}><td>${escapeHtml(normalized.policyName)}</td><td>${escapeHtml(normalized.policyNumber)}</td><td>${escapeHtml(normalized.carrier)}</td><td>${escapeHtml(normalized.coverageType)}</td><td>${currency(normalized.premium)}</td><td>${currency(normalized.deductible)}</td><td>${currency(normalized.coverageAmount)}</td><td>${escapeHtml(normalized.coverageDates)}</td><td>${escapeHtml(normalized.notes)}</td><td>${escapeHtml(normalized.sourceLink)}</td><td><button type="button" class="btn btn-secondary" data-insurance-edit="${escapeHtml(normalized.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Edit</button> <button type="button" class="btn btn-secondary" data-insurance-delete="${escapeHtml(normalized.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Delete</button></td></tr>`;
-  }).join("");
-  tbody.querySelectorAll('[data-insurance-edit][data-insurance-mode]').forEach((btn) => {
-    btn.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      loadInsuranceIntoForm(btn.dataset.insuranceMode || mode, btn.dataset.insuranceEdit || "");
-    });
-  });
-  tbody.querySelectorAll('[data-insurance-delete][data-insurance-mode]').forEach((btn) => {
-    btn.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      deleteInsurance(btn.dataset.insuranceMode || mode, btn.dataset.insuranceDelete || "");
-    });
+  tbody.querySelectorAll('.insurance-delete-btn').forEach((btn) => {
+    btn.addEventListener('click', () => deleteInsurance(btn.dataset.insuranceMode, btn.dataset.insuranceId));
   });
 }
+
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
@@ -418,23 +402,24 @@ function renderHardFactsTable(targetId, items) {
 }
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const list = getInsuranceList(mode);
-  const record = normalizeInsuranceRecord({
-    insuranceId: insuranceEditState[mode] || "",
-    policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
-    policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
-    carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
-    coverageType: document.getElementById(`${prefix}InsuranceCoverageType`).value || "",
-    premium: parseCurrencyValue(document.getElementById(`${prefix}InsurancePremium`).value || 0),
-    deductible: parseCurrencyValue(document.getElementById(`${prefix}InsuranceDeductible`).value || 0),
-    coverageAmount: parseCurrencyValue(document.getElementById(`${prefix}InsuranceCoverageAmount`).value || 0),
-    coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
-    notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
-    sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
-  });
-  const existingIndex = list.findIndex(item => item.insuranceId === record.insuranceId);
-  if (existingIndex >= 0) list[existingIndex] = record;
-  else list.push(record);
+  const list = getInsuranceListByMode(mode);
+  ensureInsuranceIds(list);
+  const insuranceRecord = {
+    insuranceId: insuranceEditState[mode] || nextInsuranceId(),
+    policyName: getInsuranceFieldValue(prefix, "PolicyName") || "Untitled Policy",
+    policyNumber: getInsuranceFieldValue(prefix, "PolicyNumber"),
+    carrier: getInsuranceFieldValue(prefix, "Carrier"),
+    coverageType: getInsuranceFieldValue(prefix, "CoverageType"),
+    premium: parseCurrencyValue(getInsuranceFieldValue(prefix, "Premium") || 0),
+    deductible: parseCurrencyValue(getInsuranceFieldValue(prefix, "Deductible") || 0),
+    coverageAmount: parseCurrencyValue(getInsuranceFieldValue(prefix, "CoverageAmount") || 0),
+    coverageDates: getInsuranceFieldValue(prefix, "CoverageDates"),
+    notes: getInsuranceFieldValue(prefix, "Notes"),
+    sourceLink: getInsuranceFieldValue(prefix, "SourceLink")
+  };
+  const existingIndex = list.findIndex((item) => item.insuranceId === insuranceRecord.insuranceId);
+  if (existingIndex >= 0) list[existingIndex] = insuranceRecord;
+  else list.push(insuranceRecord);
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
   resetInsuranceForm(mode);
 }
@@ -475,7 +460,7 @@ function getCurrentComplexComponentSnapshot() {
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost")?.value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
     items: currentComplexItems.map(item => ({ ...item })),
-    insurance: complexInsurance.map(item => normalizeInsuranceRecord(item)),
+    insurance: complexInsurance.map(item => ({ ...item })),
     hardFacts: complexHardFacts.map(item => ({ ...item })),
     mitigations: complexMitigations.map(item => ({ ...item })),
     acceptedRisk: JSON.parse(JSON.stringify(getAcceptedRisk("complex"))),
@@ -510,8 +495,7 @@ function applyComplexComponentSnapshot(component) {
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
-  complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(normalizeInsuranceRecord) : [];
-  resetInsuranceForm("complex");
+  complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(item => ({ ...item })) : [];
   complexHardFacts = Array.isArray(component.hardFacts) ? component.hardFacts.map(item => ({ ...item })) : [];
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
   renderComplexItems();
@@ -620,7 +604,7 @@ function normalizeScenario(saved) {
     frequency: saved.frequency || getReviewFrequency(Number(saved.residual || 0)),
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
-    insurance: Array.isArray(saved.insurance) ? saved.insurance.map(normalizeInsuranceRecord) : [],
+    insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
     hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
     acceptedRisk: saved.acceptedRisk || {
@@ -853,7 +837,7 @@ function getSinglePayload() {
     mitigationCost: parseCurrencyValue(document.getElementById("singleMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("singleRandomScenarioCount").value || 1000),
     items: [],
-    insurance: singleInsurance.map(normalizeInsuranceRecord),
+    insurance: singleInsurance.slice(),
     hardFacts: singleHardFacts.slice(),
     mitigations: singleMitigations.slice(),
     acceptedRisk: getAcceptedRisk("single")
@@ -899,7 +883,7 @@ function getComplexPayload() {
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: allItems,
-    insurance: allInsurance.map(normalizeInsuranceRecord),
+    insurance: allInsurance,
     hardFacts: allHardFacts,
     components: allComponents.map(component => ({ ...component })),
     mitigations: allMitigations,
@@ -1294,7 +1278,7 @@ function getBetaPayload() {
     betaP90: Number(result.p90 || 0),
     betaIterations: Number(result.iterations || 0),
     randomOutcomeRows: Array.isArray(result.randomOutcomeRows) ? result.randomOutcomeRows : [],
-    insurance: betaInsurance.map(normalizeInsuranceRecord),
+    insurance: betaInsurance.slice(),
     hardFacts: betaHardFacts.slice(),
     inherent: 0,
     residual: 0,
@@ -1365,9 +1349,8 @@ function loadBetaTestScenario() {
   if (betaRandom) betaRandom.value = "1000";
   document.getElementById("betaScenarioDescription").value = "This beta scenario models projected launch economics and uncertainty for an embedded payments offering while documenting insurance coverage and factual planning evidence.";
   betaInsurance = [
-    normalizeInsuranceRecord({ policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" })
+    { policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" }
   ];
-  resetInsuranceForm("beta");
   betaHardFacts = [
     { sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing" }
   ];
@@ -1384,8 +1367,7 @@ function promoteBetaScenario() {
   document.getElementById("singleScenarioOwner").value = payload.scenarioOwner || "";
   document.getElementById("singleIdentifiedDate").value = payload.identifiedDate || "";
   document.getElementById("singleScenarioDescription").value = payload.description || "";
-  singleInsurance = Array.isArray(payload.insurance) ? payload.insurance.map(normalizeInsuranceRecord) : [];
-  resetInsuranceForm("single");
+  singleInsurance = Array.isArray(payload.insurance) ? payload.insurance.slice() : [];
   singleHardFacts = Array.isArray(payload.hardFacts) ? payload.hardFacts.slice() : [];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
@@ -1509,8 +1491,7 @@ function openScenario(id) {
     setCurrencyFieldValue("singleMitigationCost", s.mitigationCost || 0);
     const singleRandom = document.getElementById("singleRandomScenarioCount");
     if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
-    singleInsurance = Array.isArray(s.insurance) ? s.insurance.map(normalizeInsuranceRecord) : [];
-    resetInsuranceForm("single");
+    singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     singleHardFacts = Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderInsuranceTable("singleInsuranceBody", singleInsurance);
@@ -1544,8 +1525,7 @@ function openScenario(id) {
     const betaRandom = document.getElementById("betaRandomScenarioCount");
     if (betaRandom) betaRandom.value = String(s.randomScenarioCount || 1000);
     document.getElementById("betaScenarioDescription").value = s.description || "";
-    betaInsurance = Array.isArray(s.insurance) ? s.insurance.map(normalizeInsuranceRecord) : [];
-    resetInsuranceForm("beta");
+    betaInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     betaHardFacts = Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     renderInsuranceTable("betaInsuranceBody", betaInsurance);
     renderHardFactsTable("betaHardFactsBody", betaHardFacts);
@@ -1586,8 +1566,7 @@ function openScenario(id) {
     renderComplexItems();
     const groupEl = document.getElementById("complexGroupId");
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
-    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.map(normalizeInsuranceRecord) : Array.isArray(s.insurance) ? s.insurance.map(normalizeInsuranceRecord) : [];
-    resetInsuranceForm("complex");
+    complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.slice() : [];
     complexHardFacts = firstComponent && Array.isArray(firstComponent.hardFacts) ? firstComponent.hardFacts.slice() : Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
@@ -1770,9 +1749,8 @@ function loadComplexTestScenario() {
   ];
   renderComplexItems();
   complexInsurance = [
-    normalizeInsuranceRecord({ policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" })
+    { policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
   ];
-  resetInsuranceForm("complex");
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   complexHardFacts = [
     { sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark" }
@@ -1845,9 +1823,9 @@ function wireInputs() {
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("addSingleInsuranceBtn")?.addEventListener("click", () => addInsurance("single"));
-  document.getElementById("cancelSingleInsuranceEditBtn")?.addEventListener("click", () => resetInsuranceForm("single"));
+  document.getElementById("singleInsuranceCancelEditBtn")?.addEventListener("click", () => resetInsuranceForm("single"));
   document.getElementById("addComplexInsuranceBtn")?.addEventListener("click", () => addInsurance("complex"));
-  document.getElementById("cancelComplexInsuranceEditBtn")?.addEventListener("click", () => resetInsuranceForm("complex"));
+  document.getElementById("complexInsuranceCancelEditBtn")?.addEventListener("click", () => resetInsuranceForm("complex"));
   document.getElementById("addSingleHardFactBtn")?.addEventListener("click", () => addHardFact("single"));
   document.getElementById("addComplexHardFactBtn")?.addEventListener("click", () => addHardFact("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
@@ -1859,7 +1837,7 @@ function wireInputs() {
   document.getElementById("saveBetaScenarioBtn")?.addEventListener("click", (event) => saveBetaScenario(event));
   document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
   document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
-  document.getElementById("cancelBetaInsuranceEditBtn")?.addEventListener("click", () => resetInsuranceForm("beta"));
+  document.getElementById("betaInsuranceCancelEditBtn")?.addEventListener("click", () => resetInsuranceForm("beta"));
   document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
@@ -2571,20 +2549,6 @@ function wireDelegatedActionHandlers() {
       event.preventDefault();
       event.stopPropagation();
       openScenario(dashboardOpenBtn.dataset.openId || "");
-      return;
-    }
-    const insuranceEditBtn = event.target.closest('[data-insurance-edit][data-insurance-mode]');
-    if (insuranceEditBtn) {
-      event.preventDefault();
-      event.stopPropagation();
-      loadInsuranceIntoForm(insuranceEditBtn.dataset.insuranceMode || "single", insuranceEditBtn.dataset.insuranceEdit || "");
-      return;
-    }
-    const insuranceDeleteBtn = event.target.closest('[data-insurance-delete][data-insurance-mode]');
-    if (insuranceDeleteBtn) {
-      event.preventDefault();
-      event.stopPropagation();
-      deleteInsurance(insuranceDeleteBtn.dataset.insuranceMode || "single", insuranceDeleteBtn.dataset.insuranceDelete || "");
     }
   }, true);
 }
