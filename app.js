@@ -392,6 +392,20 @@ function renderInsuranceTable(targetId, items) {
     const editingClass = insuranceEditState[mode] && insuranceEditState[mode] === normalized.insuranceId ? ' class="active-edit-row"' : "";
     return `<tr${editingClass}><td>${escapeHtml(normalized.policyName)}</td><td>${escapeHtml(normalized.policyNumber)}</td><td>${escapeHtml(normalized.carrier)}</td><td>${escapeHtml(normalized.coverageType)}</td><td>${currency(normalized.premium)}</td><td>${currency(normalized.deductible)}</td><td>${currency(normalized.coverageAmount)}</td><td>${escapeHtml(normalized.coverageDates)}</td><td>${escapeHtml(normalized.notes)}</td><td>${escapeHtml(normalized.sourceLink)}</td><td><button type="button" class="btn btn-secondary" data-insurance-edit="${escapeHtml(normalized.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Edit</button> <button type="button" class="btn btn-secondary" data-insurance-delete="${escapeHtml(normalized.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Delete</button></td></tr>`;
   }).join("");
+  tbody.querySelectorAll('[data-insurance-edit][data-insurance-mode]').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      loadInsuranceIntoForm(btn.dataset.insuranceMode || mode, btn.dataset.insuranceEdit || "");
+    });
+  });
+  tbody.querySelectorAll('[data-insurance-delete][data-insurance-mode]').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteInsurance(btn.dataset.insuranceMode || mode, btn.dataset.insuranceDelete || "");
+    });
+  });
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
