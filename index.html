@@ -32,8 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.1.03b</h4>
-      <p>Insurance edit hotfix with clickable edit/delete actions and updated insurance maintenance workflow.</p>
+      <h4>Phase 20.1.04</h4>
+      <p>Hard facts record maintenance, complex hard-fact attribution, and stronger examiner-facing evidence reporting.</p>
     </div>
   </aside>
 
@@ -218,10 +218,8 @@
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="singleInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="singleInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/card-services"></div>
         </div>
-        <div id="singleInsuranceEditStatus" class="note-box hidden"></div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance</button>
-          <button class="btn btn-secondary hidden" id="singleInsuranceCancelEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -229,7 +227,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="singleInsuranceBody"></tbody>
           </table>
         </div>
@@ -237,6 +235,7 @@
 
       <div class="card">
         <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
+        <div class="note-box" id="singleHardFactEditStatus">Add documented internal or external losses, benchmarks, or supporting evidence.</div>
         <div class="form-grid">
           <div><label>Source Type</label><select id="singleHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
           <div><label>Loss / Cost Amount</label><input id="singleHardFactAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 42000"></div>
@@ -246,6 +245,7 @@
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addSingleHardFactBtn">Add Hard Fact</button>
+          <button class="btn btn-secondary hidden" id="cancelSingleHardFactEditBtn">Cancel Edit</button>
         </div>
       </div>
 
@@ -253,7 +253,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="singleHardFactsBody"></tbody>
           </table>
         </div>
@@ -308,6 +308,14 @@
             <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
             <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Hard Facts / Evidence Method</h3><span>Examiner Guidance</span></div>
+        <div class="manual-copy">
+          <p>Hard facts are documented internal or external losses, benchmarks, and supporting evidence captured alongside each scenario. They are intended to support assumptions, show the basis for judgment, and improve examiner transparency.</p>
+          <p>For complex scenarios, evidence can be tied either to the full complex scenario or only to the active component. This allows the report to distinguish enterprise-level support from component-specific support.</p>
+          <p>Hard facts are informative inputs and governance support. In this phase they do not automatically recalibrate the Monte Carlo model, which preserves a clear distinction between documented evidence and modeled estimates.</p>
         </div>
       </div>
     </section>
@@ -485,10 +493,8 @@
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="complexInsuranceNotes" type="text" placeholder="Policy notes, exclusions, comments"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="complexInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/modernization-program"></div>
         </div>
-        <div id="complexInsuranceEditStatus" class="note-box hidden"></div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance</button>
-          <button class="btn btn-secondary hidden" id="complexInsuranceCancelEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -496,7 +502,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="complexInsuranceBody"></tbody>
           </table>
         </div>
@@ -504,8 +510,10 @@
 
       <div class="card">
         <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
+        <div class="note-box" id="complexHardFactEditStatus">Add documented internal or external losses, benchmarks, or supporting evidence. Complex entries can be tied to the full complex scenario or only the active component.</div>
         <div class="form-grid">
           <div><label>Source Type</label><select id="complexHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
+          <div><label>Evidence Scope</label><select id="complexHardFactScope"><option value="component" selected>Component Only</option><option value="complex">Shared Across Complex</option></select></div>
           <div><label>Loss / Cost Amount</label><input id="complexHardFactAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 275000"></div>
           <div><label>Date</label><input id="complexHardFactDate" type="date"></div>
           <div class="full-span"><label>Description / Notes</label><input id="complexHardFactDescription" type="text" placeholder="Describe the factual loss, benchmark, or evidence"></div>
@@ -513,6 +521,7 @@
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addComplexHardFactBtn">Add Hard Fact</button>
+          <button class="btn btn-secondary hidden" id="cancelComplexHardFactEditBtn">Cancel Edit</button>
         </div>
       </div>
 
@@ -520,7 +529,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Scope</th><th>Applies To</th><th>Description</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="complexHardFactsBody"></tbody>
           </table>
         </div>
@@ -724,10 +733,8 @@
           <div class="full-span"><label>Notes / Exclusions / Comments</label><input id="betaInsuranceNotes" type="text" placeholder="e.g. Quoted launch coverage tower"></div>
           <div class="full-span"><label>Source Link / Document Location</label><input id="betaInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/embedded-payments"></div>
         </div>
-        <div id="betaInsuranceEditStatus" class="note-box hidden"></div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addBetaInsuranceBtn">Add Insurance</button>
-          <button class="btn btn-secondary hidden" id="betaInsuranceCancelEditBtn" type="button">Cancel Edit</button>
         </div>
       </div>
 
@@ -735,7 +742,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="betaInsuranceBody"></tbody>
           </table>
         </div>
@@ -743,6 +750,7 @@
 
       <div class="card">
         <div class="card-header"><h3>Hard Facts / Evidence Entry</h3><span>Repeatable</span></div>
+        <div class="note-box" id="betaHardFactEditStatus">Add documented internal or external losses, benchmarks, or supporting evidence.</div>
         <div class="form-grid">
           <div><label>Source Type</label><select id="betaHardFactSourceType"><option value="Internal">Internal</option><option value="External">External</option></select></div>
           <div><label>Loss / Cost Amount</label><input id="betaHardFactAmount" type="text" inputmode="decimal" data-currency="usd" placeholder="e.g. 175000"></div>
@@ -752,6 +760,7 @@
         </div>
         <div class="builder-actions">
           <button class="btn btn-secondary" id="addBetaHardFactBtn">Add Hard Fact</button>
+          <button class="btn btn-secondary hidden" id="cancelBetaHardFactEditBtn">Cancel Edit</button>
         </div>
       </div>
 
@@ -759,7 +768,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="betaHardFactsBody"></tbody>
           </table>
         </div>
@@ -945,10 +954,11 @@
       <div class="card">
         <div class="card-header"><h3>Hard Facts / Evidence in Report</h3><span>U.S. Currency</span></div>
         <div class="note-box" id="reportHardFactsTotals">Hard facts total documented loss / cost: $0</div>
+        <div class="note-box" id="reportHardFactsEvidenceNote">Hard facts are used as supporting evidence and benchmarking support; they do not automatically override modeled estimates.</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
-            <tbody id="reportHardFactsBody"><tr><td colspan="5">Run or open a scenario to populate hard facts reporting.</td></tr></tbody>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Scope</th><th>Applies To</th><th>Description</th><th>Source</th></tr></thead>
+            <tbody id="reportHardFactsBody"><tr><td colspan="7">Run or open a scenario to populate hard facts reporting.</td></tr></tbody>
           </table>
         </div>
       </div>

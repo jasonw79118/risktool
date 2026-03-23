@@ -155,7 +155,6 @@ let singleHardFacts = [];
 let complexHardFacts = [];
 let betaInsurance = [];
 let betaHardFacts = [];
-let insuranceEditState = { single: null, complex: null, beta: null };
 let singleMitigations = [];
 let complexMitigations = [];
 let activeMode = "single";
@@ -164,6 +163,9 @@ let complexScenarioComponents = [];
 let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
+let singleHardFactEditId = "";
+let complexHardFactEditId = "";
+let betaHardFactEditId = "";
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -220,6 +222,99 @@ function generateComponentId() {
   return id;
 }
 
+function generateHardFactId() {
+  return `HF-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+function getHardFactEditState(mode) {
+  return mode === "single" ? singleHardFactEditId : mode === "complex" ? complexHardFactEditId : betaHardFactEditId;
+}
+function setHardFactEditState(mode, value) {
+  if (mode === "single") singleHardFactEditId = value || "";
+  if (mode === "complex") complexHardFactEditId = value || "";
+  if (mode === "beta") betaHardFactEditId = value || "";
+}
+function getHardFactsList(mode) {
+  return mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
+}
+function getHardFactScopeLabel(item) {
+  if ((item?.scope || "") === "component") return "Component";
+  if ((item?.scope || "") === "complex") return "Complex";
+  return "Scenario";
+}
+function getHardFactAppliesToLabel(item) {
+  if ((item?.scope || "") === "component") return item?.componentId || "Active Component";
+  if ((item?.scope || "") === "complex") return item?.groupId || "Full Complex Scenario";
+  return item?.appliesTo || "Scenario";
+}
+function resetHardFactForm(mode) {
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  const sourceType = document.getElementById(`${prefix}HardFactSourceType`);
+  const amount = document.getElementById(`${prefix}HardFactAmount`);
+  const factDate = document.getElementById(`${prefix}HardFactDate`);
+  const description = document.getElementById(`${prefix}HardFactDescription`);
+  const sourceLink = document.getElementById(`${prefix}HardFactSourceLink`);
+  const scope = document.getElementById(`${prefix}HardFactScope`);
+  if (sourceType) sourceType.value = "Internal";
+  if (amount) amount.value = "";
+  if (factDate) factDate.value = "";
+  if (description) description.value = "";
+  if (sourceLink) sourceLink.value = "";
+  if (scope) scope.value = mode === "complex" ? "component" : "scenario";
+  setHardFactEditState(mode, "");
+  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactBtn`);
+  if (addBtn) addBtn.textContent = "Add Hard Fact";
+  const cancelBtn = document.getElementById(`cancel${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactEditBtn`);
+  if (cancelBtn) cancelBtn.classList.add("hidden");
+  const status = document.getElementById(`${prefix}HardFactEditStatus`);
+  if (status) status.textContent = mode === "complex"
+    ? "Add documented internal or external losses, benchmarks, or supporting evidence. Complex entries can be tied to the full complex scenario or only the active component."
+    : "Add documented internal or external losses, benchmarks, or supporting evidence.";
+  formatAllCurrencyFields();
+}
+function loadHardFactForEdit(mode, hardFactId) {
+  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
+  const item = getHardFactsList(mode).find(x => String(x.hardFactId || "") === String(hardFactId || ""));
+  if (!item) return;
+  setHardFactEditState(mode, item.hardFactId || "");
+  const sourceType = document.getElementById(`${prefix}HardFactSourceType`);
+  const amount = document.getElementById(`${prefix}HardFactAmount`);
+  const factDate = document.getElementById(`${prefix}HardFactDate`);
+  const description = document.getElementById(`${prefix}HardFactDescription`);
+  const sourceLink = document.getElementById(`${prefix}HardFactSourceLink`);
+  const scope = document.getElementById(`${prefix}HardFactScope`);
+  if (sourceType) sourceType.value = item.sourceType || "Internal";
+  if (amount) amount.value = formatCurrencyInputValue(item.amount || 0);
+  if (factDate) factDate.value = item.factDate || "";
+  if (description) description.value = item.description || "";
+  if (sourceLink) sourceLink.value = item.sourceLink || "";
+  if (scope) scope.value = item.scope || "component";
+  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactBtn`);
+  if (addBtn) addBtn.textContent = "Update Hard Fact";
+  const cancelBtn = document.getElementById(`cancel${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactEditBtn`);
+  if (cancelBtn) cancelBtn.classList.remove("hidden");
+  const status = document.getElementById(`${prefix}HardFactEditStatus`);
+  if (status) status.textContent = `Editing hard fact: ${item.description || item.hardFactId || "Selected Hard Fact"}`;
+}
+function deleteHardFact(mode, hardFactId) {
+  const list = getHardFactsList(mode);
+  const remaining = list.filter(x => String(x.hardFactId || "") !== String(hardFactId || ""));
+  if (mode === "single") singleHardFacts = remaining;
+  if (mode === "complex") complexHardFacts = remaining;
+  if (mode === "beta") betaHardFacts = remaining;
+  if (getHardFactEditState(mode) && String(getHardFactEditState(mode)) === String(hardFactId || "")) resetHardFactForm(mode);
+  renderHardFactsTable(`${mode === "single" ? "single" : mode === "complex" ? "complex" : "beta"}HardFactsBody`, remaining);
+}
+function getHardFactsEvidenceNote(hardFacts) {
+  const items = Array.isArray(hardFacts) ? hardFacts : [];
+  if (!items.length) return "No hard facts or supporting evidence are currently loaded for this scenario. Assumptions remain primarily model-based and should be validated as evidence becomes available.";
+  const total = totalCurrencyField(items, "amount");
+  const internalCount = items.filter(x => String(x.sourceType || "").toLowerCase() === "internal").length;
+  const externalCount = items.filter(x => String(x.sourceType || "").toLowerCase() === "external").length;
+  if (internalCount && externalCount) return `Hard facts include both internal and external support, totaling ${currency(total)}. This mix strengthens reasonableness testing by combining direct experience with outside benchmarks.`;
+  if (internalCount) return `Hard facts rely on internal documented experience totaling ${currency(total)}. This supports the scenario with institution-specific evidence, though external benchmarking may still be useful.`;
+  return `Hard facts rely primarily on external benchmarks totaling ${currency(total)}. This supports directional reasonableness, though internal validation may still be warranted.`;
+}
+
 const USD_FORMATTER = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -273,167 +368,84 @@ function formatAllCurrencyFields() {
 function totalCurrencyField(items, key) {
   return (items || []).reduce((sum, item) => sum + parseCurrencyValue(item?.[key]), 0);
 }
-function getInsuranceModeFromTargetId(targetId) {
-  if (String(targetId).startsWith("single")) return "single";
-  if (String(targetId).startsWith("complex")) return "complex";
-  return "beta";
-}
-function getInsuranceListByMode(mode) {
-  return mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
-}
-function nextInsuranceId() {
-  return `INS-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-}
-function ensureInsuranceIds(items) {
-  (items || []).forEach((item) => {
-    if (!item.insuranceId) item.insuranceId = nextInsuranceId();
-  });
-  return items;
-}
-function getInsuranceFieldValue(prefix, field) {
-  return document.getElementById(`${prefix}Insurance${field}`)?.value || "";
-}
-function setInsuranceFieldValue(prefix, field, value) {
-  const el = document.getElementById(`${prefix}Insurance${field}`);
-  if (!el) return;
-  el.value = value ?? "";
-}
-function resetInsuranceForm(mode) {
-  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  ["PolicyName","PolicyNumber","Carrier","CoverageType","CoverageDates","Notes","SourceLink"].forEach((field) => setInsuranceFieldValue(prefix, field, ""));
-  ["Premium","Deductible","CoverageAmount"].forEach((field) => setInsuranceFieldValue(prefix, field, ""));
-  insuranceEditState[mode] = null;
-  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase()}${prefix.slice(1)}InsuranceBtn`);
-  if (addBtn) addBtn.textContent = "Add Insurance";
-  const cancelBtn = document.getElementById(`${prefix}InsuranceCancelEditBtn`);
-  if (cancelBtn) cancelBtn.classList.add("hidden");
-  const statusBox = document.getElementById(`${prefix}InsuranceEditStatus`);
-  if (statusBox) {
-    statusBox.textContent = "";
-    statusBox.classList.add("hidden");
-  }
-  formatAllCurrencyFields();
-}
-function populateInsuranceForm(mode, item) {
-  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  setInsuranceFieldValue(prefix, "PolicyName", item.policyName || "");
-  setInsuranceFieldValue(prefix, "PolicyNumber", item.policyNumber || "");
-  setInsuranceFieldValue(prefix, "Carrier", item.carrier || "");
-  setInsuranceFieldValue(prefix, "CoverageType", item.coverageType || "");
-  setInsuranceFieldValue(prefix, "Premium", item.premium || "");
-  setInsuranceFieldValue(prefix, "Deductible", item.deductible || "");
-  setInsuranceFieldValue(prefix, "CoverageAmount", item.coverageAmount || "");
-  setInsuranceFieldValue(prefix, "CoverageDates", item.coverageDates || "");
-  setInsuranceFieldValue(prefix, "Notes", item.notes || "");
-  setInsuranceFieldValue(prefix, "SourceLink", item.sourceLink || "");
-  formatAllCurrencyFields();
-}
-function beginEditInsurance(mode, insuranceId) {
-  const items = getInsuranceListByMode(mode);
-  ensureInsuranceIds(items);
-  const item = items.find((x) => x.insuranceId === insuranceId);
-  if (!item) return;
-  insuranceEditState[mode] = insuranceId;
-  populateInsuranceForm(mode, item);
-  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase()}${prefix.slice(1)}InsuranceBtn`);
-  if (addBtn) addBtn.textContent = "Update Insurance";
-  const cancelBtn = document.getElementById(`${prefix}InsuranceCancelEditBtn`);
-  if (cancelBtn) cancelBtn.classList.remove("hidden");
-  const statusBox = document.getElementById(`${prefix}InsuranceEditStatus`);
-  if (statusBox) {
-    statusBox.textContent = `Editing insurance: ${item.policyName || item.policyNumber || insuranceId}`;
-    statusBox.classList.remove("hidden");
-  }
-}
-function deleteInsurance(mode, insuranceId) {
-  const items = getInsuranceListByMode(mode);
-  ensureInsuranceIds(items);
-  const idx = items.findIndex((x) => x.insuranceId === insuranceId);
-  if (idx < 0) return;
-  items.splice(idx, 1);
-  if (insuranceEditState[mode] === insuranceId) resetInsuranceForm(mode);
-  renderInsuranceTable(`${mode}InsuranceBody`, items);
-}
 
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
-  const mode = getInsuranceModeFromTargetId(targetId);
-  ensureInsuranceIds(items);
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="11">No insurance entries added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10">No insurance entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `
-    <tr data-insurance-id="${escapeHtml(x.insuranceId)}">
-      <td>${escapeHtml(x.policyName)}</td>
-      <td>${escapeHtml(x.policyNumber)}</td>
-      <td>${escapeHtml(x.carrier)}</td>
-      <td>${escapeHtml(x.coverageType)}</td>
-      <td>${currency(x.premium)}</td>
-      <td>${currency(x.deductible)}</td>
-      <td>${currency(x.coverageAmount)}</td>
-      <td>${escapeHtml(x.coverageDates)}</td>
-      <td>${escapeHtml(x.notes)}</td>
-      <td>${escapeHtml(x.sourceLink)}</td>
-      <td>
-        <button type="button" class="btn btn-secondary insurance-edit-btn" data-insurance-id="${escapeHtml(x.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Edit</button>
-        <button type="button" class="btn btn-secondary insurance-delete-btn" data-insurance-id="${escapeHtml(x.insuranceId)}" data-insurance-mode="${escapeHtml(mode)}">Delete</button>
-      </td>
-    </tr>
-  `).join("");
-  tbody.querySelectorAll('.insurance-edit-btn').forEach((btn) => {
-    btn.addEventListener('click', () => beginEditInsurance(btn.dataset.insuranceMode, btn.dataset.insuranceId));
-  });
-  tbody.querySelectorAll('.insurance-delete-btn').forEach((btn) => {
-    btn.addEventListener('click', () => deleteInsurance(btn.dataset.insuranceMode, btn.dataset.insuranceId));
-  });
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
-
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
+  const isComplex = targetId === "complexHardFactsBody";
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="5">No hard facts / evidence entries added yet.</td></tr>';
+    tbody.innerHTML = isComplex
+      ? '<tr><td colspan="8">No hard facts / evidence entries added yet.</td></tr>'
+      : '<tr><td colspan="7">No hard facts / evidence entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.sourceType)}</td><td>${currency(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => `
+    <tr>
+      <td>${escapeHtml(x.sourceType)}</td>
+      <td>${currency(x.amount)}</td>
+      <td>${escapeHtml(x.factDate)}</td>
+      ${isComplex ? `<td>${escapeHtml(getHardFactScopeLabel(x))}</td><td>${escapeHtml(getHardFactAppliesToLabel(x))}</td>` : ``}
+      <td>${escapeHtml(x.description)}</td>
+      <td>${escapeHtml(x.sourceLink)}</td>
+      <td>
+        <button class="btn btn-secondary small-btn" data-hardfact-action="edit" data-hardfact-mode="${isComplex ? "complex" : targetId === "singleHardFactsBody" ? "single" : "beta"}" data-hardfact-id="${escapeHtml(x.hardFactId || "")}">Edit</button>
+        <button class="btn btn-secondary small-btn" data-hardfact-action="delete" data-hardfact-mode="${isComplex ? "complex" : targetId === "singleHardFactsBody" ? "single" : "beta"}" data-hardfact-id="${escapeHtml(x.hardFactId || "")}">Delete</button>
+      </td>
+    </tr>`).join("");
+  tbody.querySelectorAll("[data-hardfact-action]").forEach(btn => btn.addEventListener("click", () => {
+    const mode = btn.dataset.hardfactMode;
+    const id = btn.dataset.hardfactId;
+    if (btn.dataset.hardfactAction === "edit") loadHardFactForEdit(mode, id);
+    if (btn.dataset.hardfactAction === "delete") deleteHardFact(mode, id);
+  }));
 }
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const list = getInsuranceListByMode(mode);
-  ensureInsuranceIds(list);
-  const insuranceRecord = {
-    insuranceId: insuranceEditState[mode] || nextInsuranceId(),
-    policyName: getInsuranceFieldValue(prefix, "PolicyName") || "Untitled Policy",
-    policyNumber: getInsuranceFieldValue(prefix, "PolicyNumber"),
-    carrier: getInsuranceFieldValue(prefix, "Carrier"),
-    coverageType: getInsuranceFieldValue(prefix, "CoverageType"),
-    premium: parseCurrencyValue(getInsuranceFieldValue(prefix, "Premium") || 0),
-    deductible: parseCurrencyValue(getInsuranceFieldValue(prefix, "Deductible") || 0),
-    coverageAmount: parseCurrencyValue(getInsuranceFieldValue(prefix, "CoverageAmount") || 0),
-    coverageDates: getInsuranceFieldValue(prefix, "CoverageDates"),
-    notes: getInsuranceFieldValue(prefix, "Notes"),
-    sourceLink: getInsuranceFieldValue(prefix, "SourceLink")
-  };
-  const existingIndex = list.findIndex((item) => item.insuranceId === insuranceRecord.insuranceId);
-  if (existingIndex >= 0) list[existingIndex] = insuranceRecord;
-  else list.push(insuranceRecord);
+  const list = mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
+  list.push({
+    policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
+    policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
+    carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
+    coverageType: document.getElementById(`${prefix}InsuranceCoverageType`).value || "",
+    premium: parseCurrencyValue(document.getElementById(`${prefix}InsurancePremium`).value || 0),
+    deductible: parseCurrencyValue(document.getElementById(`${prefix}InsuranceDeductible`).value || 0),
+    coverageAmount: parseCurrencyValue(document.getElementById(`${prefix}InsuranceCoverageAmount`).value || 0),
+    coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
+    notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
+    sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
+  });
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
-  resetInsuranceForm(mode);
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const list = mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
-  list.push({
+  const list = getHardFactsList(mode);
+  const editId = getHardFactEditState(mode);
+  const selectedScope = document.getElementById(`${prefix}HardFactScope`)?.value || (mode === "complex" ? "component" : "scenario");
+  const entry = {
+    hardFactId: editId || generateHardFactId(),
     sourceType: document.getElementById(`${prefix}HardFactSourceType`).value || "Internal",
     amount: parseCurrencyValue(document.getElementById(`${prefix}HardFactAmount`).value || 0),
     factDate: document.getElementById(`${prefix}HardFactDate`).value || "",
     description: document.getElementById(`${prefix}HardFactDescription`).value || "",
-    sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
-  });
+    sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || "",
+    scope: mode === "complex" ? selectedScope : "scenario",
+    groupId: mode === "complex" ? ensureComplexGroupId() : "",
+    componentId: mode === "complex" && selectedScope === "component" ? (activeComplexComponentId || syncComplexComponentIdField()) : "",
+    appliesTo: mode === "complex" ? (selectedScope === "component" ? (activeComplexComponentId || document.getElementById("complexComponentId")?.value || "Active Component") : (ensureComplexGroupId() || "Full Complex Scenario")) : "Scenario"
+  };
+  const existingIndex = list.findIndex(x => String(x.hardFactId || "") === String(entry.hardFactId || ""));
+  if (existingIndex >= 0) list[existingIndex] = entry; else list.push(entry);
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
+  resetHardFactForm(mode);
 }
 
 function getCurrentComplexComponentSnapshot() {
@@ -1061,7 +1073,8 @@ function renderReportSupplements(summary) {
   const hardFactsBody = document.getElementById("reportHardFactsBody");
   const insuranceTotalEl = document.getElementById("reportInsuranceTotals");
   const hardFactsTotalEl = document.getElementById("reportHardFactsTotals");
-  if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl) return;
+  const hardFactsEvidenceNoteEl = document.getElementById("reportHardFactsEvidenceNote");
+  if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl || !hardFactsEvidenceNoteEl) return;
   const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
   const hardFacts = Array.isArray(summary?.hardFacts) ? summary.hardFacts : [];
 
@@ -1087,19 +1100,23 @@ function renderReportSupplements(summary) {
   }
 
   if (!hardFacts.length) {
-    hardFactsBody.innerHTML = '<tr><td colspan="5">No hard facts / evidence loaded for this scenario.</td></tr>';
+    hardFactsBody.innerHTML = '<tr><td colspan="7">No hard facts / evidence loaded for this scenario.</td></tr>';
     hardFactsTotalEl.textContent = 'Hard facts total documented loss / cost: $0';
+    hardFactsEvidenceNoteEl.textContent = getHardFactsEvidenceNote(hardFacts);
   } else {
     hardFactsBody.innerHTML = hardFacts.map(item => `
       <tr>
         <td>${escapeHtml(item.sourceType)}</td>
         <td>${currency(item.amount)}</td>
         <td>${escapeHtml(item.factDate)}</td>
+        <td>${escapeHtml(getHardFactScopeLabel(item))}</td>
+        <td>${escapeHtml(getHardFactAppliesToLabel(item))}</td>
         <td>${escapeHtml(item.description)}</td>
         <td>${escapeHtml(item.sourceLink)}</td>
       </tr>
     `).join("");
     hardFactsTotalEl.textContent = `Hard facts total documented loss / cost: ${currency(totalCurrencyField(hardFacts, "amount"))}`;
+    hardFactsEvidenceNoteEl.textContent = getHardFactsEvidenceNote(hardFacts);
   }
 }
 
@@ -1352,10 +1369,11 @@ function loadBetaTestScenario() {
     { policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" }
   ];
   betaHardFacts = [
-    { sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing" }
+    { hardFactId: generateHardFactId(), sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing", scope: "scenario", appliesTo: "Scenario" }
   ];
   renderInsuranceTable("betaInsuranceBody", betaInsurance);
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
+  resetHardFactForm("beta");
   runBetaScenario();
   activateView("beta");
 }
@@ -1371,6 +1389,7 @@ function promoteBetaScenario() {
   singleHardFacts = Array.isArray(payload.hardFacts) ? payload.hardFacts.slice() : [];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
+  resetHardFactForm("single");
   activateView("single");
 }
 
@@ -1496,6 +1515,7 @@ function openScenario(id) {
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderInsuranceTable("singleInsuranceBody", singleInsurance);
     renderHardFactsTable("singleHardFactsBody", singleHardFacts);
+    resetHardFactForm("single");
     renderMitigationTable("singleMitigationBody", singleMitigations);
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("singleAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
@@ -1573,6 +1593,7 @@ function openScenario(id) {
     syncComplexComponentIdField(!activeComplexComponentId);
     renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+    resetHardFactForm("complex");
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
     formatAllCurrencyFields();
@@ -1696,9 +1717,10 @@ function loadSingleTestScenario() {
   ];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   singleHardFacts = [
-    { sourceType: "Internal", amount: "42000", factDate: todayIso(), description: "Prior error-resolution remediation spend", sourceLink: "internal://evidence/reg-e-remediation" }
+    { hardFactId: generateHardFactId(), sourceType: "Internal", amount: "42000", factDate: todayIso(), description: "Prior error-resolution remediation spend", sourceLink: "internal://evidence/reg-e-remediation", scope: "scenario", appliesTo: "Scenario" }
   ];
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
+  resetHardFactForm("single");
   singleMitigations = [
     { title: "Workflow validation", owner: "Operations", status: "In Progress", attachment: "workflow_review.xlsx" },
     { title: "Procedure rewrite", owner: "Compliance", status: "Planned", attachment: "reg_e_procedure.docx" }
@@ -1753,9 +1775,10 @@ function loadComplexTestScenario() {
   ];
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   complexHardFacts = [
-    { sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark" }
+    { hardFactId: generateHardFactId(), sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark", scope: "complex", groupId: ensureComplexGroupId(), appliesTo: ensureComplexGroupId() || "Full Complex Scenario" }
   ];
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+  resetHardFactForm("complex");
   complexMitigations = [
     { title: "Committee escalation", owner: "ERM", status: "Complete", attachment: "committee_packet.pdf" },
     { title: "Third-party resiliency review", owner: "Vendor Management", status: "In Progress", attachment: "vendor_resiliency.docx" }
@@ -1823,11 +1846,11 @@ function wireInputs() {
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("addSingleInsuranceBtn")?.addEventListener("click", () => addInsurance("single"));
-  document.getElementById("singleInsuranceCancelEditBtn")?.addEventListener("click", () => resetInsuranceForm("single"));
   document.getElementById("addComplexInsuranceBtn")?.addEventListener("click", () => addInsurance("complex"));
-  document.getElementById("complexInsuranceCancelEditBtn")?.addEventListener("click", () => resetInsuranceForm("complex"));
   document.getElementById("addSingleHardFactBtn")?.addEventListener("click", () => addHardFact("single"));
   document.getElementById("addComplexHardFactBtn")?.addEventListener("click", () => addHardFact("complex"));
+  document.getElementById("cancelSingleHardFactEditBtn")?.addEventListener("click", () => resetHardFactForm("single"));
+  document.getElementById("cancelComplexHardFactEditBtn")?.addEventListener("click", () => resetHardFactForm("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
@@ -1837,8 +1860,8 @@ function wireInputs() {
   document.getElementById("saveBetaScenarioBtn")?.addEventListener("click", (event) => saveBetaScenario(event));
   document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
   document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
-  document.getElementById("betaInsuranceCancelEditBtn")?.addEventListener("click", () => resetInsuranceForm("beta"));
   document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
+  document.getElementById("cancelBetaHardFactEditBtn")?.addEventListener("click", () => resetHardFactForm("beta"));
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
@@ -1902,6 +1925,8 @@ function renderManual() {
     <p>This approach is designed to support U.S. regulatory examiner expectations by documenting assumptions, preserving bounded input ranges, showing the method used, and producing transparent output tables that can be reproduced and reviewed later.</p>
     <h4>Executive Decision Analysis</h4>
     <p>Reports now explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether other mitigating factors should be considered.</p>
+    <h4>Hard Facts / Evidence</h4>
+    <p>Hard facts document known internal or external losses, benchmarks, and supporting evidence. These entries are intended to support and challenge scenario assumptions, not automatically override the Monte Carlo model. In complex scenarios, hard facts can be tied either to the full complex scenario or to the active component so examiners can see what evidence supports each layer.</p>
     <h4>Time Horizons</h4>
     <p>Each report now includes one-year, three-year, five-year, ten-year, fifteen-year, twenty-year, twenty-five-year, and thirty-plus-year outlooks, both with and without mitigation, so leadership can understand longer-term exposure.</p>
     <h4>Category Admin</h4>
@@ -2451,12 +2476,12 @@ function init() {
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderInsuranceTable("betaInsuranceBody", betaInsurance);
-  resetInsuranceForm("single");
-  resetInsuranceForm("complex");
-  resetInsuranceForm("beta");
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
+  resetHardFactForm("single");
+  resetHardFactForm("complex");
+  resetHardFactForm("beta");
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   renderComplexItems();
