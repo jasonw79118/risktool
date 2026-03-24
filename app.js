@@ -164,6 +164,115 @@ let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
 
+let activeInsuranceEdit = { single: "", complex: "", beta: "" };
+let activeHardFactEdit = { single: "", complex: "", beta: "" };
+let activeMitigationEdit = { single: "", complex: "" };
+let recordCounters = { insurance: 1, hardFact: 1, mitigation: 1 };
+
+function nextRecordId(kind) {
+  const id = `${kind.toUpperCase()}-${String(recordCounters[kind]++).padStart(6, "0")}`;
+  return id;
+}
+function ensureRecordId(kind, value) {
+  return value || nextRecordId(kind);
+}
+function getCollection(kind, mode) {
+  if (kind === "insurance") return mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
+  if (kind === "hardFact") return mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
+  if (kind === "mitigation") return mode === "single" ? singleMitigations : complexMitigations;
+  return [];
+}
+function getEditState(kind) {
+  return kind === "insurance" ? activeInsuranceEdit : kind === "hardFact" ? activeHardFactEdit : activeMitigationEdit;
+}
+function setEditStatus(kind, mode, text) {
+  const statusId = `${mode}${kind === "hardFact" ? "HardFact" : kind === "mitigation" ? "Mitigation" : "Insurance"}EditStatus`;
+  const el = document.getElementById(statusId);
+  if (el) el.textContent = text;
+}
+function setPrimaryButtonLabel(kind, mode, isEditing) {
+  const btnId = kind === "insurance" ? `add${capitalize(mode)}InsuranceBtn` : kind === "hardFact" ? `add${capitalize(mode)}HardFactBtn` : `add${capitalize(mode)}MitigationBtn`;
+  const btn = document.getElementById(btnId);
+  if (btn) btn.textContent = isEditing ? (kind === "insurance" ? "Update Insurance" : kind === "hardFact" ? "Update Hard Fact" : "Update Mitigation") : (kind === "insurance" ? "Add Insurance" : kind === "hardFact" ? "Add Hard Fact" : "Add Mitigation");
+}
+function capitalize(value) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+}
+function resetEditState(kind, mode) {
+  const state = getEditState(kind);
+  state[mode] = "";
+  setPrimaryButtonLabel(kind, mode, false);
+  setEditStatus(kind, mode, `Adding a new ${kind === "hardFact" ? "hard fact" : kind} entry.`);
+}
+function hydrateRecordCounters() {
+  [singleInsurance, complexInsurance, betaInsurance].flat().forEach(item => { if (item.insuranceId) { const n = Number(String(item.insuranceId).split("-").pop()); if (Number.isFinite(n)) recordCounters.insurance = Math.max(recordCounters.insurance, n + 1); }});
+  [singleHardFacts, complexHardFacts, betaHardFacts].flat().forEach(item => { if (item.hardFactId) { const n = Number(String(item.hardFactId).split("-").pop()); if (Number.isFinite(n)) recordCounters.hardFact = Math.max(recordCounters.hardFact, n + 1); }});
+  [singleMitigations, complexMitigations].flat().forEach(item => { if (item.mitigationId) { const n = Number(String(item.mitigationId).split("-").pop()); if (Number.isFinite(n)) recordCounters.mitigation = Math.max(recordCounters.mitigation, n + 1); }});
+}
+function fillInsuranceForm(mode, item) {
+  const prefix = mode;
+  document.getElementById(`${prefix}InsurancePolicyName`).value = item.policyName || "";
+  document.getElementById(`${prefix}InsurancePolicyNumber`).value = item.policyNumber || "";
+  document.getElementById(`${prefix}InsuranceCarrier`).value = item.carrier || "";
+  document.getElementById(`${prefix}InsuranceCoverageType`).value = item.coverageType || "";
+  setCurrencyFieldValue(`${prefix}InsurancePremium`, item.premium || 0);
+  setCurrencyFieldValue(`${prefix}InsuranceDeductible`, item.deductible || 0);
+  setCurrencyFieldValue(`${prefix}InsuranceCoverageAmount`, item.coverageAmount || 0);
+  document.getElementById(`${prefix}InsuranceCoverageDates`).value = item.coverageDates || "";
+  document.getElementById(`${prefix}InsuranceNotes`).value = item.notes || "";
+  document.getElementById(`${prefix}InsuranceSourceLink`).value = item.sourceLink || "";
+}
+function clearInsuranceForm(mode) {
+  fillInsuranceForm(mode, {});
+}
+function fillHardFactForm(mode, item) {
+  document.getElementById(`${mode}HardFactSourceType`).value = item.sourceType || "Internal";
+  setCurrencyFieldValue(`${mode}HardFactAmount`, item.amount || 0);
+  document.getElementById(`${mode}HardFactDate`).value = item.factDate || "";
+  document.getElementById(`${mode}HardFactDescription`).value = item.description || "";
+  document.getElementById(`${mode}HardFactSourceLink`).value = item.sourceLink || "";
+}
+function clearHardFactForm(mode) { fillHardFactForm(mode, {}); }
+function fillMitigationForm(mode, item) {
+  document.getElementById(`${mode}MitTitle`).value = item.title || "";
+  document.getElementById(`${mode}MitOwner`).value = item.owner || "";
+  document.getElementById(`${mode}MitStatus`).value = item.status || "";
+  document.getElementById(`${mode}MitAttachment`).value = item.attachment || "";
+}
+function clearMitigationForm(mode) { fillMitigationForm(mode, {}); }
+function editRecord(kind, mode, recordId) {
+  const items = getCollection(kind, mode);
+  const key = kind === "insurance" ? "insuranceId" : kind === "hardFact" ? "hardFactId" : "mitigationId";
+  const item = items.find(x => String(x[key] || "") === String(recordId || ""));
+  if (!item) return;
+  getEditState(kind)[mode] = String(recordId || "");
+  setPrimaryButtonLabel(kind, mode, true);
+  setEditStatus(kind, mode, `Editing ${kind === "hardFact" ? "hard fact" : kind}: ${item.policyName || item.title || item.description || recordId}`);
+  if (kind === "insurance") fillInsuranceForm(mode, item);
+  if (kind === "hardFact") fillHardFactForm(mode, item);
+  if (kind === "mitigation") fillMitigationForm(mode, item);
+}
+function deleteRecord(kind, mode, recordId) {
+  const items = getCollection(kind, mode);
+  const key = kind === "insurance" ? "insuranceId" : kind === "hardFact" ? "hardFactId" : "mitigationId";
+  const next = items.filter(x => String(x[key] || "") !== String(recordId || ""));
+  if (kind === "insurance") {
+    if (mode === "single") singleInsurance = next; else if (mode === "complex") complexInsurance = next; else betaInsurance = next;
+    renderInsuranceTable(`${mode}InsuranceBody`, next);
+    if (activeInsuranceEdit[mode] === recordId) { clearInsuranceForm(mode); resetEditState("insurance", mode); }
+  }
+  if (kind === "hardFact") {
+    if (mode === "single") singleHardFacts = next; else if (mode === "complex") complexHardFacts = next; else betaHardFacts = next;
+    renderHardFactsTable(`${mode}HardFactsBody`, next);
+    if (activeHardFactEdit[mode] === recordId) { clearHardFactForm(mode); resetEditState("hardFact", mode); }
+  }
+  if (kind === "mitigation") {
+    if (mode === "single") singleMitigations = next; else complexMitigations = next;
+    renderMitigationTable(`${mode}MitigationBody`, next);
+    if (activeMitigationEdit[mode] === recordId) { clearMitigationForm(mode); resetEditState("mitigation", mode); }
+  }
+}
+
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" })
@@ -276,11 +385,28 @@ function totalCurrencyField(items, key) {
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
+  const mode = targetId.replace('InsuranceBody', '');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="10">No insurance entries added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11">No insurance entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => {
+    x.insuranceId = ensureRecordId("insurance", x.insuranceId);
+    return `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td><td><button type="button" class="btn btn-secondary small-btn" data-record-kind="insurance" data-record-mode="${escapeHtml(mode)}" data-record-action="edit" data-record-id="${escapeHtml(x.insuranceId)}">Edit</button> <button type="button" class="btn btn-secondary small-btn" data-record-kind="insurance" data-record-mode="${escapeHtml(mode)}" data-record-action="delete" data-record-id="${escapeHtml(x.insuranceId)}">Delete</button></td></tr>`;
+  }).join("");
+}
+function renderHardFactsTable(targetId, items) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  const mode = targetId.replace('HardFactsBody', '');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="6">No hard facts / evidence entries added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(x => {
+    x.hardFactId = ensureRecordId("hardFact", x.hardFactId);
+    return `<tr><td>${escapeHtml(x.sourceType)}</td><td>${currency(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td><td><button type="button" class="btn btn-secondary small-btn" data-record-kind="hardFact" data-record-mode="${escapeHtml(mode)}" data-record-action="edit" data-record-id="${escapeHtml(x.hardFactId)}">Edit</button> <button type="button" class="btn btn-secondary small-btn" data-record-kind="hardFact" data-record-mode="${escapeHtml(mode)}" data-record-action="delete" data-record-id="${escapeHtml(x.hardFactId)}">Delete</button></td></tr>`;
+  }).join("");
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -294,7 +420,9 @@ function renderHardFactsTable(targetId, items) {
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
   const list = mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
-  list.push({
+  const editId = activeInsuranceEdit[mode];
+  const record = {
+    insuranceId: ensureRecordId("insurance", editId),
     policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
     policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
     carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
@@ -305,20 +433,30 @@ function addInsurance(mode) {
     coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
     notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
-  });
+  };
+  const idx = list.findIndex(x => String(x.insuranceId || "") === String(editId || ""));
+  if (idx >= 0) list[idx] = record; else list.push(record);
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
+  clearInsuranceForm(mode);
+  resetEditState("insurance", mode);
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
   const list = mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
-  list.push({
+  const editId = activeHardFactEdit[mode];
+  const record = {
+    hardFactId: ensureRecordId("hardFact", editId),
     sourceType: document.getElementById(`${prefix}HardFactSourceType`).value || "Internal",
     amount: parseCurrencyValue(document.getElementById(`${prefix}HardFactAmount`).value || 0),
     factDate: document.getElementById(`${prefix}HardFactDate`).value || "",
     description: document.getElementById(`${prefix}HardFactDescription`).value || "",
     sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
-  });
+  };
+  const idx = list.findIndex(x => String(x.hardFactId || "") === String(editId || ""));
+  if (idx >= 0) list[idx] = record; else list.push(record);
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
+  clearHardFactForm(mode);
+  resetEditState("hardFact", mode);
 }
 
 function getCurrentComplexComponentSnapshot() {
@@ -489,9 +627,9 @@ function normalizeScenario(saved) {
     frequency: saved.frequency || getReviewFrequency(Number(saved.residual || 0)),
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
-    insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
-    hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts : [],
-    mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
+    insurance: Array.isArray(saved.insurance) ? saved.insurance.map(item => ({ ...item, insuranceId: ensureRecordId("insurance", item.insuranceId) })) : [],
+    hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts.map(item => ({ ...item, hardFactId: ensureRecordId("hardFact", item.hardFactId) })) : [],
+    mitigations: Array.isArray(saved.mitigations) ? saved.mitigations.map(item => ({ ...item, mitigationId: ensureRecordId("mitigation", item.mitigationId) })) : [],
     acceptedRisk: saved.acceptedRisk || {
       isAccepted: false,
       authority: "",
@@ -616,43 +754,6 @@ function buildSummary(name, mode, product, reg, total, residual, tier, frequency
   const significance = residual >= 85 ? "very high" : residual >= 70 ? "high" : residual >= 50 ? "moderate" : "lower";
   return `${name} was evaluated as a ${modeText} tied primarily to ${product}${reg ? ` and ${reg}` : ""}. The model produced an inherent risk score of ${total} and a residual risk score of ${residual}, placing it in the ${tier} tier with a recommended ${frequency} review cycle. ${itemCount > 1 ? `This scenario includes ${itemCount} weighted risk items, so the result should be interpreted as an aggregate view across several components. ` : ""}Overall, the remaining exposure appears ${significance} after control effectiveness is applied.`;
 }
-function summarizeInsuranceMetrics(insurance, expectedLoss) {
-  const items = Array.isArray(insurance) ? insurance : [];
-  const totalPremium = totalCurrencyField(items, "premium");
-  const totalDeductible = totalCurrencyField(items, "deductible");
-  const totalCoverage = totalCurrencyField(items, "coverageAmount");
-  const coverageApplied = Math.min(Math.max(0, Number(expectedLoss || 0)), totalCoverage);
-  const insuranceAdjustedExposure = Math.max(0, Math.round(Math.max(0, Number(expectedLoss || 0)) - coverageApplied + totalDeductible));
-  return { totalPremium, totalDeductible, totalCoverage, coverageApplied, insuranceAdjustedExposure };
-}
-function buildDecisionRecommendation(metrics) {
-  if (!metrics) return "Run a scenario to generate a neutral recommendation.";
-  if (metrics.uncertaintySpread >= Math.max(metrics.expectedLoss * 1.25, 100000) && metrics.hardFactsCount === 0) {
-    return "The range of modeled outcomes indicates meaningful uncertainty, and gathering additional information may improve decision confidence before a final course of action is selected.";
-  }
-  if (metrics.coverageApplied >= Math.max(metrics.expectedLoss * 0.6, 1) && metrics.insuranceAdjustedExposure < metrics.expectedLoss) {
-    return "Available insurance appears to materially offset modeled loss, suggesting that risk transfer may be a reasonable part of the response strategy, subject to deductible, terms, and exclusions.";
-  }
-  if (metrics.riskReductionValue > metrics.mitigationCost && metrics.netExposureAfterMitigation <= metrics.expectedLoss) {
-    return "Based on the modeled outcomes and cost comparison, mitigation appears to provide a favorable reduction in expected loss and may be a reasonable course of action.";
-  }
-  if (metrics.residualScore <= 49 && metrics.mitigationCost > metrics.riskReductionValue) {
-    return "The remaining exposure appears comparatively limited relative to mitigation cost, and risk acceptance may be appropriate if management is comfortable with the documented assumptions and monitoring cadence.";
-  }
-  if (metrics.p90 >= Math.max(metrics.expectedLoss * 2, 250000)) {
-    return "Upper-bound outcomes remain significant, and escalation or additional management oversight may be warranted before a final decision is made.";
-  }
-  return "The analysis suggests a measured response may be appropriate, with emphasis on validating assumptions, considering partial controls, and documenting the rationale for the selected treatment approach.";
-}
-function buildDecisionJustification(payload, metrics) {
-  const evidenceText = metrics.hardFactsTotal > 0
-    ? `Documented hard facts total ${currency(metrics.hardFactsTotal)} across ${metrics.hardFactsCount} evidence record${metrics.hardFactsCount === 1 ? "" : "s"}, which provides an external or internal benchmark for the scenario assumptions.`
-    : "No hard facts are currently loaded, so the analysis relies primarily on modeled assumptions rather than documented benchmark loss experience.";
-  const insuranceText = metrics.totalCoverage > 0
-    ? `Listed insurance provides ${currency(metrics.totalCoverage)} in stated coverage with ${currency(metrics.totalDeductible)} in deductible friction, producing an insurance-adjusted expected exposure of approximately ${currency(metrics.insuranceAdjustedExposure)} under this light allocation view.`
-    : "No insurance coverage is currently loaded into the scenario, so the expected exposure should be interpreted on a gross basis before transfer options.";
-  return `Expected annual loss is estimated at ${currency(metrics.expectedLoss)}, with modeled outcomes generally ranging from ${currency(metrics.p10)} at the lower bound to ${currency(metrics.p90)} at the upper bound and a midpoint outcome near ${currency(metrics.p50)}. Planned mitigation cost is ${currency(metrics.mitigationCost)} compared with an estimated annual reduction in loss of ${currency(metrics.riskReductionValue)}. ${insuranceText} ${evidenceText}`;
-}
 function calculateSingleInherent() {
   const likelihood = Number(document.getElementById("singleLikelihood").value || 0);
   const impact = Number(document.getElementById("singleImpact").value || 0);
@@ -705,22 +806,32 @@ function addRiskItem() {
 function renderMitigationTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
+  const mode = targetId.replace('MitigationBody', '');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="4">No mitigation factors added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5">No mitigation factors added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.title)}</td><td>${escapeHtml(x.owner)}</td><td>${escapeHtml(x.status)}</td><td>${escapeHtml(x.attachment)}</td></tr>`).join("");
+  tbody.innerHTML = items.map(x => {
+    x.mitigationId = ensureRecordId("mitigation", x.mitigationId);
+    return `<tr><td>${escapeHtml(x.title)}</td><td>${escapeHtml(x.owner)}</td><td>${escapeHtml(x.status)}</td><td>${escapeHtml(x.attachment)}</td><td><button type="button" class="btn btn-secondary small-btn" data-record-kind="mitigation" data-record-mode="${escapeHtml(mode)}" data-record-action="edit" data-record-id="${escapeHtml(x.mitigationId)}">Edit</button> <button type="button" class="btn btn-secondary small-btn" data-record-kind="mitigation" data-record-mode="${escapeHtml(mode)}" data-record-action="delete" data-record-id="${escapeHtml(x.mitigationId)}">Delete</button></td></tr>`;
+  }).join("");
 }
 function addMitigation(mode) {
   const prefix = mode === "single" ? "single" : "complex";
   const list = mode === "single" ? singleMitigations : complexMitigations;
-  list.push({
+  const editId = activeMitigationEdit[mode];
+  const record = {
+    mitigationId: ensureRecordId("mitigation", editId),
     title: document.getElementById(`${prefix}MitTitle`).value || "Untitled Mitigation",
     owner: document.getElementById(`${prefix}MitOwner`).value || "",
     status: document.getElementById(`${prefix}MitStatus`).value || "",
     attachment: document.getElementById(`${prefix}MitAttachment`).value || ""
-  });
+  };
+  const idx = list.findIndex(x => String(x.mitigationId || "") === String(editId || ""));
+  if (idx >= 0) list[idx] = record; else list.push(record);
   renderMitigationTable(`${prefix}MitigationBody`, list);
+  clearMitigationForm(mode);
+  resetEditState("mitigation", mode);
 }
 function getAcceptedRisk(prefix) {
   return {
@@ -947,24 +1058,9 @@ function summarizePayload(payload) {
     ["P50 Annual Loss", currency(mc.rangeMedian)],
     ["P90 Annual Loss", currency(mc.rangeHigh)]
   ];
-  const insuranceMetrics = summarizeInsuranceMetrics(payload.insurance, mc.expectedLoss);
-  const decisionMetrics = {
-    expectedLoss: mc.expectedLoss,
-    residualExpectedLoss: mc.residualExpectedLoss,
-    riskReductionValue: mc.riskReductionValue,
-    mitigationCost: mc.mitigationCost,
-    mitigationROI: mc.mitigationROI,
-    p10: mc.rangeLow,
-    p50: mc.rangeMedian,
-    p90: mc.rangeHigh,
-    uncertaintySpread: Math.max(0, mc.rangeHigh - mc.rangeLow),
-    residualScore: residual,
-    hardFactsTotal: totalCurrencyField(payload.hardFacts, "amount"),
-    hardFactsCount: Array.isArray(payload.hardFacts) ? payload.hardFacts.length : 0,
-    ...insuranceMetrics
-  };
-  const decisionText = buildDecisionRecommendation(decisionMetrics);
-  const decisionJustification = buildDecisionJustification(payload, decisionMetrics);
+  const decisionText = mc.mitigationROI >= 0
+    ? `Mitigation appears cost effective. Estimated annual risk reduction of ${currency(mc.riskReductionValue)} exceeds the direct mitigation cost of ${currency(mc.mitigationCost)} by approximately ${currency(mc.mitigationROI)}.`
+    : `Direct mitigation cost appears to exceed the estimated annual reduction in loss by approximately ${currency(Math.abs(mc.mitigationROI))}. Leadership should consider partial controls, transfer options, or alternative mitigating factors.`;
 
   return {
     ...payload,
@@ -973,7 +1069,7 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Expected annual loss is approximately ${currency(mc.expectedLoss)}, with modeled outcomes ranging from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} and a midpoint outcome near ${currency(mc.rangeMedian)}. ${decisionText}`,
+    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}`,
     monteCarloRows: [],
     monteCarloMethodRows,
     monteCarloInputRows,
@@ -990,14 +1086,7 @@ function summarizePayload(payload) {
     rangeLow: mc.rangeLow,
     rangeMedian: mc.rangeMedian,
     rangeHigh: mc.rangeHigh,
-    decisionText,
-    decisionJustification,
-    insuranceCoverageTotal: insuranceMetrics.totalCoverage,
-    insuranceDeductibleTotal: insuranceMetrics.totalDeductible,
-    insurancePremiumTotal: insuranceMetrics.totalPremium,
-    coverageApplied: insuranceMetrics.coverageApplied,
-    insuranceAdjustedExposure: insuranceMetrics.insuranceAdjustedExposure,
-    uncertaintySpread: decisionMetrics.uncertaintySpread
+    decisionText
   };
 }
 function renderReportSupplements(summary) {
@@ -1084,30 +1173,23 @@ function renderScenarioSummary(summary) {
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
   if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
     <strong>Executive Decision Summary</strong><br>
-    <strong>${escapeHtml(summary.name)}</strong> currently reflects a ${escapeHtml(summary.tier.toLowerCase())} residual risk profile with expected annual loss of approximately <strong>${currency(summary.expectedLoss)}</strong>. Modeled one-year outcomes range from about <strong>${currency(summary.rangeLow)}</strong> to <strong>${currency(summary.rangeHigh)}</strong>, with a midpoint outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
-    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong>. Planned mitigation cost is <strong>${currency(summary.mitigationCost)}</strong>, compared with an estimated annual reduction in loss of <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
-    ${escapeHtml(summary.decisionText)}
+    There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
+    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
+    The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
+    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
   `;
 
   const decisionMetricsEl = document.getElementById("decisionMetricsBody");
   if (decisionMetricsEl) decisionMetricsEl.innerHTML = `
     <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
-    <tr><td>P10 Annual Loss</td><td>${currency(summary.rangeLow)}</td></tr>
-    <tr><td>P50 Annual Loss</td><td>${currency(summary.rangeMedian)}</td></tr>
-    <tr><td>P90 Annual Loss</td><td>${currency(summary.rangeHigh)}</td></tr>
+    <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
+    <tr><td>Total Insurance Premium</td><td>${currency(totalCurrencyField(summary.insurance, "premium"))}</td></tr>
+    <tr><td>Total Hard Facts / Evidence Cost</td><td>${currency(totalCurrencyField(summary.hardFacts, "amount"))}</td></tr>
     <tr><td>Mitigation Cost</td><td>${currency(summary.mitigationCost)}</td></tr>
-    <tr><td>Net Exposure After Mitigation</td><td>${currency(summary.residualExpectedLoss + summary.mitigationCost)}</td></tr>
-    <tr><td>Insurance Coverage Applied</td><td>${currency(summary.coverageApplied)}</td></tr>
-    <tr><td>Insurance-Adjusted Expected Exposure</td><td>${currency(summary.insuranceAdjustedExposure)}</td></tr>
     <tr><td>Annual Risk Reduction Value</td><td>${currency(summary.riskReductionValue)}</td></tr>
     <tr><td>Net Benefit / ROI</td><td>${currency(summary.mitigationROI)}</td></tr>
-    <tr><td>Modeled Uncertainty Spread</td><td>${currency(summary.uncertaintySpread)}</td></tr>
+    <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
   `;
-
-  const decisionRecommendationEl = document.getElementById("decisionRecommendationBox");
-  if (decisionRecommendationEl) decisionRecommendationEl.innerHTML = `<strong>Neutral Recommendation</strong><br>${escapeHtml(summary.decisionText)}`;
-  const decisionJustificationEl = document.getElementById("decisionJustificationBox");
-  if (decisionJustificationEl) decisionJustificationEl.innerHTML = `<strong>Decision Justification</strong><br>${escapeHtml(summary.decisionJustification || "No decision justification generated.")}`;
 
   const horizonExposureEl = document.getElementById("horizonExposureBody");
   if (horizonExposureEl) horizonExposureEl.innerHTML = summary.horizonRows.map(row => `
@@ -1787,6 +1869,14 @@ function wireInputs() {
   document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
   document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
   document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
+  document.getElementById("cancelSingleInsuranceEditBtn")?.addEventListener("click", () => { clearInsuranceForm("single"); resetEditState("insurance", "single"); });
+  document.getElementById("cancelComplexInsuranceEditBtn")?.addEventListener("click", () => { clearInsuranceForm("complex"); resetEditState("insurance", "complex"); });
+  document.getElementById("cancelBetaInsuranceEditBtn")?.addEventListener("click", () => { clearInsuranceForm("beta"); resetEditState("insurance", "beta"); });
+  document.getElementById("cancelSingleHardFactEditBtn")?.addEventListener("click", () => { clearHardFactForm("single"); resetEditState("hardFact", "single"); });
+  document.getElementById("cancelComplexHardFactEditBtn")?.addEventListener("click", () => { clearHardFactForm("complex"); resetEditState("hardFact", "complex"); });
+  document.getElementById("cancelBetaHardFactEditBtn")?.addEventListener("click", () => { clearHardFactForm("beta"); resetEditState("hardFact", "beta"); });
+  document.getElementById("cancelSingleMitigationEditBtn")?.addEventListener("click", () => { clearMitigationForm("single"); resetEditState("mitigation", "single"); });
+  document.getElementById("cancelComplexMitigationEditBtn")?.addEventListener("click", () => { clearMitigationForm("complex"); resetEditState("mitigation", "complex"); });
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
@@ -2405,6 +2495,7 @@ function init() {
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   renderComplexItems();
+  hydrateRecordCounters();
   refreshLibraries();
   updateInherentScores();
   renderHeatMap();
@@ -2494,6 +2585,16 @@ function wireDelegatedActionHandlers() {
       event.preventDefault();
       event.stopPropagation();
       openScenario(dashboardOpenBtn.dataset.openId || "");
+      return;
+    }
+    const recordBtn = event.target.closest('[data-record-kind][data-record-mode][data-record-action][data-record-id]');
+    if (recordBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      const { recordKind, recordMode, recordAction, recordId } = recordBtn.dataset;
+      if (recordAction === "edit") editRecord(recordKind, recordMode, recordId);
+      if (recordAction === "delete") deleteRecord(recordKind, recordMode, recordId);
+      return;
     }
   }, true);
 }
