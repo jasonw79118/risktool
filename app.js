@@ -157,121 +157,15 @@ let betaInsurance = [];
 let betaHardFacts = [];
 let singleMitigations = [];
 let complexMitigations = [];
+window.singleAcceptedRisks = window.singleAcceptedRisks || [];
+window.complexAcceptedRisks = window.complexAcceptedRisks || [];
+window.recordEditState = window.recordEditState || {};
 let activeMode = "single";
 let lastSummary = null;
 let complexScenarioComponents = [];
 let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
-
-let activeInsuranceEdit = { single: "", complex: "", beta: "" };
-let activeHardFactEdit = { single: "", complex: "", beta: "" };
-let activeMitigationEdit = { single: "", complex: "" };
-let recordCounters = { insurance: 1, hardFact: 1, mitigation: 1 };
-
-function nextRecordId(kind) {
-  const id = `${kind.toUpperCase()}-${String(recordCounters[kind]++).padStart(6, "0")}`;
-  return id;
-}
-function ensureRecordId(kind, value) {
-  return value || nextRecordId(kind);
-}
-function getCollection(kind, mode) {
-  if (kind === "insurance") return mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
-  if (kind === "hardFact") return mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
-  if (kind === "mitigation") return mode === "single" ? singleMitigations : complexMitigations;
-  return [];
-}
-function getEditState(kind) {
-  return kind === "insurance" ? activeInsuranceEdit : kind === "hardFact" ? activeHardFactEdit : activeMitigationEdit;
-}
-function setEditStatus(kind, mode, text) {
-  const statusId = `${mode}${kind === "hardFact" ? "HardFact" : kind === "mitigation" ? "Mitigation" : "Insurance"}EditStatus`;
-  const el = document.getElementById(statusId);
-  if (el) el.textContent = text;
-}
-function setPrimaryButtonLabel(kind, mode, isEditing) {
-  const btnId = kind === "insurance" ? `add${capitalize(mode)}InsuranceBtn` : kind === "hardFact" ? `add${capitalize(mode)}HardFactBtn` : `add${capitalize(mode)}MitigationBtn`;
-  const btn = document.getElementById(btnId);
-  if (btn) btn.textContent = isEditing ? (kind === "insurance" ? "Update Insurance" : kind === "hardFact" ? "Update Hard Fact" : "Update Mitigation") : (kind === "insurance" ? "Add Insurance" : kind === "hardFact" ? "Add Hard Fact" : "Add Mitigation");
-}
-function capitalize(value) {
-  return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
-}
-function resetEditState(kind, mode) {
-  const state = getEditState(kind);
-  state[mode] = "";
-  setPrimaryButtonLabel(kind, mode, false);
-  setEditStatus(kind, mode, `Adding a new ${kind === "hardFact" ? "hard fact" : kind} entry.`);
-}
-function hydrateRecordCounters() {
-  [singleInsurance, complexInsurance, betaInsurance].flat().forEach(item => { if (item.insuranceId) { const n = Number(String(item.insuranceId).split("-").pop()); if (Number.isFinite(n)) recordCounters.insurance = Math.max(recordCounters.insurance, n + 1); }});
-  [singleHardFacts, complexHardFacts, betaHardFacts].flat().forEach(item => { if (item.hardFactId) { const n = Number(String(item.hardFactId).split("-").pop()); if (Number.isFinite(n)) recordCounters.hardFact = Math.max(recordCounters.hardFact, n + 1); }});
-  [singleMitigations, complexMitigations].flat().forEach(item => { if (item.mitigationId) { const n = Number(String(item.mitigationId).split("-").pop()); if (Number.isFinite(n)) recordCounters.mitigation = Math.max(recordCounters.mitigation, n + 1); }});
-}
-function fillInsuranceForm(mode, item) {
-  const prefix = mode;
-  document.getElementById(`${prefix}InsurancePolicyName`).value = item.policyName || "";
-  document.getElementById(`${prefix}InsurancePolicyNumber`).value = item.policyNumber || "";
-  document.getElementById(`${prefix}InsuranceCarrier`).value = item.carrier || "";
-  document.getElementById(`${prefix}InsuranceCoverageType`).value = item.coverageType || "";
-  setCurrencyFieldValue(`${prefix}InsurancePremium`, item.premium || 0);
-  setCurrencyFieldValue(`${prefix}InsuranceDeductible`, item.deductible || 0);
-  setCurrencyFieldValue(`${prefix}InsuranceCoverageAmount`, item.coverageAmount || 0);
-  document.getElementById(`${prefix}InsuranceCoverageDates`).value = item.coverageDates || "";
-  document.getElementById(`${prefix}InsuranceNotes`).value = item.notes || "";
-  document.getElementById(`${prefix}InsuranceSourceLink`).value = item.sourceLink || "";
-}
-function clearInsuranceForm(mode) {
-  fillInsuranceForm(mode, {});
-}
-function fillHardFactForm(mode, item) {
-  document.getElementById(`${mode}HardFactSourceType`).value = item.sourceType || "Internal";
-  setCurrencyFieldValue(`${mode}HardFactAmount`, item.amount || 0);
-  document.getElementById(`${mode}HardFactDate`).value = item.factDate || "";
-  document.getElementById(`${mode}HardFactDescription`).value = item.description || "";
-  document.getElementById(`${mode}HardFactSourceLink`).value = item.sourceLink || "";
-}
-function clearHardFactForm(mode) { fillHardFactForm(mode, {}); }
-function fillMitigationForm(mode, item) {
-  document.getElementById(`${mode}MitTitle`).value = item.title || "";
-  document.getElementById(`${mode}MitOwner`).value = item.owner || "";
-  document.getElementById(`${mode}MitStatus`).value = item.status || "";
-  document.getElementById(`${mode}MitAttachment`).value = item.attachment || "";
-}
-function clearMitigationForm(mode) { fillMitigationForm(mode, {}); }
-function editRecord(kind, mode, recordId) {
-  const items = getCollection(kind, mode);
-  const key = kind === "insurance" ? "insuranceId" : kind === "hardFact" ? "hardFactId" : "mitigationId";
-  const item = items.find(x => String(x[key] || "") === String(recordId || ""));
-  if (!item) return;
-  getEditState(kind)[mode] = String(recordId || "");
-  setPrimaryButtonLabel(kind, mode, true);
-  setEditStatus(kind, mode, `Editing ${kind === "hardFact" ? "hard fact" : kind}: ${item.policyName || item.title || item.description || recordId}`);
-  if (kind === "insurance") fillInsuranceForm(mode, item);
-  if (kind === "hardFact") fillHardFactForm(mode, item);
-  if (kind === "mitigation") fillMitigationForm(mode, item);
-}
-function deleteRecord(kind, mode, recordId) {
-  const items = getCollection(kind, mode);
-  const key = kind === "insurance" ? "insuranceId" : kind === "hardFact" ? "hardFactId" : "mitigationId";
-  const next = items.filter(x => String(x[key] || "") !== String(recordId || ""));
-  if (kind === "insurance") {
-    if (mode === "single") singleInsurance = next; else if (mode === "complex") complexInsurance = next; else betaInsurance = next;
-    renderInsuranceTable(`${mode}InsuranceBody`, next);
-    if (activeInsuranceEdit[mode] === recordId) { clearInsuranceForm(mode); resetEditState("insurance", mode); }
-  }
-  if (kind === "hardFact") {
-    if (mode === "single") singleHardFacts = next; else if (mode === "complex") complexHardFacts = next; else betaHardFacts = next;
-    renderHardFactsTable(`${mode}HardFactsBody`, next);
-    if (activeHardFactEdit[mode] === recordId) { clearHardFactForm(mode); resetEditState("hardFact", mode); }
-  }
-  if (kind === "mitigation") {
-    if (mode === "single") singleMitigations = next; else complexMitigations = next;
-    renderMitigationTable(`${mode}MitigationBody`, next);
-    if (activeMitigationEdit[mode] === recordId) { clearMitigationForm(mode); resetEditState("mitigation", mode); }
-  }
-}
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -385,28 +279,11 @@ function totalCurrencyField(items, key) {
 function renderInsuranceTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
-  const mode = targetId.replace('InsuranceBody', '');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="11">No insurance entries added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10">No insurance entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => {
-    x.insuranceId = ensureRecordId("insurance", x.insuranceId);
-    return `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td><td><button type="button" class="btn btn-secondary small-btn" data-record-kind="insurance" data-record-mode="${escapeHtml(mode)}" data-record-action="edit" data-record-id="${escapeHtml(x.insuranceId)}">Edit</button> <button type="button" class="btn btn-secondary small-btn" data-record-kind="insurance" data-record-mode="${escapeHtml(mode)}" data-record-action="delete" data-record-id="${escapeHtml(x.insuranceId)}">Delete</button></td></tr>`;
-  }).join("");
-}
-function renderHardFactsTable(targetId, items) {
-  const tbody = document.getElementById(targetId);
-  if (!tbody) return;
-  const mode = targetId.replace('HardFactsBody', '');
-  if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="6">No hard facts / evidence entries added yet.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = items.map(x => {
-    x.hardFactId = ensureRecordId("hardFact", x.hardFactId);
-    return `<tr><td>${escapeHtml(x.sourceType)}</td><td>${currency(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td><td><button type="button" class="btn btn-secondary small-btn" data-record-kind="hardFact" data-record-mode="${escapeHtml(mode)}" data-record-action="edit" data-record-id="${escapeHtml(x.hardFactId)}">Edit</button> <button type="button" class="btn btn-secondary small-btn" data-record-kind="hardFact" data-record-mode="${escapeHtml(mode)}" data-record-action="delete" data-record-id="${escapeHtml(x.hardFactId)}">Delete</button></td></tr>`;
-  }).join("");
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -420,9 +297,7 @@ function renderHardFactsTable(targetId, items) {
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
   const list = mode === "single" ? singleInsurance : mode === "complex" ? complexInsurance : betaInsurance;
-  const editId = activeInsuranceEdit[mode];
-  const record = {
-    insuranceId: ensureRecordId("insurance", editId),
+  list.push({
     policyName: document.getElementById(`${prefix}InsurancePolicyName`).value || "Untitled Policy",
     policyNumber: document.getElementById(`${prefix}InsurancePolicyNumber`)?.value || "",
     carrier: document.getElementById(`${prefix}InsuranceCarrier`).value || "",
@@ -433,30 +308,20 @@ function addInsurance(mode) {
     coverageDates: document.getElementById(`${prefix}InsuranceCoverageDates`).value || "",
     notes: document.getElementById(`${prefix}InsuranceNotes`).value || "",
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
-  };
-  const idx = list.findIndex(x => String(x.insuranceId || "") === String(editId || ""));
-  if (idx >= 0) list[idx] = record; else list.push(record);
+  });
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
-  clearInsuranceForm(mode);
-  resetEditState("insurance", mode);
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
   const list = mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
-  const editId = activeHardFactEdit[mode];
-  const record = {
-    hardFactId: ensureRecordId("hardFact", editId),
+  list.push({
     sourceType: document.getElementById(`${prefix}HardFactSourceType`).value || "Internal",
     amount: parseCurrencyValue(document.getElementById(`${prefix}HardFactAmount`).value || 0),
     factDate: document.getElementById(`${prefix}HardFactDate`).value || "",
     description: document.getElementById(`${prefix}HardFactDescription`).value || "",
     sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
-  };
-  const idx = list.findIndex(x => String(x.hardFactId || "") === String(editId || ""));
-  if (idx >= 0) list[idx] = record; else list.push(record);
+  });
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
-  clearHardFactForm(mode);
-  resetEditState("hardFact", mode);
 }
 
 function getCurrentComplexComponentSnapshot() {
@@ -627,9 +492,10 @@ function normalizeScenario(saved) {
     frequency: saved.frequency || getReviewFrequency(Number(saved.residual || 0)),
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
-    insurance: Array.isArray(saved.insurance) ? saved.insurance.map(item => ({ ...item, insuranceId: ensureRecordId("insurance", item.insuranceId) })) : [],
-    hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts.map(item => ({ ...item, hardFactId: ensureRecordId("hardFact", item.hardFactId) })) : [],
-    mitigations: Array.isArray(saved.mitigations) ? saved.mitigations.map(item => ({ ...item, mitigationId: ensureRecordId("mitigation", item.mitigationId) })) : [],
+    insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
+    hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts : [],
+    mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
+    acceptedRiskEntries: Array.isArray(saved.acceptedRiskEntries) ? saved.acceptedRiskEntries : (saved.acceptedRisk ? [saved.acceptedRisk] : []),
     acceptedRisk: saved.acceptedRisk || {
       isAccepted: false,
       authority: "",
@@ -806,32 +672,22 @@ function addRiskItem() {
 function renderMitigationTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
-  const mode = targetId.replace('MitigationBody', '');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="5">No mitigation factors added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4">No mitigation factors added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => {
-    x.mitigationId = ensureRecordId("mitigation", x.mitigationId);
-    return `<tr><td>${escapeHtml(x.title)}</td><td>${escapeHtml(x.owner)}</td><td>${escapeHtml(x.status)}</td><td>${escapeHtml(x.attachment)}</td><td><button type="button" class="btn btn-secondary small-btn" data-record-kind="mitigation" data-record-mode="${escapeHtml(mode)}" data-record-action="edit" data-record-id="${escapeHtml(x.mitigationId)}">Edit</button> <button type="button" class="btn btn-secondary small-btn" data-record-kind="mitigation" data-record-mode="${escapeHtml(mode)}" data-record-action="delete" data-record-id="${escapeHtml(x.mitigationId)}">Delete</button></td></tr>`;
-  }).join("");
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.title)}</td><td>${escapeHtml(x.owner)}</td><td>${escapeHtml(x.status)}</td><td>${escapeHtml(x.attachment)}</td></tr>`).join("");
 }
 function addMitigation(mode) {
   const prefix = mode === "single" ? "single" : "complex";
   const list = mode === "single" ? singleMitigations : complexMitigations;
-  const editId = activeMitigationEdit[mode];
-  const record = {
-    mitigationId: ensureRecordId("mitigation", editId),
+  list.push({
     title: document.getElementById(`${prefix}MitTitle`).value || "Untitled Mitigation",
     owner: document.getElementById(`${prefix}MitOwner`).value || "",
     status: document.getElementById(`${prefix}MitStatus`).value || "",
     attachment: document.getElementById(`${prefix}MitAttachment`).value || ""
-  };
-  const idx = list.findIndex(x => String(x.mitigationId || "") === String(editId || ""));
-  if (idx >= 0) list[idx] = record; else list.push(record);
+  });
   renderMitigationTable(`${prefix}MitigationBody`, list);
-  clearMitigationForm(mode);
-  resetEditState("mitigation", mode);
 }
 function getAcceptedRisk(prefix) {
   return {
@@ -873,6 +729,7 @@ function getSinglePayload() {
     insurance: singleInsurance.slice(),
     hardFacts: singleHardFacts.slice(),
     mitigations: singleMitigations.slice(),
+    acceptedRiskEntries: (window.singleAcceptedRisks || []).map(item => ({ ...item })),
     acceptedRisk: getAcceptedRisk("single")
   };
 }
@@ -920,6 +777,7 @@ function getComplexPayload() {
     hardFacts: allHardFacts,
     components: allComponents.map(component => ({ ...component })),
     mitigations: allMitigations,
+    acceptedRiskEntries: (window.complexAcceptedRisks || []).map(item => ({ ...item })),
     acceptedRisk: getAcceptedRisk("complex")
   };
 }
@@ -1527,9 +1385,11 @@ function openScenario(id) {
     singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
     singleHardFacts = Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
+    window.singleAcceptedRisks = Array.isArray(s.acceptedRiskEntries) && s.acceptedRiskEntries.length ? s.acceptedRiskEntries.slice() : (s.acceptedRisk ? [s.acceptedRisk] : []);
     renderInsuranceTable("singleInsuranceBody", singleInsurance);
     renderHardFactsTable("singleHardFactsBody", singleHardFacts);
     renderMitigationTable("singleMitigationBody", singleMitigations);
+    renderAcceptedRiskTable("singleAcceptedRiskBody", window.singleAcceptedRisks, "single");
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("singleAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
     document.getElementById("singleAcceptedBy").value = s.acceptedRisk?.acceptedBy || "";
@@ -1604,9 +1464,11 @@ function openScenario(id) {
     complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
     syncComplexComponentIdField(!activeComplexComponentId);
+    window.complexAcceptedRisks = Array.isArray(s.acceptedRiskEntries) && s.acceptedRiskEntries.length ? s.acceptedRiskEntries.slice() : (s.acceptedRisk ? [s.acceptedRisk] : []);
     renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
     renderMitigationTable("complexMitigationBody", complexMitigations);
+    renderAcceptedRiskTable("complexAcceptedRiskBody", window.complexAcceptedRisks, "complex");
     renderComplexScenarioComponents();
     formatAllCurrencyFields();
     document.getElementById("complexAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
@@ -1737,6 +1599,8 @@ function loadSingleTestScenario() {
     { title: "Procedure rewrite", owner: "Compliance", status: "Planned", attachment: "reg_e_procedure.docx" }
   ];
   renderMitigationTable("singleMitigationBody", singleMitigations);
+  window.singleAcceptedRisks = [];
+  renderAcceptedRiskTable("singleAcceptedRiskBody", window.singleAcceptedRisks, "single");
   document.getElementById("singleAcceptedRiskFlag").checked = false;
   document.getElementById("singleAcceptanceAuthority").value = acceptanceAuthorities[0] || "";
   document.getElementById("singleAcceptedBy").value = "";
@@ -1794,6 +1658,8 @@ function loadComplexTestScenario() {
     { title: "Third-party resiliency review", owner: "Vendor Management", status: "In Progress", attachment: "vendor_resiliency.docx" }
   ];
   renderMitigationTable("complexMitigationBody", complexMitigations);
+  window.complexAcceptedRisks = [{ isAccepted: true, authority: "Risk Governance Committee", acceptedBy: "Risk Governance Committee", acceptanceDate: todayIso(), reviewDate: todayIso(), decisionLogic: "The committee accepted temporary residual risk while core conversion milestones and vendor resiliency controls are completed." }];
+  renderAcceptedRiskTable("complexAcceptedRiskBody", window.complexAcceptedRisks, "complex");
   document.getElementById("complexAcceptedRiskFlag").checked = true;
   document.getElementById("complexAcceptanceAuthority").value = "Risk Governance Committee";
   document.getElementById("complexAcceptedBy").value = "Risk Governance Committee";
@@ -1869,14 +1735,8 @@ function wireInputs() {
   document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
   document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
   document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
-  document.getElementById("cancelSingleInsuranceEditBtn")?.addEventListener("click", () => { clearInsuranceForm("single"); resetEditState("insurance", "single"); });
-  document.getElementById("cancelComplexInsuranceEditBtn")?.addEventListener("click", () => { clearInsuranceForm("complex"); resetEditState("insurance", "complex"); });
-  document.getElementById("cancelBetaInsuranceEditBtn")?.addEventListener("click", () => { clearInsuranceForm("beta"); resetEditState("insurance", "beta"); });
-  document.getElementById("cancelSingleHardFactEditBtn")?.addEventListener("click", () => { clearHardFactForm("single"); resetEditState("hardFact", "single"); });
-  document.getElementById("cancelComplexHardFactEditBtn")?.addEventListener("click", () => { clearHardFactForm("complex"); resetEditState("hardFact", "complex"); });
-  document.getElementById("cancelBetaHardFactEditBtn")?.addEventListener("click", () => { clearHardFactForm("beta"); resetEditState("hardFact", "beta"); });
-  document.getElementById("cancelSingleMitigationEditBtn")?.addEventListener("click", () => { clearMitigationForm("single"); resetEditState("mitigation", "single"); });
-  document.getElementById("cancelComplexMitigationEditBtn")?.addEventListener("click", () => { clearMitigationForm("complex"); resetEditState("mitigation", "complex"); });
+  document.getElementById("addSingleAcceptedRiskBtn")?.addEventListener("click", () => addAcceptedRisk("single"));
+  document.getElementById("addComplexAcceptedRiskBtn")?.addEventListener("click", () => addAcceptedRisk("complex"));
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
@@ -2480,6 +2340,235 @@ function forceManualContent() {
   `;
 }
 
+
+function getModeCollection(kind, mode) {
+  const map = {
+    insurance: { single: singleInsurance, complex: complexInsurance, beta: betaInsurance },
+    hardFact: { single: singleHardFacts, complex: complexHardFacts, beta: betaHardFacts },
+    mitigation: { single: singleMitigations, complex: complexMitigations },
+    acceptedRisk: { single: window.singleAcceptedRisks, complex: window.complexAcceptedRisks }
+  };
+  return map[kind]?.[mode] || [];
+}
+function getRecordStateKey(kind, mode) { return `${kind}:${mode}`; }
+function setEditState(kind, mode, value) { window.recordEditState[getRecordStateKey(kind, mode)] = value || null; }
+function getEditState(kind, mode) { return window.recordEditState[getRecordStateKey(kind, mode)] || null; }
+function nextRecordId(prefix) { return `${prefix}-${Date.now()}-${Math.floor(Math.random()*100000)}`; }
+function setButtonLabel(id, label) { const el = document.getElementById(id); if (el) el.textContent = label; }
+function setStatusText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+function resetInsuranceForm(mode) {
+  const prefix = mode;
+  ["PolicyName","PolicyNumber","Carrier","CoverageType","Premium","Deductible","CoverageAmount","CoverageDates","Notes","SourceLink"].forEach(s => { const el=document.getElementById(`${prefix}Insurance${s}`); if (el) el.value=''; });
+  setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}InsuranceBtn`, 'Add Insurance');
+  setStatusText(`${mode}InsuranceEditStatus`, 'No insurance item selected for editing.');
+  setEditState('insurance', mode, null);
+  formatAllCurrencyFields();
+}
+function resetHardFactForm(mode) {
+  const prefix = mode;
+  setSelectValueSafe(`${prefix}HardFactSourceType`, 'Internal');
+  ["Amount","Date","Description","SourceLink"].forEach(s => { const el=document.getElementById(`${prefix}HardFact${s}`); if (el) el.value=''; });
+  setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}HardFactBtn`, 'Add Hard Fact');
+  setStatusText(`${mode}HardFactEditStatus`, 'No hard fact selected for editing.');
+  setEditState('hardFact', mode, null);
+  formatAllCurrencyFields();
+}
+function resetMitigationForm(mode) {
+  const prefix = mode;
+  ["Title","Owner","Status","Attachment"].forEach(s => { const el=document.getElementById(`${prefix}Mit${s}`); if (el) el.value=''; });
+  setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}MitigationBtn`, 'Add Mitigation');
+  setStatusText(`${mode}MitigationEditStatus`, 'No mitigation selected for editing.');
+  setEditState('mitigation', mode, null);
+}
+function resetAcceptedRiskForm(mode) {
+  document.getElementById(`${mode}AcceptedRiskFlag`).checked = false;
+  setSelectValueSafe(`${mode}AcceptanceAuthority`, acceptanceAuthorities[0] || '');
+  ["AcceptedBy","AcceptanceDate","ReviewDate","DecisionLogic"].forEach(s => { const el=document.getElementById(`${mode}${s}`); if (el) el.value=''; });
+  setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}AcceptedRiskBtn`, 'Add Accepted Risk');
+  setStatusText(`${mode}AcceptedRiskEditStatus`, 'No accepted-risk item selected for editing.');
+  setEditState('acceptedRisk', mode, null);
+}
+function renderActionButtons(kind, mode, id) {
+  return `<button type="button" class="btn btn-secondary small-btn" data-edit-kind="${kind}" data-edit-mode="${mode}" data-edit-id="${id}">Edit</button> <button type="button" class="btn btn-danger small-btn" data-delete-kind="${kind}" data-delete-mode="${mode}" data-delete-id="${id}">Delete</button>`;
+}
+function renderInsuranceTable(targetId, items) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  const mode = targetId.replace('InsuranceBody','');
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="11">No insurance entries added yet.</td></tr>'; return; }
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.policyName)}</td><td>${escapeHtml(x.policyNumber)}</td><td>${escapeHtml(x.carrier)}</td><td>${escapeHtml(x.coverageType)}</td><td>${currency(x.premium)}</td><td>${currency(x.deductible)}</td><td>${currency(x.coverageAmount)}</td><td>${escapeHtml(x.coverageDates)}</td><td>${escapeHtml(x.notes)}</td><td>${escapeHtml(x.sourceLink)}</td><td>${renderActionButtons('insurance', mode, escapeHtml(x.insuranceId || ''))}</td></tr>`).join('');
+}
+function renderHardFactsTable(targetId, items) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  const mode = targetId.replace('HardFactsBody','');
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="6">No hard facts / evidence entries added yet.</td></tr>'; return; }
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.sourceType)}</td><td>${currency(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td><td>${renderActionButtons('hardFact', mode, escapeHtml(x.hardFactId || ''))}</td></tr>`).join('');
+}
+function renderMitigationTable(targetId, items) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  const mode = targetId.replace('MitigationBody','');
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="5">No mitigation factors added yet.</td></tr>'; return; }
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.title)}</td><td>${escapeHtml(x.owner)}</td><td>${escapeHtml(x.status)}</td><td>${escapeHtml(x.attachment)}</td><td>${renderActionButtons('mitigation', mode, escapeHtml(x.mitigationId || ''))}</td></tr>`).join('');
+}
+function renderAcceptedRiskTable(targetId, items, mode) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="7">No accepted-risk records added yet.</td></tr>'; return; }
+  tbody.innerHTML = items.map(x => `<tr><td>${x.isAccepted ? 'Yes' : 'No'}</td><td>${escapeHtml(x.authority)}</td><td>${escapeHtml(x.acceptedBy)}</td><td>${escapeHtml(x.acceptanceDate)}</td><td>${escapeHtml(x.reviewDate)}</td><td>${escapeHtml(x.decisionLogic)}</td><td>${renderActionButtons('acceptedRisk', mode, escapeHtml(x.acceptedRiskId || ''))}</td></tr>`).join('');
+}
+function addInsurance(mode) {
+  const list = getModeCollection('insurance', mode);
+  const editId = getEditState('insurance', mode);
+  const record = {
+    insuranceId: editId || nextRecordId('INS'),
+    policyName: document.getElementById(`${mode}InsurancePolicyName`).value || 'Untitled Policy',
+    policyNumber: document.getElementById(`${mode}InsurancePolicyNumber`)?.value || '',
+    carrier: document.getElementById(`${mode}InsuranceCarrier`).value || '',
+    coverageType: document.getElementById(`${mode}InsuranceCoverageType`).value || '',
+    premium: parseCurrencyValue(document.getElementById(`${mode}InsurancePremium`).value || 0),
+    deductible: parseCurrencyValue(document.getElementById(`${mode}InsuranceDeductible`).value || 0),
+    coverageAmount: parseCurrencyValue(document.getElementById(`${mode}InsuranceCoverageAmount`).value || 0),
+    coverageDates: document.getElementById(`${mode}InsuranceCoverageDates`).value || '',
+    notes: document.getElementById(`${mode}InsuranceNotes`).value || '',
+    sourceLink: document.getElementById(`${mode}InsuranceSourceLink`).value || ''
+  };
+  const idx = list.findIndex(x => x.insuranceId === record.insuranceId);
+  if (idx >= 0) list[idx] = record; else list.push(record);
+  renderInsuranceTable(`${mode}InsuranceBody`, list);
+  resetInsuranceForm(mode);
+}
+function addHardFact(mode) {
+  const list = getModeCollection('hardFact', mode);
+  const editId = getEditState('hardFact', mode);
+  const record = {
+    hardFactId: editId || nextRecordId('HF'),
+    sourceType: document.getElementById(`${mode}HardFactSourceType`).value || 'Internal',
+    amount: parseCurrencyValue(document.getElementById(`${mode}HardFactAmount`).value || 0),
+    factDate: document.getElementById(`${mode}HardFactDate`).value || '',
+    description: document.getElementById(`${mode}HardFactDescription`).value || '',
+    sourceLink: document.getElementById(`${mode}HardFactSourceLink`).value || ''
+  };
+  const idx = list.findIndex(x => x.hardFactId === record.hardFactId);
+  if (idx >= 0) list[idx] = record; else list.push(record);
+  renderHardFactsTable(`${mode}HardFactsBody`, list);
+  resetHardFactForm(mode);
+}
+function addMitigation(mode) {
+  const list = getModeCollection('mitigation', mode);
+  const editId = getEditState('mitigation', mode);
+  const record = {
+    mitigationId: editId || nextRecordId('MIT'),
+    title: document.getElementById(`${mode}MitTitle`).value || 'Untitled Mitigation',
+    owner: document.getElementById(`${mode}MitOwner`).value || '',
+    status: document.getElementById(`${mode}MitStatus`).value || '',
+    attachment: document.getElementById(`${mode}MitAttachment`).value || ''
+  };
+  const idx = list.findIndex(x => x.mitigationId === record.mitigationId);
+  if (idx >= 0) list[idx] = record; else list.push(record);
+  renderMitigationTable(`${mode}MitigationBody`, list);
+  resetMitigationForm(mode);
+}
+function getAcceptedRisk(prefix) {
+  return {
+    acceptedRiskId: getEditState('acceptedRisk', prefix) || nextRecordId('AR'),
+    isAccepted: document.getElementById(`${prefix}AcceptedRiskFlag`).checked,
+    authority: document.getElementById(`${prefix}AcceptanceAuthority`).value,
+    acceptedBy: document.getElementById(`${prefix}AcceptedBy`).value,
+    acceptanceDate: document.getElementById(`${prefix}AcceptanceDate`).value,
+    reviewDate: document.getElementById(`${prefix}ReviewDate`).value,
+    decisionLogic: document.getElementById(`${prefix}DecisionLogic`).value
+  };
+}
+function addAcceptedRisk(mode) {
+  const list = getModeCollection('acceptedRisk', mode);
+  const record = getAcceptedRisk(mode);
+  const idx = list.findIndex(x => x.acceptedRiskId === record.acceptedRiskId);
+  if (idx >= 0) list[idx] = record; else list.push(record);
+  renderAcceptedRiskTable(`${mode}AcceptedRiskBody`, list, mode);
+  resetAcceptedRiskForm(mode);
+}
+function editRecord(kind, mode, id) {
+  const list = getModeCollection(kind, mode);
+  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId' };
+  const item = list.find(x => String(x[keyMap[kind]]) === String(id));
+  if (!item) return;
+  setEditState(kind, mode, id);
+  if (kind === 'insurance') {
+    document.getElementById(`${mode}InsurancePolicyName`).value = item.policyName || '';
+    document.getElementById(`${mode}InsurancePolicyNumber`).value = item.policyNumber || '';
+    document.getElementById(`${mode}InsuranceCarrier`).value = item.carrier || '';
+    document.getElementById(`${mode}InsuranceCoverageType`).value = item.coverageType || '';
+    setCurrencyFieldValue(`${mode}InsurancePremium`, item.premium || 0);
+    setCurrencyFieldValue(`${mode}InsuranceDeductible`, item.deductible || 0);
+    setCurrencyFieldValue(`${mode}InsuranceCoverageAmount`, item.coverageAmount || 0);
+    document.getElementById(`${mode}InsuranceCoverageDates`).value = item.coverageDates || '';
+    document.getElementById(`${mode}InsuranceNotes`).value = item.notes || '';
+    document.getElementById(`${mode}InsuranceSourceLink`).value = item.sourceLink || '';
+    setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}InsuranceBtn`, 'Update Insurance');
+    setStatusText(`${mode}InsuranceEditStatus`, `Editing insurance: ${item.policyName || 'Untitled Policy'}`);
+    formatAllCurrencyFields();
+  } else if (kind === 'hardFact') {
+    setSelectValueSafe(`${mode}HardFactSourceType`, item.sourceType || 'Internal');
+    setCurrencyFieldValue(`${mode}HardFactAmount`, item.amount || 0);
+    document.getElementById(`${mode}HardFactDate`).value = item.factDate || '';
+    document.getElementById(`${mode}HardFactDescription`).value = item.description || '';
+    document.getElementById(`${mode}HardFactSourceLink`).value = item.sourceLink || '';
+    setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}HardFactBtn`, 'Update Hard Fact');
+    setStatusText(`${mode}HardFactEditStatus`, `Editing hard fact dated ${item.factDate || 'undated'}`);
+    formatAllCurrencyFields();
+  } else if (kind === 'mitigation') {
+    document.getElementById(`${mode}MitTitle`).value = item.title || '';
+    document.getElementById(`${mode}MitOwner`).value = item.owner || '';
+    document.getElementById(`${mode}MitStatus`).value = item.status || '';
+    document.getElementById(`${mode}MitAttachment`).value = item.attachment || '';
+    setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}MitigationBtn`, 'Update Mitigation');
+    setStatusText(`${mode}MitigationEditStatus`, `Editing mitigation: ${item.title || 'Untitled Mitigation'}`);
+  } else if (kind === 'acceptedRisk') {
+    document.getElementById(`${mode}AcceptedRiskFlag`).checked = !!item.isAccepted;
+    setSelectValueSafe(`${mode}AcceptanceAuthority`, item.authority || acceptanceAuthorities[0] || '');
+    document.getElementById(`${mode}AcceptedBy`).value = item.acceptedBy || '';
+    document.getElementById(`${mode}AcceptanceDate`).value = item.acceptanceDate || '';
+    document.getElementById(`${mode}ReviewDate`).value = item.reviewDate || '';
+    document.getElementById(`${mode}DecisionLogic`).value = item.decisionLogic || '';
+    setButtonLabel(`add${mode[0].toUpperCase()+mode.slice(1)}AcceptedRiskBtn`, 'Update Accepted Risk');
+    setStatusText(`${mode}AcceptedRiskEditStatus`, `Editing accepted-risk record for ${item.acceptedBy || item.authority || 'governance record'}`);
+  }
+}
+function deleteRecord(kind, mode, id) {
+  const list = getModeCollection(kind, mode);
+  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId' };
+  const next = list.filter(x => String(x[keyMap[kind]]) !== String(id));
+  if (kind === 'insurance') { if (mode === 'single') singleInsurance = next; else if (mode === 'complex') complexInsurance = next; else betaInsurance = next; renderInsuranceTable(`${mode}InsuranceBody`, next); resetInsuranceForm(mode); }
+  if (kind === 'hardFact') { if (mode === 'single') singleHardFacts = next; else if (mode === 'complex') complexHardFacts = next; else betaHardFacts = next; renderHardFactsTable(`${mode}HardFactsBody`, next); resetHardFactForm(mode); }
+  if (kind === 'mitigation') { if (mode === 'single') singleMitigations = next; else complexMitigations = next; renderMitigationTable(`${mode}MitigationBody`, next); resetMitigationForm(mode); }
+  if (kind === 'acceptedRisk') { if (mode === 'single') window.singleAcceptedRisks = next; else window.complexAcceptedRisks = next; renderAcceptedRiskTable(`${mode}AcceptedRiskBody`, next, mode); resetAcceptedRiskForm(mode); }
+}
+function wireRecordMaintenanceEnhancements() {
+  [['single','Insurance'],['complex','Insurance'],['beta','Insurance'],['single','HardFact'],['complex','HardFact'],['beta','HardFact'],['single','Mitigation'],['complex','Mitigation'],['single','AcceptedRisk'],['complex','AcceptedRisk']].forEach(([mode,kind]) => {
+    const btn = document.getElementById(`cancel${mode[0].toUpperCase()+mode.slice(1)}${kind}EditBtn`);
+    if (btn && !btn.dataset.wired) {
+      btn.dataset.wired = 'true';
+      btn.addEventListener('click', () => {
+        if (kind === 'Insurance') resetInsuranceForm(mode);
+        if (kind === 'HardFact') resetHardFactForm(mode);
+        if (kind === 'Mitigation') resetMitigationForm(mode);
+        if (kind === 'AcceptedRisk') resetAcceptedRiskForm(mode);
+      });
+    }
+  });
+  if (!document.body.dataset.recordActionsWired) {
+    document.body.dataset.recordActionsWired = 'true';
+    document.addEventListener('click', (event) => {
+      const editBtn = event.target.closest('[data-edit-kind][data-edit-mode][data-edit-id]');
+      if (editBtn) { event.preventDefault(); editRecord(editBtn.dataset.editKind, editBtn.dataset.editMode, editBtn.dataset.editId); return; }
+      const deleteBtn = event.target.closest('[data-delete-kind][data-delete-mode][data-delete-id]');
+      if (deleteBtn) { event.preventDefault(); deleteRecord(deleteBtn.dataset.deleteKind, deleteBtn.dataset.deleteMode, deleteBtn.dataset.deleteId); return; }
+    });
+  }
+}
+
 function init() {
   loadStoredMonteCarloConfig();
   wireInputs();
@@ -2494,8 +2583,9 @@ function init() {
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
+  renderAcceptedRiskTable("singleAcceptedRiskBody", window.singleAcceptedRisks, "single");
+  renderAcceptedRiskTable("complexAcceptedRiskBody", window.complexAcceptedRisks, "complex");
   renderComplexItems();
-  hydrateRecordCounters();
   refreshLibraries();
   updateInherentScores();
   renderHeatMap();
@@ -2504,6 +2594,7 @@ function init() {
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
+  wireRecordMaintenanceEnhancements();
   syncComplexComponentIdField(true);
 }
 document.addEventListener("DOMContentLoaded", init);
@@ -2585,16 +2676,6 @@ function wireDelegatedActionHandlers() {
       event.preventDefault();
       event.stopPropagation();
       openScenario(dashboardOpenBtn.dataset.openId || "");
-      return;
-    }
-    const recordBtn = event.target.closest('[data-record-kind][data-record-mode][data-record-action][data-record-id]');
-    if (recordBtn) {
-      event.preventDefault();
-      event.stopPropagation();
-      const { recordKind, recordMode, recordAction, recordId } = recordBtn.dataset;
-      if (recordAction === "edit") editRecord(recordKind, recordMode, recordId);
-      if (recordAction === "delete") deleteRecord(recordKind, recordMode, recordId);
-      return;
     }
   }, true);
 }

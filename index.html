@@ -32,8 +32,8 @@
     </nav>
 
     <div class="sidebar-note">
-      <h4>Phase 20.1.06a</h4>
-      <p>Restoration pack for insurance, hard facts, mitigation, and accepted-risk maintenance controls.</p>
+      <h4>Phase 20.1.06b</h4>
+      <p>Accepted risk tables added, edit/delete actions restored for repeatable records, and handoff prepared for the next chat.</p>
     </div>
   </aside>
 
@@ -219,9 +219,9 @@
           <div class="full-span"><label>Source Link / Document Location</label><input id="singleInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/card-services"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="singleInsuranceEditStatus">Adding a new insurance entry.</div>
           <button class="btn btn-secondary" id="addSingleInsuranceBtn">Add Insurance</button>
           <button class="btn btn-secondary" id="cancelSingleInsuranceEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="singleInsuranceEditStatus">No insurance item selected for editing.</div>
         </div>
       </div>
 
@@ -245,9 +245,9 @@
           <div class="full-span"><label>Source Link / Internal Location</label><input id="singleHardFactSourceLink" type="text" placeholder="e.g. internal://evidence/reg-e-review"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="singleHardFactEditStatus">Adding a new hard fact entry.</div>
           <button class="btn btn-secondary" id="addSingleHardFactBtn">Add Hard Fact</button>
           <button class="btn btn-secondary" id="cancelSingleHardFactEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="singleHardFactEditStatus">No hard fact selected for editing.</div>
         </div>
       </div>
 
@@ -270,9 +270,9 @@
           <div><label>Attachment Name</label><input id="singleMitAttachment" type="text" placeholder="e.g. revised_disclosure.docx"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="singleMitigationEditStatus">Adding a new mitigation entry.</div>
           <button class="btn btn-secondary" id="addSingleMitigationBtn">Add Mitigation</button>
           <button class="btn btn-secondary" id="cancelSingleMitigationEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="singleMitigationEditStatus">No mitigation selected for editing.</div>
         </div>
       </div>
 
@@ -287,7 +287,7 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Accepted Risk</h3><span>Governance • Restored</span></div>
+        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
         <div class="checkbox-list">
           <label><input id="singleAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
         </div>
@@ -312,6 +312,21 @@
             <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
             <textarea id="singleDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addSingleAcceptedRiskBtn" type="button">Add Accepted Risk</button>
+          <button class="btn btn-secondary" id="cancelSingleAcceptedRiskEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="singleAcceptedRiskEditStatus">No accepted-risk item selected for editing.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Accepted Risk Table</h3><span>Governance History</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Risk Accepted</th><th>Authority</th><th>Accepted By</th><th>Acceptance Date</th><th>Review Date</th><th>Decision Logic</th><th>Actions</th></tr></thead>
+            <tbody id="singleAcceptedRiskBody"></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -490,9 +505,9 @@
           <div class="full-span"><label>Source Link / Document Location</label><input id="complexInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/modernization-program"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="complexInsuranceEditStatus">Adding a new insurance entry.</div>
           <button class="btn btn-secondary" id="addComplexInsuranceBtn">Add Insurance</button>
           <button class="btn btn-secondary" id="cancelComplexInsuranceEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="complexInsuranceEditStatus">No insurance item selected for editing.</div>
         </div>
       </div>
 
@@ -500,7 +515,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="complexInsuranceBody"></tbody>
           </table>
         </div>
@@ -516,9 +531,9 @@
           <div class="full-span"><label>Source Link / Internal Location</label><input id="complexHardFactSourceLink" type="text" placeholder="e.g. internal://evidence/modernization-losses"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="complexHardFactEditStatus">Adding a new hard fact entry.</div>
           <button class="btn btn-secondary" id="addComplexHardFactBtn">Add Hard Fact</button>
           <button class="btn btn-secondary" id="cancelComplexHardFactEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="complexHardFactEditStatus">No hard fact selected for editing.</div>
         </div>
       </div>
 
@@ -526,7 +541,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
             <tbody id="complexHardFactsBody"></tbody>
           </table>
         </div>
@@ -541,9 +556,9 @@
           <div><label>Attachment Name</label><input id="complexMitAttachment" type="text" placeholder="e.g. gap_analysis.xlsx"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="complexMitigationEditStatus">Adding a new mitigation entry.</div>
           <button class="btn btn-secondary" id="addComplexMitigationBtn">Add Mitigation</button>
           <button class="btn btn-secondary" id="cancelComplexMitigationEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="complexMitigationEditStatus">No mitigation selected for editing.</div>
         </div>
       </div>
 
@@ -551,14 +566,14 @@
         <div class="card-header"><h3>Mitigation Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Owner</th><th>Status</th><th>Attachment</th></tr></thead>
             <tbody id="complexMitigationBody"></tbody>
           </table>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3>Accepted Risk</h3><span>Governance • Restored</span></div>
+        <div class="card-header"><h3>Accepted Risk</h3><span>Governance</span></div>
         <div class="checkbox-list">
           <label><input id="complexAcceptedRiskFlag" type="checkbox"> Risk Accepted</label>
         </div>
@@ -583,6 +598,21 @@
             <label class="help-label" data-help="Logic or rationale used to support the acceptance decision.">Decision Logic</label>
             <textarea id="complexDecisionLogic" rows="4" placeholder="Explain why the risk was accepted and what criteria supported the decision."></textarea>
           </div>
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-secondary" id="addComplexAcceptedRiskBtn" type="button">Add Accepted Risk</button>
+          <button class="btn btn-secondary" id="cancelComplexAcceptedRiskEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="complexAcceptedRiskEditStatus">No accepted-risk item selected for editing.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Accepted Risk Table</h3><span>Governance History</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Risk Accepted</th><th>Authority</th><th>Accepted By</th><th>Acceptance Date</th><th>Review Date</th><th>Decision Logic</th><th>Actions</th></tr></thead>
+            <tbody id="complexAcceptedRiskBody"></tbody>
+          </table>
         </div>
       </div>
 
@@ -733,9 +763,9 @@
           <div class="full-span"><label>Source Link / Document Location</label><input id="betaInsuranceSourceLink" type="text" placeholder="e.g. internal://insurance/embedded-payments"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="betaInsuranceEditStatus">Adding a new insurance entry.</div>
           <button class="btn btn-secondary" id="addBetaInsuranceBtn">Add Insurance</button>
           <button class="btn btn-secondary" id="cancelBetaInsuranceEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="betaInsuranceEditStatus">No insurance item selected for editing.</div>
         </div>
       </div>
 
@@ -743,7 +773,7 @@
         <div class="card-header"><h3>Insurance Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="betaInsuranceBody"></tbody>
           </table>
         </div>
@@ -759,9 +789,9 @@
           <div class="full-span"><label>Source Link / Internal Location</label><input id="betaHardFactSourceLink" type="text" placeholder="e.g. internal://planning/embedded-payments-costing"></div>
         </div>
         <div class="builder-actions">
-          <div class="note-box" id="betaHardFactEditStatus">Adding a new hard fact entry.</div>
           <button class="btn btn-secondary" id="addBetaHardFactBtn">Add Hard Fact</button>
           <button class="btn btn-secondary" id="cancelBetaHardFactEditBtn" type="button">Cancel Edit</button>
+          <div class="note-box" id="betaHardFactEditStatus">No hard fact selected for editing.</div>
         </div>
       </div>
 
@@ -769,7 +799,7 @@
         <div class="card-header"><h3>Hard Facts / Evidence Table</h3><span>Repeatable</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
             <tbody id="betaHardFactsBody"></tbody>
           </table>
         </div>
@@ -946,7 +976,7 @@
         <div class="note-box" id="reportInsuranceTotals">Insurance totals: Premium $0 | Deductible $0 | Coverage $0</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Policy Name</th><th>Policy Number</th><th>Carrier</th><th>Coverage Type</th><th>Premium</th><th>Deductible</th><th>Coverage Amount</th><th>Coverage Dates</th><th>Notes</th><th>Source</th></tr></thead>
             <tbody id="reportInsuranceBody"><tr><td colspan="10">Run or open a scenario to populate insurance reporting.</td></tr></tbody>
           </table>
         </div>
@@ -957,7 +987,7 @@
         <div class="note-box" id="reportHardFactsTotals">Hard facts total documented loss / cost: $0</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Source Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Source</th></tr></thead>
             <tbody id="reportHardFactsBody"><tr><td colspan="5">Run or open a scenario to populate hard facts reporting.</td></tr></tbody>
           </table>
         </div>
