@@ -163,9 +163,6 @@ let complexScenarioComponents = [];
 let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
-let singleHardFactEditId = "";
-let complexHardFactEditId = "";
-let betaHardFactEditId = "";
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -220,99 +217,6 @@ function generateComponentId() {
     componentCounter += 1;
   } while (existing.has(id));
   return id;
-}
-
-function generateHardFactId() {
-  return `HF-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-}
-function getHardFactEditState(mode) {
-  return mode === "single" ? singleHardFactEditId : mode === "complex" ? complexHardFactEditId : betaHardFactEditId;
-}
-function setHardFactEditState(mode, value) {
-  if (mode === "single") singleHardFactEditId = value || "";
-  if (mode === "complex") complexHardFactEditId = value || "";
-  if (mode === "beta") betaHardFactEditId = value || "";
-}
-function getHardFactsList(mode) {
-  return mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
-}
-function getHardFactScopeLabel(item) {
-  if ((item?.scope || "") === "component") return "Component";
-  if ((item?.scope || "") === "complex") return "Complex";
-  return "Scenario";
-}
-function getHardFactAppliesToLabel(item) {
-  if ((item?.scope || "") === "component") return item?.componentId || "Active Component";
-  if ((item?.scope || "") === "complex") return item?.groupId || "Full Complex Scenario";
-  return item?.appliesTo || "Scenario";
-}
-function resetHardFactForm(mode) {
-  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const sourceType = document.getElementById(`${prefix}HardFactSourceType`);
-  const amount = document.getElementById(`${prefix}HardFactAmount`);
-  const factDate = document.getElementById(`${prefix}HardFactDate`);
-  const description = document.getElementById(`${prefix}HardFactDescription`);
-  const sourceLink = document.getElementById(`${prefix}HardFactSourceLink`);
-  const scope = document.getElementById(`${prefix}HardFactScope`);
-  if (sourceType) sourceType.value = "Internal";
-  if (amount) amount.value = "";
-  if (factDate) factDate.value = "";
-  if (description) description.value = "";
-  if (sourceLink) sourceLink.value = "";
-  if (scope) scope.value = mode === "complex" ? "component" : "scenario";
-  setHardFactEditState(mode, "");
-  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactBtn`);
-  if (addBtn) addBtn.textContent = "Add Hard Fact";
-  const cancelBtn = document.getElementById(`cancel${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactEditBtn`);
-  if (cancelBtn) cancelBtn.classList.add("hidden");
-  const status = document.getElementById(`${prefix}HardFactEditStatus`);
-  if (status) status.textContent = mode === "complex"
-    ? "Add documented internal or external losses, benchmarks, or supporting evidence. Complex entries can be tied to the full complex scenario or only the active component."
-    : "Add documented internal or external losses, benchmarks, or supporting evidence.";
-  formatAllCurrencyFields();
-}
-function loadHardFactForEdit(mode, hardFactId) {
-  const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const item = getHardFactsList(mode).find(x => String(x.hardFactId || "") === String(hardFactId || ""));
-  if (!item) return;
-  setHardFactEditState(mode, item.hardFactId || "");
-  const sourceType = document.getElementById(`${prefix}HardFactSourceType`);
-  const amount = document.getElementById(`${prefix}HardFactAmount`);
-  const factDate = document.getElementById(`${prefix}HardFactDate`);
-  const description = document.getElementById(`${prefix}HardFactDescription`);
-  const sourceLink = document.getElementById(`${prefix}HardFactSourceLink`);
-  const scope = document.getElementById(`${prefix}HardFactScope`);
-  if (sourceType) sourceType.value = item.sourceType || "Internal";
-  if (amount) amount.value = formatCurrencyInputValue(item.amount || 0);
-  if (factDate) factDate.value = item.factDate || "";
-  if (description) description.value = item.description || "";
-  if (sourceLink) sourceLink.value = item.sourceLink || "";
-  if (scope) scope.value = item.scope || "component";
-  const addBtn = document.getElementById(`add${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactBtn`);
-  if (addBtn) addBtn.textContent = "Update Hard Fact";
-  const cancelBtn = document.getElementById(`cancel${prefix.charAt(0).toUpperCase() + prefix.slice(1)}HardFactEditBtn`);
-  if (cancelBtn) cancelBtn.classList.remove("hidden");
-  const status = document.getElementById(`${prefix}HardFactEditStatus`);
-  if (status) status.textContent = `Editing hard fact: ${item.description || item.hardFactId || "Selected Hard Fact"}`;
-}
-function deleteHardFact(mode, hardFactId) {
-  const list = getHardFactsList(mode);
-  const remaining = list.filter(x => String(x.hardFactId || "") !== String(hardFactId || ""));
-  if (mode === "single") singleHardFacts = remaining;
-  if (mode === "complex") complexHardFacts = remaining;
-  if (mode === "beta") betaHardFacts = remaining;
-  if (getHardFactEditState(mode) && String(getHardFactEditState(mode)) === String(hardFactId || "")) resetHardFactForm(mode);
-  renderHardFactsTable(`${mode === "single" ? "single" : mode === "complex" ? "complex" : "beta"}HardFactsBody`, remaining);
-}
-function getHardFactsEvidenceNote(hardFacts) {
-  const items = Array.isArray(hardFacts) ? hardFacts : [];
-  if (!items.length) return "No hard facts or supporting evidence are currently loaded for this scenario. Assumptions remain primarily model-based and should be validated as evidence becomes available.";
-  const total = totalCurrencyField(items, "amount");
-  const internalCount = items.filter(x => String(x.sourceType || "").toLowerCase() === "internal").length;
-  const externalCount = items.filter(x => String(x.sourceType || "").toLowerCase() === "external").length;
-  if (internalCount && externalCount) return `Hard facts include both internal and external support, totaling ${currency(total)}. This mix strengthens reasonableness testing by combining direct experience with outside benchmarks.`;
-  if (internalCount) return `Hard facts rely on internal documented experience totaling ${currency(total)}. This supports the scenario with institution-specific evidence, though external benchmarking may still be useful.`;
-  return `Hard facts rely primarily on external benchmarks totaling ${currency(total)}. This supports directional reasonableness, though internal validation may still be warranted.`;
 }
 
 const USD_FORMATTER = new Intl.NumberFormat("en-US", {
@@ -381,32 +285,11 @@ function renderInsuranceTable(targetId, items) {
 function renderHardFactsTable(targetId, items) {
   const tbody = document.getElementById(targetId);
   if (!tbody) return;
-  const isComplex = targetId === "complexHardFactsBody";
   if (!items.length) {
-    tbody.innerHTML = isComplex
-      ? '<tr><td colspan="8">No hard facts / evidence entries added yet.</td></tr>'
-      : '<tr><td colspan="7">No hard facts / evidence entries added yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5">No hard facts / evidence entries added yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map(x => `
-    <tr>
-      <td>${escapeHtml(x.sourceType)}</td>
-      <td>${currency(x.amount)}</td>
-      <td>${escapeHtml(x.factDate)}</td>
-      ${isComplex ? `<td>${escapeHtml(getHardFactScopeLabel(x))}</td><td>${escapeHtml(getHardFactAppliesToLabel(x))}</td>` : ``}
-      <td>${escapeHtml(x.description)}</td>
-      <td>${escapeHtml(x.sourceLink)}</td>
-      <td>
-        <button class="btn btn-secondary small-btn" data-hardfact-action="edit" data-hardfact-mode="${isComplex ? "complex" : targetId === "singleHardFactsBody" ? "single" : "beta"}" data-hardfact-id="${escapeHtml(x.hardFactId || "")}">Edit</button>
-        <button class="btn btn-secondary small-btn" data-hardfact-action="delete" data-hardfact-mode="${isComplex ? "complex" : targetId === "singleHardFactsBody" ? "single" : "beta"}" data-hardfact-id="${escapeHtml(x.hardFactId || "")}">Delete</button>
-      </td>
-    </tr>`).join("");
-  tbody.querySelectorAll("[data-hardfact-action]").forEach(btn => btn.addEventListener("click", () => {
-    const mode = btn.dataset.hardfactMode;
-    const id = btn.dataset.hardfactId;
-    if (btn.dataset.hardfactAction === "edit") loadHardFactForEdit(mode, id);
-    if (btn.dataset.hardfactAction === "delete") deleteHardFact(mode, id);
-  }));
+  tbody.innerHTML = items.map(x => `<tr><td>${escapeHtml(x.sourceType)}</td><td>${currency(x.amount)}</td><td>${escapeHtml(x.factDate)}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(x.sourceLink)}</td></tr>`).join("");
 }
 function addInsurance(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
@@ -427,25 +310,15 @@ function addInsurance(mode) {
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
-  const list = getHardFactsList(mode);
-  const editId = getHardFactEditState(mode);
-  const selectedScope = document.getElementById(`${prefix}HardFactScope`)?.value || (mode === "complex" ? "component" : "scenario");
-  const entry = {
-    hardFactId: editId || generateHardFactId(),
+  const list = mode === "single" ? singleHardFacts : mode === "complex" ? complexHardFacts : betaHardFacts;
+  list.push({
     sourceType: document.getElementById(`${prefix}HardFactSourceType`).value || "Internal",
     amount: parseCurrencyValue(document.getElementById(`${prefix}HardFactAmount`).value || 0),
     factDate: document.getElementById(`${prefix}HardFactDate`).value || "",
     description: document.getElementById(`${prefix}HardFactDescription`).value || "",
-    sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || "",
-    scope: mode === "complex" ? selectedScope : "scenario",
-    groupId: mode === "complex" ? ensureComplexGroupId() : "",
-    componentId: mode === "complex" && selectedScope === "component" ? (activeComplexComponentId || syncComplexComponentIdField()) : "",
-    appliesTo: mode === "complex" ? (selectedScope === "component" ? (activeComplexComponentId || document.getElementById("complexComponentId")?.value || "Active Component") : (ensureComplexGroupId() || "Full Complex Scenario")) : "Scenario"
-  };
-  const existingIndex = list.findIndex(x => String(x.hardFactId || "") === String(entry.hardFactId || ""));
-  if (existingIndex >= 0) list[existingIndex] = entry; else list.push(entry);
+    sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
+  });
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
-  resetHardFactForm(mode);
 }
 
 function getCurrentComplexComponentSnapshot() {
@@ -743,6 +616,43 @@ function buildSummary(name, mode, product, reg, total, residual, tier, frequency
   const significance = residual >= 85 ? "very high" : residual >= 70 ? "high" : residual >= 50 ? "moderate" : "lower";
   return `${name} was evaluated as a ${modeText} tied primarily to ${product}${reg ? ` and ${reg}` : ""}. The model produced an inherent risk score of ${total} and a residual risk score of ${residual}, placing it in the ${tier} tier with a recommended ${frequency} review cycle. ${itemCount > 1 ? `This scenario includes ${itemCount} weighted risk items, so the result should be interpreted as an aggregate view across several components. ` : ""}Overall, the remaining exposure appears ${significance} after control effectiveness is applied.`;
 }
+function summarizeInsuranceMetrics(insurance, expectedLoss) {
+  const items = Array.isArray(insurance) ? insurance : [];
+  const totalPremium = totalCurrencyField(items, "premium");
+  const totalDeductible = totalCurrencyField(items, "deductible");
+  const totalCoverage = totalCurrencyField(items, "coverageAmount");
+  const coverageApplied = Math.min(Math.max(0, Number(expectedLoss || 0)), totalCoverage);
+  const insuranceAdjustedExposure = Math.max(0, Math.round(Math.max(0, Number(expectedLoss || 0)) - coverageApplied + totalDeductible));
+  return { totalPremium, totalDeductible, totalCoverage, coverageApplied, insuranceAdjustedExposure };
+}
+function buildDecisionRecommendation(metrics) {
+  if (!metrics) return "Run a scenario to generate a neutral recommendation.";
+  if (metrics.uncertaintySpread >= Math.max(metrics.expectedLoss * 1.25, 100000) && metrics.hardFactsCount === 0) {
+    return "The range of modeled outcomes indicates meaningful uncertainty, and gathering additional information may improve decision confidence before a final course of action is selected.";
+  }
+  if (metrics.coverageApplied >= Math.max(metrics.expectedLoss * 0.6, 1) && metrics.insuranceAdjustedExposure < metrics.expectedLoss) {
+    return "Available insurance appears to materially offset modeled loss, suggesting that risk transfer may be a reasonable part of the response strategy, subject to deductible, terms, and exclusions.";
+  }
+  if (metrics.riskReductionValue > metrics.mitigationCost && metrics.netExposureAfterMitigation <= metrics.expectedLoss) {
+    return "Based on the modeled outcomes and cost comparison, mitigation appears to provide a favorable reduction in expected loss and may be a reasonable course of action.";
+  }
+  if (metrics.residualScore <= 49 && metrics.mitigationCost > metrics.riskReductionValue) {
+    return "The remaining exposure appears comparatively limited relative to mitigation cost, and risk acceptance may be appropriate if management is comfortable with the documented assumptions and monitoring cadence.";
+  }
+  if (metrics.p90 >= Math.max(metrics.expectedLoss * 2, 250000)) {
+    return "Upper-bound outcomes remain significant, and escalation or additional management oversight may be warranted before a final decision is made.";
+  }
+  return "The analysis suggests a measured response may be appropriate, with emphasis on validating assumptions, considering partial controls, and documenting the rationale for the selected treatment approach.";
+}
+function buildDecisionJustification(payload, metrics) {
+  const evidenceText = metrics.hardFactsTotal > 0
+    ? `Documented hard facts total ${currency(metrics.hardFactsTotal)} across ${metrics.hardFactsCount} evidence record${metrics.hardFactsCount === 1 ? "" : "s"}, which provides an external or internal benchmark for the scenario assumptions.`
+    : "No hard facts are currently loaded, so the analysis relies primarily on modeled assumptions rather than documented benchmark loss experience.";
+  const insuranceText = metrics.totalCoverage > 0
+    ? `Listed insurance provides ${currency(metrics.totalCoverage)} in stated coverage with ${currency(metrics.totalDeductible)} in deductible friction, producing an insurance-adjusted expected exposure of approximately ${currency(metrics.insuranceAdjustedExposure)} under this light allocation view.`
+    : "No insurance coverage is currently loaded into the scenario, so the expected exposure should be interpreted on a gross basis before transfer options.";
+  return `Expected annual loss is estimated at ${currency(metrics.expectedLoss)}, with modeled outcomes generally ranging from ${currency(metrics.p10)} at the lower bound to ${currency(metrics.p90)} at the upper bound and a midpoint outcome near ${currency(metrics.p50)}. Planned mitigation cost is ${currency(metrics.mitigationCost)} compared with an estimated annual reduction in loss of ${currency(metrics.riskReductionValue)}. ${insuranceText} ${evidenceText}`;
+}
 function calculateSingleInherent() {
   const likelihood = Number(document.getElementById("singleLikelihood").value || 0);
   const impact = Number(document.getElementById("singleImpact").value || 0);
@@ -1037,9 +947,24 @@ function summarizePayload(payload) {
     ["P50 Annual Loss", currency(mc.rangeMedian)],
     ["P90 Annual Loss", currency(mc.rangeHigh)]
   ];
-  const decisionText = mc.mitigationROI >= 0
-    ? `Mitigation appears cost effective. Estimated annual risk reduction of ${currency(mc.riskReductionValue)} exceeds the direct mitigation cost of ${currency(mc.mitigationCost)} by approximately ${currency(mc.mitigationROI)}.`
-    : `Direct mitigation cost appears to exceed the estimated annual reduction in loss by approximately ${currency(Math.abs(mc.mitigationROI))}. Leadership should consider partial controls, transfer options, or alternative mitigating factors.`;
+  const insuranceMetrics = summarizeInsuranceMetrics(payload.insurance, mc.expectedLoss);
+  const decisionMetrics = {
+    expectedLoss: mc.expectedLoss,
+    residualExpectedLoss: mc.residualExpectedLoss,
+    riskReductionValue: mc.riskReductionValue,
+    mitigationCost: mc.mitigationCost,
+    mitigationROI: mc.mitigationROI,
+    p10: mc.rangeLow,
+    p50: mc.rangeMedian,
+    p90: mc.rangeHigh,
+    uncertaintySpread: Math.max(0, mc.rangeHigh - mc.rangeLow),
+    residualScore: residual,
+    hardFactsTotal: totalCurrencyField(payload.hardFacts, "amount"),
+    hardFactsCount: Array.isArray(payload.hardFacts) ? payload.hardFacts.length : 0,
+    ...insuranceMetrics
+  };
+  const decisionText = buildDecisionRecommendation(decisionMetrics);
+  const decisionJustification = buildDecisionJustification(payload, decisionMetrics);
 
   return {
     ...payload,
@@ -1048,7 +973,7 @@ function summarizePayload(payload) {
     tier,
     frequency,
     itemCount,
-    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Estimated annual exposure ranges from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} with a most likely annual impact of ${currency(mc.rangeMedian)}. ${decisionText}`,
+    generatedSummary: `${buildSummary(payload.name, payload.mode, payload.primaryProduct, payload.primaryRegulation, total, residual, tier, frequency, itemCount)} Expected annual loss is approximately ${currency(mc.expectedLoss)}, with modeled outcomes ranging from ${currency(mc.rangeLow)} to ${currency(mc.rangeHigh)} and a midpoint outcome near ${currency(mc.rangeMedian)}. ${decisionText}`,
     monteCarloRows: [],
     monteCarloMethodRows,
     monteCarloInputRows,
@@ -1065,7 +990,14 @@ function summarizePayload(payload) {
     rangeLow: mc.rangeLow,
     rangeMedian: mc.rangeMedian,
     rangeHigh: mc.rangeHigh,
-    decisionText
+    decisionText,
+    decisionJustification,
+    insuranceCoverageTotal: insuranceMetrics.totalCoverage,
+    insuranceDeductibleTotal: insuranceMetrics.totalDeductible,
+    insurancePremiumTotal: insuranceMetrics.totalPremium,
+    coverageApplied: insuranceMetrics.coverageApplied,
+    insuranceAdjustedExposure: insuranceMetrics.insuranceAdjustedExposure,
+    uncertaintySpread: decisionMetrics.uncertaintySpread
   };
 }
 function renderReportSupplements(summary) {
@@ -1073,8 +1005,7 @@ function renderReportSupplements(summary) {
   const hardFactsBody = document.getElementById("reportHardFactsBody");
   const insuranceTotalEl = document.getElementById("reportInsuranceTotals");
   const hardFactsTotalEl = document.getElementById("reportHardFactsTotals");
-  const hardFactsEvidenceNoteEl = document.getElementById("reportHardFactsEvidenceNote");
-  if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl || !hardFactsEvidenceNoteEl) return;
+  if (!insuranceBody || !hardFactsBody || !insuranceTotalEl || !hardFactsTotalEl) return;
   const insurance = Array.isArray(summary?.insurance) ? summary.insurance : [];
   const hardFacts = Array.isArray(summary?.hardFacts) ? summary.hardFacts : [];
 
@@ -1100,23 +1031,19 @@ function renderReportSupplements(summary) {
   }
 
   if (!hardFacts.length) {
-    hardFactsBody.innerHTML = '<tr><td colspan="7">No hard facts / evidence loaded for this scenario.</td></tr>';
+    hardFactsBody.innerHTML = '<tr><td colspan="5">No hard facts / evidence loaded for this scenario.</td></tr>';
     hardFactsTotalEl.textContent = 'Hard facts total documented loss / cost: $0';
-    hardFactsEvidenceNoteEl.textContent = getHardFactsEvidenceNote(hardFacts);
   } else {
     hardFactsBody.innerHTML = hardFacts.map(item => `
       <tr>
         <td>${escapeHtml(item.sourceType)}</td>
         <td>${currency(item.amount)}</td>
         <td>${escapeHtml(item.factDate)}</td>
-        <td>${escapeHtml(getHardFactScopeLabel(item))}</td>
-        <td>${escapeHtml(getHardFactAppliesToLabel(item))}</td>
         <td>${escapeHtml(item.description)}</td>
         <td>${escapeHtml(item.sourceLink)}</td>
       </tr>
     `).join("");
     hardFactsTotalEl.textContent = `Hard facts total documented loss / cost: ${currency(totalCurrencyField(hardFacts, "amount"))}`;
-    hardFactsEvidenceNoteEl.textContent = getHardFactsEvidenceNote(hardFacts);
   }
 }
 
@@ -1157,23 +1084,30 @@ function renderScenarioSummary(summary) {
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
   if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
     <strong>Executive Decision Summary</strong><br>
-    There is a ${escapeHtml(summary.tier.toLowerCase())} risk tied to <strong>${escapeHtml(summary.name)}</strong> that could cost the organization approximately <strong>${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}</strong> over a one-year period, with a most likely annual outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
-    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong> annually.<br><br>
-    The estimated direct cost to mitigate the full risk is <strong>${currency(summary.mitigationCost)}</strong>, and the modeled annual reduction in loss is approximately <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
-    ${escapeHtml(summary.decisionText)} Suggested next steps include validating assumptions, considering staged controls, and documenting whether alternative mitigating factors can reduce residual exposure at a lower cost.
+    <strong>${escapeHtml(summary.name)}</strong> currently reflects a ${escapeHtml(summary.tier.toLowerCase())} residual risk profile with expected annual loss of approximately <strong>${currency(summary.expectedLoss)}</strong>. Modeled one-year outcomes range from about <strong>${currency(summary.rangeLow)}</strong> to <strong>${currency(summary.rangeHigh)}</strong>, with a midpoint outcome near <strong>${currency(summary.rangeMedian)}</strong>.<br><br>
+    Direct hard cost is modeled at approximately <strong>${currency(summary.hardCostExpected)}</strong> annually, while secondary or incidental soft cost is modeled at approximately <strong>${currency(summary.softCostExpected)}</strong>. Planned mitigation cost is <strong>${currency(summary.mitigationCost)}</strong>, compared with an estimated annual reduction in loss of <strong>${currency(summary.riskReductionValue)}</strong>.<br><br>
+    ${escapeHtml(summary.decisionText)}
   `;
 
   const decisionMetricsEl = document.getElementById("decisionMetricsBody");
   if (decisionMetricsEl) decisionMetricsEl.innerHTML = `
     <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
-    <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
-    <tr><td>Total Insurance Premium</td><td>${currency(totalCurrencyField(summary.insurance, "premium"))}</td></tr>
-    <tr><td>Total Hard Facts / Evidence Cost</td><td>${currency(totalCurrencyField(summary.hardFacts, "amount"))}</td></tr>
+    <tr><td>P10 Annual Loss</td><td>${currency(summary.rangeLow)}</td></tr>
+    <tr><td>P50 Annual Loss</td><td>${currency(summary.rangeMedian)}</td></tr>
+    <tr><td>P90 Annual Loss</td><td>${currency(summary.rangeHigh)}</td></tr>
     <tr><td>Mitigation Cost</td><td>${currency(summary.mitigationCost)}</td></tr>
+    <tr><td>Net Exposure After Mitigation</td><td>${currency(summary.residualExpectedLoss + summary.mitigationCost)}</td></tr>
+    <tr><td>Insurance Coverage Applied</td><td>${currency(summary.coverageApplied)}</td></tr>
+    <tr><td>Insurance-Adjusted Expected Exposure</td><td>${currency(summary.insuranceAdjustedExposure)}</td></tr>
     <tr><td>Annual Risk Reduction Value</td><td>${currency(summary.riskReductionValue)}</td></tr>
     <tr><td>Net Benefit / ROI</td><td>${currency(summary.mitigationROI)}</td></tr>
-    <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
+    <tr><td>Modeled Uncertainty Spread</td><td>${currency(summary.uncertaintySpread)}</td></tr>
   `;
+
+  const decisionRecommendationEl = document.getElementById("decisionRecommendationBox");
+  if (decisionRecommendationEl) decisionRecommendationEl.innerHTML = `<strong>Neutral Recommendation</strong><br>${escapeHtml(summary.decisionText)}`;
+  const decisionJustificationEl = document.getElementById("decisionJustificationBox");
+  if (decisionJustificationEl) decisionJustificationEl.innerHTML = `<strong>Decision Justification</strong><br>${escapeHtml(summary.decisionJustification || "No decision justification generated.")}`;
 
   const horizonExposureEl = document.getElementById("horizonExposureBody");
   if (horizonExposureEl) horizonExposureEl.innerHTML = summary.horizonRows.map(row => `
@@ -1369,11 +1303,10 @@ function loadBetaTestScenario() {
     { policyName: "Launch Liability Program", policyNumber: "BETA-PL-1001", carrier: "Acme Specialty", coverageType: "Technology E&O", premium: "42000", deductible: "50000", coverageAmount: "2000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Quoted launch coverage tower", sourceLink: "internal://insurance/embedded-payments" }
   ];
   betaHardFacts = [
-    { hardFactId: generateHardFactId(), sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing", scope: "scenario", appliesTo: "Scenario" }
+    { sourceType: "Internal", amount: "175000", factDate: todayIso(), description: "Quoted implementation cost from delivery and vendor teams", sourceLink: "internal://planning/embedded-payments-costing" }
   ];
   renderInsuranceTable("betaInsuranceBody", betaInsurance);
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
-  resetHardFactForm("beta");
   runBetaScenario();
   activateView("beta");
 }
@@ -1389,7 +1322,6 @@ function promoteBetaScenario() {
   singleHardFacts = Array.isArray(payload.hardFacts) ? payload.hardFacts.slice() : [];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
-  resetHardFactForm("single");
   activateView("single");
 }
 
@@ -1515,7 +1447,6 @@ function openScenario(id) {
     singleMitigations = Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     renderInsuranceTable("singleInsuranceBody", singleInsurance);
     renderHardFactsTable("singleHardFactsBody", singleHardFacts);
-    resetHardFactForm("single");
     renderMitigationTable("singleMitigationBody", singleMitigations);
     document.getElementById("singleAcceptedRiskFlag").checked = !!s.acceptedRisk?.isAccepted;
     document.getElementById("singleAcceptanceAuthority").value = s.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
@@ -1593,7 +1524,6 @@ function openScenario(id) {
     syncComplexComponentIdField(!activeComplexComponentId);
     renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
-    resetHardFactForm("complex");
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderComplexScenarioComponents();
     formatAllCurrencyFields();
@@ -1717,10 +1647,9 @@ function loadSingleTestScenario() {
   ];
   renderInsuranceTable("singleInsuranceBody", singleInsurance);
   singleHardFacts = [
-    { hardFactId: generateHardFactId(), sourceType: "Internal", amount: "42000", factDate: todayIso(), description: "Prior error-resolution remediation spend", sourceLink: "internal://evidence/reg-e-remediation", scope: "scenario", appliesTo: "Scenario" }
+    { sourceType: "Internal", amount: "42000", factDate: todayIso(), description: "Prior error-resolution remediation spend", sourceLink: "internal://evidence/reg-e-remediation" }
   ];
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
-  resetHardFactForm("single");
   singleMitigations = [
     { title: "Workflow validation", owner: "Operations", status: "In Progress", attachment: "workflow_review.xlsx" },
     { title: "Procedure rewrite", owner: "Compliance", status: "Planned", attachment: "reg_e_procedure.docx" }
@@ -1775,10 +1704,9 @@ function loadComplexTestScenario() {
   ];
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   complexHardFacts = [
-    { hardFactId: generateHardFactId(), sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark", scope: "complex", groupId: ensureComplexGroupId(), appliesTo: ensureComplexGroupId() || "Full Complex Scenario" }
+    { sourceType: "External", amount: "275000", factDate: todayIso(), description: "Comparable industry modernization loss event benchmark", sourceLink: "https://example.com/industry-loss-benchmark" }
   ];
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
-  resetHardFactForm("complex");
   complexMitigations = [
     { title: "Committee escalation", owner: "ERM", status: "Complete", attachment: "committee_packet.pdf" },
     { title: "Third-party resiliency review", owner: "Vendor Management", status: "In Progress", attachment: "vendor_resiliency.docx" }
@@ -1849,8 +1777,6 @@ function wireInputs() {
   document.getElementById("addComplexInsuranceBtn")?.addEventListener("click", () => addInsurance("complex"));
   document.getElementById("addSingleHardFactBtn")?.addEventListener("click", () => addHardFact("single"));
   document.getElementById("addComplexHardFactBtn")?.addEventListener("click", () => addHardFact("complex"));
-  document.getElementById("cancelSingleHardFactEditBtn")?.addEventListener("click", () => resetHardFactForm("single"));
-  document.getElementById("cancelComplexHardFactEditBtn")?.addEventListener("click", () => resetHardFactForm("complex"));
   document.getElementById("saveScenarioBtn").addEventListener("click", (event) => saveScenario(event));
   document.getElementById("runScenarioBtn").addEventListener("click", runScenario);
   document.getElementById("loadSingleTestBtn").addEventListener("click", loadSingleTestScenario);
@@ -1861,7 +1787,6 @@ function wireInputs() {
   document.getElementById("promoteBetaScenarioBtn")?.addEventListener("click", promoteBetaScenario);
   document.getElementById("addBetaInsuranceBtn")?.addEventListener("click", () => addInsurance("beta"));
   document.getElementById("addBetaHardFactBtn")?.addEventListener("click", () => addHardFact("beta"));
-  document.getElementById("cancelBetaHardFactEditBtn")?.addEventListener("click", () => resetHardFactForm("beta"));
 
   document.getElementById("addProductGroupBtn").addEventListener("click", () => addCategory("newProductGroupName", "productGroups"));
   document.getElementById("addProductBtn").addEventListener("click", () => addCategory("newProductName", "products"));
@@ -1925,8 +1850,6 @@ function renderManual() {
     <p>This approach is designed to support U.S. regulatory examiner expectations by documenting assumptions, preserving bounded input ranges, showing the method used, and producing transparent output tables that can be reproduced and reviewed later.</p>
     <h4>Executive Decision Analysis</h4>
     <p>Reports now explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether other mitigating factors should be considered.</p>
-    <h4>Hard Facts / Evidence</h4>
-    <p>Hard facts document known internal or external losses, benchmarks, and supporting evidence. These entries are intended to support and challenge scenario assumptions, not automatically override the Monte Carlo model. In complex scenarios, hard facts can be tied either to the full complex scenario or to the active component so examiners can see what evidence supports each layer.</p>
     <h4>Time Horizons</h4>
     <p>Each report now includes one-year, three-year, five-year, ten-year, fifteen-year, twenty-year, twenty-five-year, and thirty-plus-year outlooks, both with and without mitigation, so leadership can understand longer-term exposure.</p>
     <h4>Category Admin</h4>
@@ -2479,9 +2402,6 @@ function init() {
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
-  resetHardFactForm("single");
-  resetHardFactForm("complex");
-  resetHardFactForm("beta");
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   renderComplexItems();
