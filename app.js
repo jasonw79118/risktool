@@ -2779,3 +2779,120 @@ function setupRandomOutcomesCsvButton() {
 
 
 
+
+
+
+/* =========================
+   PHASE 20.1.07 ADDITIONS
+   Decision + Insurance Engine
+========================= */
+
+function evaluateInsuranceEffectiveness(simResults, insuranceList) {
+  if (!insuranceList || insuranceList.length === 0) return [];
+
+  return insuranceList.map(ins => {
+    const premium = Number(ins.premium || 0);
+    const deductible = Number(ins.deductible || 0);
+
+    const avgLoss = simResults.meanLoss || 0;
+    const adjustedLoss = Math.max(avgLoss - (avgLoss - deductible), deductible);
+
+    const riskReduction = avgLoss - adjustedLoss;
+    const totalCost = premium + deductible;
+
+    let rating = "No Material Impact";
+
+    if (riskReduction > totalCost * 1.25) rating = "Effective Risk Transfer";
+    else if (riskReduction > totalCost * 0.75) rating = "Marginal Value";
+    else if (riskReduction > 0) rating = "Limited Benefit";
+    else rating = "Inefficient / Overpriced";
+
+    return {
+      title: ins.title || "Insurance",
+      premium,
+      deductible,
+      riskReduction,
+      totalCost,
+      rating
+    };
+  });
+}
+
+function generateDecisionRecommendation(simResults, insuranceEval, scenario) {
+  const mean = simResults.meanLoss || 0;
+  const p95 = simResults.p95 || 0;
+  const frequency = scenario.frequency || "Unknown";
+
+  let recommendation = "";
+
+  if (mean < 10000) {
+    recommendation += "The scenario reflects a relatively low financial exposure. ";
+  } else if (mean < 100000) {
+    recommendation += "The scenario presents moderate financial risk requiring oversight. ";
+  } else {
+    recommendation += "The scenario reflects material financial exposure that warrants executive attention. ";
+  }
+
+  recommendation += `Estimated occurrence frequency: ${frequency}. `;
+  recommendation += `Severe-case exposure (P95) is approximately ${p95.toLocaleString()}. `;
+
+  if (insuranceEval.length > 0) {
+    const best = insuranceEval.sort((a,b) => b.riskReduction - a.riskReduction)[0];
+
+    recommendation += `Insurance analysis indicates "${best.title}" is classified as ${best.rating}. `;
+
+    if (best.rating === "Effective Risk Transfer") {
+      recommendation += "This coverage materially reduces financial exposure and is justified. ";
+    } else if (best.rating === "Marginal Value") {
+      recommendation += "Coverage provides some benefit but should be reviewed for cost efficiency. ";
+    } else {
+      recommendation += "Coverage does not provide sufficient economic value relative to cost. ";
+    }
+  } else {
+    recommendation += "No insurance mitigation is currently applied. ";
+  }
+
+  recommendation += "Management should balance mitigation investment against quantified exposure and risk tolerance.";
+
+  return recommendation;
+}
+
+function renderInsuranceEvaluationTable(evalList) {
+  if (!evalList || evalList.length === 0) return "<p>No insurance evaluated.</p>";
+
+  return `
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Policy</th>
+          <th>Premium</th>
+          <th>Deductible</th>
+          <th>Risk Reduction</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${evalList.map(e => `
+          <tr>
+            <td>${e.title}</td>
+            <td>${e.premium}</td>
+            <td>${e.deductible}</td>
+            <td>${Math.round(e.riskReduction)}</td>
+            <td>${e.rating}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+/* Hook helper (safe call pattern) */
+function applyDecisionEngine(simResults, scenario) {
+  const insuranceEval = evaluateInsuranceEffectiveness(simResults, scenario.insurance || []);
+  const recommendation = generateDecisionRecommendation(simResults, insuranceEval, scenario);
+
+  scenario.insuranceEvaluation = insuranceEval;
+  scenario.decisionRecommendation = recommendation;
+
+  return scenario;
+}
