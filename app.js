@@ -3223,8 +3223,9 @@ function renderScenarioSummary(summary) {
 
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
   if (executiveDecisionEl) {
-    const insuranceBlock = Array.isArray(summary.insuranceEvaluation) && summary.insuranceEvaluation.length
-      ? `<br><br><strong>Insurance Effectiveness</strong><br>${summary.insuranceEvaluation.map(item => `${escapeHtml(item.title)}: ${escapeHtml(item.rating)} (Premium ${currency(item.premium)} | Deductible ${currency(item.deductible)} | Modeled Risk Reduction ${currency(Math.round(item.riskReduction))})`).join("<br>")}`
+    const insuranceSummaryItems = dedupeInsuranceEvaluationItems(summary.insuranceEvaluation);
+    const insuranceBlock = insuranceSummaryItems.length
+      ? `<br><br><strong>Insurance Effectiveness</strong><br>${insuranceSummaryItems.map(item => `${escapeHtml(item.title)}: ${escapeHtml(item.rating)} (Premium ${currency(item.premium)} | Deductible ${currency(item.deductible)} | Modeled Risk Reduction ${currency(Math.round(item.riskReduction))})`).join("<br>")}`
       : "";
     executiveDecisionEl.innerHTML = `
       <strong>Executive Decision Summary</strong><br>
@@ -3260,3 +3261,26 @@ function renderScenarioSummary(summary) {
   `).join("");
 }
 
+
+
+/* =========================
+   PHASE 20.1.08c FIX
+   Deduplicate insurance summary lines
+========================= */
+
+function dedupeInsuranceEvaluationItems(items) {
+  const list = Array.isArray(items) ? items : [];
+  const seen = new Set();
+  return list.filter((item) => {
+    const key = [
+      item?.title || "",
+      item?.rating || "",
+      Number(item?.premium || 0),
+      Number(item?.deductible || 0),
+      Math.round(Number(item?.riskReduction || 0))
+    ].join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
