@@ -3460,3 +3460,100 @@ function applyDecisionLayer(simResults, scenario){
   simResults.topDrivers = identifyTopRiskDrivers(simResults, scenario);
   return simResults;
 }
+
+
+/* =========================
+   PHASE 20.1.12
+========================= */
+
+function escapeRiskText(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatRiskCurrency(value) {
+  const num = Number(value || 0);
+  return "$" + Math.round(num).toLocaleString();
+}
+
+function normalizeTopDrivers(drivers) {
+  return Array.isArray(drivers) ? drivers.filter(Boolean) : [];
+}
+
+function buildBoardSummary(simResults, scenario) {
+  const meanLoss = Number((simResults && simResults.meanLoss) || 0);
+  const p95 = Number((simResults && simResults.p95) || 0);
+  const riskRating = (simResults && simResults.riskRating) || "Unrated";
+  const confidenceRating = (simResults && simResults.confidenceRating) || "Unrated";
+  const drivers = normalizeTopDrivers(simResults && simResults.topDrivers);
+  const scenarioName =
+    (scenario && (scenario.scenarioName || scenario.title || scenario.name || scenario.issue)) ||
+    "Scenario";
+
+  const driverText = drivers.length ? drivers.join(", ") : "No dominant drivers identified.";
+
+  return scenarioName + " is currently assessed as " + riskRating +
+    " risk with " + confidenceRating +
+    " confidence. Estimated mean loss is " + formatRiskCurrency(meanLoss) +
+    " and severe-case exposure (P95) is " + formatRiskCurrency(p95) +
+    ". Primary drivers: " + driverText + ".";
+}
+
+function renderDecisionLayerCard(simResults) {
+  if (!simResults) return "";
+
+  const riskRating = escapeRiskText(simResults.riskRating || "Unrated");
+  const confidenceRating = escapeRiskText(simResults.confidenceRating || "Unrated");
+  const drivers = normalizeTopDrivers(simResults.topDrivers);
+
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Decision Layer</div>
+      <div class="card-body">
+        <div><strong>Risk Rating:</strong> ${riskRating}</div>
+        <div><strong>Confidence Rating:</strong> ${confidenceRating}</div>
+        <div class="mt-2"><strong>Top Risk Drivers:</strong></div>
+        <ul class="mb-0">
+          ${drivers.length ? drivers.map(d => `<li>${escapeRiskText(d)}</li>`).join("") : "<li>None identified</li>"}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+function renderBoardSummaryCard(simResults, scenario) {
+  if (!simResults) return "";
+
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Board / Examiner Summary</div>
+      <div class="card-body">
+        ${escapeRiskText(buildBoardSummary(simResults, scenario))}
+      </div>
+    </div>
+  `;
+}
+
+function buildDecisionLayerPackage(simResults, scenario) {
+  if (!simResults) return simResults;
+
+  simResults.boardSummary = buildBoardSummary(simResults, scenario);
+  simResults.decisionLayerHtml = renderDecisionLayerCard(simResults);
+  simResults.boardSummaryHtml = renderBoardSummaryCard(simResults, scenario);
+
+  return simResults;
+}
+
+function applyDecisionPresentationLayer(simResults, scenario) {
+  if (typeof applyDecisionLayer === "function") {
+    simResults = applyDecisionLayer(simResults, scenario);
+  }
+  if (typeof buildDecisionLayerPackage === "function") {
+    simResults = buildDecisionLayerPackage(simResults, scenario);
+  }
+  return simResults;
+}
