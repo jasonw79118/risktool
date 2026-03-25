@@ -3415,3 +3415,489 @@ function renderDistributionProfileSummary(profile) {
     </div>
   `;
 }
+
+
+/* =========================
+   PHASE 20.1.11
+========================= */
+
+function calculateRiskRating(meanLoss){
+  if(meanLoss < 10000) return "Low";
+  if(meanLoss < 100000) return "Moderate";
+  if(meanLoss < 500000) return "High";
+  return "Severe";
+}
+
+function calculateConfidenceRating(stdDev, meanLoss){
+  if(!meanLoss) return "Low";
+  const ratio = stdDev / meanLoss;
+  if(ratio < 0.25) return "High";
+  if(ratio < 0.5) return "Medium";
+  return "Low";
+}
+
+function identifyTopRiskDrivers(simResults, scenario){
+  const drivers = [];
+
+  if(simResults.p95 > simResults.meanLoss * 2){
+    drivers.push("Tail risk exposure");
+  }
+
+  if(!scenario.insurance || scenario.insurance.length === 0){
+    drivers.push("No risk transfer mechanism");
+  }
+
+  if(drivers.length === 0){
+    drivers.push("Balanced risk profile");
+  }
+
+  return drivers;
+}
+
+function applyDecisionLayer(simResults, scenario){
+  simResults.riskRating = calculateRiskRating(simResults.meanLoss || 0);
+  simResults.confidenceRating = calculateConfidenceRating(simResults.standardDeviation || 0, simResults.meanLoss || 0);
+  simResults.topDrivers = identifyTopRiskDrivers(simResults, scenario);
+  return simResults;
+}
+
+
+/* =========================
+   PHASE 20.1.12
+========================= */
+
+function escapeRiskText(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatRiskCurrency(value) {
+  const num = Number(value || 0);
+  return "$" + Math.round(num).toLocaleString();
+}
+
+function normalizeTopDrivers(drivers) {
+  return Array.isArray(drivers) ? drivers.filter(Boolean) : [];
+}
+
+function buildBoardSummary(simResults, scenario) {
+  const meanLoss = Number((simResults && simResults.meanLoss) || 0);
+  const p95 = Number((simResults && simResults.p95) || 0);
+  const riskRating = (simResults && simResults.riskRating) || "Unrated";
+  const confidenceRating = (simResults && simResults.confidenceRating) || "Unrated";
+  const drivers = normalizeTopDrivers(simResults && simResults.topDrivers);
+  const scenarioName =
+    (scenario && (scenario.scenarioName || scenario.title || scenario.name || scenario.issue)) ||
+    "Scenario";
+
+  const driverText = drivers.length ? drivers.join(", ") : "No dominant drivers identified.";
+
+  return scenarioName + " is currently assessed as " + riskRating +
+    " risk with " + confidenceRating +
+    " confidence. Estimated mean loss is " + formatRiskCurrency(meanLoss) +
+    " and severe-case exposure (P95) is " + formatRiskCurrency(p95) +
+    ". Primary drivers: " + driverText + ".";
+}
+
+function renderDecisionLayerCard(simResults) {
+  if (!simResults) return "";
+
+  const riskRating = escapeRiskText(simResults.riskRating || "Unrated");
+  const confidenceRating = escapeRiskText(simResults.confidenceRating || "Unrated");
+  const drivers = normalizeTopDrivers(simResults.topDrivers);
+
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Decision Layer</div>
+      <div class="card-body">
+        <div><strong>Risk Rating:</strong> ${riskRating}</div>
+        <div><strong>Confidence Rating:</strong> ${confidenceRating}</div>
+        <div class="mt-2"><strong>Top Risk Drivers:</strong></div>
+        <ul class="mb-0">
+          ${drivers.length ? drivers.map(d => `<li>${escapeRiskText(d)}</li>`).join("") : "<li>None identified</li>"}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+function renderBoardSummaryCard(simResults, scenario) {
+  if (!simResults) return "";
+
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Board / Examiner Summary</div>
+      <div class="card-body">
+        ${escapeRiskText(buildBoardSummary(simResults, scenario))}
+      </div>
+    </div>
+  `;
+}
+
+function buildDecisionLayerPackage(simResults, scenario) {
+  if (!simResults) return simResults;
+
+  simResults.boardSummary = buildBoardSummary(simResults, scenario);
+  simResults.decisionLayerHtml = renderDecisionLayerCard(simResults);
+  simResults.boardSummaryHtml = renderBoardSummaryCard(simResults, scenario);
+
+  return simResults;
+}
+
+function applyDecisionPresentationLayer(simResults, scenario) {
+  if (typeof applyDecisionLayer === "function") {
+    simResults = applyDecisionLayer(simResults, scenario);
+  }
+  if (typeof buildDecisionLayerPackage === "function") {
+    simResults = buildDecisionLayerPackage(simResults, scenario);
+  }
+  return simResults;
+}
+
+
+/* =========================
+   PHASE 20.1.13
+========================= */
+
+function getRiskToolManualSections() {
+  return [
+    {
+      id: "getting-started",
+      title: "Getting Started",
+      body: "Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department. Complete the core fields first, then add evidence, insurance, and mitigation details before running the scenario."
+    },
+    {
+      id: "single-scenario-guide",
+      title: "Single Scenario Guide",
+      body: "Single Scenario is designed for one discrete issue. Complete the scenario title, business context, estimated frequency, estimated financial impact, mitigation factors, insurance details, and evidence items. Save the scenario before running it if you want to preserve the current inputs."
+    },
+    {
+      id: "complex-scenario-guide",
+      title: "Complex Scenario Guide",
+      body: "Complex Scenario is used when several connected scenarios must be evaluated together. Each component should represent a distinct risk item inside the larger initiative. Use a consistent naming pattern and confirm that all component scenarios belong to the same complex scenario grouping before running reports."
+    },
+    {
+      id: "field-guidance",
+      title: "Field Guidance",
+      body: "Each field should be completed as specifically as possible. Frequency should reflect how often the event could occur. Financial impact should reflect estimated loss severity. Evidence should reflect known internal or external losses. Insurance should reflect active or proposed coverage, including premium, deductible, and policy terms."
+    },
+    {
+      id: "understanding-results",
+      title: "Understanding Results",
+      body: "Results combine scenario estimates, evidence inputs, insurance economics, and simulation outputs. Mean loss reflects expected loss. P95 reflects severe-case exposure. Risk Rating summarizes the relative level of exposure. Confidence Rating reflects how stable the estimate appears based on available variability. Top Risk Drivers highlight the main contributors to exposure."
+    },
+    {
+      id: "insurance-evaluation",
+      title: "Insurance Evaluation",
+      body: "Insurance effectiveness compares premium and deductible structure against modeled loss reduction. A policy may be effective, marginal, limited, or inefficient depending on whether the cost of coverage is justified by the financial protection it provides."
+    },
+    {
+      id: "evidence-data-usage",
+      title: "Evidence & Data Usage",
+      body: "Evidence entries should be factual and traceable. Use actual losses, incident history, external events, audit findings, or documented amounts where available. Evidence improves the quality of scenario outputs by shifting the model toward real-world experience instead of relying only on judgment."
+    },
+    {
+      id: "faq",
+      title: "FAQ",
+      body: "Save preserves the scenario. Run Scenario generates updated outputs. Complex scenarios should be used for grouped assessments. Insurance and evidence are optional but improve decision quality. Reports should be reviewed for reasonableness before being used for management, audit, or board communication."
+    }
+  ];
+}
+
+function renderRiskToolManual() {
+  const sections = getRiskToolManualSections();
+
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Information / User Guide</div>
+      <div class="card-body">
+        ${sections.map(section => `
+          <div class="mb-4" id="manual-${section.id}">
+            <h5>${section.title}</h5>
+            <p class="mb-0">${section.body}</p>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function getFieldHelpLibrary() {
+  return {
+    scenarioTitle: {
+      label: "Scenario Title",
+      shortHelp: "Enter a clear and specific name for the scenario.",
+      detailedHelp: "Use a title that identifies the issue, process, product, project, or event being assessed. Avoid overly generic titles."
+    },
+    frequency: {
+      label: "Frequency",
+      shortHelp: "Estimate how often the event could occur.",
+      detailedHelp: "Use the best available judgment, supported by evidence when possible. Frequency should reflect realistic occurrence, not worst-case assumptions."
+    },
+    financialImpact: {
+      label: "Financial Impact",
+      shortHelp: "Estimate the likely financial severity of the event.",
+      detailedHelp: "Include direct losses, remediation cost, operational disruption, legal expense, fines, restitution, or other relevant cost components where appropriate."
+    },
+    evidence: {
+      label: "Evidence",
+      shortHelp: "Add factual loss history or supporting data.",
+      detailedHelp: "Use internal incidents, external events, audit results, or documented loss amounts to ground the scenario in real-world information."
+    },
+    insurance: {
+      label: "Insurance",
+      shortHelp: "Add insurance coverage details tied to the scenario.",
+      detailedHelp: "Capture policy title, premium, deductible, and other core terms so the system can compare cost against modeled loss reduction."
+    },
+    mitigation: {
+      label: "Mitigation",
+      shortHelp: "Describe controls or actions that reduce exposure.",
+      detailedHelp: "Document current or planned controls that may reduce frequency, severity, or overall residual exposure."
+    }
+  };
+}
+
+function getFieldHelp(fieldKey) {
+  const library = getFieldHelpLibrary();
+  return library[fieldKey] || null;
+}
+
+function renderFieldHelpBlock(fieldKey) {
+  const help = getFieldHelp(fieldKey);
+  if (!help) return "";
+
+  return `
+    <div class="card mt-2">
+      <div class="card-header">${help.label}</div>
+      <div class="card-body">
+        <div><strong>Quick Help:</strong> ${help.shortHelp}</div>
+        <div class="mt-2"><strong>Detailed Help:</strong> ${help.detailedHelp}</div>
+      </div>
+    </div>
+  `;
+}
+
+function buildInformationPackage() {
+  return {
+    manualSections: getRiskToolManualSections(),
+    fieldHelpLibrary: getFieldHelpLibrary()
+  };
+}
+\n
+
+/* =========================
+   PHASE 20.1.14
+   Information Page Integration
+========================= */
+
+function ensureRiskToolInfoStyles() {
+  if (document.getElementById("risktool-info-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "risktool-info-styles";
+  style.textContent = `
+    .risktool-info-fab {
+      position: fixed;
+      right: 18px;
+      bottom: 48px;
+      z-index: 9998;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    }
+    .risktool-info-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .risktool-info-overlay.open {
+      display: flex;
+    }
+    .risktool-info-modal {
+      width: min(1100px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .risktool-info-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 2;
+    }
+    .risktool-info-body {
+      padding: 20px;
+    }
+    .risktool-info-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+    }
+    .risktool-info-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .risktool-info-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .risktool-info-nav a {
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.06);
+      color: inherit;
+      font-size: 13px;
+    }
+    .risktool-help-stack > * + * {
+      margin-top: 12px;
+    }
+    @media (max-width: 900px) {
+      .risktool-info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function buildRiskToolInfoNav(sections) {
+  return `
+    <div class="risktool-info-nav">
+      ${sections.map(section => `<a href="#manual-${section.id}">${section.title}</a>`).join("")}
+    </div>
+  `;
+}
+
+function renderFieldHelpShowcase() {
+  const keys = ["scenarioTitle", "frequency", "financialImpact", "evidence", "insurance", "mitigation"];
+  return `
+    <div class="risktool-help-stack">
+      ${keys.map(key => renderFieldHelpBlock(key)).join("")}
+    </div>
+  `;
+}
+
+function renderIntegratedRiskToolManual() {
+  const sections = getRiskToolManualSections();
+  return `
+    <div class="risktool-info-grid">
+      <div>
+        ${buildRiskToolInfoNav(sections)}
+        ${renderRiskToolManual()}
+      </div>
+      <div>
+        <div class="card mt-0">
+          <div class="card-header">Field Help Library</div>
+          <div class="card-body">
+            ${renderFieldHelpShowcase()}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function ensureRiskToolInfoButton() {
+  if (document.getElementById("risktool-info-fab")) return;
+
+  const button = document.createElement("button");
+  button.id = "risktool-info-fab";
+  button.className = "risktool-info-fab btn btn-primary";
+  button.type = "button";
+  button.textContent = "Information";
+  button.addEventListener("click", openRiskToolInfoModal);
+  document.body.appendChild(button);
+}
+
+function ensureRiskToolInfoModal() {
+  if (document.getElementById("risktool-info-overlay")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "risktool-info-overlay";
+  overlay.className = "risktool-info-overlay";
+  overlay.innerHTML = `
+    <div class="risktool-info-modal">
+      <div class="risktool-info-header">
+        <div>
+          <strong>Risk Manager Information Center</strong>
+          <div style="font-size:12px;opacity:.75;">User guide, field help, and scenario completion guidance</div>
+        </div>
+        <button id="risktool-info-close" class="risktool-info-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="risktool-info-body" id="risktool-info-body"></div>
+    </div>
+  `;
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) closeRiskToolInfoModal();
+  });
+
+  document.body.appendChild(overlay);
+
+  const closeBtn = document.getElementById("risktool-info-close");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeRiskToolInfoModal);
+  }
+}
+
+function openRiskToolInfoModal() {
+  ensureRiskToolInfoStyles();
+  ensureRiskToolInfoModal();
+
+  const body = document.getElementById("risktool-info-body");
+  if (body) {
+    body.innerHTML = renderIntegratedRiskToolManual();
+  }
+
+  const overlay = document.getElementById("risktool-info-overlay");
+  if (overlay) {
+    overlay.classList.add("open");
+  }
+}
+
+function closeRiskToolInfoModal() {
+  const overlay = document.getElementById("risktool-info-overlay");
+  if (overlay) {
+    overlay.classList.remove("open");
+  }
+}
+
+function initializeRiskToolInformationCenter() {
+  if (typeof document === "undefined" || !document.body) return;
+  ensureRiskToolInfoStyles();
+  ensureRiskToolInfoButton();
+  ensureRiskToolInfoModal();
+}
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeRiskToolInformationCenter);
+  } else {
+    initializeRiskToolInformationCenter();
+  }
+}
