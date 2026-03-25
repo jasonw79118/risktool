@@ -3284,3 +3284,41 @@ function dedupeInsuranceEvaluationItems(items) {
     return true;
   });
 }
+
+
+
+/* =========================
+   PHASE 20.1.09
+   Evidence Integration (Hubbard Alignment Step 1)
+========================= */
+
+function calculateEvidenceAdjustment(evidenceList) {
+  if (!evidenceList || evidenceList.length === 0) return 1;
+
+  const values = evidenceList
+    .map(e => Number(e.amount || 0))
+    .filter(v => v > 0);
+
+  if (values.length === 0) return 1;
+
+  const avg = values.reduce((a,b)=>a+b,0) / values.length;
+
+  return avg > 0 ? avg : 1;
+}
+
+function applyEvidenceToSimulation(simResults, scenario) {
+  const factor = calculateEvidenceAdjustment(scenario.evidence || []);
+
+  if (factor > 0) {
+    simResults.meanLoss = (simResults.meanLoss + factor) / 2;
+    simResults.p95 = (simResults.p95 + factor * 1.25) / 2;
+  }
+
+  return simResults;
+}
+
+
+function applyFullEnhancement(simResults, scenario) {
+  simResults = applyEvidenceToSimulation(simResults, scenario);
+  return simResults;
+}
