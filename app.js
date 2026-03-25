@@ -3559,8 +3559,10 @@ function applyDecisionPresentationLayer(simResults, scenario) {
 }
 
 
+
 /* =========================
-   PHASE 20.1.13
+   PHASE 20.1.14a
+   Information Center Integration (Corrective)
 ========================= */
 
 function getRiskToolManualSections() {
@@ -3606,24 +3608,6 @@ function getRiskToolManualSections() {
       body: "Save preserves the scenario. Run Scenario generates updated outputs. Complex scenarios should be used for grouped assessments. Insurance and evidence are optional but improve decision quality. Reports should be reviewed for reasonableness before being used for management, audit, or board communication."
     }
   ];
-}
-
-function renderRiskToolManual() {
-  const sections = getRiskToolManualSections();
-
-  return `
-    <div class="card mt-3">
-      <div class="card-header">Information / User Guide</div>
-      <div class="card-body">
-        ${sections.map(section => `
-          <div class="mb-4" id="manual-${section.id}">
-            <h5>${section.title}</h5>
-            <p class="mb-0">${section.body}</p>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
 }
 
 function getFieldHelpLibrary() {
@@ -3681,18 +3665,59 @@ function renderFieldHelpBlock(fieldKey) {
   `;
 }
 
-function buildInformationPackage() {
-  return {
-    manualSections: getRiskToolManualSections(),
-    fieldHelpLibrary: getFieldHelpLibrary()
-  };
+function renderRiskToolManual() {
+  const sections = getRiskToolManualSections();
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Information / User Guide</div>
+      <div class="card-body">
+        ${sections.map(section => `
+          <div class="mb-4" id="manual-${section.id}">
+            <h5>${section.title}</h5>
+            <p class="mb-0">${section.body}</p>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
-\n
 
-/* =========================
-   PHASE 20.1.14
-   Information Page Integration
-========================= */
+function buildRiskToolInfoNav(sections) {
+  return `
+    <div class="risktool-info-nav">
+      ${sections.map(section => `<a href="#manual-${section.id}">${section.title}</a>`).join("")}
+    </div>
+  `;
+}
+
+function renderFieldHelpShowcase() {
+  const keys = ["scenarioTitle", "frequency", "financialImpact", "evidence", "insurance", "mitigation"];
+  return `
+    <div class="risktool-help-stack">
+      ${keys.map(key => renderFieldHelpBlock(key)).join("")}
+    </div>
+  `;
+}
+
+function renderIntegratedRiskToolManual() {
+  const sections = getRiskToolManualSections();
+  return `
+    <div class="risktool-info-grid">
+      <div>
+        ${buildRiskToolInfoNav(sections)}
+        ${renderRiskToolManual()}
+      </div>
+      <div>
+        <div class="card mt-0">
+          <div class="card-header">Field Help Library</div>
+          <div class="card-body">
+            ${renderFieldHelpShowcase()}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function ensureRiskToolInfoStyles() {
   if (document.getElementById("risktool-info-styles")) return;
@@ -3785,43 +3810,6 @@ function ensureRiskToolInfoStyles() {
   document.head.appendChild(style);
 }
 
-function buildRiskToolInfoNav(sections) {
-  return `
-    <div class="risktool-info-nav">
-      ${sections.map(section => `<a href="#manual-${section.id}">${section.title}</a>`).join("")}
-    </div>
-  `;
-}
-
-function renderFieldHelpShowcase() {
-  const keys = ["scenarioTitle", "frequency", "financialImpact", "evidence", "insurance", "mitigation"];
-  return `
-    <div class="risktool-help-stack">
-      ${keys.map(key => renderFieldHelpBlock(key)).join("")}
-    </div>
-  `;
-}
-
-function renderIntegratedRiskToolManual() {
-  const sections = getRiskToolManualSections();
-  return `
-    <div class="risktool-info-grid">
-      <div>
-        ${buildRiskToolInfoNav(sections)}
-        ${renderRiskToolManual()}
-      </div>
-      <div>
-        <div class="card mt-0">
-          <div class="card-header">Field Help Library</div>
-          <div class="card-body">
-            ${renderFieldHelpShowcase()}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 function ensureRiskToolInfoButton() {
   if (document.getElementById("risktool-info-fab")) return;
 
@@ -3847,7 +3835,7 @@ function ensureRiskToolInfoModal() {
           <strong>Risk Manager Information Center</strong>
           <div style="font-size:12px;opacity:.75;">User guide, field help, and scenario completion guidance</div>
         </div>
-        <button id="risktool-info-close" class="risktool-info-close" type="button" aria-label="Close">×</button>
+        <button id="risktool-info-close" class="risktool-info-close" type="button" aria-label="Close">&times;</button>
       </div>
       <div class="risktool-info-body" id="risktool-info-body"></div>
     </div>
