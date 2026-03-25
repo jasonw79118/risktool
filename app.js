@@ -3687,3 +3687,217 @@ function buildInformationPackage() {
     fieldHelpLibrary: getFieldHelpLibrary()
   };
 }
+\n
+
+/* =========================
+   PHASE 20.1.14
+   Information Page Integration
+========================= */
+
+function ensureRiskToolInfoStyles() {
+  if (document.getElementById("risktool-info-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "risktool-info-styles";
+  style.textContent = `
+    .risktool-info-fab {
+      position: fixed;
+      right: 18px;
+      bottom: 48px;
+      z-index: 9998;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    }
+    .risktool-info-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .risktool-info-overlay.open {
+      display: flex;
+    }
+    .risktool-info-modal {
+      width: min(1100px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .risktool-info-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 2;
+    }
+    .risktool-info-body {
+      padding: 20px;
+    }
+    .risktool-info-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+    }
+    .risktool-info-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .risktool-info-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .risktool-info-nav a {
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.06);
+      color: inherit;
+      font-size: 13px;
+    }
+    .risktool-help-stack > * + * {
+      margin-top: 12px;
+    }
+    @media (max-width: 900px) {
+      .risktool-info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function buildRiskToolInfoNav(sections) {
+  return `
+    <div class="risktool-info-nav">
+      ${sections.map(section => `<a href="#manual-${section.id}">${section.title}</a>`).join("")}
+    </div>
+  `;
+}
+
+function renderFieldHelpShowcase() {
+  const keys = ["scenarioTitle", "frequency", "financialImpact", "evidence", "insurance", "mitigation"];
+  return `
+    <div class="risktool-help-stack">
+      ${keys.map(key => renderFieldHelpBlock(key)).join("")}
+    </div>
+  `;
+}
+
+function renderIntegratedRiskToolManual() {
+  const sections = getRiskToolManualSections();
+  return `
+    <div class="risktool-info-grid">
+      <div>
+        ${buildRiskToolInfoNav(sections)}
+        ${renderRiskToolManual()}
+      </div>
+      <div>
+        <div class="card mt-0">
+          <div class="card-header">Field Help Library</div>
+          <div class="card-body">
+            ${renderFieldHelpShowcase()}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function ensureRiskToolInfoButton() {
+  if (document.getElementById("risktool-info-fab")) return;
+
+  const button = document.createElement("button");
+  button.id = "risktool-info-fab";
+  button.className = "risktool-info-fab btn btn-primary";
+  button.type = "button";
+  button.textContent = "Information";
+  button.addEventListener("click", openRiskToolInfoModal);
+  document.body.appendChild(button);
+}
+
+function ensureRiskToolInfoModal() {
+  if (document.getElementById("risktool-info-overlay")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "risktool-info-overlay";
+  overlay.className = "risktool-info-overlay";
+  overlay.innerHTML = `
+    <div class="risktool-info-modal">
+      <div class="risktool-info-header">
+        <div>
+          <strong>Risk Manager Information Center</strong>
+          <div style="font-size:12px;opacity:.75;">User guide, field help, and scenario completion guidance</div>
+        </div>
+        <button id="risktool-info-close" class="risktool-info-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="risktool-info-body" id="risktool-info-body"></div>
+    </div>
+  `;
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) closeRiskToolInfoModal();
+  });
+
+  document.body.appendChild(overlay);
+
+  const closeBtn = document.getElementById("risktool-info-close");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeRiskToolInfoModal);
+  }
+}
+
+function openRiskToolInfoModal() {
+  ensureRiskToolInfoStyles();
+  ensureRiskToolInfoModal();
+
+  const body = document.getElementById("risktool-info-body");
+  if (body) {
+    body.innerHTML = renderIntegratedRiskToolManual();
+  }
+
+  const overlay = document.getElementById("risktool-info-overlay");
+  if (overlay) {
+    overlay.classList.add("open");
+  }
+}
+
+function closeRiskToolInfoModal() {
+  const overlay = document.getElementById("risktool-info-overlay");
+  if (overlay) {
+    overlay.classList.remove("open");
+  }
+}
+
+function initializeRiskToolInformationCenter() {
+  if (typeof document === "undefined" || !document.body) return;
+  ensureRiskToolInfoStyles();
+  ensureRiskToolInfoButton();
+  ensureRiskToolInfoModal();
+}
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeRiskToolInformationCenter);
+  } else {
+    initializeRiskToolInformationCenter();
+  }
+}
