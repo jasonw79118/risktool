@@ -3322,3 +3322,96 @@ function applyFullEnhancement(simResults, scenario) {
   simResults = applyEvidenceToSimulation(simResults, scenario);
   return simResults;
 }
+
+
+
+/* =========================
+   PHASE 20.1.10
+   Distribution Modeling + Confidence Bands
+========================= */
+
+function estimateStdDevFromEvidence(evidenceList, fallbackMean) {
+  const values = Array.isArray(evidenceList)
+    ? evidenceList.map(e => Number(e.amount || 0)).filter(v => v > 0)
+    : [];
+
+  if (values.length >= 2) {
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+    return Math.sqrt(variance);
+  }
+
+  const meanBase = Number(fallbackMean || 0);
+  return meanBase > 0 ? meanBase * 0.35 : 0;
+}
+
+function calculateConfidenceBand(meanLoss, stdDev) {
+  const mean = Number(meanLoss || 0);
+  const sd = Number(stdDev || 0);
+
+  const low90 = Math.max(0, mean - 1.645 * sd);
+  const high90 = Math.max(mean, mean + 1.645 * sd);
+  const low95 = Math.max(0, mean - 1.96 * sd);
+  const high95 = Math.max(mean, mean + 1.96 * sd);
+
+  return {
+    low90,
+    high90,
+    low95,
+    high95
+  };
+}
+
+function buildDistributionProfile(simResults, scenario) {
+  const meanLoss = Number(simResults.meanLoss || 0);
+  const p95 = Number(simResults.p95 || 0);
+  const stdDev = estimateStdDevFromEvidence(scenario.evidence || [], meanLoss);
+  const confidenceBand = calculateConfidenceBand(meanLoss, stdDev);
+
+  let skew = "Moderate";
+  if (p95 > meanLoss * 2.5) skew = "High";
+  else if (p95 < meanLoss * 1.5) skew = "Low";
+
+  return {
+    stdDev,
+    skew,
+    confidenceBand
+  };
+}
+
+function applyDistributionEnhancement(simResults, scenario) {
+  const profile = buildDistributionProfile(simResults, scenario);
+
+  simResults.distributionProfile = profile;
+  simResults.confidenceBand90 = profile.confidenceBand;
+  simResults.standardDeviation = profile.stdDev;
+  simResults.distributionSkew = profile.skew;
+
+  return simResults;
+}
+
+function applyAdvancedQuantEnhancement(simResults, scenario) {
+  if (typeof applyEvidenceToSimulation === "function") {
+    simResults = applyEvidenceToSimulation(simResults, scenario);
+  }
+  if (typeof applyDistributionEnhancement === "function") {
+    simResults = applyDistributionEnhancement(simResults, scenario);
+  }
+  return simResults;
+}
+
+function renderDistributionProfileSummary(profile) {
+  if (!profile || !profile.confidenceBand) return "";
+
+  return `
+    <div class="card mt-3">
+      <div class="card-header">Distribution Profile</div>
+      <div class="card-body">
+        <div><strong>Skew:</strong> ${profile.skew || "Moderate"}</div>
+        <div><strong>Std. Deviation:</strong> ${Math.round(profile.stdDev || 0).toLocaleString()}</div>
+        <div><strong>90% Range:</strong> ${Math.round(profile.confidenceBand.low90 || 0).toLocaleString()} - ${Math.round(profile.confidenceBand.high90 || 0).toLocaleString()}</div>
+        <div><strong>95% Range:</strong> ${Math.round(profile.confidenceBand.low95 || 0).toLocaleString()} - ${Math.round(profile.confidenceBand.high95 || 0).toLocaleString()}</div>
+      </div>
+    </div>
+  `;
+}
