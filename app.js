@@ -3930,3 +3930,146 @@ if (typeof document !== "undefined") {
   const staleButton = document.getElementById("risktool-info-fab");
   if (staleButton) staleButton.remove();
 }
+
+
+/* =========================
+   PHASE 20.1.15
+   Scenario-Specific Information Content
+========================= */
+
+function getScenarioManualLibrary() {
+  return {
+    single: {
+      title: "Single Scenario Walkthrough",
+      intro: "Use Single Scenario when you need to assess one defined issue, event, control gap, product risk, compliance concern, or operational exposure.",
+      steps: [
+        "Enter a clear scenario title that identifies the issue being assessed.",
+        "Describe the business context, product, process, or event involved.",
+        "Estimate frequency based on realistic occurrence, not only worst-case assumptions.",
+        "Estimate financial impact using direct and indirect cost components where appropriate.",
+        "Add mitigation information to document controls already in place or planned.",
+        "Add evidence items when you have known losses, incidents, audit findings, or external events.",
+        "Add insurance entries if coverage exists or is being evaluated.",
+        "Save the scenario before running if you want to preserve the current state.",
+        "Run the scenario and review expected loss, tail exposure, confidence, and risk drivers."
+      ],
+      completionChecklist: [
+        "Scenario title is specific",
+        "Frequency estimate is realistic",
+        "Financial impact estimate is documented",
+        "Mitigation details are completed",
+        "Evidence items are added where available",
+        "Insurance details are added where applicable",
+        "Scenario has been saved before final run"
+      ]
+    },
+    complex: {
+      title: "Complex Scenario Walkthrough",
+      intro: "Use Complex Scenario when multiple related risks belong to the same initiative, department, project, product family, or business line and should be reviewed together.",
+      steps: [
+        "Create or confirm the complex scenario grouping ID.",
+        "Add each component scenario as a distinct risk item within the same group.",
+        "Use consistent naming so components are easy to distinguish in reports.",
+        "Complete frequency and financial impact for each component independently.",
+        "Add evidence and insurance details at the component level where they differ.",
+        "Confirm that all scenarios in the group truly belong to the same broader assessment.",
+        "Save the complex scenario set before running reports.",
+        "Review both individual component results and grouped results for reasonableness."
+      ],
+      completionChecklist: [
+        "All components share the correct complex grouping",
+        "Each component has a distinct name",
+        "Each component has complete loss and frequency inputs",
+        "Evidence and insurance are aligned to the right component",
+        "The grouped scenario set has been saved before final run"
+      ]
+    },
+    results: {
+      title: "How to Read Results",
+      intro: "Results should be interpreted as decision support, not as exact predictions.",
+      steps: [
+        "Mean Loss represents the expected level of financial exposure.",
+        "P95 represents severe-case exposure and helps frame tail risk.",
+        "Risk Rating summarizes the relative level of exposure.",
+        "Confidence Rating reflects how stable the estimate appears given variability.",
+        "Top Risk Drivers identify the main conditions increasing exposure.",
+        "Insurance Effectiveness compares coverage cost structure against modeled protection.",
+        "Board / Examiner Summary translates model results into plain-language reporting."
+      ],
+      completionChecklist: [
+        "Results are reviewed for reasonableness",
+        "Tail risk is compared against management tolerance",
+        "Insurance output is reviewed alongside retained exposure",
+        "Decision recommendation aligns with the scenario facts"
+      ]
+    }
+  };
+}
+
+function renderScenarioChecklist(items) {
+  const list = Array.isArray(items) ? items : [];
+  return `
+    <ul class="mb-0">
+      ${list.map(item => `<li>${item}</li>`).join("")}
+    </ul>
+  `;
+}
+
+function renderScenarioManualSection(section) {
+  if (!section) return "";
+
+  const steps = Array.isArray(section.steps) ? section.steps : [];
+  return `
+    <div class="card mt-3">
+      <div class="card-header">${section.title}</div>
+      <div class="card-body">
+        <p>${section.intro || ""}</p>
+        <div class="mt-2"><strong>Recommended Steps</strong></div>
+        <ol class="mb-3">
+          ${steps.map(step => `<li>${step}</li>`).join("")}
+        </ol>
+        <div><strong>Completion Checklist</strong></div>
+        ${renderScenarioChecklist(section.completionChecklist)}
+      </div>
+    </div>
+  `;
+}
+
+function renderScenarioManualHub() {
+  const library = getScenarioManualLibrary();
+  return `
+    <div class="mt-3">
+      ${renderScenarioManualSection(library.single)}
+      ${renderScenarioManualSection(library.complex)}
+      ${renderScenarioManualSection(library.results)}
+    </div>
+  `;
+}
+
+function renderManual() {
+  const target = document.getElementById("userManualCopy");
+  if (!target) return;
+
+  let html = "";
+
+  if (typeof renderIntegratedRiskToolManual === "function") {
+    html += renderIntegratedRiskToolManual();
+  } else if (typeof renderRiskToolManual === "function") {
+    html += renderRiskToolManual();
+  }
+
+  html += renderScenarioManualHub();
+
+  if (!html) {
+    html = `
+      <h4>Getting Started</h4>
+      <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
+      <h4>Scenario Walkthroughs</h4>
+      <p>Complete the core fields first, then add evidence, insurance, and mitigation details before running the scenario.</p>
+      <h4>Understanding Results</h4>
+      <p>Mean loss reflects expected loss. P95 reflects severe-case exposure. Risk Rating summarizes the relative level of exposure. Confidence Rating reflects how stable the estimate appears based on available variability.</p>
+    `;
+  }
+
+  target.innerHTML = html;
+}
