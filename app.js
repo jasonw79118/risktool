@@ -4076,78 +4076,18 @@ function renderManual() {
 
 
 /* =========================
-   PHASE 20.1.16
-   Information View Render Hook
+   PHASE 20.1.16a
+   Freeze Corrective Rollback
 ========================= */
 
-function tryRenderManualIntoExistingView() {
-  if (typeof document === "undefined") return false;
-
-  const target =
-    document.getElementById("userManualCopy") ||
-    document.querySelector("#informationPage #userManualCopy") ||
-    document.querySelector("[data-page='information'] #userManualCopy") ||
-    document.querySelector(".information-page #userManualCopy");
-
-  if (!target) return false;
-
-  if (typeof renderManual === "function") {
-    renderManual();
-    return true;
-  }
-
-  return false;
-}
-
-function scheduleManualRenderAttempts() {
-  if (typeof window === "undefined") return;
-
-  const attempt = () => {
-    try {
-      tryRenderManualIntoExistingView();
-    } catch (err) {
-      console.error("Manual render attempt failed:", err);
+function renderManualSafe() {
+  try {
+    if (typeof renderManual === "function") {
+      renderManual();
+      return true;
     }
-  };
-
-  attempt();
-  window.setTimeout(attempt, 50);
-  window.setTimeout(attempt, 250);
-  window.setTimeout(attempt, 750);
-  window.setTimeout(attempt, 1500);
-}
-
-function initializeInformationViewHook() {
-  if (typeof document === "undefined") return;
-
-  scheduleManualRenderAttempts();
-
-  document.addEventListener("click", function () {
-    window.setTimeout(function () {
-      scheduleManualRenderAttempts();
-    }, 0);
-  }, true);
-
-  window.addEventListener("hashchange", function () {
-    scheduleManualRenderAttempts();
-  });
-
-  if (typeof MutationObserver !== "undefined" && document.body) {
-    const observer = new MutationObserver(function () {
-      tryRenderManualIntoExistingView();
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+  } catch (err) {
+    console.error("renderManualSafe failed:", err);
   }
-}
-
-if (typeof document !== "undefined") {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeInformationViewHook);
-  } else {
-    initializeInformationViewHook();
-  }
+  return false;
 }
