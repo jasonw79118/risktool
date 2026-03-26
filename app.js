@@ -3889,3 +3889,44 @@ if (typeof document !== "undefined") {
     initializeRiskToolInformationCenter();
   }
 }
+
+
+
+/* =========================
+   PHASE 20.1.14b
+   Left-Nav Information Integration
+========================= */
+
+function renderManual() {
+  const target = document.getElementById("userManualCopy");
+  if (!target) return;
+
+  if (typeof renderIntegratedRiskToolManual === "function") {
+    target.innerHTML = renderIntegratedRiskToolManual();
+    return;
+  }
+
+  target.innerHTML = `
+    <h4>Getting Started</h4>
+    <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
+    <h4>How to Complete a Scenario</h4>
+    <p>Complete the core fields first, then add evidence, insurance, and mitigation details before running the scenario. Save the scenario if you want to preserve the current inputs.</p>
+    <h4>Understanding Results</h4>
+    <p>Mean loss reflects expected loss. P95 reflects severe-case exposure. Risk Rating summarizes the relative level of exposure. Confidence Rating reflects how stable the estimate appears based on available variability.</p>
+  `;
+}
+
+/* Disable floating Information entry point.
+   All help/manual content should flow through the left navigation Information view only. */
+function ensureRiskToolInfoButton() {
+  const existing = document.getElementById("risktool-info-fab");
+  if (existing) existing.remove();
+}
+function openRiskToolInfoModal() { return; }
+function closeRiskToolInfoModal() { return; }
+function initializeRiskToolInformationCenter() { return; }
+
+if (typeof document !== "undefined") {
+  const staleButton = document.getElementById("risktool-info-fab");
+  if (staleButton) staleButton.remove();
+}
