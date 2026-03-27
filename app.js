@@ -4091,3 +4091,78 @@ function renderManualSafe() {
   }
   return false;
 }
+
+
+/* =========================
+   PHASE 20.1.17
+   Safe Information Pane Integration Helpers
+========================= */
+
+function getInformationPaneTargets() {
+  if (typeof document === "undefined") return [];
+  return [
+    document.getElementById("userManualCopy"),
+    document.getElementById("informationContent"),
+    document.getElementById("informationPageContent"),
+    document.querySelector("#informationPage .card-body"),
+    document.querySelector("[data-page='information'] .card-body"),
+    document.querySelector(".information-page .card-body")
+  ].filter(Boolean);
+}
+
+function buildInformationPageHtml() {
+  let html = "";
+
+  if (typeof renderIntegratedRiskToolManual === "function") {
+    html += renderIntegratedRiskToolManual();
+  } else if (typeof renderRiskToolManual === "function") {
+    html += renderRiskToolManual();
+  }
+
+  if (typeof renderScenarioManualHub === "function") {
+    html += renderScenarioManualHub();
+  }
+
+  if (!html) {
+    html = `
+      <div class="card mt-3">
+        <div class="card-header">Information / User Guide</div>
+        <div class="card-body">
+          <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
+          <p>Complete the core fields first, then add evidence, insurance, and mitigation details before running the scenario.</p>
+          <p>Review expected loss, severe-case exposure, confidence, risk drivers, and insurance effectiveness before finalizing a report.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
+}
+
+function injectInformationPageContent(target) {
+  if (!target) return false;
+  try {
+    target.innerHTML = buildInformationPageHtml();
+    return true;
+  } catch (err) {
+    console.error("injectInformationPageContent failed:", err);
+    return false;
+  }
+}
+
+function renderInformationPaneContent() {
+  const targets = getInformationPaneTargets();
+  if (!targets.length) return false;
+  return injectInformationPageContent(targets[0]);
+}
+
+function bindInformationPaneRenderer() {
+  if (typeof window === "undefined") return;
+
+  window.renderInformationPaneContent = renderInformationPaneContent;
+  window.injectInformationPageContent = injectInformationPageContent;
+  window.buildInformationPageHtml = buildInformationPageHtml;
+}
+
+/* Safe export only. No observers, no click traps, no automatic page-wide hooks. */
+bindInformationPaneRenderer();
