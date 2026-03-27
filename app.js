@@ -1788,7 +1788,7 @@ function wireInputs() {
 function renderManual() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = buildInformationPageHtml();
+  manual.innerHTML = getPolishedManualHtml();
 }
 
 
@@ -2295,58 +2295,7 @@ function restoreAllDefaultLibraries() {
 function forceManualContent() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = `
-<div class="card mt-3">
-  <div class="card-header">Information / User Guide</div>
-  <div class="card-body">
-    <h4>Getting Started</h4>
-    <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
-
-    <h4>Single Scenario Walkthrough</h4>
-    <ol>
-      <li>Enter a clear scenario title.</li>
-      <li>Describe the business context, product, process, or event involved.</li>
-      <li>Estimate frequency using realistic occurrence, not only worst-case assumptions.</li>
-      <li>Estimate financial impact using direct and indirect cost components where appropriate.</li>
-      <li>Add mitigation information for controls already in place or planned.</li>
-      <li>Add evidence items when you have known losses, incidents, audit findings, or external events.</li>
-      <li>Add insurance entries if coverage exists or is being evaluated.</li>
-      <li>Save the scenario before running if you want to preserve the current state.</li>
-      <li>Run the scenario and review expected loss, tail exposure, confidence, and risk drivers.</li>
-    </ol>
-
-    <h4>Complex Scenario Walkthrough</h4>
-    <ol>
-      <li>Confirm the complex scenario grouping ID.</li>
-      <li>Add each component scenario as a distinct risk item within the same group.</li>
-      <li>Use consistent naming so components are easy to distinguish in reports.</li>
-      <li>Complete frequency and financial impact for each component independently.</li>
-      <li>Add evidence and insurance details at the component level where they differ.</li>
-      <li>Save the complex scenario set before running reports.</li>
-      <li>Review both individual component results and grouped results for reasonableness.</li>
-    </ol>
-
-    <h4>How to Read Results</h4>
-    <ul>
-      <li>Mean Loss represents the expected level of financial exposure.</li>
-      <li>P95 represents severe-case exposure and helps frame tail risk.</li>
-      <li>Risk Rating summarizes the relative level of exposure.</li>
-      <li>Confidence Rating reflects how stable the estimate appears given variability.</li>
-      <li>Top Risk Drivers identify the main conditions increasing exposure.</li>
-      <li>Insurance Effectiveness compares coverage cost structure against modeled protection.</li>
-      <li>Board / Examiner Summary translates model results into plain-language reporting.</li>
-    </ul>
-
-    <h4>Field Guidance</h4>
-    <p><strong>Scenario Title:</strong> use a clear and specific name.</p>
-    <p><strong>Frequency:</strong> estimate how often the event could occur.</p>
-    <p><strong>Financial Impact:</strong> estimate likely severity including direct and indirect costs.</p>
-    <p><strong>Evidence:</strong> add factual loss history or supporting data.</p>
-    <p><strong>Insurance:</strong> add policy title, premium, deductible, and key terms.</p>
-    <p><strong>Mitigation:</strong> document controls or actions that reduce exposure.</p>
-  </div>
-</div>
-`;
+  manual.innerHTML = getPolishedManualHtml();
 }
 
 
@@ -4208,3 +4157,190 @@ bindInformationPaneRenderer();
 /* PHASE 20.1.18 */
 
 /* PHASE 20.1.19 - Direct Information content activation */
+
+
+/* =========================
+   PHASE 20.1.20
+   Information Manual UI Polish
+========================= */
+
+function getManualLayoutStyles() {
+  return `
+    <style>
+      .manual-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 8px 0 18px 0;
+      }
+      .manual-nav a {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(25, 118, 210, 0.08);
+        color: #1f3a5f;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+      .manual-nav a:hover {
+        background: rgba(25, 118, 210, 0.16);
+        text-decoration: none;
+      }
+      .manual-card {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 18px;
+        padding: 18px 22px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      }
+      .manual-card h4 {
+        margin: 0 0 16px 0;
+        font-size: 22px;
+        line-height: 1.25;
+      }
+      .manual-section {
+        padding: 14px 0 18px 0;
+        border-top: 1px solid rgba(0,0,0,.06);
+      }
+      .manual-section:first-of-type {
+        border-top: none;
+        padding-top: 0;
+      }
+      .manual-section h5 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .manual-section p {
+        margin: 0 0 12px 0;
+        line-height: 1.65;
+      }
+      .manual-section ol,
+      .manual-section ul {
+        margin: 8px 0 0 20px;
+        padding: 0;
+        line-height: 1.65;
+      }
+      .manual-section li + li {
+        margin-top: 6px;
+      }
+      .manual-field-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .manual-field-item {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(0,0,0,.03);
+      }
+      .manual-field-item strong {
+        display: inline-block;
+        margin-bottom: 4px;
+      }
+    </style>
+  `;
+}
+
+function getPolishedManualHtml() {
+  return `
+    ${getManualLayoutStyles()}
+    <div class="manual-card">
+      <h4>Information / User Guide</h4>
+
+      <div class="manual-nav">
+        <a href="#manual-getting-started">Getting Started</a>
+        <a href="#manual-single-scenario">Single Scenario Guide</a>
+        <a href="#manual-complex-scenario">Complex Scenario Guide</a>
+        <a href="#manual-field-guidance">Field Guidance</a>
+        <a href="#manual-results">Understanding Results</a>
+        <a href="#manual-insurance">Insurance Evaluation</a>
+        <a href="#manual-evidence">Evidence &amp; Data Usage</a>
+        <a href="#manual-faq">FAQ</a>
+      </div>
+
+      <div class="manual-section" id="manual-getting-started">
+        <h5>Getting Started</h5>
+        <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
+        <p>Complete the core fields first, then add evidence, insurance, and mitigation details before running the scenario.</p>
+      </div>
+
+      <div class="manual-section" id="manual-single-scenario">
+        <h5>Single Scenario Guide</h5>
+        <ol>
+          <li>Enter a clear scenario title.</li>
+          <li>Describe the business context, product, process, or event involved.</li>
+          <li>Estimate frequency using realistic occurrence, not only worst-case assumptions.</li>
+          <li>Estimate financial impact using direct and indirect cost components where appropriate.</li>
+          <li>Add mitigation information for controls already in place or planned.</li>
+          <li>Add evidence items when you have known losses, incidents, audit findings, or external events.</li>
+          <li>Add insurance entries if coverage exists or is being evaluated.</li>
+          <li>Save the scenario before running if you want to preserve the current state.</li>
+          <li>Run the scenario and review expected loss, tail exposure, confidence, and risk drivers.</li>
+        </ol>
+      </div>
+
+      <div class="manual-section" id="manual-complex-scenario">
+        <h5>Complex Scenario Guide</h5>
+        <ol>
+          <li>Confirm the complex scenario grouping ID.</li>
+          <li>Add each component scenario as a distinct risk item within the same group.</li>
+          <li>Use consistent naming so components are easy to distinguish in reports.</li>
+          <li>Complete frequency and financial impact for each component independently.</li>
+          <li>Add evidence and insurance details at the component level where they differ.</li>
+          <li>Save the complex scenario set before running reports.</li>
+          <li>Review both individual component results and grouped results for reasonableness.</li>
+        </ol>
+      </div>
+
+      <div class="manual-section" id="manual-field-guidance">
+        <h5>Field Guidance</h5>
+        <div class="manual-field-grid">
+          <div class="manual-field-item"><strong>Scenario Title</strong><div>Use a clear and specific name.</div></div>
+          <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur.</div></div>
+          <div class="manual-field-item"><strong>Financial Impact</strong><div>Estimate likely severity including direct and indirect costs.</div></div>
+          <div class="manual-field-item"><strong>Evidence</strong><div>Add factual loss history or supporting data.</div></div>
+          <div class="manual-field-item"><strong>Insurance</strong><div>Add policy title, premium, deductible, and key terms.</div></div>
+          <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
+        </div>
+      </div>
+
+      <div class="manual-section" id="manual-results">
+        <h5>Understanding Results</h5>
+        <ul>
+          <li>Mean Loss represents the expected level of financial exposure.</li>
+          <li>P95 represents severe-case exposure and helps frame tail risk.</li>
+          <li>Risk Rating summarizes the relative level of exposure.</li>
+          <li>Confidence Rating reflects how stable the estimate appears given variability.</li>
+          <li>Top Risk Drivers identify the main conditions increasing exposure.</li>
+          <li>Board / Examiner Summary translates model results into plain-language reporting.</li>
+        </ul>
+      </div>
+
+      <div class="manual-section" id="manual-insurance">
+        <h5>Insurance Evaluation</h5>
+        <p>Insurance effectiveness compares coverage cost structure against modeled protection.</p>
+        <p>A policy may be effective, marginal, limited, or inefficient depending on whether the cost of coverage is justified by the financial protection it provides.</p>
+      </div>
+
+      <div class="manual-section" id="manual-evidence">
+        <h5>Evidence &amp; Data Usage</h5>
+        <p>Evidence entries should be factual and traceable. Use actual losses, incident history, external events, audit findings, or documented amounts where available.</p>
+        <p>Evidence improves the quality of scenario outputs by shifting the model toward real-world experience instead of relying only on judgment.</p>
+      </div>
+
+      <div class="manual-section" id="manual-faq">
+        <h5>FAQ</h5>
+        <ul>
+          <li>Save preserves the scenario.</li>
+          <li>Run Scenario generates updated outputs.</li>
+          <li>Insurance and evidence are optional but improve decision quality.</li>
+          <li>Reports should be reviewed for reasonableness before being used for management, audit, or board communication.</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
