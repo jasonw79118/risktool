@@ -31,7 +31,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.20b</h4>
+<h4>Phase 20.1.21b</h4>
 <p>Accepted risk tables added, edit/delete actions restored for repeatable records, and handoff prepared for the next chat.</p>
 </div>
 </aside>
@@ -959,6 +959,7 @@
 <style>
   .manual-nav{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 18px 0}
   .manual-nav a{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(25,118,210,.08);color:#1f3a5f;text-decoration:none;font-size:13px;font-weight:600;line-height:1.2}
+  .manual-nav a:hover{background:rgba(25,118,210,.16);text-decoration:none}
   .manual-card{border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px 22px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.04)}
   .manual-card h4{margin:0 0 16px 0;font-size:22px;line-height:1.25}
   .manual-section{padding:14px 0 18px 0;border-top:1px solid rgba(0,0,0,.06)}
@@ -981,6 +982,7 @@
     <a href="#manual-results">Understanding Results</a>
     <a href="#manual-insurance">Insurance Evaluation</a>
     <a href="#manual-evidence">Evidence &amp; Data Usage</a>
+    <a href="#manual-reference">Reference</a>
     <a href="#manual-faq">FAQ</a>
   </div>
   <div class="manual-section" id="manual-getting-started">
@@ -1018,11 +1020,13 @@
     <h5>Field Guidance</h5>
     <div class="manual-field-grid">
       <div class="manual-field-item"><strong>Scenario Title</strong><div>Use a clear and specific name.</div></div>
-      <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur.</div></div>
+      <div class="manual-field-item"><strong>Business Context</strong><div>Describe where the risk exists, who is affected, and why the scenario matters to operations, compliance, finance, or management.</div></div>
+      <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur based on reasonable expectation, known history, and operating reality.</div></div>
       <div class="manual-field-item"><strong>Financial Impact</strong><div>Estimate likely severity including direct and indirect costs.</div></div>
+      <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
       <div class="manual-field-item"><strong>Evidence</strong><div>Add factual loss history or supporting data.</div></div>
       <div class="manual-field-item"><strong>Insurance</strong><div>Add policy title, premium, deductible, and key terms.</div></div>
-      <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
+      <div class="manual-field-item"><strong>Results Review</strong><div>Review expected loss, severe-case exposure, confidence, insurance effectiveness, and board summary language for reasonableness before final use.</div></div>
     </div>
   </div>
   <div class="manual-section" id="manual-results">
@@ -1045,6 +1049,16 @@
     <h5>Evidence &amp; Data Usage</h5>
     <p>Evidence entries should be factual and traceable. Use actual losses, incident history, external events, audit findings, or documented amounts where available.</p>
     <p>Evidence improves the quality of scenario outputs by shifting the model toward real-world experience instead of relying only on judgment.</p>
+  </div>
+  <div class="manual-section" id="manual-reference">
+    <h5>Reference</h5>
+    <ul>
+      <li>Single Scenario is best for one defined issue or event.</li>
+      <li>Complex Scenario is best for grouped risks that belong to one broader initiative.</li>
+      <li>Evidence improves model quality by grounding estimates in actual data.</li>
+      <li>Insurance should be reviewed as an economic decision, not just a coverage list.</li>
+      <li>Reports should be reviewed for reasonableness before being used for management, audit, or board communication.</li>
+    </ul>
   </div>
   <div class="manual-section" id="manual-faq">
     <h5>FAQ</h5>

@@ -4160,87 +4160,27 @@ bindInformationPaneRenderer();
 
 
 /* =========================
-   PHASE 20.1.20
-   Information Manual UI Polish
+   PHASE 20.1.21
+   Manual Polish + Expanded Guidance
 ========================= */
 
 function getManualLayoutStyles() {
   return `
     <style>
-      .manual-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin: 8px 0 18px 0;
-      }
-      .manual-nav a {
-        display: inline-block;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(25, 118, 210, 0.08);
-        color: #1f3a5f;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.2;
-      }
-      .manual-nav a:hover {
-        background: rgba(25, 118, 210, 0.16);
-        text-decoration: none;
-      }
-      .manual-card {
-        border: 1px solid rgba(0,0,0,.08);
-        border-radius: 18px;
-        padding: 18px 22px;
-        background: #fff;
-        box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      }
-      .manual-card h4 {
-        margin: 0 0 16px 0;
-        font-size: 22px;
-        line-height: 1.25;
-      }
-      .manual-section {
-        padding: 14px 0 18px 0;
-        border-top: 1px solid rgba(0,0,0,.06);
-      }
-      .manual-section:first-of-type {
-        border-top: none;
-        padding-top: 0;
-      }
-      .manual-section h5 {
-        margin: 0 0 10px 0;
-        font-size: 18px;
-        line-height: 1.3;
-      }
-      .manual-section p {
-        margin: 0 0 12px 0;
-        line-height: 1.65;
-      }
-      .manual-section ol,
-      .manual-section ul {
-        margin: 8px 0 0 20px;
-        padding: 0;
-        line-height: 1.65;
-      }
-      .manual-section li + li {
-        margin-top: 6px;
-      }
-      .manual-field-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-top: 10px;
-      }
-      .manual-field-item {
-        padding: 12px 14px;
-        border-radius: 12px;
-        background: rgba(0,0,0,.03);
-      }
-      .manual-field-item strong {
-        display: inline-block;
-        margin-bottom: 4px;
-      }
+      .manual-nav { display:flex; flex-wrap:wrap; gap:10px; margin:8px 0 18px 0; }
+      .manual-nav a { display:inline-block; padding:8px 12px; border-radius:999px; background:rgba(25,118,210,.08); color:#1f3a5f; text-decoration:none; font-size:13px; font-weight:600; line-height:1.2; }
+      .manual-nav a:hover { background:rgba(25,118,210,.16); text-decoration:none; }
+      .manual-card { border:1px solid rgba(0,0,0,.08); border-radius:18px; padding:18px 22px; background:#fff; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+      .manual-card h4 { margin:0 0 16px 0; font-size:22px; line-height:1.25; }
+      .manual-section { padding:14px 0 18px 0; border-top:1px solid rgba(0,0,0,.06); }
+      .manual-section:first-of-type { border-top:none; padding-top:0; }
+      .manual-section h5 { margin:0 0 10px 0; font-size:18px; line-height:1.3; }
+      .manual-section p { margin:0 0 12px 0; line-height:1.65; }
+      .manual-section ol, .manual-section ul { margin:8px 0 0 20px; padding:0; line-height:1.65; }
+      .manual-section li + li { margin-top:6px; }
+      .manual-field-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px; }
+      .manual-field-item { padding:12px 14px; border-radius:12px; background:rgba(0,0,0,.03); }
+      .manual-field-item strong { display:inline-block; margin-bottom:4px; }
     </style>
   `;
 }
@@ -4259,6 +4199,7 @@ function getPolishedManualHtml() {
         <a href="#manual-results">Understanding Results</a>
         <a href="#manual-insurance">Insurance Evaluation</a>
         <a href="#manual-evidence">Evidence &amp; Data Usage</a>
+        <a href="#manual-reference">Reference</a>
         <a href="#manual-faq">FAQ</a>
       </div>
 
@@ -4300,11 +4241,13 @@ function getPolishedManualHtml() {
         <h5>Field Guidance</h5>
         <div class="manual-field-grid">
           <div class="manual-field-item"><strong>Scenario Title</strong><div>Use a clear and specific name.</div></div>
-          <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur.</div></div>
+          <div class="manual-field-item"><strong>Business Context</strong><div>Describe where the risk exists, who is affected, and why the scenario matters to operations, compliance, finance, or management.</div></div>
+          <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur based on reasonable expectation, known history, and operating reality.</div></div>
           <div class="manual-field-item"><strong>Financial Impact</strong><div>Estimate likely severity including direct and indirect costs.</div></div>
+          <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
           <div class="manual-field-item"><strong>Evidence</strong><div>Add factual loss history or supporting data.</div></div>
           <div class="manual-field-item"><strong>Insurance</strong><div>Add policy title, premium, deductible, and key terms.</div></div>
-          <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
+          <div class="manual-field-item"><strong>Results Review</strong><div>Review expected loss, severe-case exposure, confidence, insurance effectiveness, and board summary language for reasonableness before final use.</div></div>
         </div>
       </div>
 
@@ -4330,6 +4273,17 @@ function getPolishedManualHtml() {
         <h5>Evidence &amp; Data Usage</h5>
         <p>Evidence entries should be factual and traceable. Use actual losses, incident history, external events, audit findings, or documented amounts where available.</p>
         <p>Evidence improves the quality of scenario outputs by shifting the model toward real-world experience instead of relying only on judgment.</p>
+      </div>
+
+      <div class="manual-section" id="manual-reference">
+        <h5>Reference</h5>
+        <ul>
+          <li>Single Scenario is best for one defined issue or event.</li>
+          <li>Complex Scenario is best for grouped risks that belong to one broader initiative.</li>
+          <li>Evidence improves model quality by grounding estimates in actual data.</li>
+          <li>Insurance should be reviewed as an economic decision, not just a coverage list.</li>
+          <li>Reports should be reviewed for reasonableness before being used for management, audit, or board communication.</li>
+        </ul>
       </div>
 
       <div class="manual-section" id="manual-faq">
