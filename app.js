@@ -1786,29 +1786,9 @@ function wireInputs() {
   });
 }
 function renderManual() {
-  document.getElementById("userManualCopy").innerHTML = `
-    <h4>Purpose</h4>
-    <p>Risk Manager is used to evaluate single and complex risk scenarios, generate a narrative summary, and maintain a local record of saved scenarios for reopening and reprinting.</p>
-    <h4>Single vs Complex</h4>
-    <p>Use Single Scenario for one focused issue. Use Complex Scenario for a project, product family, department, or business area with multiple weighted risk items.</p>
-    <h4>Scoring</h4>
-    <p>Inherent risk is calculated, not manually entered. Single Scenario uses likelihood and impact. Complex Scenario uses the weighted average of risk items. Residual risk applies control effectiveness to the inherent score.</p>
-    <h4>Financial Risk Modeling</h4>
-    <p>The report separately considers direct hard cost and secondary or incidental soft cost. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a multiplier applied to hard cost to reflect reputational, operational, complaint, and related secondary impacts.</p>
-    <h4>Monte Carlo Method</h4>
-    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
-    <p>This approach is designed to support U.S. regulatory examiner expectations by documenting assumptions, preserving bounded input ranges, showing the method used, and producing transparent output tables that can be reproduced and reviewed later.</p>
-    <h4>Executive Decision Analysis</h4>
-    <p>Reports now explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether other mitigating factors should be considered.</p>
-    <h4>Time Horizons</h4>
-    <p>Each report now includes one-year, three-year, five-year, ten-year, fifteen-year, twenty-year, twenty-five-year, and thirty-plus-year outlooks, both with and without mitigation, so leadership can understand longer-term exposure.</p>
-    <h4>Category Admin</h4>
-    <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, or remove values.</p>
-    <h4>Future Scenario Types</h4>
-    <p>The current tool supports Single Scenario, Complex Scenario, and Beta Scenario builders. The beta builder supports bounded beta-distribution-based project planning and related forecasting use cases.</p>
-    <h4>Storage Limitation</h4>
-    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
-  `;
+  const manual = document.getElementById("userManualCopy");
+  if (!manual) return;
+  manual.innerHTML = buildInformationPageHtml();
 }
 
 
@@ -2315,29 +2295,7 @@ function restoreAllDefaultLibraries() {
 function forceManualContent() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = `
-    <h4>Purpose</h4>
-    <p>Risk Manager is used to evaluate single and complex risk scenarios, generate narrative summaries, maintain saved scenarios, and support executive decision-making with quantified risk estimates.</p>
-    <h4>Single vs Complex Scenarios</h4>
-    <p>Use Single Scenario for one focused issue. Use Complex Scenario for a broader project, business area, product family, or department with multiple weighted risk items.</p>
-    <h4>Calculated Scores</h4>
-    <p>Inherent risk is calculated, not typed in manually. Single Scenario uses likelihood and impact. Complex Scenario uses the weighted average of the individual complex risk items. Residual risk applies the stated control-effectiveness percentage to the inherent score.</p>
-    <h4>Financial Modeling</h4>
-    <p>The report separately evaluates direct <strong>hard cost</strong> and secondary or incidental <strong>soft cost</strong>. Hard cost is modeled as a bounded direct loss estimate. Soft cost is modeled as a bounded multiplier applied to hard cost to reflect secondary impacts such as reputational damage, customer complaints, operational disruption, and related indirect effects.</p>
-    <h4>Monte Carlo Method</h4>
-    <p>The model uses bounded Monte Carlo simulation with triangular sampling. For each scenario, the user provides a minimum, most-likely, and maximum hard-cost estimate, plus a minimum, most-likely, and maximum soft-cost multiplier. The model performs repeated randomized draws within those bounds and estimates a distribution of annual losses.</p>
-    <p>This approach is intended to satisfy U.S. examiner expectations by documenting assumptions, using bounded inputs, identifying the method used, preserving transparency in the output tables, and allowing the methodology to be reviewed later.</p>
-    <h4>Executive Decision Analysis</h4>
-    <p>Reports explain what the score means, estimate annual exposure ranges, compare expected loss to mitigation cost, and present a decision view on whether mitigation appears cost effective or whether alternative mitigating factors should be considered.</p>
-    <h4>Time Horizons</h4>
-    <p>Each report includes outlooks for 1 year, 3 years, 5 years, 10 years, 15 years, 20 years, 25 years, and 30+ years, both with and without mitigation, so decision makers can understand longer-term exposure.</p>
-    <h4>Category Admin</h4>
-    <p>Category-driven fields are alphabetized. Existing selections are shown in Category Admin where users can add, edit, remove, and now restore the default libraries if needed.</p>
-    <h4>Future Scenario Types</h4>
-    <p>The current tool supports Single Scenario, Complex Scenario, and Beta Scenario builders. The beta builder supports bounded beta-distribution-based project planning and related forecasting use cases.</p>
-    <h4>Storage Limitation</h4>
-    <p>Saved scenarios still live in local browser storage today. A later phase should add export/import and then shared storage so scenarios can follow the user across different workstations.</p>
-  `;
+  manual.innerHTML = buildInformationPageHtml();
 }
 
 
@@ -4166,3 +4124,5 @@ function bindInformationPaneRenderer() {
 
 /* Safe export only. No observers, no click traps, no automatic page-wide hooks. */
 bindInformationPaneRenderer();
+
+/* PHASE 20.1.18 */
