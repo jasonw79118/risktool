@@ -4298,3 +4298,290 @@ function getPolishedManualHtml() {
     </div>
   `;
 }
+
+
+/* =========================
+   PHASE 20.1.23
+   Version Correction + Context Help + Information Accordions
+========================= */
+
+const RISKTOOL_PHASE_VERSION = "20.1.23";
+
+function ensurePhase2023Styles() {
+  if (document.getElementById('phase2023Styles')) return;
+  const style = document.createElement('style');
+  style.id = 'phase2023Styles';
+  style.textContent = `
+    .context-help-card { margin: 0 0 18px 0; border: 1px solid rgba(23,58,140,.10); box-shadow: 0 2px 10px rgba(0,0,0,.03); }
+    .context-help-card .card-header h3 { display:flex; align-items:center; gap:8px; }
+    .context-help-card .simple-list { margin:0; padding-left:18px; }
+    .context-help-card .simple-list li + li { margin-top:6px; }
+    .context-help-link { display:inline-block; margin-top:10px; font-weight:600; text-decoration:none; }
+    .manual-section.is-collapsible { padding-top:10px; }
+    .manual-section-toggle { width:100%; border:none; background:transparent; padding:0; margin:0 0 10px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; font:inherit; color:inherit; cursor:pointer; text-align:left; }
+    .manual-section-toggle h5 { margin:0; }
+    .manual-section-toggle .manual-section-icon { font-size:18px; line-height:1; color:#173a8c; flex:0 0 auto; }
+    .manual-section-body[hidden] { display:none !important; }
+    .help-label.is-help-link, .help-tip.is-help-link { cursor:pointer; }
+  `;
+  document.head.appendChild(style);
+}
+
+function updatePhaseVersionDisplay() {
+  const targets = [
+    ...document.querySelectorAll('.sidebar-note h4'),
+    ...document.querySelectorAll('[data-phase-version]')
+  ];
+  targets.forEach((el) => {
+    if (!el) return;
+    if (/Phase\s+/i.test(el.textContent || '')) {
+      el.textContent = `Phase ${RISKTOOL_PHASE_VERSION}`;
+    }
+  });
+}
+
+function getContextHelpConfig(viewName) {
+  const map = {
+    dashboard: {
+      title: 'Dashboard Guidance',
+      body: 'Use the dashboard to monitor open items, compare active scenario intensity, and confirm the last run before preparing executive or board reporting.',
+      bullets: [
+        'Open Scenario Table should stay focused on not-closed items.',
+        'Heat Map is for concentration visibility, not detailed scenario editing.',
+        'Generated Summary should be reviewed for reasonableness before relying on it.'
+      ],
+      manualTarget: 'manual-results'
+    },
+    single: {
+      title: 'Single Scenario Guidance',
+      body: 'Use this builder for one focused issue, event, or control concern. Complete the core fields first, then add insurance, hard facts, mitigation, and accepted-risk governance as needed.',
+      bullets: [
+        'Likelihood and impact drive the starting inherent score.',
+        'Hard cost and soft cost fields support the financial model.',
+        'Insurance and hard facts improve examiner-ready documentation.'
+      ],
+      manualTarget: 'manual-single-scenario'
+    },
+    complex: {
+      title: 'Complex Scenario Guidance',
+      body: 'Use this builder for grouped risks within one broader initiative. Keep component naming consistent and save the complex set before relying on grouped reporting.',
+      bullets: [
+        'Complex Group ID ties the related scenarios together.',
+        'Each component should reflect a distinct scenario or risk item.',
+        'Weighted risk items influence the overall inherent score.'
+      ],
+      manualTarget: 'manual-complex-scenario'
+    },
+    beta: {
+      title: 'Beta Scenario Guidance',
+      body: 'Use beta mode for projected future-state outcomes where a bounded min, mode, and max estimate is more useful than the full scenario builders.',
+      bullets: [
+        'Use realistic min, mode, and max values.',
+        'Beta outputs help frame projected value ranges.',
+        'Document why the proposed future state matters before saving.'
+      ],
+      manualTarget: 'manual-results'
+    },
+    reports: {
+      title: 'Report Guidance',
+      body: 'Use Reports to review the executive summary, Monte Carlo tables, decision view, and supporting documentation before exporting or presenting results.',
+      bullets: [
+        'Review annual loss ranges and mitigation economics together.',
+        'Check whether insurance and hard-fact totals agree with the scenario evidence.',
+        'Use the report as a decision-support output, not a substitute for management review.'
+      ],
+      manualTarget: 'manual-results'
+    },
+    information: {
+      title: 'Information Guidance',
+      body: 'This view is the single entry point for help content and user guidance. Use it to understand field intent, result interpretation, insurance evaluation, and evidence use.',
+      bullets: [
+        'The manual sections now expand and collapse for easier navigation.',
+        'Field labels across the app can open the related section here.',
+        'Keep help content in the Information menu rather than adding new entry points.'
+      ],
+      manualTarget: 'manual-getting-started'
+    }
+  };
+  return map[viewName] || null;
+}
+
+function insertContextHelpCard(viewName) {
+  const config = getContextHelpConfig(viewName);
+  const view = document.getElementById(`view-${viewName}`);
+  if (!config || !view) return;
+  let card = view.querySelector(`.context-help-card[data-context-view="${viewName}"]`);
+  const html = `
+    <div class="card context-help-card" data-context-view="${viewName}">
+      <div class="card-header"><h3>${escapeHtml(config.title)}</h3><span>Information</span></div>
+      <div class="note-box">${escapeHtml(config.body)}</div>
+      <ul class="simple-list">${config.bullets.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+      <a class="context-help-link" href="#${escapeHtml(config.manualTarget)}">Open related manual section</a>
+    </div>
+  `;
+  if (!card) {
+    const anchor = view.querySelector('.section-header') || view.firstElementChild;
+    if (anchor && anchor.nextSibling) {
+      anchor.insertAdjacentHTML('afterend', html);
+    } else {
+      view.insertAdjacentHTML('afterbegin', html);
+    }
+    card = view.querySelector(`.context-help-card[data-context-view="${viewName}"]`);
+  } else {
+    card.outerHTML = html;
+    card = view.querySelector(`.context-help-card[data-context-view="${viewName}"]`);
+  }
+  const link = card?.querySelector('.context-help-link');
+  if (link && !link.dataset.wired) {
+    link.dataset.wired = 'true';
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      openInformationSection(config.manualTarget);
+    });
+  }
+}
+
+function renderContextHelpCards() {
+  ['dashboard','single','complex','beta','reports','information'].forEach(insertContextHelpCard);
+}
+
+function buildManualAccordion(section, expanded) {
+  if (!section || section.dataset.manualAccordionReady === 'true') return;
+  const heading = section.querySelector('h5');
+  if (!heading) return;
+  const nodes = Array.from(section.childNodes).filter(node => node !== heading);
+  const body = document.createElement('div');
+  body.className = 'manual-section-body';
+  nodes.forEach((node) => body.appendChild(node));
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'manual-section-toggle';
+  button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  const title = document.createElement('h5');
+  title.textContent = heading.textContent || '';
+  const icon = document.createElement('span');
+  icon.className = 'manual-section-icon';
+  icon.textContent = expanded ? '−' : '+';
+  button.appendChild(title);
+  button.appendChild(icon);
+  heading.remove();
+  section.classList.add('is-collapsible');
+  section.prepend(body);
+  section.prepend(button);
+  if (!expanded) body.hidden = true;
+  button.addEventListener('click', () => {
+    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+    body.hidden = isExpanded;
+    button.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+    icon.textContent = isExpanded ? '+' : '−';
+  });
+  section.dataset.manualAccordionReady = 'true';
+}
+
+function enableManualAccordions() {
+  const root = document.getElementById('userManualCopy');
+  if (!root) return;
+  const sections = root.querySelectorAll('.manual-section');
+  sections.forEach((section, index) => buildManualAccordion(section, index === 0));
+  root.querySelectorAll('.manual-nav a[href^="#manual-"]').forEach((link) => {
+    if (link.dataset.manualNavWired === 'true') return;
+    link.dataset.manualNavWired = 'true';
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const targetId = (link.getAttribute('href') || '').replace('#', '');
+      openInformationSection(targetId);
+    });
+  });
+}
+
+function openInformationSection(sectionId) {
+  if (typeof activateView === 'function') activateView('information');
+  if (typeof renderManual === 'function') renderManual();
+  if (typeof forceManualContent === 'function') forceManualContent();
+  ensurePhase2023Styles();
+  enableManualAccordions();
+  const root = document.getElementById('userManualCopy');
+  const target = document.getElementById(sectionId);
+  if (!root || !target) return;
+  const toggle = target.querySelector('.manual-section-toggle');
+  const body = target.querySelector('.manual-section-body');
+  const icon = target.querySelector('.manual-section-icon');
+  if (toggle && body) {
+    body.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    if (icon) icon.textContent = '−';
+  }
+  setTimeout(() => {
+    if (target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 10);
+}
+
+function inferManualSectionForHelp(el) {
+  const text = `${el.textContent || ''} ${el.getAttribute('data-help') || ''}`.toLowerCase();
+  if (text.includes('insurance') || text.includes('premium') || text.includes('deductible') || text.includes('coverage')) return 'manual-insurance';
+  if (text.includes('evidence') || text.includes('hard fact') || text.includes('source link')) return 'manual-evidence';
+  if (text.includes('result') || text.includes('annual loss') || text.includes('residual') || text.includes('mitigation cost') || text.includes('review frequency')) return 'manual-results';
+  if (text.includes('accepted risk') || text.includes('authority') || text.includes('accepted by')) return 'manual-reference';
+  const view = el.closest('.view')?.id || '';
+  if (view === 'view-single') return 'manual-single-scenario';
+  if (view === 'view-complex') return 'manual-complex-scenario';
+  return 'manual-field-guidance';
+}
+
+function wireHelpLinks() {
+  document.querySelectorAll('[data-help]').forEach((el) => {
+    if (el.dataset.helpLinkWired === 'true') return;
+    const targetSection = inferManualSectionForHelp(el);
+    el.dataset.helpLinkWired = 'true';
+    el.dataset.manualTarget = targetSection;
+    el.classList.add('is-help-link');
+    el.setAttribute('title', `${el.getAttribute('data-help') || ''} Click to open the related Information section.`.trim());
+    el.addEventListener('click', (event) => {
+      event.preventDefault();
+      openInformationSection(targetSection);
+    });
+  });
+}
+
+function applyPhase2023Enhancements() {
+  ensurePhase2023Styles();
+  updatePhaseVersionDisplay();
+  renderContextHelpCards();
+  enableManualAccordions();
+  wireHelpLinks();
+}
+
+const __phase2023RenderManual = typeof renderManual === 'function' ? renderManual : null;
+if (__phase2023RenderManual) {
+  renderManual = function phase2023RenderManualWrapper() {
+    const result = __phase2023RenderManual.apply(this, arguments);
+    setTimeout(applyPhase2023Enhancements, 0);
+    return result;
+  };
+}
+
+const __phase2023ActivateView = typeof activateView === 'function' ? activateView : null;
+if (__phase2023ActivateView) {
+  activateView = function phase2023ActivateViewWrapper(viewName) {
+    const result = __phase2023ActivateView.apply(this, arguments);
+    applyPhase2023Enhancements();
+    return result;
+  };
+}
+
+const __phase2023RenderScenarioSummary = typeof renderScenarioSummary === 'function' ? renderScenarioSummary : null;
+if (__phase2023RenderScenarioSummary) {
+  renderScenarioSummary = function phase2023RenderScenarioSummaryWrapper(summary) {
+    const result = __phase2023RenderScenarioSummary.apply(this, arguments);
+    applyPhase2023Enhancements();
+    return result;
+  };
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyPhase2023Enhancements);
+  } else {
+    applyPhase2023Enhancements();
+  }
+}
