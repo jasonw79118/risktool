@@ -1,0 +1,26 @@
+
+PHASE 20.1.32
+
+Enhancements:
+- Added Product Rollup Engine framework
+- Introduced Product-level weighting and ranking structure
+- Added Project-level weighted score calculation placeholder
+
+Information Section Enhancements:
+- Added full scenario examples:
+  1. Single Scenario Example (Reg E violation)
+  2. Complex Scenario Example (Digital Banking product set)
+  3. Beta Scenario Example (new product launch)
+
+- Each example includes:
+  - how to fill out fields
+  - how scoring works
+  - how Monte Carlo results should be interpreted
+  - how to use evidence and historical loss
+
+- Expanded guidance for:
+  - when to use Single vs Complex
+  - how to structure products and regulations
+  - how to interpret outputs for decision making
+
+No breaking changes.

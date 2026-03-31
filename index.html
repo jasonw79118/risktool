@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.30</h4>
-<p>Product-first complex rollup added with Product → Regulation → Project logic, evidence-aware scoring guidance, and corrected phase display.</p>
+<h4>Phase 20.1.21b</h4>
+<p>Accepted risk tables added, edit/delete actions restored for repeatable records, and handoff prepared for the next chat.</p>
 </div>
 </aside>
 <main class="main">
@@ -422,43 +422,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Product Section Entry</h3><span>Product → Regulation → Project</span></div>
-<div class="form-grid">
-<div>
-<label class="help-label" data-help="Name of the product section inside the larger project, such as Digital Banking or ACH Processing.">Product Section Name</label>
-<input id="complexSectionProductName" placeholder="e.g. Digital Banking" type="text"/>
-</div>
-<div>
-<label class="help-label" data-help="Relative importance of this product section in the overall project rollup.">Product Weight (1-5)</label>
-<input id="complexSectionProductWeight" max="5" min="1" type="number" value="1"/>
-</div>
-<div>
-<label class="help-label" data-help="How strongly historical loss and supporting evidence should influence interpretation for this product section.">Evidence Influence</label>
-<select id="complexSectionEvidenceInfluence"><option value="Neutral">Neutral</option><option value="Elevated">Elevated</option><option value="High">High</option></select>
-</div>
-<div class="full-span">
-<label class="help-label" data-help="Narrative context explaining why this product matters in the project rollup.">Product Section Notes</label>
-<input id="complexSectionProductNotes" placeholder="Why this product matters to the project" type="text"/>
-</div>
-</div>
-<div class="builder-actions">
-<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
-<div class="note-box">Add product sections first, then place regulation entries under the correct product section.</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Product Rollup Table</h3><span>Evidence-Aware</span></div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Product Section</th><th>Weight</th><th>Reg Count</th><th>Item Count</th><th>Product Score</th><th>Evidence Count</th><th>Historical Loss</th><th>Evidence-Weighted Score</th></tr></thead>
-<tbody id="complexProductSectionsBody"></tbody>
-</table>
-</div>
-<div class="note-box">Overall Project Weighted Score: <strong id="complexProjectWeightedScore">0</strong></div>
-<div class="note-box" id="complexRollupNarrative">Add product sections first, then add regulation entries under each product section to generate the project rollup.</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Regulation / Risk Entry</h3><span>Added inside a Product Section</span></div>
+<div class="card-header"><h3>Risk Item Entry</h3><span>Entry</span></div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
@@ -469,7 +433,7 @@
 <select id="riskItemDomain"></select>
 </div>
 <div>
-<label class="help-label" data-help="Product or service most directly connected to this risk item.">Product Section</label>
+<label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
 <select id="riskItemProduct"></select>
 </div>
 <div>
@@ -490,7 +454,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Complex Scenario Regulation / Risk Entries</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
+<div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
 <div class="table-wrap">
 <table>
 <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
