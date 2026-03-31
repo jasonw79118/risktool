@@ -1,0 +1,18 @@
+PHASE 20.1.33
+
+Built from the newly uploaded current index.html and app.js baseline.
+
+Changes:
+- Corrected the visible left-pane phase label to 20.1.33.
+- Restored Product Section Entry to the Complex Scenario builder.
+- Restored Product Section Table to the Complex Scenario builder.
+- Wired the Product Section Product / Service field to Category Admin product-group values.
+- Wired the Risk Item Product / Service field to the Product Sections added in the active complex scenario.
+- Added persistence for Product Sections in complex component snapshots.
+- Added backward-friendly reconstruction of Product Sections from saved complex risk-item product values.
+- Seeded Product Sections in the complex test scenario.
+
+Behavior:
+- Add Product Section first.
+- Then add Risk Items and assign them to one of those Product Sections.
+- Existing saved complex scenarios without Product Sections will rebuild them from saved risk-item product values when opened.

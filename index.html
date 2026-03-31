@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.21b</h4>
-<p>Accepted risk tables added, edit/delete actions restored for repeatable records, and handoff prepared for the next chat.</p>
+<h4>Phase 20.1.33</h4>
+<p>Product Section entry/table restored, complex product assignment corrected, and phase baseline aligned to current source.</p>
 </div>
 </aside>
 <main class="main">
@@ -422,6 +422,39 @@
 </div>
 </div>
 <div class="card">
+<div class="card-header"><h3>Product Section Entry</h3><span>Add product sections before risk items</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="Select the reporting-category value from Category Admin that this product section should use.">Product Section Product / Service</label>
+<select id="complexProductSectionProduct"></select>
+</div>
+<div>
+<label class="help-label" data-help="Optional display name for this section. Leave blank to use the selected value.">Section Display Name</label>
+<input id="complexProductSectionDisplayName" placeholder="Optional display name" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Relative weight for this product section in the overall complex scenario.">Section Weight (1-5)</label>
+<input id="complexProductSectionWeight" max="5" min="1" type="number" value="3"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Optional notes to explain what belongs in this product section.">Section Notes</label>
+<input id="complexProductSectionNotes" placeholder="Optional notes for this product section" type="text"/>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Product Section Table</h3><span>Risk items should be assigned to one of these sections</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Section ID</th><th>Product / Service</th><th>Display Name</th><th>Weight</th><th>Notes</th></tr></thead>
+<tbody id="complexProductSectionsBody"></tbody>
+</table>
+</div>
+</div>
+<div class="card">
 <div class="card-header"><h3>Risk Item Entry</h3><span>Entry</span></div>
 <div class="form-grid">
 <div>
@@ -433,7 +466,7 @@
 <select id="riskItemDomain"></select>
 </div>
 <div>
-<label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
+<label class="help-label" data-help="Product section already added for this complex scenario.">Product Section</label>
 <select id="riskItemProduct"></select>
 </div>
 <div>
@@ -457,7 +490,7 @@
 <div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
+<thead><tr><th>Item</th><th>Domain</th><th>Product Section</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
 <tbody id="riskItemsTableBody"></tbody>
 </table>
 </div>
