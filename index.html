@@ -32,7 +32,7 @@
 </nav>
 <div class="sidebar-note">
 <h4>Phase 20.1.36</h4>
-<p>Complex Scenario flow now follows the intended section order, including Scenario Entry for the selected product before Risk Item Entry.</p>
+<p>Complex Scenario flow now places Overall Scenario Components directly under Product Sections so each Product/Service/Area can carry multiple scenarios.</p>
 </div>
 </aside>
 <main class="main">
@@ -451,22 +451,24 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Scenario Entry for Selected Product</h3><span>Select the product section, then add or update that scenario component</span></div>
-<div class="form-grid">
-<div>
-<label class="help-label" data-help="Choose the Product Section this scenario component belongs to. The selected value syncs to Primary Product / Service for the component you are about to add or edit.">Selected Product Section</label>
-<select id="complexScenarioEntryProduct"></select>
-</div>
-<div class="full-span">
-<div class="note-box" id="complexScenarioEntryStatus">Select a Product Section, complete the complex scenario details above, then add the scenario component before entering the related risk items below.</div>
-</div>
-</div>
+<div class="card-header"><h3>Overall Scenario Components</h3><span>Each Product/Service/Area can carry multiple scenarios; Scenario ID opens that scenario for editing</span></div>
 <div class="builder-actions">
+<div>
+<label class="help-label" data-help="Choose the Product Section / Product, Service, or Area that the next scenario component belongs to.">Product/Service/Area for New Scenario</label>
+<select id="complexScenarioProductFilter"></select>
+</div>
 <button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
+<div class="note-box" id="complexScenarioProductStatus">Select a Product Section, complete the complex scenario details above, then add the scenario row for that Product/Service/Area.</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Product/Service/Area</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
+<tbody id="complexScenarioComponentsBody"></tbody>
+</table>
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Risk Item Entry</h3><span>Entry</span></div>
+<div class="card-header"><h3>Risk Item Entry</h3><span>For the active scenario component</span></div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
@@ -624,15 +626,7 @@
 </table>
 </div>
 </div>
-<div class="card">
-<div class="card-header"><h3>Overall Scenario Components</h3><span>Scenario ID opens that component for editing</span></div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Reporting Lines</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
-<tbody id="complexScenarioComponentsBody"></tbody>
-</table>
-</div>
-</div>
+
 </section>
 <section class="view" id="view-beta">
 <div class="section-header">
