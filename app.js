@@ -163,6 +163,7 @@ window.recordEditState = window.recordEditState || {};
 let activeMode = "single";
 let lastSummary = null;
 let complexScenarioComponents = [];
+let complexProductSections = [];
 let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
@@ -348,6 +349,7 @@ function getCurrentComplexComponentSnapshot() {
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost")?.value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
     items: currentComplexItems.map(item => ({ ...item })),
+    productSections: complexProductSections.map(section => ({ ...section })),
     insurance: complexInsurance.map(item => ({ ...item })),
     hardFacts: complexHardFacts.map(item => ({ ...item })),
     mitigations: complexMitigations.map(item => ({ ...item })),
@@ -382,11 +384,13 @@ function applyComplexComponentSnapshot(component) {
   setCurrencyFieldValue("complexMitigationCost", component.mitigationCost || 0);
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
+  complexProductSections = Array.isArray(component.productSections) ? component.productSections.map(section => ({ ...section })) : [];
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
   complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(item => ({ ...item })) : [];
   complexHardFacts = Array.isArray(component.hardFacts) ? component.hardFacts.map(item => ({ ...item })) : [];
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
   renderComplexItems();
+  renderComplexProductSections();
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
   renderMitigationTable("complexMitigationBody", complexMitigations);
@@ -492,6 +496,7 @@ function normalizeScenario(saved) {
     frequency: saved.frequency || getReviewFrequency(Number(saved.residual || 0)),
     itemCount: Number(saved.itemCount || (Array.isArray(saved.items) && saved.items.length) || 1),
     items: Array.isArray(saved.items) ? saved.items : [],
+    productSections: Array.isArray(saved.productSections) ? saved.productSections : [],
     insurance: Array.isArray(saved.insurance) ? saved.insurance : [],
     hardFacts: Array.isArray(saved.hardFacts) ? saved.hardFacts : [],
     mitigations: Array.isArray(saved.mitigations) ? saved.mitigations : [],
@@ -575,7 +580,7 @@ function refreshLibraries() {
   populateSelect("singlePrimaryRegulation", regulations);
   populateSelect("complexPrimaryRegulation", regulations);
   populateSelect("riskItemDomain", riskDomains);
-  populateSelect("riskItemProduct", products);
+  renderComplexProductSectionOptions();
   populateSelect("riskItemReg", regulations);
   populateSelect("singleAcceptanceAuthority", acceptanceAuthorities);
   populateSelect("complexAcceptanceAuthority", acceptanceAuthorities);
@@ -584,6 +589,7 @@ function refreshLibraries() {
   renderSavedScenarios();
   renderDashboardOpenTable();
   renderComplexScenarioComponents();
+  renderComplexProductSections();
   updateInherentScores();
   updateMonteCarloStatus();
 }
@@ -641,6 +647,169 @@ function updateInherentScores() {
   document.getElementById("singleInherentRiskScore").value = single;
   document.getElementById("complexInherentRiskScore").value = complex;
 }
+
+function getComplexProductSectionSnapshot() {
+  return {
+    productName: document.getElementById("complexSectionProductName")?.value || "",
+    productWeight: Number(document.getElementById("complexSectionProductWeight")?.value || 1),
+    productNotes: document.getElementById("complexSectionProductNotes")?.value || "",
+    evidenceInfluence: document.getElementById("complexSectionEvidenceInfluence")?.value || "Neutral"
+  };
+}
+function clearComplexProductSectionEntry() {
+  const nameEl = document.getElementById("complexSectionProductName");
+  const weightEl = document.getElementById("complexSectionProductWeight");
+  const notesEl = document.getElementById("complexSectionProductNotes");
+  const evidenceEl = document.getElementById("complexSectionEvidenceInfluence");
+  if (nameEl) nameEl.value = "";
+  if (weightEl) weightEl.value = "1";
+  if (notesEl) notesEl.value = "";
+  if (evidenceEl) evidenceEl.value = "Neutral";
+}
+function getComplexProductSectionOptions() {
+  const explicit = complexProductSections.map(section => String(section.productName || "").trim()).filter(Boolean);
+  const fromItems = currentComplexItems.map(item => String(item.product || "").trim()).filter(Boolean);
+  return sortedUnique([...explicit, ...fromItems]);
+}
+function renderComplexProductSectionOptions() {
+  const select = document.getElementById("riskItemProduct");
+  if (!select) return;
+  const options = getComplexProductSectionOptions();
+  const current = select.value;
+  select.innerHTML = options.length
+    ? options.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")
+    : `<option value="">Add a Product Section first</option>`;
+  if (options.includes(current)) {
+    select.value = current;
+  } else if (options.length) {
+    select.value = options[0];
+  } else {
+    select.value = "";
+  }
+}
+function calculateComplexProductRollups() {
+  const sectionMap = new Map();
+  complexProductSections.forEach(section => {
+    const name = String(section.productName || "").trim();
+    if (!name) return;
+    sectionMap.set(name, {
+      productName: name,
+      productWeight: Number(section.productWeight || 1),
+      productNotes: section.productNotes || "",
+      evidenceInfluence: section.evidenceInfluence || "Neutral",
+      regulations: new Set(),
+      itemCount: 0,
+      weightedScoreNumerator: 0,
+      weightedScoreDenominator: 0,
+      evidenceCount: 0,
+      historicalLossTotal: 0
+    });
+  });
+
+  currentComplexItems.forEach(item => {
+    const key = String(item.product || "").trim() || "Unassigned";
+    if (!sectionMap.has(key)) {
+      sectionMap.set(key, {
+        productName: key,
+        productWeight: 1,
+        productNotes: "",
+        evidenceInfluence: "Neutral",
+        regulations: new Set(),
+        itemCount: 0,
+        weightedScoreNumerator: 0,
+        weightedScoreDenominator: 0,
+        evidenceCount: 0,
+        historicalLossTotal: 0
+      });
+    }
+    const row = sectionMap.get(key);
+    const score = Number(item.score || 0);
+    const weight = Number(item.weight || 1);
+    row.itemCount += 1;
+    row.regulations.add(String(item.regulation || "").trim() || "Unspecified");
+    row.weightedScoreNumerator += score * weight;
+    row.weightedScoreDenominator += weight;
+  });
+
+  (complexHardFacts || []).forEach(fact => {
+    const desc = String(fact.description || "").toLowerCase();
+    let matchedName = "";
+    for (const key of sectionMap.keys()) {
+      if (key && key !== "Unassigned" && desc.includes(String(key).toLowerCase())) {
+        matchedName = key;
+        break;
+      }
+    }
+    const targetKey = matchedName || (sectionMap.keys().next().value || "Unassigned");
+    if (!sectionMap.has(targetKey)) return;
+    const row = sectionMap.get(targetKey);
+    row.evidenceCount += 1;
+    row.historicalLossTotal += parseCurrencyValue(fact.amount || 0);
+  });
+
+  const rows = Array.from(sectionMap.values()).map(row => {
+    const productScore = row.weightedScoreDenominator
+      ? Math.round(row.weightedScoreNumerator / row.weightedScoreDenominator)
+      : 0;
+    const evidenceAdjustment = row.historicalLossTotal >= 250000 ? 8 : row.historicalLossTotal >= 50000 ? 4 : row.evidenceCount ? 2 : 0;
+    const evidenceWeightedScore = Math.min(100, Math.round(productScore + evidenceAdjustment));
+    return {
+      ...row,
+      regulationCount: row.regulations.size,
+      productScore,
+      evidenceWeightedScore
+    };
+  });
+
+  const numerator = rows.reduce((sum, row) => sum + (row.evidenceWeightedScore * Math.max(1, Number(row.productWeight || 1))), 0);
+  const denominator = rows.reduce((sum, row) => sum + Math.max(1, Number(row.productWeight || 1)), 0);
+  const overallProjectScore = denominator ? Math.round(numerator / denominator) : 0;
+
+  return { rows, overallProjectScore };
+}
+function renderComplexProductSections() {
+  renderComplexProductSectionOptions();
+  const tbody = document.getElementById("complexProductSectionsBody");
+  const projectScoreEl = document.getElementById("complexProjectWeightedScore");
+  const narrativeEl = document.getElementById("complexRollupNarrative");
+  if (!tbody) return;
+  const { rows, overallProjectScore } = calculateComplexProductRollups();
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8">No product sections added yet.</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(row => `
+      <tr>
+        <td>${escapeHtml(row.productName)}</td>
+        <td>${Math.max(1, Number(row.productWeight || 1))}</td>
+        <td>${row.regulationCount}</td>
+        <td>${row.itemCount}</td>
+        <td>${row.productScore}</td>
+        <td>${row.evidenceCount}</td>
+        <td>${currency(row.historicalLossTotal)}</td>
+        <td>${row.evidenceWeightedScore}</td>
+      </tr>
+    `).join("");
+  }
+  if (projectScoreEl) projectScoreEl.textContent = String(overallProjectScore || 0);
+  if (narrativeEl) {
+    narrativeEl.textContent = rows.length
+      ? "Project rollup follows Product → Regulation → Project. Each product section aggregates its regulation scores by weight, then the project score weights products against each other. Historical loss and evidence increase the influence of product sections with real-world support."
+      : "Add product sections first, then add regulation entries under each product section to generate the project rollup.";
+  }
+}
+function addComplexProductSection() {
+  const section = getComplexProductSectionSnapshot();
+  if (!String(section.productName || "").trim()) return;
+  const existingIndex = complexProductSections.findIndex(item => String(item.productName || "").trim().toLowerCase() === String(section.productName || "").trim().toLowerCase());
+  if (existingIndex >= 0) {
+    complexProductSections[existingIndex] = section;
+  } else {
+    complexProductSections.push(section);
+  }
+  renderComplexProductSections();
+  clearComplexProductSectionEntry();
+}
+
 function renderComplexItems() {
   const tbody = document.getElementById("riskItemsTableBody");
   if (!tbody) return;
@@ -654,6 +823,7 @@ function renderComplexItems() {
     }));
   }
   updateInherentScores();
+  renderComplexProductSections();
 }
 function addRiskItem() {
   currentComplexItems.push({
@@ -773,6 +943,7 @@ function getComplexPayload() {
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost").value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     items: allItems,
+    productSections: complexProductSections.map(section => ({ ...section })),
     insurance: allInsurance,
     hardFacts: allHardFacts,
     components: allComponents.map(component => ({ ...component })),
@@ -1450,6 +1621,7 @@ function openScenario(id) {
     setCurrencyFieldValue("complexMitigationCost", s.mitigationCost || 0);
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
+    complexProductSections = Array.isArray(firstComponent?.productSections) && firstComponent.productSections.length ? firstComponent.productSections.slice() : Array.isArray(s.productSections) ? s.productSections.slice() : sortedUnique((Array.isArray(s.items) ? s.items : []).map(item => item.product)).map(name => ({ productName: name, productWeight: 1, productNotes: "", evidenceInfluence: "Neutral" }));
     currentComplexItems = (firstComponent && Array.isArray(firstComponent.items) ? firstComponent.items : Array.isArray(s.items) ? s.items : []).slice().map(item => ({
       issueId: item.issueId || `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       parentScenarioMode: "complex",
@@ -1457,6 +1629,7 @@ function openScenario(id) {
       ...item
     }));
     renderComplexItems();
+    renderComplexProductSections();
     const groupEl = document.getElementById("complexGroupId");
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
     complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.slice() : [];
@@ -1638,6 +1811,11 @@ function loadComplexTestScenario() {
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = "1000";
   document.getElementById("complexScenarioDescription").value = "This scenario covers a cross-functional modernization effort touching deposit operations, dispute servicing, disclosures, and third-party integrations.";
+  complexProductSections = [
+    { productName: "Deposits", productWeight: 5, productNotes: "High customer concentration and disclosure sensitivity", evidenceInfluence: "Elevated" },
+    { productName: "ACH Processing", productWeight: 4, productNotes: "Network and fraud exposure", evidenceInfluence: "Elevated" },
+    { productName: "Core Deposit Platform", productWeight: 5, productNotes: "Shared infrastructure concentration", evidenceInfluence: "Neutral" }
+  ];
   currentComplexItems = [
     {name:"Overdraft fee disclosure risk", domain:"Consumer Compliance Risk", product:"Deposits", regulation:"Reg DD", score:82, weight:4},
     {name:"ACH fraud exposure", domain:"External Fraud Risk", product:"ACH Processing", regulation:"NACHA", score:76, weight:3},
@@ -1645,6 +1823,7 @@ function loadComplexTestScenario() {
     {name:"Complaint trend from account servicing", domain:"Reputation & Brand Risk", product:"Deposits", regulation:"UDAAP", score:71, weight:2}
   ];
   renderComplexItems();
+  renderComplexProductSections();
   complexInsurance = [
     { policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
   ];
@@ -1717,6 +1896,7 @@ function loadStoredMonteCarloConfig() {
 }
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
+  document.getElementById("addComplexProductSectionBtn")?.addEventListener("click", addComplexProductSection);
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
   document.getElementById("addComplexScenarioBtn")?.addEventListener("click", handleAddComplexScenario);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
@@ -3538,7 +3718,12 @@ function getRiskToolManualSections() {
     {
       id: "complex-scenario-guide",
       title: "Complex Scenario Guide",
-      body: "Complex Scenario is used when several connected scenarios must be evaluated together. Each component should represent a distinct risk item inside the larger initiative. Use a consistent naming pattern and confirm that all component scenarios belong to the same complex scenario grouping before running reports."
+      body: "Complex Scenario is used when several connected scenarios must be evaluated together. Start by defining product sections such as Digital Banking, ACH Processing, or Core Deposit Platform. Then add regulation or risk entries under the appropriate product section. The overall project rollup follows Product → Regulation → Project."
+    },
+    {
+      id: "complex-rollup-logic",
+      title: "Complex Rollup Logic",
+      body: "Risk Manager now rolls complex scenarios up in three steps. First, each product section groups its regulation or risk entries. Second, the system calculates a weighted product score using the regulation score and regulation weight inside that product. Third, the project score weights products against each other using the product section weight. Historical loss and other evidence can increase the influence of sections supported by real-world data."
     },
     {
       id: "field-guidance",
@@ -3563,7 +3748,7 @@ function getRiskToolManualSections() {
     {
       id: "faq",
       title: "FAQ",
-      body: "Save preserves the scenario. Run Scenario generates updated outputs. Complex scenarios should be used for grouped assessments. Insurance and evidence are optional but improve decision quality. Reports should be reviewed for reasonableness before being used for management, audit, or board communication."
+      body: "Save preserves the scenario. Run Scenario generates updated outputs. Complex scenarios should start with product sections, then add regulation entries beneath each product. Insurance and evidence are optional but improve decision quality. Historical loss and evidence can strengthen scoring influence. Reports should be reviewed for reasonableness before being used for management, audit, or board communication."
     }
   ];
 }
@@ -3923,7 +4108,7 @@ function getScenarioManualLibrary() {
     },
     complex: {
       title: "Complex Scenario Walkthrough",
-      intro: "Use Complex Scenario when multiple related risks belong to the same initiative, department, project, product family, or business line and should be reviewed together.",
+      intro: "Use Complex Scenario when multiple related risks belong to the same initiative, department, project, product family, or business line and should be reviewed together. Build the complex scenario by adding product sections first and then adding regulation entries inside each product section.",
       steps: [
         "Create or confirm the complex scenario grouping ID.",
         "Add each component scenario as a distinct risk item within the same group.",
@@ -4195,6 +4380,7 @@ function getPolishedManualHtml() {
         <a href="#manual-getting-started">Getting Started</a>
         <a href="#manual-single-scenario">Single Scenario Guide</a>
         <a href="#manual-complex-scenario">Complex Scenario Guide</a>
+        <a href="#manual-complex-rollup">Complex Rollup Logic</a>
         <a href="#manual-field-guidance">Field Guidance</a>
         <a href="#manual-results">Understanding Results</a>
         <a href="#manual-insurance">Insurance Evaluation</a>
@@ -4228,13 +4414,20 @@ function getPolishedManualHtml() {
         <h5>Complex Scenario Guide</h5>
         <ol>
           <li>Confirm the complex scenario grouping ID.</li>
-          <li>Add each component scenario as a distinct risk item within the same group.</li>
-          <li>Use consistent naming so components are easy to distinguish in reports.</li>
-          <li>Complete frequency and financial impact for each component independently.</li>
-          <li>Add evidence and insurance details at the component level where they differ.</li>
+          <li>Add product sections first, such as Digital Banking, ACH Processing, or Core Deposit Platform.</li>
+          <li>Assign a product weight to reflect how much that product should matter in the total project rollup.</li>
+          <li>Add regulation or risk entries beneath the appropriate product section.</li>
+          <li>Complete score and regulation weight for each entry.</li>
+          <li>Add evidence and historical loss when available because they increase real-world grounding.</li>
           <li>Save the complex scenario set before running reports.</li>
-          <li>Review both individual component results and grouped results for reasonableness.</li>
+          <li>Review both product-level and project-level results for reasonableness.</li>
         </ol>
+      </div>
+
+      <div class="manual-section" id="manual-complex-rollup">
+        <h5>Complex Rollup Logic</h5>
+        <p>Complex rollup follows Product → Regulation → Project. Each product section aggregates its regulation entries using regulation score and regulation weight. The system then weights product sections against each other to calculate an overall project score.</p>
+        <p>Historical loss and evidence do not just sit in the file as documentation. They increase the influence of product sections supported by real-world loss, audit findings, or external events so the project rollup reflects measurable exposure rather than judgment alone.</p>
       </div>
 
       <div class="manual-section" id="manual-field-guidance">
@@ -4245,7 +4438,7 @@ function getPolishedManualHtml() {
           <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur based on reasonable expectation, known history, and operating reality.</div></div>
           <div class="manual-field-item"><strong>Financial Impact</strong><div>Estimate likely severity including direct and indirect costs.</div></div>
           <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
-          <div class="manual-field-item"><strong>Evidence</strong><div>Add factual loss history or supporting data.</div></div>
+          <div class="manual-field-item"><strong>Evidence</strong><div>Add factual loss history or supporting data. In complex scenarios, evidence can strengthen the influence of a product section in the overall rollup.</div></div>
           <div class="manual-field-item"><strong>Insurance</strong><div>Add policy title, premium, deductible, and key terms.</div></div>
           <div class="manual-field-item"><strong>Results Review</strong><div>Review expected loss, severe-case exposure, confidence, insurance effectiveness, and board summary language for reasonableness before final use.</div></div>
         </div>
