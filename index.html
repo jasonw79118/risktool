@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.21b</h4>
-<p>Accepted risk tables added, edit/delete actions restored for repeatable records, and handoff prepared for the next chat.</p>
+<h4>Phase 20.1.33b</h4>
+<p>Product Section entry/table restored, Product/Service/Area wired from Category Admin, and Complex layout corrected.</p>
 </div>
 </aside>
 <main class="main">
@@ -71,7 +71,7 @@
 <div class="card-header"><h3>Open Scenario Table</h3><span>Not Closed • ID opens the original builder</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>ID</th><th>Builder</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Product Group</th><th>Risk Domain</th><th>Actions</th></tr></thead>
+<thead><tr><th>ID</th><th>Builder</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Reporting Category</th><th>Risk Domain</th><th>Actions</th></tr></thead>
 <tbody id="dashboardOpenScenarioBody"></tbody>
 </table>
 </div>
@@ -100,7 +100,7 @@
 <input id="singleScenarioId" placeholder="Generated on save" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall product group or organizational group for this scenario.">Product Group</label>
+<label class="help-label" data-help="Overall product group or organizational group for this scenario.">Reporting Category</label>
 <select id="singleProductGroup"></select>
 </div>
 <div>
@@ -338,7 +338,7 @@
 <input id="complexComponentId" placeholder="Generated automatically" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall product group or organizational group for this scenario.">Product Group</label>
+<label class="help-label" data-help="Overall product group or organizational group for this scenario.">Reporting Category</label>
 <select id="complexProductGroup"></select>
 </div>
 <div>
@@ -422,6 +422,36 @@
 </div>
 </div>
 <div class="card">
+<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="Select the Product, Service, or Area from the Reporting Category list maintained in Category Admin.">Product/Service/Area</label>
+<select id="complexSectionProduct"></select>
+</div>
+<div>
+<label class="help-label" data-help="Weight used to compare this Product, Service, or Area against other Product Sections in the same complex scenario.">Product Section Weight (1-5)</label>
+<input id="complexSectionWeight" min="1" max="5" type="number" value="3"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Product Section Notes</label>
+<input id="complexSectionNotes" placeholder="Describe this product / service / area and why it is in scope." type="text"/>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
+<div class="note-box" id="complexProductSectionStatus">Define one or more Product Sections before assigning risk items.</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Product Section Table</h3><span>Product / Service / Area list for this complex scenario</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Product/Service/Area</th><th>Weight</th><th>Notes</th><th>Actions</th></tr></thead>
+<tbody id="complexProductSectionsBody"></tbody>
+</table>
+</div>
+</div>
+<div class="card">
 <div class="card-header"><h3>Risk Item Entry</h3><span>Entry</span></div>
 <div class="form-grid">
 <div>
@@ -433,7 +463,7 @@
 <select id="riskItemDomain"></select>
 </div>
 <div>
-<label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product / Service</label>
+<label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product/Service/Area</label>
 <select id="riskItemProduct"></select>
 </div>
 <div>
@@ -581,10 +611,10 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Complex Scenario Components</h3><span>Scenario ID opens that component for editing</span></div>
+<div class="card-header"><h3>Overall Scenario Components</h3><span>Scenario ID opens that component for editing</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Product Group</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
+<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Reporting Category</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
 <tbody id="complexScenarioComponentsBody"></tbody>
 </table>
 </div>
@@ -856,7 +886,7 @@
 <div class="card">
 <div class="table-wrap">
 <table>
-<thead><tr><th>ID</th><th>Name</th><th>Builder</th><th>Product Group</th><th>Status</th><th>Inherent Risk</th><th>Residual Risk</th><th>Identified Date</th><th>Actions</th></tr></thead>
+<thead><tr><th>ID</th><th>Name</th><th>Builder</th><th>Reporting Category</th><th>Status</th><th>Inherent Risk</th><th>Residual Risk</th><th>Identified Date</th><th>Actions</th></tr></thead>
 <tbody id="savedEvaluationsBody"></tbody>
 </table>
 </div>
