@@ -166,7 +166,6 @@ let complexScenarioComponents = [];
 let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
-let complexProductSections = [];
 
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
@@ -325,87 +324,6 @@ function addHardFact(mode) {
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
 }
 
-
-function generateProductSectionId() {
-  const existing = new Set((complexProductSections || []).map(x => String(x.sectionId || "")));
-  let n = 1;
-  let id = "";
-  do {
-    id = `PS-${String(n).padStart(3, "0")}`;
-    n += 1;
-  } while (existing.has(id));
-  return id;
-}
-function buildProductSectionsFromItems(items) {
-  const seen = new Set();
-  return (items || []).map(item => String(item?.product || "").trim()).filter(Boolean).filter(name => {
-    const key = name.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).map(name => ({
-    sectionId: generateProductSectionId(),
-    product: name,
-    displayName: name,
-    weight: 3,
-    notes: ""
-  }));
-}
-function syncRiskItemProductOptions() {
-  const select = document.getElementById("riskItemProduct");
-  if (!select) return;
-  const values = (complexProductSections || []).map(section => section.displayName || section.product).filter(Boolean);
-  const current = select.value;
-  select.innerHTML = values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-  if (values.includes(current)) {
-    select.value = current;
-  } else if (values.length) {
-    select.value = values[0];
-  }
-}
-function renderProductSectionTable() {
-  const tbody = document.getElementById("complexProductSectionsBody");
-  if (!tbody) return;
-  if (!complexProductSections.length) {
-    tbody.innerHTML = '<tr><td colspan="5">No product sections added yet.</td></tr>';
-  } else {
-    tbody.innerHTML = complexProductSections.map(section => `
-      <tr>
-        <td>${escapeHtml(section.sectionId || "")}</td>
-        <td>${escapeHtml(section.product || "")}</td>
-        <td>${escapeHtml(section.displayName || section.product || "")}</td>
-        <td>${Number(section.weight || 0)}</td>
-        <td>${escapeHtml(section.notes || "")}</td>
-      </tr>
-    `).join("");
-  }
-  syncRiskItemProductOptions();
-}
-function populateComplexProductSectionProductOptions() {
-  populateSelect("complexProductSectionProduct", productGroups);
-}
-function addComplexProductSection() {
-  const product = document.getElementById("complexProductSectionProduct")?.value || "";
-  if (!product) return;
-  const displayName = (document.getElementById("complexProductSectionDisplayName")?.value || "").trim() || product;
-  const weight = Number(document.getElementById("complexProductSectionWeight")?.value || 1);
-  const notes = document.getElementById("complexProductSectionNotes")?.value || "";
-  const existingIndex = complexProductSections.findIndex(section => String(section.displayName || "").toLowerCase() === displayName.toLowerCase());
-  const nextSection = {
-    sectionId: existingIndex >= 0 ? complexProductSections[existingIndex].sectionId : generateProductSectionId(),
-    product,
-    displayName,
-    weight: Math.max(1, Math.min(5, weight || 1)),
-    notes
-  };
-  if (existingIndex >= 0) {
-    complexProductSections[existingIndex] = nextSection;
-  } else {
-    complexProductSections.push(nextSection);
-  }
-  renderProductSectionTable();
-}
-
 function getCurrentComplexComponentSnapshot() {
   const scenarioName = document.getElementById("complexScenarioName")?.value || "Unnamed Complex Component";
   return {
@@ -429,7 +347,6 @@ function getCurrentComplexComponentSnapshot() {
     softCostMax: Number(document.getElementById("complexSoftCostMax")?.value || 0),
     mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost")?.value || 0),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
-    productSections: complexProductSections.map(section => ({ ...section })),
     items: currentComplexItems.map(item => ({ ...item })),
     insurance: complexInsurance.map(item => ({ ...item })),
     hardFacts: complexHardFacts.map(item => ({ ...item })),
@@ -466,13 +383,9 @@ function applyComplexComponentSnapshot(component) {
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
-  complexProductSections = Array.isArray(component.productSections) && component.productSections.length
-    ? component.productSections.map(section => ({ ...section }))
-    : buildProductSectionsFromItems(currentComplexItems);
   complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(item => ({ ...item })) : [];
   complexHardFacts = Array.isArray(component.hardFacts) ? component.hardFacts.map(item => ({ ...item })) : [];
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
-  renderProductSectionTable();
   renderComplexItems();
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
@@ -662,8 +575,7 @@ function refreshLibraries() {
   populateSelect("singlePrimaryRegulation", regulations);
   populateSelect("complexPrimaryRegulation", regulations);
   populateSelect("riskItemDomain", riskDomains);
-  populateComplexProductSectionProductOptions();
-  syncRiskItemProductOptions();
+  populateSelect("riskItemProduct", products);
   populateSelect("riskItemReg", regulations);
   populateSelect("singleAcceptanceAuthority", acceptanceAuthorities);
   populateSelect("complexAcceptanceAuthority", acceptanceAuthorities);
@@ -744,17 +656,12 @@ function renderComplexItems() {
   updateInherentScores();
 }
 function addRiskItem() {
-  const selectedProductSection = document.getElementById("riskItemProduct").value;
-  if (!selectedProductSection) {
-    alert("Add a Product Section first.");
-    return;
-  }
   currentComplexItems.push({
     issueId: `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     parentScenarioMode: "complex",
     name: document.getElementById("riskItemName").value || "Unnamed Risk Item",
     domain: document.getElementById("riskItemDomain").value,
-    product: selectedProductSection,
+    product: document.getElementById("riskItemProduct").value,
     regulation: document.getElementById("riskItemReg").value,
     description: "",
     score: Number(document.getElementById("riskItemScore").value || 0),
@@ -1549,10 +1456,6 @@ function openScenario(id) {
       description: item.description || "",
       ...item
     }));
-    complexProductSections = Array.isArray(firstComponent?.productSections) && firstComponent.productSections.length
-      ? firstComponent.productSections.map(section => ({ ...section }))
-      : buildProductSectionsFromItems(currentComplexItems);
-    renderProductSectionTable();
     renderComplexItems();
     const groupEl = document.getElementById("complexGroupId");
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
@@ -1625,14 +1528,6 @@ function getDefaultCategoryValues(key) {
 function replaceCategoryUsage(key, oldValue, newValue) {
   const saved = getSavedScenarios().map(s => {
     if (key === "productGroups" && s.productGroup === oldValue) s.productGroup = newValue;
-    if (key === "productGroups" && Array.isArray(s.components)) {
-      s.components = s.components.map(component => ({
-        ...component,
-        productSections: Array.isArray(component.productSections)
-          ? component.productSections.map(section => section.product === oldValue ? { ...section, product: newValue, displayName: section.displayName === oldValue ? newValue : section.displayName } : section)
-          : component.productSections
-      }));
-    }
     if (key === "products" && s.primaryProduct === oldValue) s.primaryProduct = newValue;
     if (key === "products" && Array.isArray(s.items)) s.items = s.items.map(i => i.product === oldValue ? {...i, product:newValue} : i);
     if (key === "regulations" && s.primaryRegulation === oldValue) s.primaryRegulation = newValue;
@@ -1743,18 +1638,12 @@ function loadComplexTestScenario() {
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = "1000";
   document.getElementById("complexScenarioDescription").value = "This scenario covers a cross-functional modernization effort touching deposit operations, dispute servicing, disclosures, and third-party integrations.";
-  complexProductSections = [
-    { sectionId: "PS-001", product: "Core", displayName: "Deposits", weight: 4, notes: "Deposit operations and servicing" },
-    { sectionId: "PS-002", product: "Payment Services", displayName: "ACH Processing", weight: 3, notes: "ACH and payments workflow" },
-    { sectionId: "PS-003", product: "Core", displayName: "Core Deposit Platform", weight: 3, notes: "Core processing and vendor dependency" }
-  ];
   currentComplexItems = [
     {name:"Overdraft fee disclosure risk", domain:"Consumer Compliance Risk", product:"Deposits", regulation:"Reg DD", score:82, weight:4},
     {name:"ACH fraud exposure", domain:"External Fraud Risk", product:"ACH Processing", regulation:"NACHA", score:76, weight:3},
     {name:"Vendor outage affecting deposit processing", domain:"Third-Party & Vendor Risk", product:"Core Deposit Platform", regulation:"FFIEC IT", score:68, weight:3},
     {name:"Complaint trend from account servicing", domain:"Reputation & Brand Risk", product:"Deposits", regulation:"UDAAP", score:71, weight:2}
   ];
-  renderProductSectionTable();
   renderComplexItems();
   complexInsurance = [
     { policyName: "Program Cyber / Tech E&O", policyNumber: "CX-440018", carrier: "National Mutual", coverageType: "Cyber / Technology E&O", premium: "95000", deductible: "100000", coverageAmount: "3000000", coverageDates: "2026-01-01 to 2026-12-31", notes: "Shared modernization program tower", sourceLink: "internal://insurance/modernization-program" }
@@ -1828,7 +1717,6 @@ function loadStoredMonteCarloConfig() {
 }
 function wireInputs() {
   ["singleLikelihood","singleImpact"].forEach(id => document.getElementById(id).addEventListener("input", updateInherentScores));
-  document.getElementById("addComplexProductSectionBtn")?.addEventListener("click", addComplexProductSection);
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
   document.getElementById("addComplexScenarioBtn")?.addEventListener("click", handleAddComplexScenario);
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
@@ -2655,7 +2543,6 @@ function init() {
   renderMitigationTable("complexMitigationBody", complexMitigations);
   renderAcceptedRiskTable("singleAcceptedRiskBody", window.singleAcceptedRisks, "single");
   renderAcceptedRiskTable("complexAcceptedRiskBody", window.complexAcceptedRisks, "complex");
-  renderProductSectionTable();
   renderComplexItems();
   refreshLibraries();
   updateInherentScores();

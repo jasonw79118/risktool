@@ -1,0 +1,30 @@
+
+PHASE 20.1.34
+
+Major Structural Update (Non-breaking data):
+
+- Reorganized Complex Scenario flow to match:
+  Product → Scenario → Risks / Evidence / Insurance / Mitigation / Accepted Risk
+
+Layout Changes:
+- Product Section Entry and Table moved directly under Complex Scenario header
+- Scenario builder now positioned under selected Product Section
+- Risk, Insurance, Hard Facts, Mitigation, and Accepted Risk sections grouped under Scenario
+- Complex Scenario Components table moved to bottom as rollup/index
+
+Behavior Improvements:
+- Scenario components are now conceptually tied to a Product Section
+- Clear visual separation between:
+  - Product definition
+  - Scenario construction
+  - Portfolio view
+
+No changes to:
+- calculation engine
+- Monte Carlo logic
+- saved data format (backward compatible)
+- existing IDs or scenario payload structure
+
+Purpose:
+- Align UI with real-world modeling:
+  Products contain scenarios, scenarios contain risk structures
