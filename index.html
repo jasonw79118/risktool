@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.34</h4>
-<p>Product/Service/Area now uses Product Groups, scenario-level Reporting Lines use Products/Services, and Complex Scenario order is corrected.</p>
+<h4>Phase 20.1.35</h4>
+<p>Reporting Lines now map to Category Admin, Product/Service/Area maps to Product Groups, and Complex Scenario order is corrected.</p>
 </div>
 </aside>
 <main class="main">
@@ -100,7 +100,7 @@
 <input id="singleScenarioId" placeholder="Generated on save" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall product group or organizational group for this scenario.">Reporting Lines</label>
+<label class="help-label" data-help="Overall reporting line for this scenario. Values come from the Reporting Lines list in Category Admin.">Reporting Lines</label>
 <select id="singleProductGroup"></select>
 </div>
 <div>
@@ -338,7 +338,7 @@
 <input id="complexComponentId" placeholder="Generated automatically" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall product group or organizational group for this scenario.">Reporting Lines</label>
+<label class="help-label" data-help="Overall reporting line for this scenario. Values come from the Reporting Lines list in Category Admin.">Reporting Lines</label>
 <select id="complexProductGroup"></select>
 </div>
 <div>
@@ -825,10 +825,10 @@
 <div class="editable-list" id="productGroupsList"></div>
 </div>
 <div class="card category-card">
-<div class="card-header"><h3>Products / Services</h3><span>Editable</span></div>
+<div class="card-header"><h3>Reporting Lines</h3><span>Editable</span></div>
 <div class="form-stack">
-<input id="newProductName" placeholder="Add Product / Service" type="text"/>
-<button class="btn btn-primary" id="addProductBtn">Add Product / Service</button>
+<input id="newProductName" placeholder="Add Reporting Line" type="text"/>
+<button class="btn btn-primary" id="addProductBtn">Add Reporting Line</button>
 </div>
 <div class="editable-list" id="productsList"></div>
 </div>

@@ -1083,14 +1083,14 @@ function renderScenarioSummary(summary) {
   setTextIfPresent("riskTier", summary.tier);
   setTextIfPresent("reviewFrequency", summary.frequency);
   setTextIfPresent("itemCount", summary.itemCount);
-  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
+  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Reporting Lines: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. Recommended review frequency: ${summary.frequency}.`);
   setTextIfPresent("aiSummaryBox", summary.generatedSummary);
   const reportSummaryEl = document.getElementById("reportSummary");
   if (reportSummaryEl) reportSummaryEl.innerHTML = `
     <li><span class="help-label" data-help="Auto-generated scenario identifier used for tracking and reporting."><strong>Scenario ID:</strong></span> ${escapeHtml(summary.id || "Not Saved")}</li>
     <li><span class="help-label" data-help="The scenario currently being evaluated or reported."><strong>Scenario:</strong></span> ${escapeHtml(summary.name)}</li>
     <li><span class="help-label" data-help="Shows whether the report is based on a single or complex scenario builder."><strong>Builder:</strong></span> ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}</li>
-    <li><span class="help-label" data-help="Overall business or organizational group associated with the scenario."><strong>Product Group:</strong></span> ${escapeHtml(summary.productGroup)}</li>
+    <li><span class="help-label" data-help="Overall business or organizational group associated with the scenario."><strong>Reporting Lines:</strong></span> ${escapeHtml(summary.productGroup)}</li>
     <li><span class="help-label" data-help="Primary product or service most directly connected to the scenario."><strong>Primary Product:</strong></span> ${escapeHtml(summary.primaryProduct)}</li>
     <li><span class="help-label" data-help="Primary regulation or standard used to frame the scenario."><strong>Primary Regulation:</strong></span> ${escapeHtml(summary.primaryRegulation)}</li>
     <li><span class="help-label" data-help="Calculated starting risk before current control-effectiveness is applied."><strong>Inherent Risk Score:</strong></span> ${summary.inherent} (${escapeHtml(summary.tier)})</li>
@@ -1975,7 +1975,7 @@ async function downloadBoardPacketDocx() {
     children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(`${idx + 1}. ${s.name}`)] }));
     children.push(new Paragraph(`Scenario ID: ${s.id || "Not Saved"}`));
     children.push(new Paragraph(`Builder: ${s.mode === "single" ? "Single Scenario" : "Complex Scenario"}`));
-    children.push(new Paragraph(`Product Group: ${s.productGroup} | Risk Domain: ${s.riskDomain} | Status: ${s.scenarioStatus}`));
+    children.push(new Paragraph(`Reporting Lines: ${s.productGroup} | Risk Domain: ${s.riskDomain} | Status: ${s.scenarioStatus}`));
     children.push(new Paragraph(`Annual exposure range: ${currency(s.rangeLow)} to ${currency(s.rangeHigh)} | Most likely annual impact: ${currency(s.rangeMedian)}`));
     children.push(new Paragraph(`Expected annual loss: ${currency(s.expectedLoss)} | Residual annual loss: ${currency(s.residualExpectedLoss)} | Mitigation cost: ${currency(s.mitigationCost)} | Net benefit / ROI: ${currency(s.mitigationROI)}`));
     children.push(new Paragraph({ text: "Executive Decision Summary", heading: HeadingLevel.HEADING_2 }));
@@ -2163,7 +2163,7 @@ function buildBoardPacketText(summary) {
   lines.push(`Scenario: ${summary.name}`);
   lines.push(`Scenario ID: ${summary.id || "Not Saved"}`);
   lines.push(`Builder: ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}`);
-  lines.push(`Product Group: ${summary.productGroup}`);
+  lines.push(`Reporting Lines: ${summary.productGroup}`);
   lines.push(`Risk Domain: ${summary.riskDomain}`);
   lines.push(`Primary Product: ${summary.primaryProduct}`);
   lines.push(`Primary Regulation: ${summary.primaryRegulation}`);
@@ -3242,7 +3242,7 @@ function renderScenarioSummary(summary) {
   setTextIfPresent("riskTier", summary.tier);
   setTextIfPresent("reviewFrequency", summary.frequency);
   setTextIfPresent("itemCount", summary.itemCount);
-  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Product Group: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. 90% confidence band: ${currency(summary.confidenceLow)} to ${currency(summary.confidenceHigh)}. Recommended review frequency: ${summary.frequency}.`);
+  setTextIfPresent("dashboardNarrative", `${summary.name} was run as a ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"} for ${summary.primaryProduct}. Reporting Lines: ${summary.productGroup}. Primary regulation: ${summary.primaryRegulation}. Inherent risk score: ${summary.inherent}. Residual risk score: ${summary.residual}. Estimated annual exposure range: ${currency(summary.rangeLow)} to ${currency(summary.rangeHigh)}. 90% confidence band: ${currency(summary.confidenceLow)} to ${currency(summary.confidenceHigh)}. Recommended review frequency: ${summary.frequency}.`);
   setTextIfPresent("aiSummaryBox", summary.generatedSummary);
 
   const reportSummaryEl = document.getElementById("reportSummary");
@@ -3250,7 +3250,7 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Auto-generated scenario identifier used for tracking and reporting."><strong>Scenario ID:</strong></span> ${escapeHtml(summary.id || "Not Saved")}</li>
     <li><span class="help-label" data-help="The scenario currently being evaluated or reported."><strong>Scenario:</strong></span> ${escapeHtml(summary.name)}</li>
     <li><span class="help-label" data-help="Shows whether the report is based on a single or complex scenario builder."><strong>Builder:</strong></span> ${summary.mode === "single" ? "Single Scenario" : "Complex Scenario"}</li>
-    <li><span class="help-label" data-help="Overall business or organizational group associated with the scenario."><strong>Product Group:</strong></span> ${escapeHtml(summary.productGroup)}</li>
+    <li><span class="help-label" data-help="Overall business or organizational group associated with the scenario."><strong>Reporting Lines:</strong></span> ${escapeHtml(summary.productGroup)}</li>
     <li><span class="help-label" data-help="Primary product or service most directly connected to the scenario."><strong>Primary Product:</strong></span> ${escapeHtml(summary.primaryProduct)}</li>
     <li><span class="help-label" data-help="Primary regulation or standard used to frame the scenario."><strong>Primary Regulation:</strong></span> ${escapeHtml(summary.primaryRegulation)}</li>
     <li><span class="help-label" data-help="Calculated starting risk before current control-effectiveness is applied."><strong>Inherent Risk Score:</strong></span> ${summary.inherent} (${escapeHtml(summary.tier)})</li>
