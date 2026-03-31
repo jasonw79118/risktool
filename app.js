@@ -310,7 +310,6 @@ function addInsurance(mode) {
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
   });
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
-  renderViewGuidance();
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
@@ -323,7 +322,6 @@ function addHardFact(mode) {
     sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
   });
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
-  renderViewGuidance();
 }
 
 function getCurrentComplexComponentSnapshot() {
@@ -399,7 +397,6 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexReviewDate").value = component.acceptedRisk?.reviewDate || "";
   document.getElementById("complexDecisionLogic").value = component.acceptedRisk?.decisionLogic || "";
   updateInherentScores();
-  renderViewGuidance();
 }
 function renderComplexScenarioComponents() {
   const tbody = document.getElementById("complexScenarioComponentsBody");
@@ -438,7 +435,6 @@ function addComplexScenarioComponent() {
     complexScenarioComponents.push(component);
   }
   renderComplexScenarioComponents();
-  renderViewGuidance();
   activeComplexComponentId = "";
   syncComplexComponentIdField(true);
 }
@@ -610,7 +606,6 @@ function activateView(viewName) {
     activeMode = "complex";
     syncComplexComponentIdField(false);
   }
-  renderViewGuidance();
 }
 function getRiskTier(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
@@ -673,7 +668,6 @@ function addRiskItem() {
     weight: Number(document.getElementById("riskItemWeight").value || 1)
   });
   renderComplexItems();
-  renderViewGuidance();
 }
 function renderMitigationTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -694,7 +688,6 @@ function addMitigation(mode) {
     attachment: document.getElementById(`${prefix}MitAttachment`).value || ""
   });
   renderMitigationTable(`${prefix}MitigationBody`, list);
-  renderViewGuidance();
 }
 function getAcceptedRisk(prefix) {
   return {
@@ -1035,7 +1028,6 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Documented factual loss or cost evidence total across all listed hard facts."><strong>Hard Facts Total:</strong></span> ${currency(totalCurrencyField(summary.hardFacts, "amount"))}</li>
   `;
   renderReportSupplements(summary);
-  renderViewGuidance();
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
   if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
     <strong>Executive Decision Summary</strong><br>
@@ -2510,7 +2502,6 @@ function deleteRecord(kind, mode, id) {
   if (kind === 'hardFact') { if (mode === 'single') singleHardFacts = next; else if (mode === 'complex') complexHardFacts = next; else betaHardFacts = next; renderHardFactsTable(`${mode}HardFactsBody`, next); resetHardFactForm(mode); }
   if (kind === 'mitigation') { if (mode === 'single') singleMitigations = next; else complexMitigations = next; renderMitigationTable(`${mode}MitigationBody`, next); resetMitigationForm(mode); }
   if (kind === 'acceptedRisk') { if (mode === 'single') window.singleAcceptedRisks = next; else window.complexAcceptedRisks = next; renderAcceptedRiskTable(`${mode}AcceptedRiskBody`, next, mode); resetAcceptedRiskForm(mode); }
-  renderViewGuidance();
 }
 function wireRecordMaintenanceEnhancements() {
   [['single','Insurance'],['complex','Insurance'],['beta','Insurance'],['single','HardFact'],['complex','HardFact'],['beta','HardFact'],['single','Mitigation'],['complex','Mitigation'],['single','AcceptedRisk'],['complex','AcceptedRisk']].forEach(([mode,kind]) => {
@@ -2534,80 +2525,6 @@ function wireRecordMaintenanceEnhancements() {
       if (deleteBtn) { event.preventDefault(); deleteRecord(deleteBtn.dataset.deleteKind, deleteBtn.dataset.deleteMode, deleteBtn.dataset.deleteId); return; }
     });
   }
-}
-
-
-function formatGuidanceList(title, items) {
-  const safeItems = (items || []).filter(Boolean);
-  if (!safeItems.length) return `<strong>${escapeHtml(title)}</strong><br>All core checks currently look complete.`;
-  return `<strong>${escapeHtml(title)}</strong><ul class="simple-list">${safeItems.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-}
-
-function renderViewGuidance() {
-  const singleEl = document.getElementById("singleGuidanceBody");
-  if (singleEl) {
-    const items = [];
-    if (!(document.getElementById("singleScenarioName")?.value || "").trim()) items.push("Add a scenario name so this item can be saved and reopened clearly.");
-    if (!(document.getElementById("singleScenarioOwner")?.value || "").trim()) items.push("Assign a scenario owner to improve accountability and follow-up.");
-    if (!(document.getElementById("singleIdentifiedDate")?.value || "").trim()) items.push("Set the identified date so the issue timeline is traceable.");
-    if (!(document.getElementById("singleScenarioDescription")?.value || "").trim()) items.push("Add a short narrative describing trigger, scope, and why the scenario matters.");
-    if (!singleInsurance.length) items.push("No insurance entries are loaded; add one if transfer options should be considered.");
-    if (!singleHardFacts.length) items.push("No hard facts are loaded; add evidence if you have documented losses, audit results, or external benchmarks.");
-    if (!singleMitigations.length) items.push("No mitigation factors are loaded; document current or planned controls for a stronger report narrative.");
-    singleEl.innerHTML = formatGuidanceList("Single scenario readiness", items);
-  }
-
-  const complexEl = document.getElementById("complexGuidanceBody");
-  if (complexEl) {
-    const items = [];
-    if (!(document.getElementById("complexScenarioName")?.value || "").trim()) items.push("Add a complex scenario name for the broader initiative or grouped risk set.");
-    if (!(document.getElementById("complexScenarioOwner")?.value || "").trim()) items.push("Assign a scenario owner for the broader grouped scenario.");
-    if (!(document.getElementById("complexIdentifiedDate")?.value || "").trim()) items.push("Set the identified date so the grouped scenario has a traceable timeline.");
-    if (!currentComplexItems.length) items.push("No risk items have been added yet; add at least one item so the weighted inherent score is meaningful.");
-    if (!complexScenarioComponents.length) items.push("No component scenarios have been saved into the group yet; use Add Scenario to preserve the current component snapshot.");
-    if (!complexInsurance.length) items.push("No insurance entries are loaded at the current component level.");
-    if (!complexHardFacts.length) items.push("No hard facts are loaded at the current component level.");
-    complexEl.innerHTML = formatGuidanceList("Complex scenario readiness", items);
-  }
-
-  const betaEl = document.getElementById("betaGuidanceBody");
-  if (betaEl) {
-    const items = [];
-    const betaMin = parseCurrencyValue(document.getElementById("betaMin")?.value || 0);
-    const betaMode = parseCurrencyValue(document.getElementById("betaMode")?.value || 0);
-    const betaMax = parseCurrencyValue(document.getElementById("betaMax")?.value || 0);
-    const decisionDate = document.getElementById("betaPlannedDecisionDate")?.value || "";
-    const goLiveDate = document.getElementById("betaPlannedGoLiveDate")?.value || "";
-    if (!(document.getElementById("betaScenarioName")?.value || "").trim()) items.push("Add a beta scenario name for planning and saved-scenario review.");
-    if (!(document.getElementById("betaProjectOrProductName")?.value || "").trim()) items.push("Add the project or product name so the planning scenario is easier to recognize later.");
-    if (!(document.getElementById("betaScenarioDescription")?.value || "").trim()) items.push("Add a future-state narrative describing the proposal, uncertainty, and decision context.");
-    if (!(betaMin <= betaMode && betaMode <= betaMax)) items.push("Check Min / Mode / Max ordering so the beta simulation assumptions remain valid.");
-    if (decisionDate && goLiveDate && decisionDate > goLiveDate) items.push("Planned decision date is after the planned go-live date; confirm whether the dates are reversed.");
-    if (!betaHardFacts.length) items.push("No planning evidence is loaded; add benchmarks, quotes, or supporting facts if available.");
-    betaEl.innerHTML = formatGuidanceList("Beta scenario readiness", items);
-  }
-
-  const reportsEl = document.getElementById("reportsGuidanceBody");
-  if (reportsEl) {
-    const items = [];
-    if (!lastSummary) items.push("No active scenario summary is loaded yet; run or open a scenario before relying on report output.");
-    if (!document.getElementById("showDashboardGraphToggle")?.checked) items.push("Dashboard graph is currently hidden.");
-    if (!document.getElementById("includeGraphInReport")?.checked) items.push("Report graph is currently excluded.");
-    if (!document.getElementById("includeMonteCarloTable")?.checked) items.push("Monte Carlo table is currently excluded from the report output.");
-    if (lastSummary && (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)) items.push("No random outcomes are available yet for CSV export from the active summary.");
-    reportsEl.innerHTML = formatGuidanceList("Report readiness", items);
-  }
-}
-
-function wireGuidanceRefresh() {
-  ["view-single", "view-complex", "view-beta", "view-reports"].forEach((id) => {
-    const view = document.getElementById(id);
-    if (!view || view.dataset.guidanceWired === "true") return;
-    view.dataset.guidanceWired = "true";
-    const refresh = () => renderViewGuidance();
-    view.addEventListener("input", refresh);
-    view.addEventListener("change", refresh);
-  });
 }
 
 function init() {
@@ -2636,8 +2553,6 @@ function init() {
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
   wireRecordMaintenanceEnhancements();
-  wireGuidanceRefresh();
-  renderViewGuidance();
   syncComplexComponentIdField(true);
 }
 document.addEventListener("DOMContentLoaded", init);
