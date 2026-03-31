@@ -282,12 +282,13 @@ function buildComplexProductSectionOptions() {
   return complexProductSections.map(section => section.productServiceArea).filter(Boolean);
 }
 function refreshComplexProductSectionSelects() {
+  const currentRiskItemValue = document.getElementById("riskItemProduct")?.value || "";
+  const currentSectionValue = document.getElementById("complexSectionProduct")?.value || "";
   const sectionOptions = buildComplexProductSectionOptions();
   populateSelect("riskItemProduct", sectionOptions.length ? sectionOptions : [""]);
-  const sectionSelect = document.getElementById("complexSectionProduct");
-  if (sectionSelect && !sectionSelect.options.length) {
-    populateSelect("complexSectionProduct", productGroups);
-  }
+  setSelectValueSafe("riskItemProduct", currentRiskItemValue);
+  populateSelect("complexSectionProduct", productGroups);
+  setSelectValueSafe("complexSectionProduct", currentSectionValue || (productGroups[0] || ""));
 }
 function renderComplexProductSections() {
   const tbody = document.getElementById("complexProductSectionsBody");
@@ -432,7 +433,7 @@ function applyComplexComponentSnapshot(component) {
   syncComplexComponentIdField();
   document.getElementById("complexScenarioName").value = component.scenarioName || "";
   document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
-  document.getElementById("complexProductGroup").value = component.productGroup || productGroups[0] || "";
+  document.getElementById("complexProductGroup").value = component.productGroup || products[0] || "";
   document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
   document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
   document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
@@ -634,9 +635,9 @@ function refreshLibraries() {
   setTextIfPresent("savedCount", saved.length);
   setTextIfPresent("betaCount", saved.filter(x => x.mode === "beta").length);
 
-  populateSelect("singleProductGroup", productGroups);
-  populateSelect("complexProductGroup", productGroups);
-  populateSelect("betaProductGroup", productGroups);
+  populateSelect("singleProductGroup", products);
+  populateSelect("complexProductGroup", products);
+  populateSelect("betaProductGroup", products);
   populateSelect("singleRiskDomain", riskDomains);
   populateSelect("complexRiskDomain", riskDomains);
   populateSelect("betaRiskDomain", riskDomains);

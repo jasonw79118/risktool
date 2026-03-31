@@ -1,30 +1,29 @@
+PHASE 20.1.34 BIG FIX
 
-PHASE 20.1.34
+Built from the latest uploaded baseline files.
 
-Major Structural Update (Non-breaking data):
+Included fixes:
+- Product/Service/Area now uses Product Groups from Category Admin.
+- Scenario-level Reporting Lines now use Products / Services from Category Admin.
+- Scenario-level labels renamed from Reporting Category to Reporting Lines.
+- Dashboard/Open Scenario header updated to Reporting Lines.
+- Complex Scenario order corrected to:
+  1. Complex Scenario details
+  2. Product Section Entry
+  3. Product Section Table
+  4. Risk Item Entry
+  5. Complex Scenario Risk Items
+  6. Insurance Entry
+  7. Insurance Table
+  8. Hard Facts / Evidence Entry
+  9. Hard Facts / Evidence Table
+  10. Mitigation Factors
+  11. Mitigation Table
+  12. Accepted Risk
+  13. Accepted Risk Table
+  14. Overall Scenario Components
+- Visible sidebar phase label updated to 20.1.34.
 
-- Reorganized Complex Scenario flow to match:
-  Product → Scenario → Risks / Evidence / Insurance / Mitigation / Accepted Risk
-
-Layout Changes:
-- Product Section Entry and Table moved directly under Complex Scenario header
-- Scenario builder now positioned under selected Product Section
-- Risk, Insurance, Hard Facts, Mitigation, and Accepted Risk sections grouped under Scenario
-- Complex Scenario Components table moved to bottom as rollup/index
-
-Behavior Improvements:
-- Scenario components are now conceptually tied to a Product Section
-- Clear visual separation between:
-  - Product definition
-  - Scenario construction
-  - Portfolio view
-
-No changes to:
-- calculation engine
-- Monte Carlo logic
-- saved data format (backward compatible)
-- existing IDs or scenario payload structure
-
-Purpose:
-- Align UI with real-world modeling:
-  Products contain scenarios, scenarios contain risk structures
+Mapping:
+- Product Groups = Product/Service/Area
+- Products / Services = Reporting Lines
