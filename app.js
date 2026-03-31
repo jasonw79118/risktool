@@ -310,6 +310,7 @@ function addInsurance(mode) {
     sourceLink: document.getElementById(`${prefix}InsuranceSourceLink`).value || ""
   });
   renderInsuranceTable(`${prefix}InsuranceBody`, list);
+  renderViewGuidance();
 }
 function addHardFact(mode) {
   const prefix = mode === "single" ? "single" : mode === "complex" ? "complex" : "beta";
@@ -322,6 +323,7 @@ function addHardFact(mode) {
     sourceLink: document.getElementById(`${prefix}HardFactSourceLink`).value || ""
   });
   renderHardFactsTable(`${prefix}HardFactsBody`, list);
+  renderViewGuidance();
 }
 
 function getCurrentComplexComponentSnapshot() {
@@ -397,6 +399,7 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexReviewDate").value = component.acceptedRisk?.reviewDate || "";
   document.getElementById("complexDecisionLogic").value = component.acceptedRisk?.decisionLogic || "";
   updateInherentScores();
+  renderViewGuidance();
 }
 function renderComplexScenarioComponents() {
   const tbody = document.getElementById("complexScenarioComponentsBody");
@@ -435,6 +438,7 @@ function addComplexScenarioComponent() {
     complexScenarioComponents.push(component);
   }
   renderComplexScenarioComponents();
+  renderViewGuidance();
   activeComplexComponentId = "";
   syncComplexComponentIdField(true);
 }
@@ -606,6 +610,7 @@ function activateView(viewName) {
     activeMode = "complex";
     syncComplexComponentIdField(false);
   }
+  renderViewGuidance();
 }
 function getRiskTier(score) {
   const rule = rotationRules.find(r => score >= r.min_score && score <= r.max_score);
@@ -668,6 +673,7 @@ function addRiskItem() {
     weight: Number(document.getElementById("riskItemWeight").value || 1)
   });
   renderComplexItems();
+  renderViewGuidance();
 }
 function renderMitigationTable(targetId, items) {
   const tbody = document.getElementById(targetId);
@@ -688,6 +694,7 @@ function addMitigation(mode) {
     attachment: document.getElementById(`${prefix}MitAttachment`).value || ""
   });
   renderMitigationTable(`${prefix}MitigationBody`, list);
+  renderViewGuidance();
 }
 function getAcceptedRisk(prefix) {
   return {
@@ -1028,6 +1035,7 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Documented factual loss or cost evidence total across all listed hard facts."><strong>Hard Facts Total:</strong></span> ${currency(totalCurrencyField(summary.hardFacts, "amount"))}</li>
   `;
   renderReportSupplements(summary);
+  renderViewGuidance();
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
   if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
     <strong>Executive Decision Summary</strong><br>
@@ -2502,6 +2510,7 @@ function deleteRecord(kind, mode, id) {
   if (kind === 'hardFact') { if (mode === 'single') singleHardFacts = next; else if (mode === 'complex') complexHardFacts = next; else betaHardFacts = next; renderHardFactsTable(`${mode}HardFactsBody`, next); resetHardFactForm(mode); }
   if (kind === 'mitigation') { if (mode === 'single') singleMitigations = next; else complexMitigations = next; renderMitigationTable(`${mode}MitigationBody`, next); resetMitigationForm(mode); }
   if (kind === 'acceptedRisk') { if (mode === 'single') window.singleAcceptedRisks = next; else window.complexAcceptedRisks = next; renderAcceptedRiskTable(`${mode}AcceptedRiskBody`, next, mode); resetAcceptedRiskForm(mode); }
+  renderViewGuidance();
 }
 function wireRecordMaintenanceEnhancements() {
   [['single','Insurance'],['complex','Insurance'],['beta','Insurance'],['single','HardFact'],['complex','HardFact'],['beta','HardFact'],['single','Mitigation'],['complex','Mitigation'],['single','AcceptedRisk'],['complex','AcceptedRisk']].forEach(([mode,kind]) => {
@@ -2525,6 +2534,80 @@ function wireRecordMaintenanceEnhancements() {
       if (deleteBtn) { event.preventDefault(); deleteRecord(deleteBtn.dataset.deleteKind, deleteBtn.dataset.deleteMode, deleteBtn.dataset.deleteId); return; }
     });
   }
+}
+
+
+function formatGuidanceList(title, items) {
+  const safeItems = (items || []).filter(Boolean);
+  if (!safeItems.length) return `<strong>${escapeHtml(title)}</strong><br>All core checks currently look complete.`;
+  return `<strong>${escapeHtml(title)}</strong><ul class="simple-list">${safeItems.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+}
+
+function renderViewGuidance() {
+  const singleEl = document.getElementById("singleGuidanceBody");
+  if (singleEl) {
+    const items = [];
+    if (!(document.getElementById("singleScenarioName")?.value || "").trim()) items.push("Add a scenario name so this item can be saved and reopened clearly.");
+    if (!(document.getElementById("singleScenarioOwner")?.value || "").trim()) items.push("Assign a scenario owner to improve accountability and follow-up.");
+    if (!(document.getElementById("singleIdentifiedDate")?.value || "").trim()) items.push("Set the identified date so the issue timeline is traceable.");
+    if (!(document.getElementById("singleScenarioDescription")?.value || "").trim()) items.push("Add a short narrative describing trigger, scope, and why the scenario matters.");
+    if (!singleInsurance.length) items.push("No insurance entries are loaded; add one if transfer options should be considered.");
+    if (!singleHardFacts.length) items.push("No hard facts are loaded; add evidence if you have documented losses, audit results, or external benchmarks.");
+    if (!singleMitigations.length) items.push("No mitigation factors are loaded; document current or planned controls for a stronger report narrative.");
+    singleEl.innerHTML = formatGuidanceList("Single scenario readiness", items);
+  }
+
+  const complexEl = document.getElementById("complexGuidanceBody");
+  if (complexEl) {
+    const items = [];
+    if (!(document.getElementById("complexScenarioName")?.value || "").trim()) items.push("Add a complex scenario name for the broader initiative or grouped risk set.");
+    if (!(document.getElementById("complexScenarioOwner")?.value || "").trim()) items.push("Assign a scenario owner for the broader grouped scenario.");
+    if (!(document.getElementById("complexIdentifiedDate")?.value || "").trim()) items.push("Set the identified date so the grouped scenario has a traceable timeline.");
+    if (!currentComplexItems.length) items.push("No risk items have been added yet; add at least one item so the weighted inherent score is meaningful.");
+    if (!complexScenarioComponents.length) items.push("No component scenarios have been saved into the group yet; use Add Scenario to preserve the current component snapshot.");
+    if (!complexInsurance.length) items.push("No insurance entries are loaded at the current component level.");
+    if (!complexHardFacts.length) items.push("No hard facts are loaded at the current component level.");
+    complexEl.innerHTML = formatGuidanceList("Complex scenario readiness", items);
+  }
+
+  const betaEl = document.getElementById("betaGuidanceBody");
+  if (betaEl) {
+    const items = [];
+    const betaMin = parseCurrencyValue(document.getElementById("betaMin")?.value || 0);
+    const betaMode = parseCurrencyValue(document.getElementById("betaMode")?.value || 0);
+    const betaMax = parseCurrencyValue(document.getElementById("betaMax")?.value || 0);
+    const decisionDate = document.getElementById("betaPlannedDecisionDate")?.value || "";
+    const goLiveDate = document.getElementById("betaPlannedGoLiveDate")?.value || "";
+    if (!(document.getElementById("betaScenarioName")?.value || "").trim()) items.push("Add a beta scenario name for planning and saved-scenario review.");
+    if (!(document.getElementById("betaProjectOrProductName")?.value || "").trim()) items.push("Add the project or product name so the planning scenario is easier to recognize later.");
+    if (!(document.getElementById("betaScenarioDescription")?.value || "").trim()) items.push("Add a future-state narrative describing the proposal, uncertainty, and decision context.");
+    if (!(betaMin <= betaMode && betaMode <= betaMax)) items.push("Check Min / Mode / Max ordering so the beta simulation assumptions remain valid.");
+    if (decisionDate && goLiveDate && decisionDate > goLiveDate) items.push("Planned decision date is after the planned go-live date; confirm whether the dates are reversed.");
+    if (!betaHardFacts.length) items.push("No planning evidence is loaded; add benchmarks, quotes, or supporting facts if available.");
+    betaEl.innerHTML = formatGuidanceList("Beta scenario readiness", items);
+  }
+
+  const reportsEl = document.getElementById("reportsGuidanceBody");
+  if (reportsEl) {
+    const items = [];
+    if (!lastSummary) items.push("No active scenario summary is loaded yet; run or open a scenario before relying on report output.");
+    if (!document.getElementById("showDashboardGraphToggle")?.checked) items.push("Dashboard graph is currently hidden.");
+    if (!document.getElementById("includeGraphInReport")?.checked) items.push("Report graph is currently excluded.");
+    if (!document.getElementById("includeMonteCarloTable")?.checked) items.push("Monte Carlo table is currently excluded from the report output.");
+    if (lastSummary && (!Array.isArray(lastSummary.randomOutcomeRows) || !lastSummary.randomOutcomeRows.length)) items.push("No random outcomes are available yet for CSV export from the active summary.");
+    reportsEl.innerHTML = formatGuidanceList("Report readiness", items);
+  }
+}
+
+function wireGuidanceRefresh() {
+  ["view-single", "view-complex", "view-beta", "view-reports"].forEach((id) => {
+    const view = document.getElementById(id);
+    if (!view || view.dataset.guidanceWired === "true") return;
+    view.dataset.guidanceWired = "true";
+    const refresh = () => renderViewGuidance();
+    view.addEventListener("input", refresh);
+    view.addEventListener("change", refresh);
+  });
 }
 
 function init() {
@@ -2553,6 +2636,8 @@ function init() {
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
   wireRecordMaintenanceEnhancements();
+  wireGuidanceRefresh();
+  renderViewGuidance();
   syncComplexComponentIdField(true);
 }
 document.addEventListener("DOMContentLoaded", init);
@@ -4297,301 +4382,4 @@ function getPolishedManualHtml() {
       </div>
     </div>
   `;
-}
-
-
-/* =========================
-   PHASE 20.1.25
-   Left-Nav Information Cleanup + Builder Readiness Cards
-========================= */
-
-function ensureRiskToolInfoButton() { return null; }
-function ensureRiskToolInfoModal() { return null; }
-function openRiskToolInfoModal() { activateView("information"); }
-function closeRiskToolInfoModal() { return null; }
-function initializeRiskToolInformationCenter() {
-  const fab = document.getElementById("risktool-info-fab");
-  if (fab) fab.remove();
-  const overlay = document.getElementById("risktool-info-overlay");
-  if (overlay) overlay.remove();
-}
-
-function getPhase2025ManualSections() {
-  return [
-    {
-      id: 'getting-started',
-      title: 'Getting Started',
-      defaultOpen: true,
-      body: '<p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p><p>Complete the core fields first, then add evidence, insurance, mitigation details, and governance entries before running the scenario.</p>'
-    },
-    {
-      id: 'single-scenario',
-      title: 'Single Scenario Guide',
-      body: '<ol><li>Enter a clear scenario title.</li><li>Assign the right product group, risk domain, product, and regulation.</li><li>Estimate likelihood, impact, and control effectiveness realistically.</li><li>Load hard-cost and soft-cost ranges before running the model.</li><li>Add mitigation, insurance, and hard-facts records when they exist.</li><li>Document accepted-risk governance when the decision is to tolerate exposure.</li></ol>'
-    },
-    {
-      id: 'complex-scenario',
-      title: 'Complex Scenario Guide',
-      body: '<ol><li>Confirm the complex group ID and active component ID.</li><li>Add at least one risk item so weighted scoring has substance.</li><li>Keep component naming consistent for reporting.</li><li>Use evidence and insurance at the component level when details differ.</li><li>Review grouped outputs for reasonableness before saving or reporting.</li></ol>'
-    },
-    {
-      id: 'field-guidance',
-      title: 'Field Guidance',
-      body: '<div class="manual-field-grid"><div class="manual-field-item"><strong>Likelihood / Impact</strong><div>These anchor the inherent score in single-scenario evaluations.</div></div><div class="manual-field-item"><strong>Hard Cost Range</strong><div>Use minimum, most-likely, and maximum direct loss assumptions.</div></div><div class="manual-field-item"><strong>Soft Cost Multipliers</strong><div>Use these for downstream operational, legal, complaint, disruption, or reputation effects.</div></div><div class="manual-field-item"><strong>Evidence</strong><div>Use actual losses, incidents, audit findings, or external benchmarks when possible.</div></div><div class="manual-field-item"><strong>Insurance</strong><div>Load premium, deductible, coverage amount, dates, and exclusions relevant to the scenario.</div></div><div class="manual-field-item"><strong>Accepted Risk</strong><div>Document authority, acceptance date, review date, and logic for governance traceability.</div></div></div>'
-    },
-    {
-      id: 'results',
-      title: 'Understanding Results',
-      body: '<ul><li>Expected Annual Loss combines modeled hard and soft cost.</li><li>Residual Annual Loss applies the stated control-effectiveness assumption.</li><li>P10, P50, and P90 frame a practical loss range.</li><li>Net Benefit / ROI screens whether mitigation appears economically justified.</li><li>Reports should still be reviewed for reasonableness before management, audit, or board use.</li></ul>'
-    },
-    {
-      id: 'insurance',
-      title: 'Insurance Evaluation',
-      body: '<p>Insurance should be reviewed as a transfer decision, not just a coverage list. Compare premium and deductible structure against modeled protection and documented exclusions.</p>'
-    },
-    {
-      id: 'evidence',
-      title: 'Evidence &amp; Data Usage',
-      body: '<p>Evidence entries should be factual and traceable. Better evidence improves confidence, narrows uncertainty, and creates examiner-ready support for the assumptions used.</p>'
-    },
-    {
-      id: 'reference',
-      title: 'Reference',
-      body: '<ul><li>Single Scenario works best for one defined issue.</li><li>Complex Scenario works best for grouped risks under one broader initiative.</li><li>Beta Scenario helps test future-state outcomes before a full production scenario is saved.</li><li>Reports are strongest when evidence, mitigation, and governance entries are complete.</li></ul>'
-    },
-    {
-      id: 'faq',
-      title: 'FAQ',
-      body: '<ul><li>Save preserves the current scenario state.</li><li>Run Active Scenario refreshes current outputs and reports.</li><li>Information lives in the left navigation only.</li><li>Use the readiness cards to see what is still thin before relying on the output.</li></ul>'
-    }
-  ];
-}
-
-function getPolishedManualHtml() {
-  const sections = getPhase2025ManualSections();
-  return `
-    ${getManualLayoutStyles()}
-    <style>
-      .manual-toggle { border-top: 1px solid rgba(0,0,0,.06); padding: 10px 0 14px 0; }
-      .manual-toggle:first-of-type { border-top: none; padding-top: 0; }
-      .manual-toggle summary { list-style: none; cursor: pointer; font-size: 18px; font-weight: 700; line-height: 1.3; display:flex; align-items:center; justify-content:space-between; gap:12px; }
-      .manual-toggle summary::-webkit-details-marker { display:none; }
-      .manual-toggle summary::after { content: '+'; font-size: 20px; color:#d96b1f; }
-      .manual-toggle[open] summary::after { content: '–'; }
-      .manual-toggle-body { padding-top: 12px; }
-      .manual-learn-link { display:inline-block; margin-top:8px; font-size:13px; font-weight:600; color:#1f3a5f; text-decoration:none; }
-      .phase-readiness-grid { display:grid; grid-template-columns:1fr; gap:16px; }
-      .phase-readiness-list { margin:0; padding-left:18px; line-height:1.65; }
-      .phase-readiness-list li + li { margin-top:6px; }
-      .phase-badge-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-      .phase-badge { display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; background:rgba(25,118,210,.08); font-size:12px; font-weight:700; color:#1f3a5f; }
-    </style>
-    <div class="manual-card">
-      <h4>Information / User Guide</h4>
-      <div class="manual-nav">
-        ${sections.map(section => `<a href="#manual-${section.id}">${section.title}</a>`).join('')}
-      </div>
-      ${sections.map(section => `
-        <details class="manual-toggle" id="manual-${section.id}" ${section.defaultOpen ? 'open' : ''}>
-          <summary>${section.title}</summary>
-          <div class="manual-toggle-body">${section.body}</div>
-        </details>
-      `).join('')}
-    </div>
-  `;
-}
-
-function openManualSectionPhase2025(sectionId) {
-  activateView('information');
-  window.setTimeout(() => {
-    const target = document.getElementById(`manual-${sectionId}`);
-    if (!target) return;
-    if (typeof target.open !== 'undefined') target.open = true;
-    if (target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 60);
-}
-
-function computeSingleReadinessPhase2025() {
-  const checks = [
-    ['Scenario title', !!document.getElementById('singleScenarioName')?.value.trim()],
-    ['Core classifications', !!document.getElementById('singleProductGroup')?.value && !!document.getElementById('singleRiskDomain')?.value && !!document.getElementById('singlePrimaryProduct')?.value && !!document.getElementById('singlePrimaryRegulation')?.value],
-    ['Owner and identified date', !!document.getElementById('singleScenarioOwner')?.value.trim() && !!document.getElementById('singleIdentifiedDate')?.value],
-    ['Likelihood and impact', Number(document.getElementById('singleLikelihood')?.value || 0) > 0 && Number(document.getElementById('singleImpact')?.value || 0) > 0],
-    ['Financial range', parseCurrencyValue(document.getElementById('singleHardCostMin')?.value || 0) > 0 && parseCurrencyValue(document.getElementById('singleHardCostLikely')?.value || 0) > 0 && parseCurrencyValue(document.getElementById('singleHardCostMax')?.value || 0) > 0],
-    ['Soft-cost range', Number(document.getElementById('singleSoftCostMin')?.value || 0) >= 0 && Number(document.getElementById('singleSoftCostLikely')?.value || 0) >= 0 && Number(document.getElementById('singleSoftCostMax')?.value || 0) >= 0],
-    ['Scenario description', !!document.getElementById('singleScenarioDescription')?.value.trim()],
-    ['Mitigation cost', parseCurrencyValue(document.getElementById('singleMitigationCost')?.value || 0) > 0]
-  ];
-  return {
-    checks,
-    metrics: [
-      ['Insurance records', singleInsurance.length],
-      ['Hard facts', singleHardFacts.length],
-      ['Mitigations', singleMitigations.length],
-      ['Accepted-risk entries', (window.singleAcceptedRisks || []).length]
-    ],
-    manualTarget: 'single-scenario'
-  };
-}
-
-function computeComplexReadinessPhase2025() {
-  const checks = [
-    ['Scenario title', !!document.getElementById('complexScenarioName')?.value.trim()],
-    ['Core classifications', !!document.getElementById('complexProductGroup')?.value && !!document.getElementById('complexRiskDomain')?.value && !!document.getElementById('complexPrimaryProduct')?.value && !!document.getElementById('complexPrimaryRegulation')?.value],
-    ['Owner and identified date', !!document.getElementById('complexScenarioOwner')?.value.trim() && !!document.getElementById('complexIdentifiedDate')?.value],
-    ['At least one risk item', currentComplexItems.length > 0],
-    ['Financial range', parseCurrencyValue(document.getElementById('complexHardCostMin')?.value || 0) > 0 && parseCurrencyValue(document.getElementById('complexHardCostLikely')?.value || 0) > 0 && parseCurrencyValue(document.getElementById('complexHardCostMax')?.value || 0) > 0],
-    ['Mitigation cost', parseCurrencyValue(document.getElementById('complexMitigationCost')?.value || 0) > 0],
-    ['Scenario description', !!document.getElementById('complexScenarioDescription')?.value.trim()],
-    ['Complex IDs active', !!document.getElementById('complexGroupId')?.value || !!document.getElementById('complexComponentId')?.value]
-  ];
-  return {
-    checks,
-    metrics: [
-      ['Risk items', currentComplexItems.length],
-      ['Insurance records', complexInsurance.length],
-      ['Hard facts', complexHardFacts.length],
-      ['Mitigations', complexMitigations.length],
-      ['Accepted-risk entries', (window.complexAcceptedRisks || []).length],
-      ['Component scenarios', complexScenarioComponents.length]
-    ],
-    manualTarget: 'complex-scenario'
-  };
-}
-
-function computeBetaReadinessPhase2025() {
-  const checks = [
-    ['Scenario title', !!document.getElementById('betaScenarioName')?.value.trim()],
-    ['Project or product name', !!document.getElementById('betaProjectOrProductName')?.value.trim()],
-    ['Owner and identified date', !!document.getElementById('betaScenarioOwner')?.value.trim() && !!document.getElementById('betaIdentifiedDate')?.value],
-    ['Planning dates', !!document.getElementById('betaPlannedDecisionDate')?.value && !!document.getElementById('betaPlannedGoLiveDate')?.value],
-    ['Beta loss range', parseCurrencyValue(document.getElementById('betaMin')?.value || 0) > 0 && parseCurrencyValue(document.getElementById('betaMode')?.value || 0) > 0 && parseCurrencyValue(document.getElementById('betaMax')?.value || 0) > 0],
-    ['Narrative', !!document.getElementById('betaScenarioDescription')?.value.trim()]
-  ];
-  return {
-    checks,
-    metrics: [
-      ['Insurance records', betaInsurance.length],
-      ['Hard facts', betaHardFacts.length],
-      ['Random scenarios', Number(document.getElementById('betaRandomScenarioCount')?.value || 0)]
-    ],
-    manualTarget: 'reference'
-  };
-}
-
-function computeReportReadinessPhase2025() {
-  const hasSummary = !!lastSummary;
-  const checks = [
-    ['Scenario has been run or opened', hasSummary],
-    ['Generated summary available', !!document.getElementById('aiSummaryBox')?.textContent.trim() && !document.getElementById('aiSummaryBox')?.textContent.includes('After each run')],
-    ['Report summary populated', !!document.getElementById('reportSummary')?.textContent.trim() && !document.getElementById('reportSummary')?.textContent.includes('No scenario has been run yet')],
-    ['Dashboard narrative populated', !!document.getElementById('dashboardNarrative')?.textContent.trim()],
-    ['Monte Carlo output ready', hasSummary && Array.isArray(lastSummary?.monteCarloOutputRows) && lastSummary.monteCarloOutputRows.length > 0]
-  ];
-  return {
-    checks,
-    metrics: [
-      ['Insurance records in report', (lastSummary?.insurance || []).length],
-      ['Hard facts in report', (lastSummary?.hardFacts || []).length],
-      ['Horizon rows', (lastSummary?.horizonRows || []).length],
-      ['Random outcomes rows', (lastSummary?.randomOutcomeRows || []).length]
-    ],
-    manualTarget: 'results'
-  };
-}
-
-function buildReadinessHtmlPhase2025(title, data) {
-  const total = data.checks.length || 1;
-  const complete = data.checks.filter(item => item[1]).length;
-  const pct = Math.round((complete / total) * 100);
-  const status = pct >= 85 ? 'Ready for review' : pct >= 60 ? 'Needs refinement' : 'Still thin';
-  return `
-    <div class="card phase-2025-readiness-card">
-      <div class="card-header"><h3>${title}</h3><span>${pct}% Complete</span></div>
-      <div class="note-box">${status}. ${complete} of ${total} core checkpoints are complete.</div>
-      <ul class="phase-readiness-list">
-        ${data.checks.map(item => `<li>${item[1] ? '✓' : '○'} ${item[0]}</li>`).join('')}
-      </ul>
-      <div class="phase-badge-row">
-        ${data.metrics.map(metric => `<span class="phase-badge">${metric[0]}: ${escapeHtml(metric[1])}</span>`).join('')}
-      </div>
-      <a href="#manual-${data.manualTarget}" class="manual-learn-link" data-manual-target="${data.manualTarget}">Open related guidance in Information</a>
-    </div>
-  `;
-}
-
-function ensureReadinessMountPhase2025(viewId, mountId) {
-  const view = document.getElementById(viewId);
-  if (!view) return null;
-  let mount = document.getElementById(mountId);
-  if (mount) return mount;
-  mount = document.createElement('div');
-  mount.id = mountId;
-  mount.className = 'phase-readiness-grid';
-  const header = view.querySelector('.section-header');
-  if (header && header.nextSibling) {
-    header.parentNode.insertBefore(mount, header.nextSibling);
-  } else {
-    view.insertBefore(mount, view.firstChild);
-  }
-  return mount;
-}
-
-function renderPhase2025ReadinessCards() {
-  const singleMount = ensureReadinessMountPhase2025('view-single', 'singleReadinessMount');
-  if (singleMount) singleMount.innerHTML = buildReadinessHtmlPhase2025('Single Scenario Readiness', computeSingleReadinessPhase2025());
-  const complexMount = ensureReadinessMountPhase2025('view-complex', 'complexReadinessMount');
-  if (complexMount) complexMount.innerHTML = buildReadinessHtmlPhase2025('Complex Scenario Readiness', computeComplexReadinessPhase2025());
-  const betaMount = ensureReadinessMountPhase2025('view-beta', 'betaReadinessMount');
-  if (betaMount) betaMount.innerHTML = buildReadinessHtmlPhase2025('Beta Scenario Readiness', computeBetaReadinessPhase2025());
-  const reportsMount = ensureReadinessMountPhase2025('view-reports', 'reportsReadinessMount');
-  if (reportsMount) reportsMount.innerHTML = buildReadinessHtmlPhase2025('Reports Readiness', computeReportReadinessPhase2025());
-
-  document.querySelectorAll('[data-manual-target]').forEach(link => {
-    if (link.dataset.phase2025Bound === 'true') return;
-    link.dataset.phase2025Bound = 'true';
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      openManualSectionPhase2025(link.dataset.manualTarget || 'getting-started');
-    });
-  });
-}
-
-function wirePhase2025Refresh() {
-  const selectors = ['#view-single', '#view-complex', '#view-beta', '#view-reports'];
-  selectors.forEach(selector => {
-    const container = document.querySelector(selector);
-    if (!container || container.dataset.phase2025Wired === 'true') return;
-    container.dataset.phase2025Wired = 'true';
-    ['input', 'change'].forEach(eventName => {
-      container.addEventListener(eventName, () => window.requestAnimationFrame(renderPhase2025ReadinessCards));
-    });
-  });
-}
-
-function activateViewPhase2025Proxy(viewName) {
-  const original = activateViewPhase2025Proxy.original || activateView;
-  original(viewName);
-  window.requestAnimationFrame(() => {
-    initializeRiskToolInformationCenter();
-    renderPhase2025ReadinessCards();
-  });
-}
-activateViewPhase2025Proxy.original = activateView;
-activateView = activateViewPhase2025Proxy;
-
-function applyPhase2025Enhancements() {
-  initializeRiskToolInformationCenter();
-  const manual = document.getElementById('userManualCopy');
-  if (manual) manual.innerHTML = getPolishedManualHtml();
-  wirePhase2025Refresh();
-  renderPhase2025ReadinessCards();
-}
-
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyPhase2025Enhancements);
-  } else {
-    applyPhase2025Enhancements();
-  }
 }

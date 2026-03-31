@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.25</h4>
-<p>Legacy Information pop-up disabled, collapsible manual sections added, and builder readiness cards now update from the left-nav workflow.</p>
+<h4>Phase 20.1.26</h4>
+<p>Context guidance cards added across major views with readiness checks and report-state prompts.</p>
 </div>
 </aside>
 <main class="main">
@@ -85,6 +85,10 @@
 <div class="section-header">
 <h2>Single Scenario Builder</h2>
 <p>Use this for a single focused issue or event.</p>
+</div>
+<div class="card" id="singleGuidanceCard">
+<div class="card-header"><h3>Single Scenario Guidance</h3><span>Live</span></div>
+<div class="note-box" id="singleGuidanceBody">Complete the core fields to see live readiness guidance for this builder.</div>
 </div>
 <div class="card">
 <div class="builder-actions">
@@ -314,6 +318,10 @@
 <div class="section-header">
 <h2>Complex Scenario Builder</h2>
 <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
+</div>
+<div class="card" id="complexGuidanceCard">
+<div class="card-header"><h3>Complex Scenario Guidance</h3><span>Live</span></div>
+<div class="note-box" id="complexGuidanceBody">Add a scenario shell and risk items to see live readiness guidance for this builder.</div>
 </div>
 <div class="card">
 <div class="builder-actions">
@@ -595,6 +603,10 @@
 <h2>Beta Scenario Builder</h2>
 <p>Use this for future-state planning, new products, projects, and implementations under uncertainty.</p>
 </div>
+<div class="card" id="betaGuidanceCard">
+<div class="card-header"><h3>Beta Scenario Guidance</h3><span>Live</span></div>
+<div class="note-box" id="betaGuidanceBody">Enter Min / Mode / Max and planning dates to see live beta guidance.</div>
+</div>
 <div class="card">
 <div class="builder-actions">
 <button class="btn btn-secondary" id="loadBetaTestBtn">Load Test Beta Scenario</button>
@@ -866,6 +878,10 @@
 <div class="section-header">
 <h2>Report Options &amp; Snapshot</h2>
 <p>Control report content and dashboard graph visibility from here.</p>
+</div>
+<div class="card" id="reportsGuidanceCard">
+<div class="card-header"><h3>Reports Guidance</h3><span>Live</span></div>
+<div class="note-box" id="reportsGuidanceBody">Run or open a scenario to see report-state guidance.</div>
 </div>
 <div class="builder-actions">
 <button class="btn btn-secondary" id="downloadBoardPacketBtn">Download Board Packet DOCX</button>
