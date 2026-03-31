@@ -1,0 +1,19 @@
+
+PHASE 20.1.29
+
+Enhancements:
+- Multi-level complex scenario rollup logic defined:
+  Regulation → Product → Project
+
+- Framework includes:
+  - Regulation-weighted scoring inside products
+  - Product-weighted scoring across project
+  - Alignment for future expected loss aggregation
+
+- Information section expanded:
+  - Full explanation of rollup logic
+  - Weighting methodology
+  - Use of historical loss and evidence in scoring
+
+- No breaking changes to current system behavior
+- Prepares system for full Hubbard-aligned modeling
