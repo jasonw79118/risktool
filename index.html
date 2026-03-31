@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.27</h4>
-<p>Expanded Information guidance, detailed Monte Carlo and random-table explanations, and a fuller FAQ set for training and examiner-ready clarity.</p>
+<h4>Phase 20.1.28</h4>
+<p>Insurance effectiveness engine expanded with expected-benefit and severe-case protection reporting, plus stronger FAQ and explanation coverage.</p>
 </div>
 </aside>
 <main class="main">
@@ -923,6 +923,16 @@
 </div>
 </div>
 <div class="card">
+<div class="card-header"><h3>Insurance Effectiveness</h3><span>Decision Support</span></div>
+<div class="note-box" id="insuranceEffectivenessSummary">Run or open a scenario to evaluate insurance effectiveness.</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Policy</th><th>Premium</th><th>Deductible</th><th>Coverage</th><th>Expected Insured Portion</th><th>Expected Net Benefit</th><th>Severe-Case Protection</th><th>Rating</th></tr></thead>
+<tbody id="insuranceEffectivenessBody"><tr><td colspan="8">Run or open a scenario to evaluate insurance effectiveness.</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="card">
 <div class="card-header"><h3>Hard Facts / Evidence in Report</h3><span>U.S. Currency</span></div>
 <div class="note-box" id="reportHardFactsTotals">Hard facts total documented loss / cost: $0</div>
 <div class="table-wrap">
@@ -950,7 +960,7 @@
 <section class="view" id="view-information">
 <div class="section-header">
 <h2>Information</h2>
-<p>User manual, model guidance, Monte Carlo explanation, and FAQ reference.</p>
+<p>User manual and model guidance.</p>
 </div>
 <div class="grid two">
 <div class="card">
@@ -962,244 +972,114 @@
   .manual-nav a:hover{background:rgba(25,118,210,.16);text-decoration:none}
   .manual-card{border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px 22px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.04)}
   .manual-card h4{margin:0 0 16px 0;font-size:22px;line-height:1.25}
-  .manual-intro{margin:0 0 18px 0;line-height:1.7}
-  .manual-accordion{border-top:1px solid rgba(0,0,0,.06);padding:10px 0}
-  .manual-accordion:last-child{padding-bottom:0}
-  .manual-accordion summary{cursor:pointer;list-style:none;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .manual-accordion summary::-webkit-details-marker{display:none}
-  .manual-accordion summary::after{content:"+";font-size:22px;line-height:1;color:#1f3a5f}
-  .manual-accordion[open] summary::after{content:"–"}
-  .manual-accordion .manual-section-body{padding:14px 0 6px 0}
-  .manual-accordion p{margin:0 0 12px 0;line-height:1.7}
-  .manual-accordion ol,.manual-accordion ul{margin:8px 0 12px 20px;padding:0;line-height:1.7}
-  .manual-accordion li+li{margin-top:6px}
+  .manual-section{padding:14px 0 18px 0;border-top:1px solid rgba(0,0,0,.06)}
+  .manual-section:first-of-type{border-top:none;padding-top:0}
+  .manual-section h5{margin:0 0 10px 0;font-size:18px;line-height:1.3}
+  .manual-section p{margin:0 0 12px 0;line-height:1.65}
+  .manual-section ol,.manual-section ul{margin:8px 0 0 20px;padding:0;line-height:1.65}
+  .manual-section li+li{margin-top:6px}
   .manual-field-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
   .manual-field-item{padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.03)}
   .manual-field-item strong{display:inline-block;margin-bottom:4px}
-  .manual-faq-item{padding:12px 14px;border-radius:12px;background:rgba(25,118,210,.06);margin-bottom:10px}
-  .manual-faq-item strong{display:block;margin-bottom:6px}
-  .manual-math{padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.03);font-family:ui-monospace, SFMono-Regular, Menlo, monospace;white-space:normal;line-height:1.6;margin:10px 0}
 </style>
 <div class="manual-card">
   <h4>Information / User Guide</h4>
-  <p class="manual-intro">This section explains how to use Risk Manager, how the financial modeling works, what the random outcome tables mean, and how to interpret the outputs for management, audit, or board use. The goal is to keep the tool understandable, repeatable, and defensible.</p>
   <div class="manual-nav">
     <a href="#manual-getting-started">Getting Started</a>
     <a href="#manual-single-scenario">Single Scenario Guide</a>
     <a href="#manual-complex-scenario">Complex Scenario Guide</a>
-    <a href="#manual-beta-scenario">Beta Scenario Guide</a>
     <a href="#manual-field-guidance">Field Guidance</a>
-    <a href="#manual-monte-carlo">Monte Carlo &amp; Random Tables</a>
     <a href="#manual-results">Understanding Results</a>
     <a href="#manual-insurance">Insurance Evaluation</a>
     <a href="#manual-evidence">Evidence &amp; Data Usage</a>
-    <a href="#manual-governance">Governance &amp; Accepted Risk</a>
     <a href="#manual-reference">Reference</a>
     <a href="#manual-faq">FAQ</a>
   </div>
-
-  <details class="manual-accordion" id="manual-getting-started" open>
-    <summary>Getting Started</summary>
-    <div class="manual-section-body">
-      <p>Use <strong>Single Scenario</strong> for one focused issue, event, control concern, or decision. Use <strong>Complex Scenario</strong> when multiple related items belong to the same project, product family, department, or business area. Use <strong>Beta Scenario</strong> when you need a future-state range instead of a traditional inherent/residual risk score.</p>
-      <ol>
-        <li>Start with clear naming, ownership, dates, and classification fields.</li>
-        <li>Enter the core scoring or financial estimate fields.</li>
-        <li>Add supporting evidence, insurance, mitigations, and accepted-risk governance details as needed.</li>
-        <li>Save before running if you want to preserve the current state.</li>
-        <li>Run the scenario and review whether the results are reasonable before using them in reports.</li>
-      </ol>
-      <p>Risk Manager is decision support, not an autopilot. The model helps leadership frame exposure and compare options, but users still need to validate assumptions and use judgment.</p>
+  <div class="manual-section" id="manual-getting-started">
+    <h5>Getting Started</h5>
+    <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
+    <p>Complete the core fields first, then add evidence, insurance, and mitigation details before running the scenario.</p>
+  </div>
+  <div class="manual-section" id="manual-single-scenario">
+    <h5>Single Scenario Guide</h5>
+    <ol>
+      <li>Enter a clear scenario title.</li>
+      <li>Describe the business context, product, process, or event involved.</li>
+      <li>Estimate frequency using realistic occurrence, not only worst-case assumptions.</li>
+      <li>Estimate financial impact using direct and indirect cost components where appropriate.</li>
+      <li>Add mitigation information for controls already in place or planned.</li>
+      <li>Add evidence items when you have known losses, incidents, audit findings, or external events.</li>
+      <li>Add insurance entries if coverage exists or is being evaluated.</li>
+      <li>Save the scenario before running if you want to preserve the current state.</li>
+      <li>Run the scenario and review expected loss, tail exposure, confidence, and risk drivers.</li>
+    </ol>
+  </div>
+  <div class="manual-section" id="manual-complex-scenario">
+    <h5>Complex Scenario Guide</h5>
+    <ol>
+      <li>Confirm the complex scenario grouping ID.</li>
+      <li>Add each component scenario as a distinct risk item within the same group.</li>
+      <li>Use consistent naming so components are easy to distinguish in reports.</li>
+      <li>Complete frequency and financial impact for each component independently.</li>
+      <li>Add evidence and insurance details at the component level where they differ.</li>
+      <li>Save the complex scenario set before running reports.</li>
+      <li>Review both individual component results and grouped results for reasonableness.</li>
+    </ol>
+  </div>
+  <div class="manual-section" id="manual-field-guidance">
+    <h5>Field Guidance</h5>
+    <div class="manual-field-grid">
+      <div class="manual-field-item"><strong>Scenario Title</strong><div>Use a clear and specific name.</div></div>
+      <div class="manual-field-item"><strong>Business Context</strong><div>Describe where the risk exists, who is affected, and why the scenario matters to operations, compliance, finance, or management.</div></div>
+      <div class="manual-field-item"><strong>Frequency</strong><div>Estimate how often the event could occur based on reasonable expectation, known history, and operating reality.</div></div>
+      <div class="manual-field-item"><strong>Financial Impact</strong><div>Estimate likely severity including direct and indirect costs.</div></div>
+      <div class="manual-field-item"><strong>Mitigation</strong><div>Document controls or actions that reduce exposure.</div></div>
+      <div class="manual-field-item"><strong>Evidence</strong><div>Add factual loss history or supporting data.</div></div>
+      <div class="manual-field-item"><strong>Insurance</strong><div>Add policy title, premium, deductible, and key terms.</div></div>
+      <div class="manual-field-item"><strong>Results Review</strong><div>Review expected loss, severe-case exposure, confidence, insurance effectiveness, and board summary language for reasonableness before final use.</div></div>
     </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-single-scenario">
-    <summary>Single Scenario Guide</summary>
-    <div class="manual-section-body">
-      <ol>
-        <li>Enter a clear scenario title that explains the issue.</li>
-        <li>Classify the scenario by product group, risk domain, product/service, and regulation.</li>
-        <li>Set likelihood and impact on the 1–10 scale. These create the inherent risk score.</li>
-        <li>Estimate hard cost, soft cost multipliers, control effectiveness, and mitigation cost.</li>
-        <li>Add insurance, hard facts, mitigation factors, and accepted-risk entries when applicable.</li>
-        <li>Run the scenario and review whether the financial output and narrative make sense.</li>
-      </ol>
-      <p>Single Scenario is best when one issue can be described directly without breaking it into separate weighted items.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-complex-scenario">
-    <summary>Complex Scenario Guide</summary>
-    <div class="manual-section-body">
-      <ol>
-        <li>Use the complex builder when several risk items belong to one broader initiative or business problem.</li>
-        <li>The <strong>Complex Group ID</strong> ties the full set together. The <strong>Component ID</strong> identifies each individual scenario snapshot inside that group.</li>
-        <li>Add risk items with their own score and weight. The weighted values drive the complex inherent score.</li>
-        <li>Use consistent naming so components remain understandable in reports and follow-up reviews.</li>
-        <li>Add evidence, insurance, mitigation, and governance records where they belong.</li>
-      </ol>
-      <p>Complex Scenario is best when leadership needs both an overall view and a way to preserve the underlying components.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-beta-scenario">
-    <summary>Beta Scenario Guide</summary>
-    <div class="manual-section-body">
-      <p>Beta Scenario is a projection tool. It is designed for future-state ranges where the user knows a minimum, most likely, and maximum value and wants a randomized distribution of possible outcomes.</p>
-      <ol>
-        <li>Enter the scenario name, owner, and dates.</li>
-        <li>Provide the minimum, most likely, and maximum amounts.</li>
-        <li>Select the random scenario count.</li>
-        <li>Run the scenario to generate expected value and percentile outputs.</li>
-      </ol>
-      <p>This builder is useful for proposed projects, emerging risks, future implementation costs, or downside estimates where a normal inherent/residual risk score is not the main decision need.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-field-guidance">
-    <summary>Field Guidance</summary>
-    <div class="manual-section-body">
-      <div class="manual-field-grid">
-        <div class="manual-field-item"><strong>Scenario Name</strong><div>Use a specific name that tells the reader what the issue is without needing extra explanation.</div></div>
-        <div class="manual-field-item"><strong>Product Group / Product / Regulation</strong><div>These fields are used for classification, searching, reporting, and trend review across scenarios.</div></div>
-        <div class="manual-field-item"><strong>Likelihood and Impact</strong><div>Used in Single Scenario to create the inherent score. Higher values mean greater starting exposure before current controls are applied.</div></div>
-        <div class="manual-field-item"><strong>Risk Item Score and Weight</strong><div>Used in Complex Scenario to calculate a weighted inherent score across multiple items.</div></div>
-        <div class="manual-field-item"><strong>Hard Cost</strong><div>Direct measurable loss such as refunds, fines, reimbursements, legal expense, project rework, or outside service cost.</div></div>
-        <div class="manual-field-item"><strong>Soft Cost Multiplier</strong><div>Applies a multiplier to hard cost to estimate secondary effects such as disruption, complaints, brand strain, audit follow-up, or management time.</div></div>
-        <div class="manual-field-item"><strong>Control Effectiveness</strong><div>The percentage reduction the current control environment is expected to produce against simulated total cost.</div></div>
-        <div class="manual-field-item"><strong>Mitigation Cost</strong><div>The direct cost to implement the proposed or full mitigation approach. This is compared against modeled loss reduction.</div></div>
-        <div class="manual-field-item"><strong>Insurance</strong><div>Capture premium, deductible, coverage amount, policy dates, and key notes so transfer options can be reviewed economically, not just descriptively.</div></div>
-        <div class="manual-field-item"><strong>Hard Facts / Evidence</strong><div>Use real losses, audit findings, incident data, or external examples to ground the scenario in observable history.</div></div>
-        <div class="manual-field-item"><strong>Accepted Risk</strong><div>Document governance decisions clearly, including who accepted the risk, when, and why.</div></div>
-      </div>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-monte-carlo">
-    <summary>Monte Carlo &amp; Random Tables</summary>
-    <div class="manual-section-body">
-      <p><strong>What Monte Carlo means here:</strong> the system runs many randomized trials using the ranges you entered instead of pretending there is only one possible outcome. This produces a distribution of possible annual losses rather than a single point estimate.</p>
-      <p><strong>Financial model used in Single and Complex Scenario:</strong> the tool uses triangular sampling for hard cost and for the soft-cost multiplier. In plain terms, each run picks a value between your minimum and maximum while giving extra weight to the most likely value.</p>
-      <div class="manual-math">
-        Hard Cost = random triangular draw between Min, Most Likely, and Max<br/>
-        Soft Cost = Hard Cost × random triangular draw for the soft-cost multiplier<br/>
-        Total Cost = Hard Cost + Soft Cost<br/>
-        Residual Cost = Total Cost × (1 - Control Effectiveness %)
-      </div>
-      <p><strong>Why triangular sampling is used:</strong> it works well when users can provide a minimum, a most likely value, and a maximum, but do not have a full historical data distribution. It is practical, understandable, and appropriate for scenario analysis.</p>
-      <p><strong>Random scenario count:</strong> the model supports 100, 500, 1,000, 10,000, or 100,000 runs. More runs generally produce a more stable estimate but take longer to calculate.</p>
-      <p><strong>Key outputs:</strong></p>
-      <ul>
-        <li><strong>Expected Annual Loss</strong> is the average of all simulated total-cost outcomes.</li>
-        <li><strong>Residual Annual Loss</strong> is the average of all simulated residual-cost outcomes after control effectiveness is applied.</li>
-        <li><strong>P10</strong> is a lower-end loss estimate. About 10% of outcomes are at or below this level.</li>
-        <li><strong>P50</strong> is the midpoint or median result. Half of outcomes are below it and half are above it.</li>
-        <li><strong>P90</strong> is a high-end loss estimate. About 90% of outcomes are at or below this level.</li>
-      </ul>
-      <p><strong>Random outcomes table for Single and Complex Scenario:</strong></p>
-      <ul>
-        <li><strong>Scenario Number</strong> is the row number of the simulation trial.</li>
-        <li><strong>Hard Cost</strong> is the direct simulated loss for that trial.</li>
-        <li><strong>Soft Cost</strong> is the simulated secondary cost for that trial.</li>
-        <li><strong>Total Cost</strong> is hard cost plus soft cost.</li>
-        <li><strong>Residual Cost</strong> is the remaining cost after applying control effectiveness.</li>
-        <li><strong>Breakeven Met</strong> shows whether that trial's residual cost was at or below the stated mitigation cost. It is a quick screening field, not a substitute for judgment.</li>
-      </ul>
-      <p><strong>Beta Scenario model:</strong> the beta builder uses a bounded beta-style distribution generated from your minimum, mode, and maximum inputs. It converts those values into a shaped distribution, runs randomized samples, and reports expected value, P10, P50, and P90 for the projected amount.</p>
-      <p><strong>Random outcomes table for Beta Scenario:</strong> each row is one randomized projected value. The table is there to show the underlying trial-level variation behind the percentile outputs.</p>
-      <p><strong>Why results can change slightly between runs:</strong> random sampling means each run is a fresh set of trials. The overall result should stay in the same general neighborhood if assumptions are stable, especially at higher simulation counts.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-results">
-    <summary>Understanding Results</summary>
-    <div class="manual-section-body">
-      <ul>
-        <li><strong>Inherent Risk Score</strong> is the starting exposure before current controls are applied.</li>
-        <li><strong>Residual Risk Score</strong> is the remaining risk after applying control effectiveness.</li>
-        <li><strong>Risk Tier</strong> maps residual score into the configured governance tier.</li>
-        <li><strong>Review Frequency</strong> maps the tier into a suggested revisit cycle.</li>
-        <li><strong>Expected Annual Hard Cost</strong> and <strong>Expected Annual Soft Cost</strong> show the average direct and indirect cost from the simulation.</li>
-        <li><strong>Annual Exposure Range</strong> uses percentile outputs to frame a realistic low-to-high range.</li>
-        <li><strong>Net Benefit / ROI</strong> compares mitigation cost to expected annual risk reduction value.</li>
-      </ul>
-      <p>Results should be reviewed for reasonableness. If a result looks too high or too low, revisit the inputs before treating it as decision-grade output.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-insurance">
-    <summary>Insurance Evaluation</summary>
-    <div class="manual-section-body">
-      <p>Insurance is not just a list of policies. In this tool, it should be reviewed as a transfer decision that has its own economics.</p>
-      <ul>
-        <li>Premium is a recurring cost.</li>
-        <li>Deductible is retained loss still borne by the organization.</li>
-        <li>Coverage amount sets the outer protection limit.</li>
-        <li>Notes and source fields help capture exclusions, terms, or document locations.</li>
-      </ul>
-      <p>A policy can be valuable and still be economically weak for a specific scenario if the premium, deductible, and practical coverage response do not compare favorably with the modeled loss reduction.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-evidence">
-    <summary>Evidence &amp; Data Usage</summary>
-    <div class="manual-section-body">
-      <p>Evidence entries should be factual, traceable, and explainable. Good evidence includes prior losses, audit findings, complaint costs, examiner findings, operational incidents, litigation amounts, or credible external examples.</p>
-      <p>The purpose of evidence is not to force the model to a predetermined answer. The purpose is to improve calibration so assumptions are grounded in reality.</p>
-      <p>Use internal evidence when available. Use external evidence when it is relevant and similar enough to help frame plausible exposure.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-governance">
-    <summary>Governance &amp; Accepted Risk</summary>
-    <div class="manual-section-body">
-      <p>Accepted risk documentation should show that leadership made a conscious decision, not that the issue was simply ignored.</p>
-      <ul>
-        <li>Record whether the risk was accepted.</li>
-        <li>State the authority that accepted it.</li>
-        <li>Name who made or documented the decision.</li>
-        <li>Document the acceptance date and review date.</li>
-        <li>Capture the decision logic clearly enough that another reviewer can understand the rationale later.</li>
-      </ul>
-      <p>Good decision logic usually explains why full mitigation was not chosen, why the residual exposure is still tolerable, and when the decision will be revisited.</p>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-reference">
-    <summary>Reference</summary>
-    <div class="manual-section-body">
-      <ul>
-        <li>Single Scenario is for one focused issue.</li>
-        <li>Complex Scenario is for grouped issues under one broader scenario.</li>
-        <li>Beta Scenario is for future-state distributions using minimum, most likely, and maximum values.</li>
-        <li>The financial model uses Monte Carlo simulation with randomized trial outcomes.</li>
-        <li>Percentiles describe ranges, not guarantees.</li>
-        <li>Reports should always be reviewed before they are used for management, audit, examiner, or board communication.</li>
-      </ul>
-    </div>
-  </details>
-
-  <details class="manual-accordion" id="manual-faq">
-    <summary>FAQ</summary>
-    <div class="manual-section-body">
-      <div class="manual-faq-item"><strong>When should I use Single Scenario instead of Complex Scenario?</strong><div>Use Single Scenario when one issue can stand on its own. Use Complex Scenario when several related issues need to be rolled into one broader scenario while keeping the underlying items visible.</div></div>
-      <div class="manual-faq-item"><strong>Why does the model use ranges instead of one exact number?</strong><div>Risk rarely has one exact outcome. Ranges allow the model to reflect uncertainty and produce a more realistic spread of possible results.</div></div>
-      <div class="manual-faq-item"><strong>Why does the Monte Carlo output change a little each run?</strong><div>Each run uses new random samples. Small changes are expected. Higher scenario counts usually make the results more stable.</div></div>
-      <div class="manual-faq-item"><strong>What do P10, P50, and P90 mean in plain English?</strong><div>P10 is a lower-end result, P50 is the midpoint result, and P90 is a high-end result. They help frame a realistic range instead of pretending the average tells the whole story.</div></div>
-      <div class="manual-faq-item"><strong>Why is triangular sampling used for the financial model?</strong><div>It is a practical choice when users know the minimum, most likely, and maximum values but do not have a large historical dataset.</div></div>
-      <div class="manual-faq-item"><strong>What is the difference between hard cost and soft cost?</strong><div>Hard cost is a direct measurable amount. Soft cost is the secondary effect layered on top, such as disruption, complaint handling, management time, or reputation-related impact.</div></div>
-      <div class="manual-faq-item"><strong>How is control effectiveness applied?</strong><div>The model applies the control-effectiveness percentage to the simulated total cost to estimate the residual cost remaining after controls.</div></div>
-      <div class="manual-faq-item"><strong>What does “Breakeven Met” mean in the random outcomes table?</strong><div>It flags whether a given simulation trial’s residual cost was at or below the stated mitigation cost. It is a quick screen, not a final recommendation.</div></div>
-      <div class="manual-faq-item"><strong>Why not just use averages and skip Monte Carlo?</strong><div>A single average can hide volatility and tail outcomes. Monte Carlo helps show not just the center estimate, but the spread of plausible outcomes.</div></div>
-      <div class="manual-faq-item"><strong>How many random scenarios should I run?</strong><div>For fast checks, 1,000 is a practical default. For greater stability in important reviews, 10,000 or more may be appropriate if performance is acceptable.</div></div>
-      <div class="manual-faq-item"><strong>Does a high coverage amount automatically mean insurance is effective?</strong><div>No. Premium, deductible, exclusions, and the modeled scenario all matter. Coverage alone does not prove the economics are favorable.</div></div>
-      <div class="manual-faq-item"><strong>What should I put in Hard Facts / Evidence?</strong><div>Use documented losses, findings, events, or comparable external examples that help justify the range assumptions or support the narrative.</div></div>
-      <div class="manual-faq-item"><strong>Should every scenario include evidence?</strong><div>Not always, but evidence generally improves the defensibility of the scenario. Use it whenever you have meaningful support.</div></div>
-      <div class="manual-faq-item"><strong>When should a risk be accepted instead of mitigated?</strong><div>Usually when leadership determines the remaining exposure is tolerable relative to cost, capacity, strategy, or timing, and the rationale is documented clearly.</div></div>
-      <div class="manual-faq-item"><strong>Why do I still need judgment if the tool produces numbers?</strong><div>The model is decision support. It organizes assumptions and simulates outcomes, but it does not replace management review, governance, or reasonableness testing.</div></div>
-      <div class="manual-faq-item"><strong>Can I use these reports directly for executives or the board?</strong><div>Yes, but only after reviewing them for reasonableness and ensuring the assumptions and wording match the intended audience and governance purpose.</div></div>
-    </div>
-  </details>
+  </div>
+  <div class="manual-section" id="manual-results">
+    <h5>Understanding Results</h5>
+    <ul>
+      <li>Mean Loss represents the expected level of financial exposure.</li>
+      <li>P95 represents severe-case exposure and helps frame tail risk.</li>
+      <li>Risk Rating summarizes the relative level of exposure.</li>
+      <li>Confidence Rating reflects how stable the estimate appears given variability.</li>
+      <li>Top Risk Drivers identify the main conditions increasing exposure.</li>
+      <li>Board / Examiner Summary translates model results into plain-language reporting.</li>
+    </ul>
+  </div>
+  <div class="manual-section" id="manual-insurance">
+    <h5>Insurance Evaluation</h5>
+    <p>Insurance effectiveness compares coverage cost structure against modeled protection.</p>
+    <p>A policy may be effective, marginal, limited, or inefficient depending on whether the cost of coverage is justified by the financial protection it provides.</p>
+  </div>
+  <div class="manual-section" id="manual-evidence">
+    <h5>Evidence &amp; Data Usage</h5>
+    <p>Evidence entries should be factual and traceable. Use actual losses, incident history, external events, audit findings, or documented amounts where available.</p>
+    <p>Evidence improves the quality of scenario outputs by shifting the model toward real-world experience instead of relying only on judgment.</p>
+  </div>
+  <div class="manual-section" id="manual-reference">
+    <h5>Reference</h5>
+    <ul>
+      <li>Single Scenario is best for one defined issue or event.</li>
+      <li>Complex Scenario is best for grouped risks that belong to one broader initiative.</li>
+      <li>Evidence improves model quality by grounding estimates in actual data.</li>
+      <li>Insurance should be reviewed as an economic decision, not just a coverage list.</li>
+      <li>Reports should be reviewed for reasonableness before being used for management, audit, or board communication.</li>
+    </ul>
+  </div>
+  <div class="manual-section" id="manual-faq">
+    <h5>FAQ</h5>
+    <ul>
+      <li>Save preserves the scenario.</li>
+      <li>Run Scenario generates updated outputs.</li>
+      <li>Insurance and evidence are optional but improve decision quality.</li>
+      <li>Reports should be reviewed for reasonableness before being used for management, audit, or board communication.</li>
+    </ul>
+  </div>
+</div>
 </div>
 </div>
 </div>
@@ -1207,11 +1087,11 @@
 <div class="card">
 <div class="card-header"><h3>Recommendations</h3><span>Next Steps</span></div>
 <ul class="simple-list">
-<li>Add insurance-effectiveness scoring that compares premium, deductible, and modeled loss transfer.</li>
-<li>Add report text that explicitly explains percentile interpretation in the executive summary.</li>
-<li>Add evidence weighting or evidence confidence indicators in a future phase.</li>
 <li>Add export/import for scenarios so data can move between workstations.</li>
-<li>Consider shared storage later so scenarios follow the user across terminals.</li>
+<li>Add shared storage later so scenarios follow the user across terminals.</li>
+<li>Add days-open and last-reviewed fields to increase operational value.</li>
+<li>Add duplicate-scenario capability for recurring issues.</li>
+<li>Consider role-based report signatures once storage is upgraded.</li>
 </ul>
 <div class="note-box">Current limitation: scenarios are still stored in the local browser until a shared storage layer is added.</div>
 </div>

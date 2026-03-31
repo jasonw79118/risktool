@@ -1028,6 +1028,8 @@ function renderScenarioSummary(summary) {
     <li><span class="help-label" data-help="Documented factual loss or cost evidence total across all listed hard facts."><strong>Hard Facts Total:</strong></span> ${currency(totalCurrencyField(summary.hardFacts, "amount"))}</li>
   `;
   renderReportSupplements(summary);
+  renderInsuranceEffectivenessReport(summary);
+  renderInsuranceEffectivenessReport(summary);
   const executiveDecisionEl = document.getElementById("executiveDecisionBox");
   if (executiveDecisionEl) executiveDecisionEl.innerHTML = `
     <strong>Executive Decision Summary</strong><br>
@@ -2748,28 +2750,59 @@ function setupRandomOutcomesCsvButton() {
 function evaluateInsuranceEffectiveness(simResults, insuranceList) {
   if (!insuranceList || insuranceList.length === 0) return [];
 
+  const expectedLoss = Math.max(0, Number(simResults.meanLoss || 0));
+  const severeLoss = Math.max(expectedLoss, Number(simResults.p95 || 0));
+
   return insuranceList.map(ins => {
-    const premium = Number(ins.premium || 0);
-    const deductible = Number(ins.deductible || 0);
+    const premium = Math.max(0, Number(ins.premium || 0));
+    const deductible = Math.max(0, Number(ins.deductible || 0));
+    const coverageAmount = Math.max(0, Number(ins.coverageAmount || 0));
 
-    const avgLoss = simResults.meanLoss || 0;
-    const adjustedLoss = Math.max(avgLoss - (avgLoss - deductible), deductible);
+    const expectedInsuredPortion = Math.max(0, Math.min(coverageAmount, expectedLoss - deductible));
+    const severeInsuredPortion = Math.max(0, Math.min(coverageAmount, severeLoss - deductible));
 
-    const riskReduction = avgLoss - adjustedLoss;
+    const expectedRetainedLoss = Math.max(0, expectedLoss - expectedInsuredPortion);
+    const severeRetainedLoss = Math.max(0, severeLoss - severeInsuredPortion);
+
+    const withPolicyExpectedCost = premium + expectedRetainedLoss;
+    const withPolicySevereCost = premium + severeRetainedLoss;
+    const netExpectedBenefit = expectedLoss - withPolicyExpectedCost;
+    const severeProtectionValue = severeLoss - withPolicySevereCost;
+    const expectedProtectionRatio = expectedLoss > 0 ? expectedInsuredPortion / expectedLoss : 0;
+    const severeProtectionRatio = severeLoss > 0 ? severeInsuredPortion / severeLoss : 0;
     const totalCost = premium + deductible;
 
-    let rating = "No Material Impact";
-
-    if (riskReduction > totalCost * 1.25) rating = "Effective Risk Transfer";
-    else if (riskReduction > totalCost * 0.75) rating = "Marginal Value";
-    else if (riskReduction > 0) rating = "Limited Benefit";
-    else rating = "Inefficient / Overpriced";
+    let rating = "No Material Transfer";
+    if (expectedInsuredPortion <= 0 && severeInsuredPortion <= 0) {
+      rating = "No Material Transfer";
+    } else if (netExpectedBenefit > 0 && severeProtectionRatio >= 0.50) {
+      rating = "Effective Risk Transfer";
+    } else if (netExpectedBenefit >= 0) {
+      rating = "Cost Effective";
+    } else if (severeProtectionValue > 0 && severeProtectionRatio >= 0.35) {
+      rating = "Tail Protection Value";
+    } else {
+      rating = "Limited Economic Value";
+    }
 
     return {
-      title: ins.title || "Insurance",
+      title: ins.policyName || ins.title || "Insurance",
       premium,
       deductible,
-      riskReduction,
+      coverageAmount,
+      expectedLoss,
+      expectedInsuredPortion,
+      expectedRetainedLoss,
+      withPolicyExpectedCost,
+      netExpectedBenefit,
+      severeLoss,
+      severeInsuredPortion,
+      severeRetainedLoss,
+      withPolicySevereCost,
+      severeProtectionValue,
+      expectedProtectionRatio,
+      severeProtectionRatio,
+      riskReduction: expectedInsuredPortion,
       totalCost,
       rating
     };
@@ -2798,13 +2831,13 @@ function generateDecisionRecommendation(simResults, insuranceEval, scenario) {
     const best = [...insuranceEval].sort((a,b) => b.riskReduction - a.riskReduction)[0];
 
     if (best.rating === "Effective Risk Transfer") {
-      recommendation += "Insurance contributes meaningful financial protection and supports the overall mitigation posture. ";
-    } else if (best.rating === "Marginal Value") {
-      recommendation += "Insurance provides partial value but should be reviewed for efficiency against retained exposure. ";
-    } else if (best.rating === "Limited Benefit") {
-      recommendation += "Insurance provides limited financial relief relative to retained loss exposure. ";
+      recommendation += "Insurance contributes meaningful financial protection and appears economically favorable against the modeled loss profile. ";
+    } else if (best.rating === "Cost Effective") {
+      recommendation += "Insurance appears cost effective, though management should still confirm limits, exclusions, and retained exposure. ";
+    } else if (best.rating === "Tail Protection Value") {
+      recommendation += "Insurance does not fully solve expected-loss economics but does provide meaningful severe-case protection. ";
     } else {
-      recommendation += "Insurance is not currently producing strong economic value relative to its cost structure. ";
+      recommendation += "Insurance is not currently producing strong economic value relative to its premium, deductible, and retained exposure. ";
     }
   } else {
     recommendation += "No insurance mitigation is currently applied. ";
@@ -2825,18 +2858,22 @@ function renderInsuranceEvaluationTable(evalList) {
           <th>Policy</th>
           <th>Premium</th>
           <th>Deductible</th>
-          <th>Risk Reduction</th>
+          <th>Coverage</th>
+          <th>Expected Benefit</th>
+          <th>Severe-Case Benefit</th>
           <th>Rating</th>
         </tr>
       </thead>
       <tbody>
         ${evalList.map(e => `
           <tr>
-            <td>${e.title}</td>
-            <td>${e.premium}</td>
-            <td>${e.deductible}</td>
-            <td>${Math.round(e.riskReduction)}</td>
-            <td>${e.rating}</td>
+            <td>${escapeHtml(e.title)}</td>
+            <td>${currency(e.premium)}</td>
+            <td>${currency(e.deductible)}</td>
+            <td>${currency(e.coverageAmount)}</td>
+            <td>${currency(Math.round(e.netExpectedBenefit))}</td>
+            <td>${currency(Math.round(e.severeProtectionValue))}</td>
+            <td>${escapeHtml(e.rating)}</td>
           </tr>
         `).join("")}
       </tbody>
@@ -3183,7 +3220,7 @@ function renderScenarioSummary(summary) {
   if (executiveDecisionEl) {
     const insuranceSummaryItems = dedupeInsuranceEvaluationItems(summary.insuranceEvaluation);
     const insuranceBlock = insuranceSummaryItems.length
-      ? `<br><br><strong>Insurance Effectiveness</strong><br>${insuranceSummaryItems.map(item => `${escapeHtml(item.title)}: ${escapeHtml(item.rating)} (Premium ${currency(item.premium)} | Deductible ${currency(item.deductible)} | Modeled Risk Reduction ${currency(Math.round(item.riskReduction))})`).join("<br>")}`
+      ? `<br><br><strong>Insurance Effectiveness</strong><br>${insuranceSummaryItems.map(item => `${escapeHtml(item.title)}: ${escapeHtml(item.rating)} (Premium ${currency(item.premium)} | Deductible ${currency(item.deductible)} | Coverage ${currency(item.coverageAmount)} | Expected Net Benefit ${currency(Math.round(item.netExpectedBenefit || 0))} | Severe-Case Protection ${currency(Math.round(item.severeProtectionValue || 0))})`).join("<br>")}`
       : "";
     executiveDecisionEl.innerHTML = `
       <strong>Executive Decision Summary</strong><br>
@@ -3196,6 +3233,7 @@ function renderScenarioSummary(summary) {
   }
 
   const decisionMetricsEl = document.getElementById("decisionMetricsBody");
+  const bestInsurance = getBestInsuranceEvaluation(summary.insuranceEvaluation || []);
   if (decisionMetricsEl) decisionMetricsEl.innerHTML = `
     <tr><td>Expected Annual Loss</td><td>${currency(summary.expectedLoss)}</td></tr>
     <tr><td>Residual Annual Loss</td><td>${currency(summary.residualExpectedLoss)}</td></tr>
@@ -3205,6 +3243,8 @@ function renderScenarioSummary(summary) {
     <tr><td>Mitigation Cost</td><td>${currency(summary.mitigationCost)}</td></tr>
     <tr><td>Annual Risk Reduction Value</td><td>${currency(summary.riskReductionValue)}</td></tr>
     <tr><td>Net Benefit / ROI</td><td>${currency(summary.mitigationROI)}</td></tr>
+    <tr><td>Best Insurance Rating</td><td>${bestInsurance ? escapeHtml(bestInsurance.rating) : "No insurance loaded"}</td></tr>
+    <tr><td>Best Insurance Expected Net Benefit</td><td>${bestInsurance ? currency(Math.round(bestInsurance.netExpectedBenefit || 0)) : "N/A"}</td></tr>
     <tr><td>Decision View</td><td>${summary.mitigationROI >= 0 ? "Cost effective to mitigate" : "Consider alternatives or partial controls"}</td></tr>
   `;
 
@@ -3241,6 +3281,49 @@ function dedupeInsuranceEvaluationItems(items) {
     seen.add(key);
     return true;
   });
+}
+
+function getBestInsuranceEvaluation(items) {
+  const list = dedupeInsuranceEvaluationItems(items);
+  if (!list.length) return null;
+  return [...list].sort((a, b) => {
+    const aScore = Number(a.netExpectedBenefit || 0) + Number(a.severeProtectionValue || 0);
+    const bScore = Number(b.netExpectedBenefit || 0) + Number(b.severeProtectionValue || 0);
+    return bScore - aScore;
+  })[0];
+}
+
+function renderInsuranceEffectivenessReport(summary) {
+  const body = document.getElementById("insuranceEffectivenessBody");
+  const note = document.getElementById("insuranceEffectivenessSummary");
+  if (!body || !note) return;
+
+  const items = dedupeInsuranceEvaluationItems(summary?.insuranceEvaluation || []);
+  if (!items.length) {
+    body.innerHTML = '<tr><td colspan="8">No insurance loaded for effectiveness evaluation.</td></tr>';
+    note.textContent = 'Insurance effectiveness summary: No insurance loaded for this scenario.';
+    return;
+  }
+
+  body.innerHTML = items.map(item => `
+    <tr>
+      <td>${escapeHtml(item.title)}</td>
+      <td>${currency(item.premium)}</td>
+      <td>${currency(item.deductible)}</td>
+      <td>${currency(item.coverageAmount)}</td>
+      <td>${currency(Math.round(item.expectedInsuredPortion || 0))}</td>
+      <td>${currency(Math.round(item.netExpectedBenefit || 0))}</td>
+      <td>${currency(Math.round(item.severeProtectionValue || 0))}</td>
+      <td>${escapeHtml(item.rating)}</td>
+    </tr>
+  `).join("");
+
+  const best = getBestInsuranceEvaluation(items);
+  if (best) {
+    note.textContent = `Insurance effectiveness summary: ${best.title} is currently rated ${best.rating}. Expected net benefit is ${currency(Math.round(best.netExpectedBenefit || 0))} and severe-case protection value is ${currency(Math.round(best.severeProtectionValue || 0))}.`;
+  } else {
+    note.textContent = 'Insurance effectiveness summary: No insurance loaded for this scenario.';
+  }
 }
 
 
@@ -3553,7 +3636,7 @@ function getRiskToolManualSections() {
     {
       id: "insurance-evaluation",
       title: "Insurance Evaluation",
-      body: "Insurance effectiveness compares premium and deductible structure against modeled loss reduction. A policy may be effective, marginal, limited, or inefficient depending on whether the cost of coverage is justified by the financial protection it provides."
+      body: "Insurance effectiveness compares premium, deductible, coverage amount, expected insured portion, retained loss, and severe-case protection value against the modeled loss profile. The system now rates each policy as No Material Transfer, Limited Economic Value, Tail Protection Value, Cost Effective, or Effective Risk Transfer so leadership can judge whether the policy improves economics, mainly protects tail outcomes, or fails to justify its cost structure."
     },
     {
       id: "evidence-data-usage",
@@ -3563,7 +3646,7 @@ function getRiskToolManualSections() {
     {
       id: "faq",
       title: "FAQ",
-      body: "Save preserves the scenario. Run Scenario generates updated outputs. Complex scenarios should be used for grouped assessments. Insurance and evidence are optional but improve decision quality. Reports should be reviewed for reasonableness before being used for management, audit, or board communication."
+      body: "FAQ highlights: Single Scenario is for one defined issue and Complex Scenario is for grouped exposures. Save preserves the current scenario state and Run Scenario recalculates the report using the latest inputs. Monte Carlo runs many randomized loss paths using bounded inputs instead of a single-point estimate. Random outcomes show one simulated annual result per row so leadership can see the spread of possible loss. Insurance is not judged on coverage amount alone: the system weighs premium, deductible, retained loss, expected net benefit, and severe-case protection value. Reports should be reviewed for reasonableness before being used for management, audit, board, or examiner communication."
     }
   ];
 }
