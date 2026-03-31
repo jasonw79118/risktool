@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.36</h4>
-<p>Complex Scenario flow now places Overall Scenario Components directly under Product Sections so each Product/Service/Area can carry multiple scenarios.</p>
+<h4>Phase 20.1.38</h4>
+<p>Complex Scenario flow now uses Product Sections first, then scenario rows under each Product/Service/Area, followed by the selected scenario details and supporting tables.</p>
 </div>
 </aside>
 <main class="main">
@@ -316,6 +316,54 @@
 <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
 </div>
 <div class="card">
+<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Product/Service/Area</label>
+<select id="complexSectionProduct"></select>
+</div>
+<div>
+<label class="help-label" data-help="Weight used to compare this Product, Service, or Area against other Product Sections in the same complex scenario.">Product Section Weight (1-5)</label>
+<input id="complexSectionWeight" min="1" max="5" type="number" value="3"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Product Section Notes</label>
+<input id="complexSectionNotes" placeholder="Describe this product / service / area and why it is in scope." type="text"/>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
+<div class="note-box" id="complexProductSectionStatus">Define one or more Product Sections before assigning risk items.</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Product Section Table</h3><span>Product / Service / Area list for this complex scenario</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Product/Service/Area</th><th>Weight</th><th>Notes</th><th>Actions</th></tr></thead>
+<tbody id="complexProductSectionsBody"></tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Overall Scenario Components</h3><span>Each Product/Service/Area can carry multiple scenarios. Add the scenario row here, then complete the selected scenario details below.</span></div>
+<div class="builder-actions">
+<div>
+<label class="help-label" data-help="Choose the Product Section / Product, Service, or Area that the next scenario component belongs to.">Parent Product/Service/Area</label>
+<select id="complexScenarioProductFilter"></select>
+</div>
+<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
+<div class="note-box" id="complexScenarioProductStatus">Select a Product Section here, add the scenario row, then complete the selected scenario details in the section below.</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Product/Service/Area</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
+<tbody id="complexScenarioComponentsBody"></tbody>
+</table>
+</div>
+</div>
+<div class="card" id="complexScenarioDetailsCard">
+<div class="card-header"><h3>Scenario Details for Selected Scenario</h3><span>These fields apply to the selected scenario row under the chosen Product/Service/Area</span></div>
 <div class="builder-actions">
 <button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
 </div>
@@ -418,53 +466,6 @@
 <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
 <textarea id="complexScenarioDescription" placeholder="Describe the broader project, business area, or problem set." rows="4"></textarea>
 </div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span></div>
-<div class="form-grid">
-<div>
-<label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Product/Service/Area</label>
-<select id="complexSectionProduct"></select>
-</div>
-<div>
-<label class="help-label" data-help="Weight used to compare this Product, Service, or Area against other Product Sections in the same complex scenario.">Product Section Weight (1-5)</label>
-<input id="complexSectionWeight" min="1" max="5" type="number" value="3"/>
-</div>
-<div class="full-span">
-<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Product Section Notes</label>
-<input id="complexSectionNotes" placeholder="Describe this product / service / area and why it is in scope." type="text"/>
-</div>
-</div>
-<div class="builder-actions">
-<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
-<div class="note-box" id="complexProductSectionStatus">Define one or more Product Sections before assigning risk items.</div>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Product Section Table</h3><span>Product / Service / Area list for this complex scenario</span></div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Product/Service/Area</th><th>Weight</th><th>Notes</th><th>Actions</th></tr></thead>
-<tbody id="complexProductSectionsBody"></tbody>
-</table>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Overall Scenario Components</h3><span>Each Product/Service/Area can carry multiple scenarios; Scenario ID opens that scenario for editing</span></div>
-<div class="builder-actions">
-<div>
-<label class="help-label" data-help="Choose the Product Section / Product, Service, or Area that the next scenario component belongs to.">Product/Service/Area for New Scenario</label>
-<select id="complexScenarioProductFilter"></select>
-</div>
-<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
-<div class="note-box" id="complexScenarioProductStatus">Select a Product Section, complete the complex scenario details above, then add the scenario row for that Product/Service/Area.</div>
-</div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Product/Service/Area</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
-<tbody id="complexScenarioComponentsBody"></tbody>
-</table>
 </div>
 </div>
 <div class="card">

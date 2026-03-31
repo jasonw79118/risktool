@@ -1,0 +1,30 @@
+Risktool Phase 20.1.38 Notes
+
+Complex Scenario structure was adjusted again to match the clarified hierarchy:
+
+1. Product Section Entry
+2. Product Section Table
+3. Overall Scenario Components
+4. Scenario Details for Selected Scenario
+5. Risk Item Entry
+6. Risk Item Table
+7. Insurance Entry
+8. Insurance Table
+9. Hard Facts / Evidence Entry
+10. Hard Facts / Evidence Table
+11. Mitigation Entry
+12. Mitigation Table
+13. Accepted Risk
+14. Accepted Risk Table
+
+Key correction:
+- Scenario rows now visibly sit under the Product Section layer.
+- The separate Scenario Entry step is gone.
+- The scenario-detail form is now below the Overall Scenario Components table so it is clear those fields belong to the selected scenario row.
+- Add Scenario remains in the Overall Scenario Components card and uses the selected parent Product/Service/Area.
+
+Files included:
+- index.html
+- app.js
+- risktool_phase_20_1_38_notes.txt
+- risktool_handoff_phase_20_1_35.txt

@@ -522,7 +522,7 @@ function openComplexScenarioComponent(componentId) {
   if (!component) return;
   applyComplexComponentSnapshot(component);
   activateView("complex");
-  const topCard = document.querySelector('#view-complex .card');
+  const topCard = document.getElementById('complexScenarioDetailsCard') || document.querySelector('#view-complex .card');
   if (topCard?.scrollIntoView) topCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function escapeHtml(value) {
@@ -1818,7 +1818,7 @@ function wireInputs() {
     if (value) {
       setSelectValueSafe("complexPrimaryProduct", value);
       const statusEl = document.getElementById("complexScenarioProductStatus");
-      if (statusEl) statusEl.textContent = `Scenario component is tied to Product Section: ${value}.`;
+      if (statusEl) statusEl.textContent = `New scenario row will be added under Product/Service/Area: ${value}.`;
     }
   });
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
@@ -2701,7 +2701,7 @@ function handleAddComplexScenario(event) {
   }
   setSelectValueSafe("complexPrimaryProduct", selectedProductSection);
   const statusEl = document.getElementById("complexScenarioProductStatus");
-  if (statusEl) statusEl.textContent = `Scenario component is tied to Product Section: ${selectedProductSection}.`;
+  if (statusEl) statusEl.textContent = `Scenario row will be added under Product/Service/Area: ${selectedProductSection}.`;
   addComplexScenarioComponent();
 }
 
