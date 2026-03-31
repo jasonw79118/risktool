@@ -287,6 +287,9 @@ function refreshComplexProductSectionSelects() {
   const sectionOptions = buildComplexProductSectionOptions();
   populateSelect("riskItemProduct", sectionOptions.length ? sectionOptions : [""]);
   setSelectValueSafe("riskItemProduct", currentRiskItemValue);
+  populateSelect("complexScenarioEntryProduct", sectionOptions.length ? sectionOptions : [""]);
+  const currentScenarioEntryValue = document.getElementById("complexScenarioEntryProduct")?.value || "";
+  setSelectValueSafe("complexScenarioEntryProduct", currentScenarioEntryValue || sectionOptions[0] || "");
   populateSelect("complexSectionProduct", productGroups);
   setSelectValueSafe("complexSectionProduct", currentSectionValue || (productGroups[0] || ""));
 }
@@ -401,6 +404,7 @@ function getCurrentComplexComponentSnapshot() {
     productGroup: document.getElementById("complexProductGroup")?.value || "",
     riskDomain: document.getElementById("complexRiskDomain")?.value || "",
     primaryProduct: document.getElementById("complexPrimaryProduct")?.value || "",
+    selectedProductSection: document.getElementById("complexScenarioEntryProduct")?.value || document.getElementById("complexPrimaryProduct")?.value || "",
     primaryRegulation: document.getElementById("complexPrimaryRegulation")?.value || "",
     scenarioOwner: document.getElementById("complexScenarioOwner")?.value || "",
     identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
@@ -436,6 +440,7 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexProductGroup").value = component.productGroup || products[0] || "";
   document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
   document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
+  setSelectValueSafe("complexScenarioEntryProduct", component.selectedProductSection || component.primaryProduct || "");
   document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
   document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
@@ -483,7 +488,7 @@ function renderComplexScenarioComponents() {
     <tr>
       <td><button class="scenario-link" data-open-complex-component="${escapeHtml(component.componentId || "")}">${escapeHtml(component.componentId || `COMP-${String(idx + 1).padStart(6, "0")}`)}</button></td>
       <td>${escapeHtml(component.scenarioName || "Unnamed Complex Component")}</td>
-      <td>${escapeHtml(component.productGroup || "")}</td>
+      <td>${escapeHtml(component.selectedProductSection || component.primaryProduct || component.productGroup || "")}</td>
       <td>${escapeHtml(component.riskDomain || "")}</td>
       <td>${Number(component.inherent || 0)}</td>
       <td>${Array.isArray(component.items) ? component.items.length : 0}</td>
@@ -1808,6 +1813,14 @@ function wireInputs() {
   document.getElementById("addComplexProductSectionBtn")?.addEventListener("click", addComplexProductSection);
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
   document.getElementById("addComplexScenarioBtn")?.addEventListener("click", handleAddComplexScenario);
+  document.getElementById("complexScenarioEntryProduct")?.addEventListener("change", (event) => {
+    const value = event.target?.value || "";
+    if (value) {
+      setSelectValueSafe("complexPrimaryProduct", value);
+      const statusEl = document.getElementById("complexScenarioEntryStatus");
+      if (statusEl) statusEl.textContent = `Scenario component is tied to Product Section: ${value}.`;
+    }
+  });
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("addSingleInsuranceBtn")?.addEventListener("click", () => addInsurance("single"));
@@ -2681,6 +2694,14 @@ function handleAddComplexScenario(event) {
     event.preventDefault();
     event.stopPropagation();
   }
+  const selectedProductSection = document.getElementById("complexScenarioEntryProduct")?.value || "";
+  if (!selectedProductSection) {
+    alert("Add and select a Product Section before adding the scenario component.");
+    return;
+  }
+  setSelectValueSafe("complexPrimaryProduct", selectedProductSection);
+  const statusEl = document.getElementById("complexScenarioEntryStatus");
+  if (statusEl) statusEl.textContent = `Scenario component is tied to Product Section: ${selectedProductSection}.`;
   addComplexScenarioComponent();
 }
 

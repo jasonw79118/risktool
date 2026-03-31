@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.35</h4>
-<p>Reporting Lines now map to Category Admin, Product/Service/Area maps to Product Groups, and Complex Scenario order is corrected.</p>
+<h4>Phase 20.1.36</h4>
+<p>Complex Scenario flow now follows the intended section order, including Scenario Entry for the selected product before Risk Item Entry.</p>
 </div>
 </aside>
 <main class="main">
@@ -318,7 +318,6 @@
 <div class="card">
 <div class="builder-actions">
 <button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
-<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
 </div>
 <div class="form-grid">
 <div>
@@ -452,6 +451,21 @@
 </div>
 </div>
 <div class="card">
+<div class="card-header"><h3>Scenario Entry for Selected Product</h3><span>Select the product section, then add or update that scenario component</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="Choose the Product Section this scenario component belongs to. The selected value syncs to Primary Product / Service for the component you are about to add or edit.">Selected Product Section</label>
+<select id="complexScenarioEntryProduct"></select>
+</div>
+<div class="full-span">
+<div class="note-box" id="complexScenarioEntryStatus">Select a Product Section, complete the complex scenario details above, then add the scenario component before entering the related risk items below.</div>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
+</div>
+</div>
+<div class="card">
 <div class="card-header"><h3>Risk Item Entry</h3><span>Entry</span></div>
 <div class="form-grid">
 <div>
@@ -484,7 +498,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
+<div class="card-header"><h3>Risk Item Table</h3><span>Multiple entries • issue links reopen this scenario</span></div>
 <div class="table-wrap">
 <table>
 <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
@@ -546,7 +560,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Mitigation Factors</h3><span>Entry</span></div>
+<div class="card-header"><h3>Mitigation Entry</h3><span>Repeatable</span></div>
 <div class="form-grid">
 <div><label>Mitigation Title</label><input id="complexMitTitle" placeholder="e.g. Control redesign" type="text"/></div>
 <div><label>Owner</label><input id="complexMitOwner" placeholder="e.g. Operations" type="text"/></div>

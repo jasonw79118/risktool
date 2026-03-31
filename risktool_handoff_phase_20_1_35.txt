@@ -1,0 +1,115 @@
+RISKTOOL HANDOFF DOCUMENT — PHASE 20.1.35
+
+PROJECT OVERVIEW
+Risktool is a web-based enterprise risk management application hosted on GitHub Pages. It follows a phased release model with visible phase tracking in index.html and the left sidebar note.
+
+FILE DELIVERY PREFERENCES
+1. NEVER paste code into chat.
+2. ALL code changes should be delivered as ZIP files.
+3. ZIP files must contain the live filenames exactly, especially:
+   - app.js
+   - index.html
+4. Include a short notes TXT file in the ZIP when useful.
+5. Version / phase display must be updated visibly in index.html and in the sidebar note.
+6. Surgical changes only. Do not change unrelated areas.
+7. Do not break existing working functionality.
+
+CURRENT USER PREFERENCES
+- Stability over speed.
+- No code pasted into chat.
+- ZIP downloads only.
+- Vertical layout only.
+- Section → table → section flow.
+- Information/help must live only in the left navigation Information menu.
+- No floating information button.
+- No MutationObservers.
+- No page-wide/global hooks that risk freezing the app.
+
+WHERE THE APP IS NOW
+Current target phase: 20.1.35
+
+Recent intended fixes:
+- Product/Service/Area in Product Section Entry should use Product Groups from Category Admin.
+- Scenario-level Reporting Lines should use Products / Services from Category Admin.
+- Category Admin “Products / Services” should be renamed to “Reporting Lines”.
+- Complex Scenario order should be:
+  1. Complex Scenario details
+  2. Product Section Entry
+  3. Product Section Table
+  4. Risk Item Entry
+  5. Complex Scenario Risk Items
+  6. Insurance Entry
+  7. Insurance Table
+  8. Hard Facts / Evidence Entry
+  9. Hard Facts / Evidence Table
+  10. Mitigation Factors
+  11. Mitigation Table
+  12. Accepted Risk
+  13. Accepted Risk Table
+  14. Overall Scenario Components
+
+COMPLEX SCENARIO DIRECTION
+The intended modeling hierarchy is:
+Product/Service/Area → Scenario → Risks / Insurance / Hard Facts / Mitigation / Accepted Risk → Overall Scenario Components
+
+Interpretation:
+- Product/Service/Area is the product-level grouping layer.
+- A product/service/area may contain multiple scenarios.
+- Each scenario may contain multiple risk items.
+- Each scenario also carries its own insurance, hard facts/evidence, mitigation factors, and accepted-risk governance record.
+- The Overall Scenario Components table is the rollup/index and belongs at the bottom.
+
+CATEGORY ADMIN MAPPING LOGIC
+- Product Groups = Product/Service/Area options in Product Section Entry
+- Reporting Lines = formerly Products / Services list in Category Admin
+- Reporting Lines values should populate the scenario-level field currently stored in code as productGroup
+- Internal variable names may remain unchanged for compatibility, but visible UI labels should reflect:
+  - Product Groups
+  - Reporting Lines
+
+INFORMATION MENU DIRECTION
+The Information menu should continue expanding until it fully covers all aspects of Risktool.
+
+Planned direction for Information:
+1. Full guide coverage of all screens and fields.
+2. Explain all modeling logic in plain English and examiner-ready language.
+3. Add scenario examples users can learn from.
+4. Add thoughtful Q&A / FAQ content.
+5. Explain Monte Carlo logic, random outcomes tables, scoring logic, insurance evaluation, evidence usage, accepted risk, and reporting outputs.
+6. Keep all help inside the Information menu and linked contextually from fields when helpful.
+
+SCENARIO EXAMPLES TO CONTINUE ADDING
+- Single Scenario example
+- Complex Scenario example
+- Beta Scenario example
+- Product/Service/Area example with multiple scenarios beneath it
+- Evidence-driven scoring example
+- Insurance effectiveness example
+- Accepted-risk governance example
+
+Q&A / FAQ DIRECTION
+Develop thoughtful user questions and answers such as:
+- When should I use Single vs Complex vs Beta?
+- What is a Reporting Line?
+- What is the difference between Product Groups and Reporting Lines?
+- How do Product/Service/Area sections work?
+- How does Monte Carlo work here?
+- What do P10 / P50 / P90 mean?
+- How should hard facts and evidence influence my scoring?
+- How do I know whether insurance is effective?
+- When should risk be accepted instead of mitigated?
+- How should I interpret the Overall Scenario Components table?
+
+DEVELOPMENT WARNINGS
+- Do not assume earlier ZIP packs are the source of truth if newer app.js/index.html files are uploaded.
+- Always work from the latest uploaded baseline files when provided.
+- Preserve backward compatibility for saved scenarios whenever possible.
+- Be especially careful with Complex Scenario layout and Category Admin mappings, as these are active work areas.
+
+END STATE VISION
+A polished, enterprise-grade risk platform with:
+- clear scenario modeling,
+- product/service/area hierarchy,
+- strong documentation and examples in the Information menu,
+- defensible financial modeling,
+- and regulatory-ready reporting outputs.
