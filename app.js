@@ -287,7 +287,7 @@ function refreshComplexProductSectionSelects() {
   const sectionOptions = buildComplexProductSectionOptions();
   populateSelect("riskItemProduct", sectionOptions.length ? sectionOptions : [""]);
   setSelectValueSafe("riskItemProduct", currentRiskItemValue);
-    populateSelect("complexSectionProduct", productGroups);
+  populateSelect("complexSectionProduct", productGroups);
   setSelectValueSafe("complexSectionProduct", currentSectionValue || (productGroups[0] || ""));
 }
 function renderComplexProductSections() {
@@ -401,7 +401,6 @@ function getCurrentComplexComponentSnapshot() {
     productGroup: document.getElementById("complexProductGroup")?.value || "",
     riskDomain: document.getElementById("complexRiskDomain")?.value || "",
     primaryProduct: document.getElementById("complexPrimaryProduct")?.value || "",
-    selectedProductSection: document.getElementById("complexPrimaryProduct")?.value || "",
     primaryRegulation: document.getElementById("complexPrimaryRegulation")?.value || "",
     scenarioOwner: document.getElementById("complexScenarioOwner")?.value || "",
     identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
@@ -484,7 +483,7 @@ function renderComplexScenarioComponents() {
     <tr>
       <td><button class="scenario-link" data-open-complex-component="${escapeHtml(component.componentId || "")}">${escapeHtml(component.componentId || `COMP-${String(idx + 1).padStart(6, "0")}`)}</button></td>
       <td>${escapeHtml(component.scenarioName || "Unnamed Complex Component")}</td>
-      <td>${escapeHtml(component.selectedProductSection || component.primaryProduct || component.productGroup || "")}</td>
+      <td>${escapeHtml(component.productGroup || "")}</td>
       <td>${escapeHtml(component.riskDomain || "")}</td>
       <td>${Number(component.inherent || 0)}</td>
       <td>${Array.isArray(component.items) ? component.items.length : 0}</td>
@@ -518,7 +517,7 @@ function openComplexScenarioComponent(componentId) {
   if (!component) return;
   applyComplexComponentSnapshot(component);
   activateView("complex");
-  const topCard = document.getElementById('complexScenarioDetailsCard') || document.querySelector('#view-complex .card');
+  const topCard = document.querySelector('#view-complex .card');
   if (topCard?.scrollIntoView) topCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function escapeHtml(value) {
@@ -2682,14 +2681,6 @@ function handleAddComplexScenario(event) {
     event.preventDefault();
     event.stopPropagation();
   }
-  const selectedProductSection = document.getElementById("complexSectionProduct")?.value || document.getElementById("complexPrimaryProduct")?.value || "";
-  if (!selectedProductSection) {
-    alert("Add or select the Product/Service/Area in Product Section Entry before adding the scenario component.");
-    return;
-  }
-  setSelectValueSafe("complexPrimaryProduct", selectedProductSection);
-  const statusEl = document.getElementById("complexScenarioProductStatus");
-  if (statusEl) statusEl.textContent = `Scenario row will be added under Product/Service/Area: ${selectedProductSection}.`;
   addComplexScenarioComponent();
 }
 

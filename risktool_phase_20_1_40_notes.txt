@@ -1,0 +1,14 @@
+RISKTOOL PHASE 20.1.40 NOTES
+
+Changes included:
+- Complex Scenario: moved Load Test Scenario button beside the Product Section Entry title
+- Complex Scenario: moved Overall Scenario Components directly below Product Section Table
+- Complex Scenario: moved Add Scenario button to the bottom of Scenario Details for Selected Scenario
+- Beta Scenario: renamed Product Group label to Reporting Lines
+- Phase display updated to 20.1.40
+
+Files:
+- index.html
+- app.js
+- risktool_handoff_phase_20_1_35.txt
+- risktool_phase_20_1_40_notes.txt
