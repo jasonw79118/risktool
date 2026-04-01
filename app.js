@@ -287,10 +287,7 @@ function refreshComplexProductSectionSelects() {
   const sectionOptions = buildComplexProductSectionOptions();
   populateSelect("riskItemProduct", sectionOptions.length ? sectionOptions : [""]);
   setSelectValueSafe("riskItemProduct", currentRiskItemValue);
-  populateSelect("complexScenarioProductFilter", sectionOptions.length ? sectionOptions : [""]);
-  const currentScenarioEntryValue = document.getElementById("complexScenarioProductFilter")?.value || "";
-  setSelectValueSafe("complexScenarioProductFilter", currentScenarioEntryValue || sectionOptions[0] || "");
-  populateSelect("complexSectionProduct", productGroups);
+    populateSelect("complexSectionProduct", productGroups);
   setSelectValueSafe("complexSectionProduct", currentSectionValue || (productGroups[0] || ""));
 }
 function renderComplexProductSections() {
@@ -404,7 +401,7 @@ function getCurrentComplexComponentSnapshot() {
     productGroup: document.getElementById("complexProductGroup")?.value || "",
     riskDomain: document.getElementById("complexRiskDomain")?.value || "",
     primaryProduct: document.getElementById("complexPrimaryProduct")?.value || "",
-    selectedProductSection: document.getElementById("complexScenarioProductFilter")?.value || document.getElementById("complexPrimaryProduct")?.value || "",
+    selectedProductSection: document.getElementById("complexPrimaryProduct")?.value || "",
     primaryRegulation: document.getElementById("complexPrimaryRegulation")?.value || "",
     scenarioOwner: document.getElementById("complexScenarioOwner")?.value || "",
     identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
@@ -440,7 +437,6 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexProductGroup").value = component.productGroup || products[0] || "";
   document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
   document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
-  setSelectValueSafe("complexScenarioProductFilter", component.selectedProductSection || component.primaryProduct || "");
   document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
   document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
@@ -1813,14 +1809,6 @@ function wireInputs() {
   document.getElementById("addComplexProductSectionBtn")?.addEventListener("click", addComplexProductSection);
   document.getElementById("addRiskItemBtn").addEventListener("click", addRiskItem);
   document.getElementById("addComplexScenarioBtn")?.addEventListener("click", handleAddComplexScenario);
-  document.getElementById("complexScenarioProductFilter")?.addEventListener("change", (event) => {
-    const value = event.target?.value || "";
-    if (value) {
-      setSelectValueSafe("complexPrimaryProduct", value);
-      const statusEl = document.getElementById("complexScenarioProductStatus");
-      if (statusEl) statusEl.textContent = `New scenario row will be added under Product/Service/Area: ${value}.`;
-    }
-  });
   document.getElementById("addSingleMitigationBtn").addEventListener("click", () => addMitigation("single"));
   document.getElementById("addComplexMitigationBtn").addEventListener("click", () => addMitigation("complex"));
   document.getElementById("addSingleInsuranceBtn")?.addEventListener("click", () => addInsurance("single"));
@@ -2694,9 +2682,9 @@ function handleAddComplexScenario(event) {
     event.preventDefault();
     event.stopPropagation();
   }
-  const selectedProductSection = document.getElementById("complexScenarioProductFilter")?.value || "";
+  const selectedProductSection = document.getElementById("complexSectionProduct")?.value || document.getElementById("complexPrimaryProduct")?.value || "";
   if (!selectedProductSection) {
-    alert("Add and select a Product Section before adding the scenario component.");
+    alert("Add or select the Product/Service/Area in Product Section Entry before adding the scenario component.");
     return;
   }
   setSelectValueSafe("complexPrimaryProduct", selectedProductSection);

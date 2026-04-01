@@ -31,7 +31,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.38</h4>
+<h4>Phase 20.1.39</h4>
 <p>Complex Scenario flow now uses Product Sections first, then scenario rows under each Product/Service/Area, followed by the selected scenario details and supporting tables.</p>
 </div>
 </aside>
@@ -316,7 +316,7 @@
 <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
 </div>
 <div class="card">
-<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span></div>
+<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span><button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button></div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Product/Service/Area</label>
@@ -348,12 +348,8 @@
 <div class="card">
 <div class="card-header"><h3>Overall Scenario Components</h3><span>Each Product/Service/Area can carry multiple scenarios. Add the scenario row here, then complete the selected scenario details below.</span></div>
 <div class="builder-actions">
-<div>
-<label class="help-label" data-help="Choose the Product Section / Product, Service, or Area that the next scenario component belongs to.">Parent Product/Service/Area</label>
-<select id="complexScenarioProductFilter"></select>
-</div>
 <button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
-<div class="note-box" id="complexScenarioProductStatus">Select a Product Section here, add the scenario row, then complete the selected scenario details in the section below.</div>
+<div class="note-box" id="complexScenarioProductStatus">Add the scenario row here for the Product/Service/Area already selected above, then complete the selected scenario details in the section below.</div>
 </div>
 <div class="table-wrap">
 <table>
@@ -364,9 +360,6 @@
 </div>
 <div class="card" id="complexScenarioDetailsCard">
 <div class="card-header"><h3>Scenario Details for Selected Scenario</h3><span>These fields apply to the selected scenario row under the chosen Product/Service/Area</span></div>
-<div class="builder-actions">
-<button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
-</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
@@ -651,7 +644,7 @@
 <input id="betaScenarioId" placeholder="Generated on save" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall product group or organizational group.">Product Group</label>
+<label class="help-label" data-help="Overall reporting line or organizational group. Values align to the Reporting Lines list used on the other scenario screens.">Reporting Lines</label>
 <select id="betaProductGroup"></select>
 </div>
 <div>

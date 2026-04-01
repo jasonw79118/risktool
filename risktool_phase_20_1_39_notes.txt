@@ -1,0 +1,14 @@
+RISKTOOL PHASE 20.1.39 NOTES
+
+Changes included in this pack:
+- Removed the Parent Product/Service/Area selector from Overall Scenario Components.
+- Add Scenario now inherits the Product/Service/Area from the Product Section Entry area.
+- Moved Load Test Scenario beside the Product Section Entry title.
+- Beta Scenario label changed from Product Group to Reporting Lines for UI consistency.
+- Updated visible phase to 20.1.39.
+
+Files included:
+- index.html
+- app.js
+- risktool_phase_20_1_39_notes.txt
+- risktool_handoff_phase_20_1_35.txt
