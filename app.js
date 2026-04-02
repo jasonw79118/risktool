@@ -645,8 +645,8 @@ function refreshLibraries() {
   populateSelect("complexScenarioStatus", scenarioStatuses);
   populateSelect("singleScenarioSource", scenarioSources);
   populateSelect("complexScenarioSource", scenarioSources);
-  populateSelect("singlePrimaryProduct", products);
-  populateSelect("complexPrimaryProduct", products);
+  populateSelect("singlePrimaryProduct", productGroups);
+  populateSelect("complexPrimaryProduct", productGroups);
   populateSelect("singlePrimaryRegulation", regulations);
   populateSelect("complexPrimaryRegulation", regulations);
   populateSelect("riskItemDomain", riskDomains);
