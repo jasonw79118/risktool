@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.41</h4>
-<p>Reporting Lines now correctly use the Reporting Lines category, and Primary Product / Service now uses Product Groups in Single and Complex Scenario.</p>
+<h4>Phase 20.1.35</h4>
+<p>Reporting Lines now map to Category Admin, Product/Service/Area maps to Product Groups, and Complex Scenario order is corrected.</p>
 </div>
 </aside>
 <main class="main">
@@ -315,48 +315,11 @@
 <h2>Complex Scenario Builder</h2>
 <p>Use this for a broader project, business area, or product family with multiple risk items.</p>
 </div>
-
 <div class="card">
-<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span><button class="btn btn-secondary" id="loadComplexTestBtn" type="button">Load Test Scenario</button></div>
-<div class="form-grid">
-<div>
-<label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Product/Service/Area</label>
-<select id="complexSectionProduct"></select>
-</div>
-<div>
-<label class="help-label" data-help="Weight used to compare this Product, Service, or Area against other Product Sections in the same complex scenario.">Product Section Weight (1-5)</label>
-<input id="complexSectionWeight" min="1" max="5" type="number" value="3"/>
-</div>
-<div class="full-span">
-<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Product Section Notes</label>
-<input id="complexSectionNotes" placeholder="Describe this product / service / area and why it is in scope." type="text"/>
-</div>
-</div>
 <div class="builder-actions">
-<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
-<div class="note-box" id="complexProductSectionStatus">Define one or more Product Sections before assigning risk items.</div>
+<button class="btn btn-secondary" id="loadComplexTestBtn">Load Test Scenario</button>
+<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
 </div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Product Section Table</h3><span>Product / Service / Area list for this complex scenario</span></div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Product/Service/Area</th><th>Weight</th><th>Notes</th><th>Actions</th></tr></thead>
-<tbody id="complexProductSectionsBody"></tbody>
-</table>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Overall Scenario Components</h3><span>Scenario ID opens that component for editing</span></div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Reporting Lines</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
-<tbody id="complexScenarioComponentsBody"></tbody>
-</table>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Scenario Details for Selected Scenario</h3><span>Complete the scenario, then add it to Overall Scenario Components</span></div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
@@ -456,9 +419,36 @@
 <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
 <textarea id="complexScenarioDescription" placeholder="Describe the broader project, business area, or problem set." rows="4"></textarea>
 </div>
-<div class="builder-actions">
-<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
 </div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Product/Service/Area</label>
+<select id="complexSectionProduct"></select>
+</div>
+<div>
+<label class="help-label" data-help="Weight used to compare this Product, Service, or Area against other Product Sections in the same complex scenario.">Product Section Weight (1-5)</label>
+<input id="complexSectionWeight" min="1" max="5" type="number" value="3"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Product Section Notes</label>
+<input id="complexSectionNotes" placeholder="Describe this product / service / area and why it is in scope." type="text"/>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
+<div class="note-box" id="complexProductSectionStatus">Define one or more Product Sections before assigning risk items.</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Product Section Table</h3><span>Product / Service / Area list for this complex scenario</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Product/Service/Area</th><th>Weight</th><th>Notes</th><th>Actions</th></tr></thead>
+<tbody id="complexProductSectionsBody"></tbody>
+</table>
 </div>
 </div>
 <div class="card">
@@ -494,7 +484,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
+<div class="card-header"><h3>Risk Item Table</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
 <div class="table-wrap">
 <table>
 <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
@@ -556,7 +546,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Mitigation Factors</h3><span>Entry</span></div>
+<div class="card-header"><h3>Mitigation Entry</h3><span>Repeatable</span></div>
 <div class="form-grid">
 <div><label>Mitigation Title</label><input id="complexMitTitle" placeholder="e.g. Control redesign" type="text"/></div>
 <div><label>Owner</label><input id="complexMitOwner" placeholder="e.g. Operations" type="text"/></div>
@@ -620,7 +610,15 @@
 </table>
 </div>
 </div>
-
+<div class="card">
+<div class="card-header"><h3>Overall Scenario Components</h3><span>Scenario ID opens that component for editing</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Reporting Lines</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
+<tbody id="complexScenarioComponentsBody"></tbody>
+</table>
+</div>
+</div>
 </section>
 <section class="view" id="view-beta">
 <div class="section-header">

@@ -1,0 +1,18 @@
+RISKTOOL PHASE 20.1.45 NOTES
+
+Corrective baseline rebuild from the latest uploaded files.
+
+Included:
+- restored forward version progression to 20.1.45
+- fixed Single Scenario loader mapping:
+  - Reporting Lines stays on Reporting Lines
+  - Primary Product / Service stays on Product Groups
+- fixed Complex Scenario loader mapping:
+  - Reporting Lines stays on Reporting Lines
+  - Primary Product / Service stays on Product Groups
+- added Currently Editing Scenario indicator above Scenario Details
+- added selected-row highlighting in Overall Scenario Components
+- wording cleanup:
+  - Complex Scenario Risk Items -> Risk Item Table
+  - Mitigation Factors -> Mitigation Entry
+- Beta Scenario label updated to Reporting Lines
