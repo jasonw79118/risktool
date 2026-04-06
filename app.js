@@ -1358,7 +1358,7 @@ function loadBetaTestScenario() {
 function promoteBetaScenario() {
   const payload = getBetaPayload();
   document.getElementById("singleScenarioName").value = payload.name || "";
-  setSelectValueSafe("singleProductGroup", payload.productGroup || products[0] || "");
+  setSelectValueSafe("singleProductGroup", payload.productGroup || productGroups[0] || "");
   setSelectValueSafe("singleRiskDomain", payload.riskDomain || riskDomains[0] || "");
   document.getElementById("singleScenarioOwner").value = payload.scenarioOwner || "";
   document.getElementById("singleIdentifiedDate").value = payload.identifiedDate || "";
@@ -1466,11 +1466,11 @@ function openScenario(id) {
   if (s.mode === "single") {
     document.getElementById("singleScenarioId").value = s.id || "";
     document.getElementById("singleScenarioName").value = s.name || "";
-    setSelectValueSafe("singleProductGroup", s.productGroup || products[0] || "");
+    document.getElementById("singleProductGroup").value = s.productGroup || productGroups[0] || "";
     document.getElementById("singleRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("singleScenarioStatus").value = s.scenarioStatus || "Open";
     document.getElementById("singleScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    setSelectValueSafe("singlePrimaryProduct", s.primaryProduct || productGroups[0] || "");
+    document.getElementById("singlePrimaryProduct").value = s.primaryProduct || products[0] || "";
     document.getElementById("singlePrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("singleScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("singleIdentifiedDate").value = s.identifiedDate || "";
@@ -1509,7 +1509,7 @@ function openScenario(id) {
   } else if (s.mode === "beta") {
     document.getElementById("betaScenarioId").value = s.id || "";
     document.getElementById("betaScenarioName").value = s.name || "";
-    setSelectValueSafe("betaProductGroup", s.productGroup || products[0] || "");
+    setSelectValueSafe("betaProductGroup", s.productGroup || productGroups[0] || "");
     setSelectValueSafe("betaRiskDomain", s.riskDomain || riskDomains[0] || "");
     setSelectValueSafe("betaScenarioStatus", s.scenarioStatus || "Draft");
     document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || s.primaryProduct || "";
@@ -1536,11 +1536,11 @@ function openScenario(id) {
     complexScenarioComponents = Array.isArray(s.components) ? s.components.map(component => ({ ...component })) : [];
     document.getElementById("complexScenarioId").value = s.id || "";
     document.getElementById("complexScenarioName").value = s.name || "";
-    setSelectValueSafe("complexProductGroup", s.productGroup || products[0] || "");
+    document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
     document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
     document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    setSelectValueSafe("complexPrimaryProduct", s.primaryProduct || productGroups[0] || "");
+    document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
     document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
@@ -1900,7 +1900,7 @@ function wireInputs() {
 function renderManual() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = getPolishedManualHtml();
+  manual.innerHTML = (typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml();
 }
 
 
@@ -2023,7 +2023,7 @@ async function downloadBoardPacketDocx() {
     addSpacer();
 
     if (s.mode === "complex" && Array.isArray(s.items) && s.items.length) {
-      children.push(new Paragraph({ text: "Risk Item Table", heading: HeadingLevel.HEADING_2 }));
+      children.push(new Paragraph({ text: "Complex Scenario Risk Items", heading: HeadingLevel.HEADING_2 }));
       s.items.forEach((item, i) => {
         children.push(new Paragraph({ text: `${i + 1}. ${item.name}`, heading: HeadingLevel.HEADING_3 }));
         children.push(new Paragraph(`Risk Domain: ${item.domain || ""} | Product / Service: ${item.product || ""} | Regulation: ${item.regulation || ""}`));
@@ -2057,7 +2057,7 @@ async function downloadBoardPacketDocx() {
     }
 
     if (Array.isArray(s.mitigations) && s.mitigations.length) {
-      children.push(new Paragraph({ text: "Mitigation Entry", heading: HeadingLevel.HEADING_2 }));
+      children.push(new Paragraph({ text: "Mitigation Factors", heading: HeadingLevel.HEADING_2 }));
       s.mitigations.forEach((m, i) => {
         children.push(new Paragraph({ text: `${i + 1}. ${m.title || m.name || "Mitigation"}`, heading: HeadingLevel.HEADING_3 }));
         children.push(new Paragraph(`Owner: ${m.owner || ""} | Status: ${m.status || ""} | Attachment: ${m.attachment || ""}`));
@@ -2407,7 +2407,7 @@ function restoreAllDefaultLibraries() {
 function forceManualContent() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = getPolishedManualHtml();
+  manual.innerHTML = (typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml();
 }
 
 
@@ -4415,4 +4415,89 @@ function getPolishedManualHtml() {
       </div>
     </div>
   `;
+}
+
+
+/* =========================
+   PHASE 20.1.45
+   Information Buildout Phase 1
+========================= */
+
+function getExpandedPolishedManualHtml() {
+  const existingBase = (typeof getPolishedManualHtml === "function")
+    ? getPolishedManualHtml()
+    : `
+      <div class="card mt-3">
+        <div class="card-header">Information / User Guide</div>
+        <div class="card-body">
+          <h4>Getting Started</h4>
+          <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
+        </div>
+      </div>
+    `;
+
+  const complexScenarioGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Complex Scenario Structure</div>
+      <div class="card-body">
+        <p><strong>Complex Scenario hierarchy:</strong> Product/Service/Area → Scenario → Risks / Insurance / Hard Facts / Evidence / Mitigation / Accepted Risk → Overall Scenario Components.</p>
+        <p>Start by defining the Product Section. Then add one or more scenarios beneath that product or service area. Each scenario carries its own records for risk items, insurance, evidence, mitigation, and accepted risk decisions.</p>
+        <p>The Overall Scenario Components table is the rollup index for the complex assessment. Select a scenario from that table to continue editing that scenario’s details and supporting records.</p>
+      </div>
+    </div>
+  `;
+
+  const exampleGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Worked Examples</div>
+      <div class="card-body">
+        <h4>Single Scenario Example</h4>
+        <p>A disclosure control weakness affecting one product can be modeled as a Single Scenario when the issue is discrete and can be evaluated as one contained event.</p>
+
+        <h4>Complex Scenario Example</h4>
+        <p>A deposit modernization project may use one Product/Service/Area section with several scenarios beneath it, such as implementation risk, vendor risk, operational readiness risk, and customer-impact risk. Each scenario can hold its own evidence, insurance, mitigation, and accepted-risk decisions.</p>
+
+        <h4>Evidence-Driven Example</h4>
+        <p>When prior incidents, complaints, audit findings, or loss events exist, add those as Hard Facts / Evidence so the model is grounded in observed experience rather than judgment alone.</p>
+
+        <h4>Insurance Effectiveness Example</h4>
+        <p>When insurance exists, compare premium, deductible, and coverage amount to modeled loss ranges to determine whether the policy meaningfully reduces residual financial exposure.</p>
+      </div>
+    </div>
+  `;
+
+  const monteCarloGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Monte Carlo and Random Outcomes</div>
+      <div class="card-body">
+        <p>This tool uses randomized scenario runs to estimate a distribution of possible annual losses rather than one fixed number. The purpose is to support better decision-making under uncertainty.</p>
+        <p><strong>P10</strong> shows a lower-end result, <strong>P50</strong> represents the middle or most typical range, and <strong>P90</strong> shows a severe but still plausible upper-end outcome.</p>
+        <p>The random outcomes table documents each simulated run so the report package can show how outcomes varied across the selected number of scenarios.</p>
+      </div>
+    </div>
+  `;
+
+  const faqGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Frequently Asked Questions</div>
+      <div class="card-body">
+        <h4>When should I use Single vs Complex vs Beta?</h4>
+        <p>Use Single for one contained issue. Use Complex when several related scenarios belong to one larger assessment. Use Beta when you want the beta-distribution style view for min / most likely / max outcomes.</p>
+
+        <h4>What is a Reporting Line?</h4>
+        <p>A Reporting Line is the organizational ownership view used for oversight and reporting. It is separate from Product Groups, which describe the product, service, or area being assessed.</p>
+
+        <h4>What is the difference between Product Groups and Reporting Lines?</h4>
+        <p>Product Groups identify the product or service area. Reporting Lines identify the organizational line or management reporting structure that owns or oversees the scenario.</p>
+
+        <h4>How should I interpret the Overall Scenario Components table?</h4>
+        <p>It is the rollup list of scenarios within the complex assessment. Each row represents one scenario that can be opened, edited, and reported separately while still belonging to the larger complex grouping.</p>
+
+        <h4>When should risk be accepted instead of mitigated?</h4>
+        <p>Risk acceptance should be used when management or governance intentionally retains exposure after reviewing severity, controls, evidence, insurance, and cost-effectiveness. The decision should be documented clearly.</p>
+      </div>
+    </div>
+  `;
+
+  return existingBase + complexScenarioGuide + exampleGuide + monteCarloGuide + faqGuide;
 }
