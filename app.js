@@ -168,26 +168,6 @@ let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
 
-function updateComplexScenarioSelectionUI() {
-  const indicator = document.getElementById("currentComplexEditingIndicator");
-  const activeComponent = complexScenarioComponents.find(x => String(x.componentId || "") === String(activeComplexComponentId || ""));
-  if (indicator) {
-    const label = activeComponent
-      ? `${activeComponent.scenarioName || "Unnamed Complex Component"} (${activeComponent.componentId || ""})`
-      : "New / Unsaved Scenario";
-    indicator.textContent = `Currently Editing Scenario: ${label}`;
-  }
-  const tbody = document.getElementById("complexScenarioComponentsBody");
-  if (!tbody) return;
-  tbody.querySelectorAll("tr[data-component-id]").forEach((row) => {
-    const isActive = String(row.dataset.componentId || "") === String(activeComplexComponentId || "");
-    row.style.background = isActive ? "#eef4ff" : "";
-    row.style.outline = isActive ? "2px solid #24459a" : "";
-    row.style.outlineOffset = isActive ? "-2px" : "";
-  });
-}
-
-
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" })
@@ -452,11 +432,11 @@ function applyComplexComponentSnapshot(component) {
   syncComplexComponentIdField(false);
   syncComplexComponentIdField();
   document.getElementById("complexScenarioName").value = component.scenarioName || "";
-  setSelectValueSafe("complexScenarioStatus", component.scenarioStatus || scenarioStatuses[0] || "Open");
-  setSelectValueSafe("complexProductGroup", component.productGroup || products[0] || "");
-  setSelectValueSafe("complexRiskDomain", component.riskDomain || riskDomains[0] || "");
-  setSelectValueSafe("complexPrimaryProduct", component.primaryProduct || productGroups[0] || "");
-  setSelectValueSafe("complexPrimaryRegulation", component.primaryRegulation || regulations[0] || "");
+  document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
+  document.getElementById("complexProductGroup").value = component.productGroup || products[0] || "";
+  document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
+  document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
+  document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
   document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
   document.getElementById("complexScenarioDescription").value = component.description || "";
@@ -497,11 +477,10 @@ function renderComplexScenarioComponents() {
   if (!tbody) return;
   if (!complexScenarioComponents.length) {
     tbody.innerHTML = '<tr><td colspan="7">No component scenarios added yet.</td></tr>';
-    updateComplexScenarioSelectionUI();
     return;
   }
   tbody.innerHTML = complexScenarioComponents.map((component, idx) => `
-    <tr data-component-id="${escapeHtml(component.componentId || "")}">
+    <tr>
       <td><button class="scenario-link" data-open-complex-component="${escapeHtml(component.componentId || "")}">${escapeHtml(component.componentId || `COMP-${String(idx + 1).padStart(6, "0")}`)}</button></td>
       <td>${escapeHtml(component.scenarioName || "Unnamed Complex Component")}</td>
       <td>${escapeHtml(component.productGroup || "")}</td>
@@ -512,13 +491,11 @@ function renderComplexScenarioComponents() {
     </tr>
   `).join("");
   tbody.querySelectorAll("[data-open-complex-component]").forEach(btn => btn.addEventListener("click", () => openComplexScenarioComponent(btn.dataset.openComplexComponent)));
-  updateComplexScenarioSelectionUI();
 }
 function syncComplexComponentIdField(forceNew = false) {
   const field = document.getElementById("complexComponentId");
   if (forceNew || !activeComplexComponentId) activeComplexComponentId = generateComponentId();
   if (field) field.value = activeComplexComponentId || "";
-  updateComplexScenarioSelectionUI();
   return activeComplexComponentId || "";
 }
 function addComplexScenarioComponent() {
@@ -4415,4 +4392,15 @@ function getPolishedManualHtml() {
       </div>
     </div>
   `;
+}
+
+
+// Phase 20.1.44 - Ensure scenario ownership isolation
+function ensureScenarioOwnershipIsolation(componentId) {
+  if (!componentId) return;
+  if (typeof riskItems !== "undefined") riskItems = riskItems.filter(x => x.componentId === componentId);
+  if (typeof complexInsurance !== "undefined") complexInsurance = complexInsurance.filter(x => x.componentId === componentId);
+  if (typeof complexHardFacts !== "undefined") complexHardFacts = complexHardFacts.filter(x => x.componentId === componentId);
+  if (typeof complexMitigations !== "undefined") complexMitigations = complexMitigations.filter(x => x.componentId === componentId);
+  if (typeof complexAcceptedRisks !== "undefined") complexAcceptedRisks = complexAcceptedRisks.filter(x => x.componentId === componentId);
 }

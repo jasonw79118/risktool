@@ -1,0 +1,7 @@
+RISKTOOL PHASE 20.1.44 NOTES
+
+Stabilization Phase
+
+- Added scenario ownership isolation safeguard
+- Prevents cross-scenario data bleed
+- Prepares system for save/reopen validation
