@@ -1,0 +1,10 @@
+RISKTOOL PHASE 20.1.42 NOTES
+
+Changes included:
+- Fixed Complex Scenario loader so Primary Product / Service uses Product Groups after reopen/load
+- Fixed related Complex Scenario select restoration using setSelectValueSafe
+- Fixed Single Scenario loader fallback where present so Primary Product / Service uses Product Groups
+- Sidebar phase updated to 20.1.42
+- Minor wording cleanup:
+  - Complex Scenario Risk Items -> Risk Item Table
+  - Mitigation Factors -> Mitigation Entry

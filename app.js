@@ -432,11 +432,11 @@ function applyComplexComponentSnapshot(component) {
   syncComplexComponentIdField(false);
   syncComplexComponentIdField();
   document.getElementById("complexScenarioName").value = component.scenarioName || "";
-  document.getElementById("complexScenarioStatus").value = component.scenarioStatus || scenarioStatuses[0] || "Open";
-  document.getElementById("complexProductGroup").value = component.productGroup || products[0] || "";
-  document.getElementById("complexRiskDomain").value = component.riskDomain || riskDomains[0] || "";
-  document.getElementById("complexPrimaryProduct").value = component.primaryProduct || products[0] || "";
-  document.getElementById("complexPrimaryRegulation").value = component.primaryRegulation || regulations[0] || "";
+  setSelectValueSafe("complexScenarioStatus", component.scenarioStatus || scenarioStatuses[0] || "Open");
+  setSelectValueSafe("complexProductGroup", component.productGroup || products[0] || "");
+  setSelectValueSafe("complexRiskDomain", component.riskDomain || riskDomains[0] || "");
+  setSelectValueSafe("complexPrimaryProduct", component.primaryProduct || productGroups[0] || "");
+  setSelectValueSafe("complexPrimaryRegulation", component.primaryRegulation || regulations[0] || "");
   document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
   document.getElementById("complexScenarioDescription").value = component.description || "";
