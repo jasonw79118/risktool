@@ -491,7 +491,6 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexReviewDate").value = component.acceptedRisk?.reviewDate || "";
   document.getElementById("complexDecisionLogic").value = component.acceptedRisk?.decisionLogic || "";
   updateInherentScores();
-  updateComplexScenarioSelectionUI();
 }
 function renderComplexScenarioComponents() {
   const tbody = document.getElementById("complexScenarioComponentsBody");
@@ -669,8 +668,8 @@ function refreshLibraries() {
   populateSelect("complexScenarioStatus", scenarioStatuses);
   populateSelect("singleScenarioSource", scenarioSources);
   populateSelect("complexScenarioSource", scenarioSources);
-  populateSelect("singlePrimaryProduct", products);
-  populateSelect("complexPrimaryProduct", products);
+  populateSelect("singlePrimaryProduct", productGroups);
+  populateSelect("complexPrimaryProduct", productGroups);
   populateSelect("singlePrimaryRegulation", regulations);
   populateSelect("complexPrimaryRegulation", regulations);
   populateSelect("riskItemDomain", riskDomains);
@@ -1467,11 +1466,11 @@ function openScenario(id) {
   if (s.mode === "single") {
     document.getElementById("singleScenarioId").value = s.id || "";
     document.getElementById("singleScenarioName").value = s.name || "";
-    setSelectValueSafe("singleProductGroup", s.productGroup || products[0] || "");
+    document.getElementById("singleProductGroup").value = s.productGroup || productGroups[0] || "";
     document.getElementById("singleRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("singleScenarioStatus").value = s.scenarioStatus || "Open";
     document.getElementById("singleScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    setSelectValueSafe("singlePrimaryProduct", s.primaryProduct || productGroups[0] || "");
+    document.getElementById("singlePrimaryProduct").value = s.primaryProduct || products[0] || "";
     document.getElementById("singlePrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("singleScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("singleIdentifiedDate").value = s.identifiedDate || "";
@@ -1539,10 +1538,10 @@ function openScenario(id) {
     document.getElementById("complexScenarioName").value = s.name || "";
     document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
     document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
-    setSelectValueSafe("complexScenarioStatus", s.scenarioStatus || "Open");
-    setSelectValueSafe("complexScenarioSource", s.scenarioSource || scenarioSources[0] || "");
-    setSelectValueSafe("complexPrimaryProduct", s.primaryProduct || productGroups[0] || "");
-    setSelectValueSafe("complexPrimaryRegulation", s.primaryRegulation || regulations[0] || "");
+    document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
+    document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
+    document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
+    document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
