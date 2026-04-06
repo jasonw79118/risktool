@@ -1,7 +1,19 @@
 RISKTOOL PHASE 20.1.44 NOTES
 
-Stabilization Phase
+Built from the user-provided 20.1.43 baseline only.
 
-- Added scenario ownership isolation safeguard
-- Prevents cross-scenario data bleed
-- Prepares system for save/reopen validation
+Included:
+- restored forward phase progression to 20.1.44
+- fixed Single Scenario reopen/load mapping:
+  - Reporting Lines uses Reporting Lines category
+  - Primary Product / Service uses Product Groups
+- fixed Complex Scenario reopen/load mapping:
+  - Reporting Lines uses Reporting Lines category
+  - Primary Product / Service uses Product Groups
+- fixed Beta Scenario reopen/load mapping:
+  - Reporting Lines uses Reporting Lines category
+- wording cleanup:
+  - Complex Scenario Risk Items -> Risk Item Table
+  - Mitigation Factors -> Mitigation Entry
+
+No layout reordering was done in this pack.

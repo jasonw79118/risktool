@@ -1358,7 +1358,7 @@ function loadBetaTestScenario() {
 function promoteBetaScenario() {
   const payload = getBetaPayload();
   document.getElementById("singleScenarioName").value = payload.name || "";
-  setSelectValueSafe("singleProductGroup", payload.productGroup || productGroups[0] || "");
+  setSelectValueSafe("singleProductGroup", payload.productGroup || products[0] || "");
   setSelectValueSafe("singleRiskDomain", payload.riskDomain || riskDomains[0] || "");
   document.getElementById("singleScenarioOwner").value = payload.scenarioOwner || "";
   document.getElementById("singleIdentifiedDate").value = payload.identifiedDate || "";
@@ -1466,11 +1466,11 @@ function openScenario(id) {
   if (s.mode === "single") {
     document.getElementById("singleScenarioId").value = s.id || "";
     document.getElementById("singleScenarioName").value = s.name || "";
-    document.getElementById("singleProductGroup").value = s.productGroup || productGroups[0] || "";
+    setSelectValueSafe("singleProductGroup", s.productGroup || products[0] || "");
     document.getElementById("singleRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("singleScenarioStatus").value = s.scenarioStatus || "Open";
     document.getElementById("singleScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    document.getElementById("singlePrimaryProduct").value = s.primaryProduct || products[0] || "";
+    setSelectValueSafe("singlePrimaryProduct", s.primaryProduct || productGroups[0] || "");
     document.getElementById("singlePrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("singleScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("singleIdentifiedDate").value = s.identifiedDate || "";
@@ -1509,7 +1509,7 @@ function openScenario(id) {
   } else if (s.mode === "beta") {
     document.getElementById("betaScenarioId").value = s.id || "";
     document.getElementById("betaScenarioName").value = s.name || "";
-    setSelectValueSafe("betaProductGroup", s.productGroup || productGroups[0] || "");
+    setSelectValueSafe("betaProductGroup", s.productGroup || products[0] || "");
     setSelectValueSafe("betaRiskDomain", s.riskDomain || riskDomains[0] || "");
     setSelectValueSafe("betaScenarioStatus", s.scenarioStatus || "Draft");
     document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || s.primaryProduct || "";
@@ -1536,11 +1536,11 @@ function openScenario(id) {
     complexScenarioComponents = Array.isArray(s.components) ? s.components.map(component => ({ ...component })) : [];
     document.getElementById("complexScenarioId").value = s.id || "";
     document.getElementById("complexScenarioName").value = s.name || "";
-    document.getElementById("complexProductGroup").value = s.productGroup || productGroups[0] || "";
+    setSelectValueSafe("complexProductGroup", s.productGroup || products[0] || "");
     document.getElementById("complexRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("complexScenarioStatus").value = s.scenarioStatus || "Open";
     document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
+    setSelectValueSafe("complexPrimaryProduct", s.primaryProduct || productGroups[0] || "");
     document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
@@ -2023,7 +2023,7 @@ async function downloadBoardPacketDocx() {
     addSpacer();
 
     if (s.mode === "complex" && Array.isArray(s.items) && s.items.length) {
-      children.push(new Paragraph({ text: "Complex Scenario Risk Items", heading: HeadingLevel.HEADING_2 }));
+      children.push(new Paragraph({ text: "Risk Item Table", heading: HeadingLevel.HEADING_2 }));
       s.items.forEach((item, i) => {
         children.push(new Paragraph({ text: `${i + 1}. ${item.name}`, heading: HeadingLevel.HEADING_3 }));
         children.push(new Paragraph(`Risk Domain: ${item.domain || ""} | Product / Service: ${item.product || ""} | Regulation: ${item.regulation || ""}`));
@@ -2057,7 +2057,7 @@ async function downloadBoardPacketDocx() {
     }
 
     if (Array.isArray(s.mitigations) && s.mitigations.length) {
-      children.push(new Paragraph({ text: "Mitigation Factors", heading: HeadingLevel.HEADING_2 }));
+      children.push(new Paragraph({ text: "Mitigation Entry", heading: HeadingLevel.HEADING_2 }));
       s.mitigations.forEach((m, i) => {
         children.push(new Paragraph({ text: `${i + 1}. ${m.title || m.name || "Mitigation"}`, heading: HeadingLevel.HEADING_3 }));
         children.push(new Paragraph(`Owner: ${m.owner || ""} | Status: ${m.status || ""} | Attachment: ${m.attachment || ""}`));
