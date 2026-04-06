@@ -168,6 +168,26 @@ let activeComplexComponentId = "";
 let complexGroupCounter = 1;
 let componentCounter = 1;
 
+function updateComplexScenarioSelectionUI() {
+  const indicator = document.getElementById("currentComplexEditingIndicator");
+  const activeComponent = complexScenarioComponents.find(x => String(x.componentId || "") === String(activeComplexComponentId || ""));
+  if (indicator) {
+    const label = activeComponent
+      ? `${activeComponent.scenarioName || "Unnamed Complex Component"} (${activeComponent.componentId || ""})`
+      : "New / Unsaved Scenario";
+    indicator.textContent = `Currently Editing Scenario: ${label}`;
+  }
+  const tbody = document.getElementById("complexScenarioComponentsBody");
+  if (!tbody) return;
+  tbody.querySelectorAll("tr[data-component-id]").forEach((row) => {
+    const isActive = String(row.dataset.componentId || "") === String(activeComplexComponentId || "");
+    row.style.background = isActive ? "#eef4ff" : "";
+    row.style.outline = isActive ? "2px solid #24459a" : "";
+    row.style.outlineOffset = isActive ? "-2px" : "";
+  });
+}
+
+
 function sortedUnique(items) {
   return [...new Set(items.map(x => String(x || "").trim()).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" })
@@ -477,10 +497,11 @@ function renderComplexScenarioComponents() {
   if (!tbody) return;
   if (!complexScenarioComponents.length) {
     tbody.innerHTML = '<tr><td colspan="7">No component scenarios added yet.</td></tr>';
+    updateComplexScenarioSelectionUI();
     return;
   }
   tbody.innerHTML = complexScenarioComponents.map((component, idx) => `
-    <tr>
+    <tr data-component-id="${escapeHtml(component.componentId || "")}">
       <td><button class="scenario-link" data-open-complex-component="${escapeHtml(component.componentId || "")}">${escapeHtml(component.componentId || `COMP-${String(idx + 1).padStart(6, "0")}`)}</button></td>
       <td>${escapeHtml(component.scenarioName || "Unnamed Complex Component")}</td>
       <td>${escapeHtml(component.productGroup || "")}</td>
@@ -491,11 +512,13 @@ function renderComplexScenarioComponents() {
     </tr>
   `).join("");
   tbody.querySelectorAll("[data-open-complex-component]").forEach(btn => btn.addEventListener("click", () => openComplexScenarioComponent(btn.dataset.openComplexComponent)));
+  updateComplexScenarioSelectionUI();
 }
 function syncComplexComponentIdField(forceNew = false) {
   const field = document.getElementById("complexComponentId");
   if (forceNew || !activeComplexComponentId) activeComplexComponentId = generateComponentId();
   if (field) field.value = activeComplexComponentId || "";
+  updateComplexScenarioSelectionUI();
   return activeComplexComponentId || "";
 }
 function addComplexScenarioComponent() {

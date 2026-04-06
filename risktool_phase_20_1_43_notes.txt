@@ -1,0 +1,8 @@
+RISKTOOL PHASE 20.1.43 NOTES
+
+Changes included:
+- Complex Scenario: added a Currently Editing Scenario indicator above Scenario Details
+- Complex Scenario: added selected-row highlighting in Overall Scenario Components
+- Complex Scenario: selection state now refreshes when opening and rendering scenario rows
+- Preserved product field loading alignment from the prior phase
+- Sidebar phase updated to 20.1.43

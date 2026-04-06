@@ -31,8 +31,8 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.42</h4>
-<p>Fixed Single and Complex scenario product field loading so Primary Product / Service stays tied to Product Groups after load and reopen.</p>
+<h4>Phase 20.1.43</h4>
+<p>Complex Scenario now highlights the selected scenario and shows a Currently Editing Scenario indicator. Product field loading remains aligned to Reporting Lines and Product Groups.</p>
 </div>
 </aside>
 <main class="main">
@@ -357,6 +357,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Scenario Details for Selected Scenario</h3><span>Complete the scenario, then add it to Overall Scenario Components</span></div>
+<div class="note-box" id="currentComplexEditingIndicator">Currently Editing Scenario: New / Unsaved Scenario</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
@@ -494,7 +495,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Risk Item Table</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
+<div class="card-header"><h3>Complex Scenario Risk Items</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
 <div class="table-wrap">
 <table>
 <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th></tr></thead>
@@ -556,7 +557,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Mitigation Entry</h3><span>Repeatable</span></div>
+<div class="card-header"><h3>Mitigation Factors</h3><span>Entry</span></div>
 <div class="form-grid">
 <div><label>Mitigation Title</label><input id="complexMitTitle" placeholder="e.g. Control redesign" type="text"/></div>
 <div><label>Owner</label><input id="complexMitOwner" placeholder="e.g. Operations" type="text"/></div>
