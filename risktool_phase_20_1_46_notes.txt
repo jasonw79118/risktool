@@ -1,0 +1,14 @@
+RISKTOOL PHASE 20.1.46 NOTES
+
+Built forward from the current uploaded baseline.
+
+Included:
+- phase bumped to 20.1.46
+- Information buildout expanded further without changing the working scenario layout
+- added:
+  - Field Guide
+  - How to Read the Report
+  - Examiner-Ready Interpretation
+  - Additional Q&A
+- preserved current Complex Scenario structure and selection behavior
+- preserved current save/reopen field mapping fixes

@@ -1900,7 +1900,7 @@ function wireInputs() {
 function renderManual() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = (typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml();
+  manual.innerHTML = (typeof getExpandedPolishedManualHtmlV2 === "function") ? getExpandedPolishedManualHtmlV2() : ((typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml());
 }
 
 
@@ -2407,7 +2407,7 @@ function restoreAllDefaultLibraries() {
 function forceManualContent() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = (typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml();
+  manual.innerHTML = (typeof getExpandedPolishedManualHtmlV2 === "function") ? getExpandedPolishedManualHtmlV2() : ((typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml());
 }
 
 
@@ -4419,85 +4419,94 @@ function getPolishedManualHtml() {
 
 
 /* =========================
-   PHASE 20.1.45
-   Information Buildout Phase 1
+   PHASE 20.1.46
+   Information Buildout Phase 2
 ========================= */
+function getExpandedPolishedManualHtmlV2() {
+  const prior = (typeof getExpandedPolishedManualHtml === "function")
+    ? getExpandedPolishedManualHtml()
+    : ((typeof getPolishedManualHtml === "function") ? getPolishedManualHtml() : "");
 
-function getExpandedPolishedManualHtml() {
-  const existingBase = (typeof getPolishedManualHtml === "function")
-    ? getPolishedManualHtml()
-    : `
-      <div class="card mt-3">
-        <div class="card-header">Information / User Guide</div>
-        <div class="card-body">
-          <h4>Getting Started</h4>
-          <p>Use Single Scenario for one issue, event, or control concern. Use Complex Scenario when multiple related scenarios belong to the same project, business line, or department.</p>
-        </div>
-      </div>
-    `;
-
-  const complexScenarioGuide = `
+  const fieldGuide = `
     <div class="card mt-3">
-      <div class="card-header">Complex Scenario Structure</div>
+      <div class="card-header">Field Guide</div>
       <div class="card-body">
-        <p><strong>Complex Scenario hierarchy:</strong> Product/Service/Area → Scenario → Risks / Insurance / Hard Facts / Evidence / Mitigation / Accepted Risk → Overall Scenario Components.</p>
-        <p>Start by defining the Product Section. Then add one or more scenarios beneath that product or service area. Each scenario carries its own records for risk items, insurance, evidence, mitigation, and accepted risk decisions.</p>
-        <p>The Overall Scenario Components table is the rollup index for the complex assessment. Select a scenario from that table to continue editing that scenario’s details and supporting records.</p>
+        <h4>Reporting Lines</h4>
+        <p>Use Reporting Lines for organizational ownership, management oversight, and reporting structure. This is the ownership and reporting field, not the product taxonomy.</p>
+
+        <h4>Primary Product / Service</h4>
+        <p>Use Primary Product / Service to identify the product, service, or operational area most directly tied to the scenario. This should align to Product Groups.</p>
+
+        <h4>Hard Facts / Evidence</h4>
+        <p>Use this section for factual support such as loss history, complaint data, audit findings, external examples, enforcement actions, or internal incidents.</p>
+
+        <h4>Mitigation Entry</h4>
+        <p>Use mitigation entries to document the control actions being taken, who owns them, and implementation status.</p>
+
+        <h4>Accepted Risk</h4>
+        <p>Use accepted-risk records only when governance has intentionally decided to retain exposure. Document authority, rationale, review date, and decision logic clearly.</p>
       </div>
     </div>
   `;
 
-  const exampleGuide = `
+  const reportGuide = `
     <div class="card mt-3">
-      <div class="card-header">Worked Examples</div>
+      <div class="card-header">How to Read the Report</div>
       <div class="card-body">
-        <h4>Single Scenario Example</h4>
-        <p>A disclosure control weakness affecting one product can be modeled as a Single Scenario when the issue is discrete and can be evaluated as one contained event.</p>
+        <h4>Inherent Risk Score</h4>
+        <p>This is the starting risk level before control effectiveness is applied.</p>
 
-        <h4>Complex Scenario Example</h4>
-        <p>A deposit modernization project may use one Product/Service/Area section with several scenarios beneath it, such as implementation risk, vendor risk, operational readiness risk, and customer-impact risk. Each scenario can hold its own evidence, insurance, mitigation, and accepted-risk decisions.</p>
+        <h4>Residual Risk Score</h4>
+        <p>This is the remaining exposure after the stated control effectiveness percentage is applied.</p>
 
-        <h4>Evidence-Driven Example</h4>
-        <p>When prior incidents, complaints, audit findings, or loss events exist, add those as Hard Facts / Evidence so the model is grounded in observed experience rather than judgment alone.</p>
+        <h4>Expected Annual Loss</h4>
+        <p>This is the model’s expected annual financial impact across the simulated loss range.</p>
 
-        <h4>Insurance Effectiveness Example</h4>
-        <p>When insurance exists, compare premium, deductible, and coverage amount to modeled loss ranges to determine whether the policy meaningfully reduces residual financial exposure.</p>
+        <h4>Risk Reduction Value</h4>
+        <p>This estimates how much annual loss is reduced after mitigation assumptions are applied.</p>
+
+        <h4>Net Benefit / ROI</h4>
+        <p>This compares the modeled reduction in loss to mitigation cost so leadership can judge whether mitigation appears financially efficient.</p>
       </div>
     </div>
   `;
 
-  const monteCarloGuide = `
+  const examinerGuide = `
     <div class="card mt-3">
-      <div class="card-header">Monte Carlo and Random Outcomes</div>
+      <div class="card-header">Examiner-Ready Interpretation</div>
       <div class="card-body">
-        <p>This tool uses randomized scenario runs to estimate a distribution of possible annual losses rather than one fixed number. The purpose is to support better decision-making under uncertainty.</p>
-        <p><strong>P10</strong> shows a lower-end result, <strong>P50</strong> represents the middle or most typical range, and <strong>P90</strong> shows a severe but still plausible upper-end outcome.</p>
-        <p>The random outcomes table documents each simulated run so the report package can show how outcomes varied across the selected number of scenarios.</p>
+        <p>This tool is designed to support transparent, reviewable risk assessment rather than black-box outputs. Each scenario should show:</p>
+        <ul>
+          <li>what is being evaluated,</li>
+          <li>who owns it,</li>
+          <li>what evidence supports it,</li>
+          <li>what mitigation is planned,</li>
+          <li>whether risk is accepted,</li>
+          <li>and how the financial model supports the decision.</li>
+        </ul>
+        <p>The goal is not false precision. The goal is disciplined modeling, visible assumptions, and a defensible management record.</p>
       </div>
     </div>
   `;
 
-  const faqGuide = `
+  const qaGuide = `
     <div class="card mt-3">
-      <div class="card-header">Frequently Asked Questions</div>
+      <div class="card-header">Additional Q&amp;A</div>
       <div class="card-body">
-        <h4>When should I use Single vs Complex vs Beta?</h4>
-        <p>Use Single for one contained issue. Use Complex when several related scenarios belong to one larger assessment. Use Beta when you want the beta-distribution style view for min / most likely / max outcomes.</p>
+        <h4>Why use a range instead of one number?</h4>
+        <p>Because risk outcomes are uncertain. A range better reflects reality and helps leadership consider both ordinary and severe outcomes.</p>
 
-        <h4>What is a Reporting Line?</h4>
-        <p>A Reporting Line is the organizational ownership view used for oversight and reporting. It is separate from Product Groups, which describe the product, service, or area being assessed.</p>
+        <h4>Why keep Reporting Lines separate from Product Groups?</h4>
+        <p>Because organizational accountability and product taxonomy are different dimensions. Keeping them separate improves rollups and reporting.</p>
 
-        <h4>What is the difference between Product Groups and Reporting Lines?</h4>
-        <p>Product Groups identify the product or service area. Reporting Lines identify the organizational line or management reporting structure that owns or oversees the scenario.</p>
+        <h4>What should go in a Complex Scenario?</h4>
+        <p>Use Complex Scenario when several related scenarios belong to one broader initiative, business line, or product family and should be viewed together while still being managed separately.</p>
 
-        <h4>How should I interpret the Overall Scenario Components table?</h4>
-        <p>It is the rollup list of scenarios within the complex assessment. Each row represents one scenario that can be opened, edited, and reported separately while still belonging to the larger complex grouping.</p>
-
-        <h4>When should risk be accepted instead of mitigated?</h4>
-        <p>Risk acceptance should be used when management or governance intentionally retains exposure after reviewing severity, controls, evidence, insurance, and cost-effectiveness. The decision should be documented clearly.</p>
+        <h4>How should I use insurance data?</h4>
+        <p>Insurance should be evaluated as part of the financial and decision framework, not just listed. Compare coverage, deductible, and premium to expected loss ranges.</p>
       </div>
     </div>
   `;
 
-  return existingBase + complexScenarioGuide + exampleGuide + monteCarloGuide + faqGuide;
+  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide;
 }
