@@ -4573,5 +4573,55 @@ function getExpandedPolishedManualHtmlV2() {
     </div>
   `;
 
-  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide;
+  
+  /* PHASE 20.1.48 SAFE APPEND */
+  const screenGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Screen-by-Screen Guide</div>
+      <div class="card-body">
+        <h4>Dashboard</h4>
+        <p>Use the Dashboard to review open scenarios, saved scenario counts, and summary-level monitoring views.</p>
+
+        <h4>Single Scenario</h4>
+        <p>Use Single Scenario for one contained issue, event, or risk decision that can be modeled as one assessment.</p>
+
+        <h4>Complex Scenario</h4>
+        <p>Use Complex Scenario when one broader initiative, product family, or business area contains several related scenarios that should be tracked together but managed separately.</p>
+
+        <h4>Beta Scenario</h4>
+        <p>Use Beta Scenario when a bounded min / most likely / max style distribution is the clearest way to estimate uncertain outcomes.</p>
+
+        <h4>Reports</h4>
+        <p>Use Reports to turn the scenario into a leadership-ready interpretation with financial ranges, mitigation economics, and supporting context.</p>
+      </div>
+    </div>
+  `;
+
+  const exampleGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Scenario Examples</div>
+      <div class="card-body">
+        <h4>Consumer Compliance Example</h4>
+        <p>A fee-disclosure breakdown affecting one deposit product can be modeled as a Single Scenario with evidence from complaints, audits, and remediation cost estimates.</p>
+
+        <h4>Technology Change Example</h4>
+        <p>A platform modernization effort can be modeled as a Complex Scenario with separate scenarios for implementation risk, vendor dependence, customer disruption, and control breakdown risk.</p>
+
+        <h4>Insurance Evaluation Example</h4>
+        <p>If a policy exists, compare deductible, premium, and coverage amount to modeled loss ranges to decide whether insurance meaningfully changes the residual exposure.</p>
+      </div>
+    </div>
+  `;
+
+  const reportUseGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Using Reports Well</div>
+      <div class="card-body">
+        <p>Reports work best when they combine narrative judgment with visible evidence and modeled ranges. Decision-makers should be able to see what the scenario is, how severe it appears, what the likely loss range is, and why management recommends mitigation or acceptance.</p>
+        <p>For committee or board use, avoid overloading the report with every data point. Surface the key drivers, material evidence, financial range, and the recommended action.</p>
+      </div>
+    </div>
+  `;
+
+  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide + screenGuide + exampleGuide + reportUseGuide;
 }
