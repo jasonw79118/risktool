@@ -1900,7 +1900,7 @@ function wireInputs() {
 function renderManual() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = (typeof getExpandedPolishedManualHtmlV2 === "function") ? getExpandedPolishedManualHtmlV2() : ((typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml());
+  manual.innerHTML = (typeof getExpandedPolishedManualHtmlV3 === "function") ? getExpandedPolishedManualHtmlV3() : ((typeof getExpandedPolishedManualHtmlV2 === "function") ? getExpandedPolishedManualHtmlV2() : ((typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml()));
 }
 
 
@@ -2407,7 +2407,7 @@ function restoreAllDefaultLibraries() {
 function forceManualContent() {
   const manual = document.getElementById("userManualCopy");
   if (!manual) return;
-  manual.innerHTML = (typeof getExpandedPolishedManualHtmlV2 === "function") ? getExpandedPolishedManualHtmlV2() : ((typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml());
+  manual.innerHTML = (typeof getExpandedPolishedManualHtmlV3 === "function") ? getExpandedPolishedManualHtmlV3() : ((typeof getExpandedPolishedManualHtmlV2 === "function") ? getExpandedPolishedManualHtmlV2() : ((typeof getExpandedPolishedManualHtml === "function") ? getExpandedPolishedManualHtml() : getPolishedManualHtml()));
 }
 
 
@@ -4417,96 +4417,5 @@ function getPolishedManualHtml() {
   `;
 }
 
-
-/* =========================
-   PHASE 20.1.46
-   Information Buildout Phase 2
-========================= */
-function getExpandedPolishedManualHtmlV2() {
-  const prior = (typeof getExpandedPolishedManualHtml === "function")
-    ? getExpandedPolishedManualHtml()
-    : ((typeof getPolishedManualHtml === "function") ? getPolishedManualHtml() : "");
-
-  const fieldGuide = `
-    <div class="card mt-3">
-      <div class="card-header">Field Guide</div>
-      <div class="card-body">
-        <h4>Reporting Lines</h4>
-        <p>Use Reporting Lines for organizational ownership, management oversight, and reporting structure. This is the ownership and reporting field, not the product taxonomy.</p>
-
-        <h4>Primary Product / Service</h4>
-        <p>Use Primary Product / Service to identify the product, service, or operational area most directly tied to the scenario. This should align to Product Groups.</p>
-
-        <h4>Hard Facts / Evidence</h4>
-        <p>Use this section for factual support such as loss history, complaint data, audit findings, external examples, enforcement actions, or internal incidents.</p>
-
-        <h4>Mitigation Entry</h4>
-        <p>Use mitigation entries to document the control actions being taken, who owns them, and implementation status.</p>
-
-        <h4>Accepted Risk</h4>
-        <p>Use accepted-risk records only when governance has intentionally decided to retain exposure. Document authority, rationale, review date, and decision logic clearly.</p>
-      </div>
-    </div>
-  `;
-
-  const reportGuide = `
-    <div class="card mt-3">
-      <div class="card-header">How to Read the Report</div>
-      <div class="card-body">
-        <h4>Inherent Risk Score</h4>
-        <p>This is the starting risk level before control effectiveness is applied.</p>
-
-        <h4>Residual Risk Score</h4>
-        <p>This is the remaining exposure after the stated control effectiveness percentage is applied.</p>
-
-        <h4>Expected Annual Loss</h4>
-        <p>This is the model’s expected annual financial impact across the simulated loss range.</p>
-
-        <h4>Risk Reduction Value</h4>
-        <p>This estimates how much annual loss is reduced after mitigation assumptions are applied.</p>
-
-        <h4>Net Benefit / ROI</h4>
-        <p>This compares the modeled reduction in loss to mitigation cost so leadership can judge whether mitigation appears financially efficient.</p>
-      </div>
-    </div>
-  `;
-
-  const examinerGuide = `
-    <div class="card mt-3">
-      <div class="card-header">Examiner-Ready Interpretation</div>
-      <div class="card-body">
-        <p>This tool is designed to support transparent, reviewable risk assessment rather than black-box outputs. Each scenario should show:</p>
-        <ul>
-          <li>what is being evaluated,</li>
-          <li>who owns it,</li>
-          <li>what evidence supports it,</li>
-          <li>what mitigation is planned,</li>
-          <li>whether risk is accepted,</li>
-          <li>and how the financial model supports the decision.</li>
-        </ul>
-        <p>The goal is not false precision. The goal is disciplined modeling, visible assumptions, and a defensible management record.</p>
-      </div>
-    </div>
-  `;
-
-  const qaGuide = `
-    <div class="card mt-3">
-      <div class="card-header">Additional Q&amp;A</div>
-      <div class="card-body">
-        <h4>Why use a range instead of one number?</h4>
-        <p>Because risk outcomes are uncertain. A range better reflects reality and helps leadership consider both ordinary and severe outcomes.</p>
-
-        <h4>Why keep Reporting Lines separate from Product Groups?</h4>
-        <p>Because organizational accountability and product taxonomy are different dimensions. Keeping them separate improves rollups and reporting.</p>
-
-        <h4>What should go in a Complex Scenario?</h4>
-        <p>Use Complex Scenario when several related scenarios belong to one broader initiative, business line, or product family and should be viewed together while still being managed separately.</p>
-
-        <h4>How should I use insurance data?</h4>
-        <p>Insurance should be evaluated as part of the financial and decision framework, not just listed. Compare coverage, deductible, and premium to expected loss ranges.</p>
-      </div>
-    </div>
-  `;
-
-  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide;
-}
+/* PHASE 20.1.47 - Information V3 */
+function getExpandedPolishedManualHtmlV3(){return (typeof getExpandedPolishedManualHtmlV2==='function'?getExpandedPolishedManualHtmlV2():((typeof getExpandedPolishedManualHtml==='function')?getExpandedPolishedManualHtml():((typeof getPolishedManualHtml==='function')?getPolishedManualHtml():))) + `<div class="card mt-3"><div class="card-header">Scenario Walkthroughs</div><div class="card-body"><h4>Single Scenario</h4><p>Define, evidence, mitigate, decide.</p><h4>Complex Scenario</h4><p>Product → Scenario → Components → Table.</p><h4>Beta Scenario</h4><p>Min / Likely / Max modeling.</p></div></div><div class="card mt-3"><div class="card-header">Decision Guidance</div><div class="card-body"><p>Use mitigation when reduction > cost. Use acceptance when justified and documented.</p></div></div><div class="card mt-3"><div class="card-header">Board Interpretation</div><div class="card-body"><p>Focus on ownership, severity, financial range, and recommendation.</p></div></div><div class="card mt-3"><div class="card-header">Glossary</div><div class="card-body"><p>Inherent vs Residual, P10/P50/P90, Reporting Lines vs Product Groups.</p></div></div>`}
