@@ -1,1 +1,15 @@
-Phase 20.1.47 – Information V3 (zip-only delivery)
+RISKTOOL PHASE 20.1.47 NOTES
+
+Built from the restored 20.1.46 working baseline.
+
+SAFE INFORMATION EXPANSION ONLY
+- No render-chain changes
+- No new manual renderer function
+- No scenario logic changes
+- No layout changes
+
+Added to Information:
+- Scenario Walkthroughs
+- Decision Guidance
+- Board / Committee Interpretation
+- Plain-English Glossary

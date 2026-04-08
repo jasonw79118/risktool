@@ -4508,5 +4508,70 @@ function getExpandedPolishedManualHtmlV2() {
     </div>
   `;
 
-  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide;
+  
+  /* PHASE 20.1.47 SAFE APPEND */
+  const walkthroughGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Scenario Walkthroughs</div>
+      <div class="card-body">
+        <h4>Single Scenario Walkthrough</h4>
+        <p>Start with the scenario name, Reporting Lines, Risk Domain, and Primary Product / Service. Add evidence, mitigation, and accepted-risk detail only after the base scenario is clearly defined.</p>
+
+        <h4>Complex Scenario Walkthrough</h4>
+        <p>Define the Product Section first. Then add one or more scenarios beneath that broader area. Each scenario should carry its own risk items, insurance, hard facts / evidence, mitigation, and accepted-risk decisions.</p>
+
+        <h4>Beta Scenario Walkthrough</h4>
+        <p>Use Beta Scenario when you want a min / most likely / max style view and want randomized outcomes across that bounded range.</p>
+      </div>
+    </div>
+  `;
+
+  const decisionGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Decision Guidance</div>
+      <div class="card-body">
+        <h4>When mitigation appears strong</h4>
+        <p>Mitigation is stronger when the action is specific, ownership is clear, and modeled reduction in loss is meaningful relative to cost.</p>
+
+        <h4>When insurance matters</h4>
+        <p>Insurance matters when coverage meaningfully offsets modeled loss, the deductible is realistic, and exclusions do not remove the practical benefit.</p>
+
+        <h4>When acceptance may be appropriate</h4>
+        <p>Acceptance may be appropriate when residual exposure is understood, governance is informed, and the mitigation cost exceeds the expected reduction in loss.</p>
+      </div>
+    </div>
+  `;
+
+  const boardGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Board / Committee Interpretation</div>
+      <div class="card-body">
+        <p>Board and committee readers usually need a concise decision view: what the scenario is, who owns it, how severe it appears, the likely financial range, what mitigation is planned, and whether management recommends mitigation or acceptance.</p>
+      </div>
+    </div>
+  `;
+
+  const glossaryGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Plain-English Glossary</div>
+      <div class="card-body">
+        <h4>Inherent Risk</h4>
+        <p>The risk before current controls are considered.</p>
+
+        <h4>Residual Risk</h4>
+        <p>The risk remaining after current controls or mitigation assumptions are applied.</p>
+
+        <h4>P10 / P50 / P90</h4>
+        <p>Lower-end, middle, and upper-end results across the simulated distribution of outcomes.</p>
+
+        <h4>Reporting Lines</h4>
+        <p>The organizational ownership and reporting view for the scenario.</p>
+
+        <h4>Product Groups</h4>
+        <p>The product, service, or area taxonomy used to classify where the scenario belongs operationally.</p>
+      </div>
+    </div>
+  `;
+
+  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide;
 }
