@@ -1,0 +1,268 @@
+RISKTOOL PHASE 21.0.0 FOUNDATION PLAN
+Multi-User + Storage Foundation
+
+PURPOSE
+Move Risk Manager from a single-browser scenario tool into a controlled multi-user application with scenario ownership, user assignment, and storage options for local or shared use.
+
+IMPORTANT IMPLEMENTATION RULE
+Do not disturb the current working scenario layouts during this phase.
+This phase should establish the data model and admin structure first.
+UI disruption should be minimal and controlled.
+
+PRIMARY OBJECTIVES
+1. Add user management
+2. Add scenario ownership tracking
+3. Add local vs shared storage design
+4. Add role-aware visibility rules
+5. Prepare for future shared-workspace operation
+
+--------------------------------------------------
+1. USER MODEL
+--------------------------------------------------
+
+Add a user record structure with at least:
+
+- userId
+- displayName
+- emailOrLogin
+- role
+- reportingLine
+- department
+- status (active / inactive)
+- createdDate
+- lastUpdatedDate
+
+Recommended roles:
+- Admin
+- Manager / Reviewer
+- Standard User
+- Read Only
+
+Recommended user behaviors:
+- Admin:
+  - manage users
+  - manage categories
+  - see all scenarios
+  - reassign ownership
+- Manager / Reviewer:
+  - see assigned team scenarios
+  - review and comment
+  - possibly edit depending on final rule set
+- Standard User:
+  - create and edit own scenarios
+  - view scenarios assigned to them
+- Read Only:
+  - open and review only
+
+--------------------------------------------------
+2. SCENARIO OWNERSHIP MODEL
+--------------------------------------------------
+
+Every scenario should track:
+
+- createdByUserId
+- createdByName
+- assignedOwnerUserId
+- assignedOwnerName
+- reportingOwnerUserId (optional)
+- reportingOwnerName (optional)
+- lastUpdatedByUserId
+- lastUpdatedByName
+- lastUpdatedDate
+- teamOrDepartment
+- storageMode
+- workspaceId or storageLocationId
+
+For Complex Scenario:
+track ownership at two levels:
+A. overall complex scenario
+B. each individual scenario component
+
+This allows:
+- accountability
+- filtering by owner
+- cleaner dashboards
+- easier committee reporting
+
+--------------------------------------------------
+3. STORAGE MODEL
+--------------------------------------------------
+
+Add a storage mode concept:
+
+Mode A: Local Workspace
+- scenario data stored locally
+- best for standalone or testing use
+- no shared collaboration
+
+Mode B: Shared Workspace
+- scenario data stored in a central location
+- attachments / exported reports may live on a share drive
+- better for team use
+
+CRITICAL DESIGN NOTE
+Do NOT use a raw shared drive folder alone as the primary system of record for live scenario data.
+That approach is weak for:
+- concurrent edits
+- audit history
+- ownership tracking
+- permissions
+- filtering by user
+- data consistency
+
+Recommended architecture:
+- scenario records stored in a structured datastore / database
+- exported files and attachments may be stored on a shared drive
+- shared drive used as document repository, not primary live record source
+
+--------------------------------------------------
+4. STORAGE ABSTRACTION LAYER
+--------------------------------------------------
+
+Introduce a storage service abstraction so the app can save/load through one interface.
+
+Suggested conceptual functions:
+- getStorageMode()
+- setStorageMode()
+- saveScenarioRecord()
+- loadScenarioRecord()
+- listScenarioRecords()
+- saveUserRecord()
+- loadUserRecord()
+- listUserRecords()
+- saveAttachmentReference()
+- listWorkspaceFiles()
+
+This allows future migration without rewriting scenario screens.
+
+--------------------------------------------------
+5. DASHBOARD / FILTERING CHANGES
+--------------------------------------------------
+
+Add filtering and display support for:
+- created by
+- assigned owner
+- reporting line
+- department
+- storage mode
+- active / closed
+- team view vs personal view
+
+Dashboard and Saved Scenarios should eventually support:
+- My Work
+- Team Work
+- All Work (admin only)
+- Unassigned
+- Recently Updated
+
+--------------------------------------------------
+6. CATEGORY / ADMIN ADDITIONS
+--------------------------------------------------
+
+Add a User Admin area with:
+- add user
+- edit user
+- deactivate user
+- assign role
+- assign reporting line / department
+
+Potential future admin add-ons:
+- workspace management
+- storage mode defaults
+- team visibility rules
+- approval routing rules
+
+--------------------------------------------------
+7. REPORTING CHANGES NEEDED
+--------------------------------------------------
+
+Reports should eventually show:
+- created by
+- assigned owner
+- last updated by
+- reporting line
+- department
+- workspace / storage mode
+
+Board and committee outputs should be able to identify:
+- who owns the scenario
+- who is responsible for mitigation
+- who accepted any retained risk
+
+--------------------------------------------------
+8. FUTURE AUDIT / HISTORY PREP
+--------------------------------------------------
+
+Prepare now for future audit logging.
+
+Recommended future audit fields:
+- actionType
+- recordType
+- recordId
+- changedByUserId
+- changedByName
+- changeDate
+- oldValueSummary
+- newValueSummary
+
+Even if full audit history is not built in this phase, the data model should not block it later.
+
+--------------------------------------------------
+9. RECOMMENDED BUILD ORDER
+--------------------------------------------------
+
+PHASE 21.0.0
+Foundation only:
+- define user model
+- define ownership fields
+- define storage abstraction
+- define local/shared workspace concept
+
+PHASE 21.0.1
+User Admin UI:
+- manage users
+- assign roles
+- assign reporting lines / departments
+
+PHASE 21.0.2
+Scenario ownership wiring:
+- assign owner on create/edit
+- show owner on dashboard / saved scenarios / reports
+
+PHASE 21.0.3
+Storage mode implementation:
+- local mode
+- shared workspace mode
+
+PHASE 21.0.4
+Role-aware visibility:
+- my work
+- team work
+- admin view
+
+--------------------------------------------------
+10. UI CHANGES TO EXPECT
+--------------------------------------------------
+
+Minimal near-term UI additions:
+- User Admin section
+- Scenario Owner fields
+- Created By / Last Updated By display
+- Dashboard ownership filters
+- Storage Mode display
+
+Avoid changing:
+- current scenario order
+- current scenario layout hierarchy
+- current working Information sections
+
+--------------------------------------------------
+11. DECISION RECOMMENDATION
+--------------------------------------------------
+
+Proceed with the multi-user and storage foundation as a separate controlled phase.
+Do not mix this with scenario-layout work.
+Do not use shared drive folders as the sole system of record for live scenario data.
+Use a structured data layer for scenario records and use shared storage mainly for exports and attachments.
+
+END OF PLAN

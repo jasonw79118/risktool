@@ -1,0 +1,38 @@
+RISKTOOL DATA MODEL SPEC
+Phase 21.0.1
+
+USER RECORD
+{
+  userId,
+  displayName,
+  emailOrLogin,
+  role,
+  reportingLine,
+  department,
+  status,
+  createdDate,
+  lastUpdatedDate
+}
+
+SCENARIO OWNERSHIP FIELDS
+{
+  createdByUserId,
+  createdByName,
+  assignedOwnerUserId,
+  assignedOwnerName,
+  lastUpdatedByUserId,
+  lastUpdatedByName,
+  teamOrDepartment,
+  storageMode
+}
+
+COMPLEX COMPONENT OWNERSHIP FIELDS
+{
+  componentOwnerUserId,
+  componentOwnerName,
+  componentDepartment
+}
+
+STORAGE MODE ENUM
+- Local Workspace
+- Shared Workspace

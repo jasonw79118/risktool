@@ -1,0 +1,118 @@
+RISKTOOL PHASE 21.0.1 SPEC
+User Admin UI + Ownership Wiring Specification
+
+PURPOSE
+Define the first implementation phase for multi-user support without disturbing the current scenario layouts.
+
+THIS PHASE SHOULD DO
+1. Add User Admin
+2. Add scenario ownership fields
+3. Add ownership display on dashboard / saved scenarios
+4. Prepare storage mode selection field
+5. Avoid changing current scenario modeling flow
+
+1. NEW USER ADMIN SECTION
+- Add User
+- Edit User
+- Deactivate User
+- Assign Role
+- Assign Reporting Line
+- Assign Department
+
+Required fields:
+- userId
+- displayName
+- emailOrLogin
+- role
+- reportingLine
+- department
+- status
+- createdDate
+- lastUpdatedDate
+
+2. NEW SCENARIO OWNERSHIP FIELDS
+Single Scenario:
+- Created By
+- Assigned Owner
+- Last Updated By
+- Team / Department
+- Storage Mode
+
+Complex Scenario:
+overall:
+- Created By
+- Assigned Owner
+- Last Updated By
+- Team / Department
+- Storage Mode
+
+components:
+- Component Owner
+- Last Updated By
+- Component Team / Department
+
+3. DASHBOARD CHANGES
+Add columns / filters for:
+- Created By
+- Assigned Owner
+- Team / Department
+- Storage Mode
+
+Suggested filters:
+- My Work
+- Team Work
+- All Work
+- Unassigned
+
+4. SAVED SCENARIOS CHANGES
+Add visible ownership fields:
+- Owner
+- Created By
+- Last Updated By
+- Department
+- Storage Mode
+
+5. STORAGE MODE FIELD
+Values:
+- Local Workspace
+- Shared Workspace
+
+This phase should capture the field and save it with scenario records.
+This phase does NOT need full shared-storage implementation yet.
+
+6. UI SAFETY RULES
+Do not change:
+- current scenario order
+- product section flow
+- current complex scenario structure
+- current Information content
+- current Monte Carlo flow
+
+Keep additions limited to:
+- admin areas
+- ownership fields
+- display tables
+- filters
+
+7. DATA SAVING REQUIREMENTS
+Scenario fields:
+- createdByUserId
+- createdByName
+- assignedOwnerUserId
+- assignedOwnerName
+- lastUpdatedByUserId
+- lastUpdatedByName
+- teamOrDepartment
+- storageMode
+
+Complex component fields:
+- componentOwnerUserId
+- componentOwnerName
+- componentDepartment
+
+8. BUILD ORDER
+1. User record storage
+2. User Admin UI
+3. Ownership fields in scenario payloads
+4. Ownership display on Dashboard and Saved Scenarios
+5. Owner / team / storage mode filters
