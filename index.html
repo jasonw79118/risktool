@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 21.0.1</h4>
+<h4>Phase 21.0.2</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -189,6 +189,34 @@
 <div class="full-span">
 <label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
 <textarea id="singleScenarioDescription" placeholder="Describe the issue, trigger, scope, and why it matters." rows="4"></textarea>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Scenario Ownership</h3><span>Single Scenario</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="User who first created the scenario record.">Created By</label>
+<input id="singleCreatedByName" readonly type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="User currently assigned to own and manage the scenario.">Assigned Owner</label>
+<select id="singleAssignedOwnerUserId"></select>
+</div>
+<div>
+<label class="help-label" data-help="User who last updated this scenario.">Last Updated By</label>
+<input id="singleLastUpdatedByName" readonly type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Team or department associated with scenario ownership.">Team / Department</label>
+<input id="singleTeamOrDepartment" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Storage mode saved with this scenario record.">Storage Mode</label>
+<select id="singleStorageMode">
+<option value="Local Workspace">Local Workspace</option>
+<option value="Shared Workspace">Shared Workspace</option>
+</select>
 </div>
 </div>
 </div>
@@ -460,6 +488,34 @@
 </div>
 <div class="builder-actions">
 <button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Scenario Ownership</h3><span>Complex Scenario</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="User who first created the scenario record.">Created By</label>
+<input id="complexCreatedByName" readonly type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="User currently assigned to own and manage the scenario.">Assigned Owner</label>
+<select id="complexAssignedOwnerUserId"></select>
+</div>
+<div>
+<label class="help-label" data-help="User who last updated this scenario.">Last Updated By</label>
+<input id="complexLastUpdatedByName" readonly type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Team or department associated with scenario ownership.">Team / Department</label>
+<input id="complexTeamOrDepartment" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Storage mode saved with this scenario record.">Storage Mode</label>
+<select id="complexStorageMode">
+<option value="Local Workspace">Local Workspace</option>
+<option value="Shared Workspace">Shared Workspace</option>
+</select>
 </div>
 </div>
 </div>
