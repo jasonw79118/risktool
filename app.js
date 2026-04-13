@@ -4650,6 +4650,44 @@ function getExpandedPolishedManualHtmlV2() {
     </div>
   `;
 
-  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide + screenGuide + exampleGuide + reportUseGuide + validationGuide + modelingGuide;
+  
+  /* PHASE 20.1.50 SAFE APPEND */
+  const boardPacketGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Board Packet Use</div>
+      <div class="card-body">
+        <p>For board packets, keep the presentation focused on the scenario summary, ownership, severity, expected loss range, mitigation recommendation, and any acceptance decision.</p>
+        <p>Use detailed evidence and modeling support as backup material rather than the front page of the discussion.</p>
+      </div>
+    </div>
+  `;
+
+  const narrativeGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Narrative Writing Guidance</div>
+      <div class="card-body">
+        <p>Good scenario narratives explain what happened, why it matters, what evidence supports the concern, and what management recommends next.</p>
+        <p>Avoid vague language. A strong narrative should be understandable to leadership without requiring the reader to decode the model.</p>
+      </div>
+    </div>
+  `;
+
+  const reviewGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Review and Challenge Questions</div>
+      <div class="card-body">
+        <ul>
+          <li>What evidence most strongly supports this scenario?</li>
+          <li>What assumption most changes the modeled outcome?</li>
+          <li>What would leadership need to see before accepting this risk?</li>
+          <li>Does insurance materially change the decision?</li>
+          <li>Is the mitigation specific enough to be tested later?</li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide + screenGuide + exampleGuide + reportUseGuide + validationGuide + modelingGuide + boardPacketGuide + narrativeGuide + reviewGuide;
+
 
 }
