@@ -26,12 +26,13 @@
 <button class="nav-item" data-view="complex">Complex Scenario</button>
 <button class="nav-item" data-view="beta">Beta Scenario</button>
 <button class="nav-item" data-view="categories">Category Admin</button>
+<button class="nav-item" data-view="users">User Admin</button>
 <button class="nav-item" data-view="saved">Saved Scenarios</button>
 <button class="nav-item" data-view="reports">Reports</button>
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 20.1.50</h4>
+<h4>Phase 21.0.1</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -71,7 +72,7 @@
 <div class="card-header"><h3>Open Scenario Table</h3><span>Not Closed • ID opens the original builder</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>ID</th><th>Builder</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Reporting Lines</th><th>Risk Domain</th><th>Actions</th></tr></thead>
+<thead><tr><th>ID</th><th>Builder</th><th>Scenario</th><th>Status</th><th>Inherent Risk</th><th>Identified Date</th><th>Reporting Lines</th><th>Risk Domain</th><th>Assigned Owner</th><th>Storage Mode</th><th>Actions</th></tr></thead>
 <tbody id="dashboardOpenScenarioBody"></tbody>
 </table>
 </div>
@@ -877,6 +878,90 @@
 </div>
 </div>
 </section>
+
+<section class="view" id="view-users">
+<div class="section-header">
+<h2>User Admin</h2>
+<p>Manage users for local workspace ownership, reporting, and future shared-workspace support.</p>
+</div>
+<div class="grid three">
+<div class="stat-card help-tip" data-help="Number of active users available for ownership and assignment."><span>Active Users</span><strong id="activeUserCount">0</strong></div>
+<div class="stat-card help-tip" data-help="The current local session user used as the default owner for new scenario saves."><span>Session User</span><strong id="sessionUserDisplay">Not Set</strong></div>
+<div class="stat-card help-tip" data-help="The default storage mode applied to newly saved scenarios."><span>Storage Mode</span><strong id="sessionStorageDisplay">Local Workspace</strong></div>
+</div>
+<div class="card">
+<div class="card-header"><h3>Session Defaults</h3><span>Local Workspace Foundation</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
+<select id="sessionActiveUserId"></select>
+</div>
+<div>
+<label class="help-label" data-help="Default storage mode saved with new scenario records. Shared Workspace is planning-ready only in this phase.">Default Storage Mode</label>
+<select id="sessionStorageMode">
+<option value="Local Workspace">Local Workspace</option>
+<option value="Shared Workspace">Shared Workspace</option>
+</select>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>User Entry</h3><span>Add or Edit</span></div>
+<div class="form-grid">
+<div>
+<label class="help-label" data-help="System user identifier generated automatically for new users.">User ID</label>
+<input id="userAdminUserId" placeholder="Generated automatically" readonly type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Display name used throughout ownership and reporting.">Display Name</label>
+<input id="userAdminDisplayName" placeholder="e.g. Jane Smith" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Email address or local login name.">Email / Login</label>
+<input id="userAdminEmailOrLogin" placeholder="e.g. jsmith@example.com" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Role controls future visibility and administration rights.">Role</label>
+<select id="userAdminRole">
+<option value="Admin">Admin</option>
+<option value="Manager / Reviewer">Manager / Reviewer</option>
+<option value="Standard User">Standard User</option>
+<option value="Read Only">Read Only</option>
+</select>
+</div>
+<div>
+<label class="help-label" data-help="Organizational reporting line associated with this user.">Reporting Line</label>
+<input id="userAdminReportingLine" placeholder="e.g. Enterprise Risk" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Department or team used for future filtering and ownership rollups.">Department</label>
+<input id="userAdminDepartment" placeholder="e.g. Compliance" type="text"/>
+</div>
+<div>
+<label class="help-label" data-help="Active users can be assigned ownership. Inactive users remain in history but should not receive new work.">Status</label>
+<select id="userAdminStatus">
+<option value="Active">Active</option>
+<option value="Inactive">Inactive</option>
+</select>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-primary" id="saveUserAdminBtn" type="button">Save User</button>
+<button class="btn btn-secondary" id="cancelUserAdminEditBtn" type="button">Cancel Edit</button>
+<div class="note-box" id="userAdminEditStatus">No user selected for editing.</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><h3>User Table</h3><span>Ownership Foundation</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>User ID</th><th>Name</th><th>Email / Login</th><th>Role</th><th>Reporting Line</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody id="userAdminBody"></tbody>
+</table>
+</div>
+</div>
+</section>
+
 <section class="view" id="view-saved">
 <div class="section-header">
 <h2>Saved Scenarios</h2>
@@ -889,7 +974,7 @@
 <div class="card">
 <div class="table-wrap">
 <table>
-<thead><tr><th>ID</th><th>Name</th><th>Builder</th><th>Reporting Lines</th><th>Status</th><th>Inherent Risk</th><th>Residual Risk</th><th>Identified Date</th><th>Actions</th></tr></thead>
+<thead><tr><th>ID</th><th>Name</th><th>Builder</th><th>Reporting Lines</th><th>Status</th><th>Assigned Owner</th><th>Storage Mode</th><th>Inherent Risk</th><th>Residual Risk</th><th>Identified Date</th><th>Actions</th></tr></thead>
 <tbody id="savedEvaluationsBody"></tbody>
 </table>
 </div>

@@ -128,6 +128,11 @@ const DEFAULT_ROTATION_RULES = [
 
 const STORAGE_KEY = "risk_manager_scenarios_v431";
 const LEGACY_STORAGE_KEY = "risk_manager_saved_evaluations_v2";
+
+const USER_STORAGE_KEY = "risk_manager_users_v2101";
+const SESSION_USER_KEY = "risk_manager_session_user_v2101";
+const SESSION_STORAGE_MODE_KEY = "risk_manager_session_storage_mode_v2101";
+
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
   products: "risk_manager_products_v431",
@@ -146,6 +151,9 @@ let riskDomains = [];
 let scenarioStatuses = [];
 let scenarioSources = [];
 let acceptanceAuthorities = [];
+let users = [];
+let userAdminEditId = "";
+
 let rotationRules = structuredClone(DEFAULT_ROTATION_RULES);
 
 let currentComplexItems = [];
@@ -209,6 +217,158 @@ function getStoredArray(key) {
 }
 function setStoredArray(key, value) {
   writeJSON(key, sortedUnique(value));
+}
+
+function normalizeUserRecord(user) {
+  return {
+    userId: String(user?.userId || "").trim(),
+    displayName: String(user?.displayName || "").trim(),
+    emailOrLogin: String(user?.emailOrLogin || "").trim(),
+    role: String(user?.role || "Standard User").trim(),
+    reportingLine: String(user?.reportingLine || "").trim(),
+    department: String(user?.department || "").trim(),
+    status: String(user?.status || "Active").trim(),
+    createdDate: String(user?.createdDate || todayIso()).trim(),
+    lastUpdatedDate: String(user?.lastUpdatedDate || todayIso()).trim()
+  };
+}
+function getStoredUsers() {
+  const raw = readJSON(USER_STORAGE_KEY, []);
+  return Array.isArray(raw) ? raw.map(normalizeUserRecord) : [];
+}
+function setStoredUsers(items) {
+  writeJSON(USER_STORAGE_KEY, items.map(normalizeUserRecord));
+}
+function generateUserId() {
+  return `USR-${Date.now()}`;
+}
+function ensureDefaultUsers() {
+  let stored = getStoredUsers();
+  if (!stored.length) {
+    stored = [normalizeUserRecord({
+      userId: "USR-LOCAL-ADMIN",
+      displayName: "Local Admin",
+      emailOrLogin: "local.admin",
+      role: "Admin",
+      reportingLine: "Administration",
+      department: "Administration",
+      status: "Active",
+      createdDate: todayIso(),
+      lastUpdatedDate: todayIso()
+    })];
+    setStoredUsers(stored);
+  }
+  return stored;
+}
+function getSessionUserId() {
+  return localStorage.getItem(SESSION_USER_KEY) || "";
+}
+function setSessionUserId(value) {
+  localStorage.setItem(SESSION_USER_KEY, String(value || ""));
+}
+function getSessionStorageMode() {
+  return localStorage.getItem(SESSION_STORAGE_MODE_KEY) || "Local Workspace";
+}
+function setSessionStorageMode(value) {
+  localStorage.setItem(SESSION_STORAGE_MODE_KEY, String(value || "Local Workspace"));
+}
+function getCurrentSessionUser() {
+  const sessionId = getSessionUserId();
+  return users.find(x => x.userId === sessionId && x.status === "Active") || users.find(x => x.status === "Active") || null;
+}
+function populateUserAdminForm(user) {
+  document.getElementById("userAdminUserId").value = user?.userId || "";
+  document.getElementById("userAdminDisplayName").value = user?.displayName || "";
+  document.getElementById("userAdminEmailOrLogin").value = user?.emailOrLogin || "";
+  setSelectValueSafe("userAdminRole", user?.role || "Standard User");
+  document.getElementById("userAdminReportingLine").value = user?.reportingLine || "";
+  document.getElementById("userAdminDepartment").value = user?.department || "";
+  setSelectValueSafe("userAdminStatus", user?.status || "Active");
+}
+function resetUserAdminForm() {
+  userAdminEditId = "";
+  populateUserAdminForm(null);
+  document.getElementById("userAdminEditStatus").textContent = "No user selected for editing.";
+}
+function saveUserAdminRecord() {
+  const displayName = document.getElementById("userAdminDisplayName").value.trim();
+  if (!displayName) {
+    alert("Display Name is required.");
+    return;
+  }
+  const existing = getStoredUsers();
+  const userId = userAdminEditId || document.getElementById("userAdminUserId").value || generateUserId();
+  const record = normalizeUserRecord({
+    userId,
+    displayName,
+    emailOrLogin: document.getElementById("userAdminEmailOrLogin").value,
+    role: document.getElementById("userAdminRole").value,
+    reportingLine: document.getElementById("userAdminReportingLine").value,
+    department: document.getElementById("userAdminDepartment").value,
+    status: document.getElementById("userAdminStatus").value,
+    createdDate: existing.find(x => x.userId === userId)?.createdDate || todayIso(),
+    lastUpdatedDate: todayIso()
+  });
+  const idx = existing.findIndex(x => x.userId === userId);
+  if (idx >= 0) existing[idx] = record
+  else existing.unshift(record);
+  setStoredUsers(existing);
+  users = ensureDefaultUsers();
+  if (!getSessionUserId()) setSessionUserId(record.userId);
+  renderUserAdmin();
+  resetUserAdminForm();
+}
+function editUserAdminRecord(userId) {
+  const user = users.find(x => x.userId === userId);
+  if (!user) return;
+  userAdminEditId = user.userId;
+  populateUserAdminForm(user);
+  document.getElementById("userAdminEditStatus").textContent = `Editing ${user.displayName}`;
+}
+function toggleUserAdminStatus(userId) {
+  const existing = getStoredUsers();
+  const idx = existing.findIndex(x => x.userId === userId);
+  if (idx < 0) return;
+  existing[idx].status = existing[idx].status === "Active" ? "Inactive" : "Active";
+  existing[idx].lastUpdatedDate = todayIso();
+  setStoredUsers(existing);
+  users = ensureDefaultUsers();
+  renderUserAdmin();
+}
+function renderUserAdmin() {
+  const body = document.getElementById("userAdminBody");
+  if (!body) return;
+  users = ensureDefaultUsers();
+  const activeUsers = users.filter(x => x.status === "Active");
+  document.getElementById("activeUserCount").textContent = String(activeUsers.length);
+  const sessionSelect = document.getElementById("sessionActiveUserId");
+  const currentSessionUser = getCurrentSessionUser();
+  if (sessionSelect) {
+    sessionSelect.innerHTML = activeUsers.map(u => `<option value="${escapeHtml(u.userId)}">${escapeHtml(u.displayName)} (${escapeHtml(u.role)})</option>`).join("");
+    setSelectValueSafe("sessionActiveUserId", currentSessionUser?.userId || activeUsers[0]?.userId || "");
+  }
+  setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
+  document.getElementById("sessionUserDisplay").textContent = currentSessionUser?.displayName || "Not Set";
+  document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode();
+  if (!users.length) {
+    body.innerHTML = '<tr><td colspan="8">No users available.</td></tr>';
+    return;
+  }
+  body.innerHTML = users.map(u => `<tr>
+    <td>${escapeHtml(u.userId)}</td>
+    <td>${escapeHtml(u.displayName)}</td>
+    <td>${escapeHtml(u.emailOrLogin)}</td>
+    <td>${escapeHtml(u.role)}</td>
+    <td>${escapeHtml(u.reportingLine)}</td>
+    <td>${escapeHtml(u.department)}</td>
+    <td>${escapeHtml(u.status)}</td>
+    <td>
+      <button class="btn btn-secondary small-btn" type="button" data-user-edit="${escapeHtml(u.userId)}">Edit</button>
+      <button class="btn btn-secondary small-btn" type="button" data-user-toggle="${escapeHtml(u.userId)}">${u.status === "Active" ? "Deactivate" : "Activate"}</button>
+    </td>
+  </tr>`).join("");
+  body.querySelectorAll("[data-user-edit]").forEach(btn => btn.addEventListener("click", () => editUserAdminRecord(btn.dataset.userEdit)));
+  body.querySelectorAll("[data-user-toggle]").forEach(btn => btn.addEventListener("click", () => toggleUserAdminStatus(btn.dataset.userToggle)));
 }
 
 function setTextIfPresent(id, value) {
@@ -563,6 +723,14 @@ function normalizeScenario(saved) {
     primaryProduct: saved.primaryProduct || "",
     primaryRegulation: saved.primaryRegulation || "",
     scenarioOwner: saved.scenarioOwner || "",
+    createdByUserId: saved.createdByUserId || "",
+    createdByName: saved.createdByName || "",
+    assignedOwnerUserId: saved.assignedOwnerUserId || "",
+    assignedOwnerName: saved.assignedOwnerName || "",
+    lastUpdatedByUserId: saved.lastUpdatedByUserId || "",
+    lastUpdatedByName: saved.lastUpdatedByName || "",
+    teamOrDepartment: saved.teamOrDepartment || "",
+    storageMode: saved.storageMode || "Local Workspace",
     identifiedDate: saved.identifiedDate || "",
     plannedDecisionDate: saved.plannedDecisionDate || "",
     plannedGoLiveDate: saved.plannedGoLiveDate || "",
@@ -679,7 +847,9 @@ function refreshLibraries() {
   populateSelect("singleAcceptanceAuthority", acceptanceAuthorities);
   populateSelect("complexAcceptanceAuthority", acceptanceAuthorities);
 
+  users = ensureDefaultUsers();
   renderCategoryAdmin();
+  renderUserAdmin();
   renderSavedScenarios();
   renderDashboardOpenTable();
   renderComplexScenarioComponents();
@@ -1301,8 +1471,10 @@ function runBetaScenario() {
 function saveBetaScenario(event) {
   if (event?.preventDefault) event.preventDefault();
   if (event?.stopPropagation) event.stopPropagation();
-  const payload = getBetaPayload();
+  let payload = getBetaPayload();
   const saved = getSavedScenarios();
+  const existingRecord = saved.find(x => x.id === payload.id);
+  payload = applyOwnershipMetadata(payload, existingRecord);
   if (!payload.id) {
     payload.id = generateScenarioId(saved);
     document.getElementById("betaScenarioId").value = payload.id;
@@ -1379,6 +1551,23 @@ function runScenario() {
   renderCharts(summary);
   activateView("reports");
 }
+
+function applyOwnershipMetadata(payload, existingRecord) {
+  const sessionUser = getCurrentSessionUser();
+  const sessionStorageMode = getSessionStorageMode();
+  const createdByUserId = existingRecord?.createdByUserId || sessionUser?.userId || "";
+  const createdByName = existingRecord?.createdByName || sessionUser?.displayName || "";
+  payload.createdByUserId = createdByUserId;
+  payload.createdByName = createdByName;
+  payload.assignedOwnerUserId = existingRecord?.assignedOwnerUserId || sessionUser?.userId || "";
+  payload.assignedOwnerName = existingRecord?.assignedOwnerName || sessionUser?.displayName || "";
+  payload.lastUpdatedByUserId = sessionUser?.userId || "";
+  payload.lastUpdatedByName = sessionUser?.displayName || "";
+  payload.teamOrDepartment = existingRecord?.teamOrDepartment || sessionUser?.department || "";
+  payload.storageMode = sessionStorageMode || existingRecord?.storageMode || "Local Workspace";
+  return payload;
+}
+
 function saveScenario(event) {
   if (event?.preventDefault) event.preventDefault();
   if (event?.stopPropagation) event.stopPropagation();
@@ -1388,8 +1577,10 @@ function saveScenario(event) {
     saveBetaScenario(event);
     return;
   }
-  const payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
+  let payload = activeMode === "single" ? getSinglePayload() : getComplexPayload();
   const saved = getSavedScenarios();
+  const existingRecord = saved.find(x => x.id === payload.id);
+  payload = applyOwnershipMetadata(payload, existingRecord);
   if (!payload.id) {
     payload.id = generateScenarioId(saved);
     if (payload.mode === "single") document.getElementById("singleScenarioId").value = payload.id;
@@ -1413,7 +1604,7 @@ function renderSavedScenarios() {
   const saved = getSavedScenarios();
   document.getElementById("savedCount").textContent = saved.length;
   if (!saved.length) {
-    tbody.innerHTML = '<tr><td colspan="9">No saved scenarios yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11">No saved scenarios yet.</td></tr>';
     return;
   }
   tbody.innerHTML = saved.map(s => `<tr>
@@ -1422,6 +1613,8 @@ function renderSavedScenarios() {
     <td>${s.mode === "single" ? "Single" : s.mode === "complex" ? "Complex" : s.mode === "beta" ? "Beta" : "Unknown"}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.scenarioStatus)}</td>
+    <td>${escapeHtml(s.assignedOwnerName || "")}</td>
+    <td>${escapeHtml(s.storageMode || "Local Workspace")}</td>
     <td>${s.inherent}</td>
     <td>${s.residual}</td>
     <td>${escapeHtml(s.identifiedDate)}</td>
@@ -1443,7 +1636,7 @@ function renderDashboardOpenTable() {
     .filter(x => String(x.scenarioStatus).toLowerCase() !== "closed")
     .sort((a, b) => (b.inherent - a.inherent) || String(a.identifiedDate || "").localeCompare(String(b.identifiedDate || "")));
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9">No open scenarios available.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11">No open scenarios available.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(s => `<tr>
@@ -1455,6 +1648,8 @@ function renderDashboardOpenTable() {
     <td>${escapeHtml(s.identifiedDate)}</td>
     <td>${escapeHtml(s.productGroup)}</td>
     <td>${escapeHtml(s.riskDomain)}</td>
+    <td>${escapeHtml(s.assignedOwnerName || "")}</td>
+    <td>${escapeHtml(s.storageMode || "Local Workspace")}</td>
     <td><button class="btn btn-secondary small-btn" data-report-id="${escapeHtml(s.id)}">Open Report</button></td>
   </tr>`).join("");
   tbody.querySelectorAll("[data-report-id]").forEach(btn => btn.addEventListener("click", () => openScenarioReport(btn.dataset.reportId)));
@@ -1466,11 +1661,11 @@ function openScenario(id) {
   if (s.mode === "single") {
     document.getElementById("singleScenarioId").value = s.id || "";
     document.getElementById("singleScenarioName").value = s.name || "";
-    document.getElementById("singleProductGroup").value = s.productGroup || productGroups[0] || "";
+    setSelectValueSafe("singleProductGroup", s.productGroup || products[0] || "");
     document.getElementById("singleRiskDomain").value = s.riskDomain || riskDomains[0] || "";
     document.getElementById("singleScenarioStatus").value = s.scenarioStatus || "Open";
     document.getElementById("singleScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
-    document.getElementById("singlePrimaryProduct").value = s.primaryProduct || products[0] || "";
+    setSelectValueSafe("singlePrimaryProduct", s.primaryProduct || productGroups[0] || "");
     document.getElementById("singlePrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
     document.getElementById("singleScenarioOwner").value = s.scenarioOwner || "";
     document.getElementById("singleIdentifiedDate").value = s.identifiedDate || "";
@@ -2662,11 +2857,22 @@ function init() {
   renderHeatMap();
   const restoreBtn = document.getElementById("restoreDefaultLibrariesBtn");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreAllDefaultLibraries);
+  document.getElementById("saveUserAdminBtn")?.addEventListener("click", saveUserAdminRecord);
+  document.getElementById("cancelUserAdminEditBtn")?.addEventListener("click", resetUserAdminForm);
+  document.getElementById("sessionActiveUserId")?.addEventListener("change", (event) => {
+    setSessionUserId(event.target.value || "");
+    renderUserAdmin();
+  });
+  document.getElementById("sessionStorageMode")?.addEventListener("change", (event) => {
+    setSessionStorageMode(event.target.value || "Local Workspace");
+    renderUserAdmin();
+  });
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
   wireRecordMaintenanceEnhancements();
   syncComplexComponentIdField(true);
+  renderUserAdmin();
 }
 document.addEventListener("DOMContentLoaded", init);
 
