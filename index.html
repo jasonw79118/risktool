@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 21.0.4</h4>
+<h4>Phase 21.0.5</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -921,6 +921,10 @@
 <input id="userAdminEmailOrLogin" placeholder="e.g. jsmith@example.com" type="text"/>
 </div>
 <div>
+<label class="help-label" data-help="Local password used to start a user session in this workspace.">Password</label>
+<input id="userAdminPassword" placeholder="Enter password" type="password"/>
+</div>
+<div>
 <label class="help-label" data-help="Role controls future visibility and administration rights.">Role</label>
 <select id="userAdminRole">
 <option value="Admin">Admin</option>
@@ -1217,6 +1221,10 @@
         <label class="help-label" data-help="Select the local user session for this workspace before using the application.">User</label>
         <select id="loginGateUserId"></select>
       </div>
+      <div class="full-span">
+        <label class="help-label" data-help="Enter the password for the selected local user.">Password</label>
+        <input id="loginGatePassword" placeholder="Enter password" type="password"/>
+      </div>
       <div>
         <label class="help-label" data-help="Select the default storage mode that will be stamped onto new scenario records in this session.">Storage Mode</label>
         <select id="loginGateStorageMode">
@@ -1227,7 +1235,8 @@
     </div>
     <div class="builder-actions">
       <button class="btn btn-primary" id="loginGateContinueBtn" type="button">Start Session</button>
-      <div class="note-box" id="loginGateStatus">Select a user to unlock the application.</div>
+      <button class="btn btn-secondary" id="loginGateOpenAdminBtn" type="button">Open User Admin</button>
+      <div class="note-box" id="loginGateStatus">Select a user and enter the password to unlock the application.</div>
     </div>
   </div>
 </div>

@@ -224,6 +224,7 @@ function normalizeUserRecord(user) {
     userId: String(user?.userId || "").trim(),
     displayName: String(user?.displayName || "").trim(),
     emailOrLogin: String(user?.emailOrLogin || "").trim(),
+    password: String(user?.password || "").trim(),
     role: String(user?.role || "Standard User").trim(),
     reportingLine: String(user?.reportingLine || "").trim(),
     department: String(user?.department || "").trim(),
@@ -249,6 +250,7 @@ function ensureDefaultUsers() {
       userId: "USR-LOCAL-ADMIN",
       displayName: "Local Admin",
       emailOrLogin: "local.admin",
+      password: "admin",
       role: "Admin",
       reportingLine: "Administration",
       department: "Administration",
@@ -281,6 +283,7 @@ function populateUserAdminForm(user) {
   document.getElementById("userAdminUserId").value = user?.userId || "";
   document.getElementById("userAdminDisplayName").value = user?.displayName || "";
   document.getElementById("userAdminEmailOrLogin").value = user?.emailOrLogin || "";
+  document.getElementById("userAdminPassword").value = user?.password || "";
   setSelectValueSafe("userAdminRole", user?.role || "Standard User");
   document.getElementById("userAdminReportingLine").value = user?.reportingLine || "";
   document.getElementById("userAdminDepartment").value = user?.department || "";
@@ -303,6 +306,7 @@ function saveUserAdminRecord() {
     userId,
     displayName,
     emailOrLogin: document.getElementById("userAdminEmailOrLogin").value,
+    password: document.getElementById("userAdminPassword").value,
     role: document.getElementById("userAdminRole").value,
     reportingLine: document.getElementById("userAdminReportingLine").value,
     department: document.getElementById("userAdminDepartment").value,
@@ -373,6 +377,8 @@ function refreshLoginGateOptions() {
     select.innerHTML = activeUsers.map(u => `<option value="${escapeHtml(u.userId)}">${escapeHtml(u.displayName)} (${escapeHtml(u.role)})</option>`).join("");
     setSelectValueSafe("loginGateUserId", getSessionUserId() || activeUsers[0]?.userId || "");
   }
+  const pwd = document.getElementById("loginGatePassword");
+  if (pwd) pwd.value = "";
   setSelectValueSafe("loginGateStorageMode", getSessionStorageMode());
 }
 function showLoginGate() {
@@ -397,25 +403,46 @@ function updateLoginState() {
 }
 function startUserSession() {
   const userId = document.getElementById("loginGateUserId")?.value || "";
+  const password = document.getElementById("loginGatePassword")?.value || "";
+  const status = document.getElementById("loginGateStatus");
   if (!userId) {
-    const status = document.getElementById("loginGateStatus");
     if (status) status.textContent = "Select a user first.";
+    return;
+  }
+  const user = users.find(x => x.userId === userId && x.status === "Active");
+  if (!user) {
+    if (status) status.textContent = "Selected user is not active.";
+    return;
+  }
+  if ((user.password || "") !== password) {
+    if (status) status.textContent = "Password is incorrect.";
     return;
   }
   setSessionUserId(userId);
   setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
+  if (status) status.textContent = "Session started.";
   renderUserAdmin();
   updateLoginState();
 }
+function openUserAdminFromLogin() {
+  hideLoginGate();
+  activateView("users");
+  const status = document.getElementById("loginGateStatus");
+  if (status) status.textContent = "You can manage users here. Use the default Local Admin / admin credentials unless changed.";
+}
+
 function guardLoggedInAction(event) {
   const allowedIds = new Set([
     "loginGateContinueBtn",
+    "loginGateOpenAdminBtn",
     "saveUserAdminBtn",
     "cancelUserAdminEditBtn",
     "sessionActiveUserId",
     "sessionStorageMode",
     "loginGateUserId",
-    "loginGateStorageMode"
+    "loginGatePassword",
+    "loginGateStorageMode",
+    "userAdminPassword"
   ]);
   const target = event.target.closest("button, a, select, input, textarea");
   if (!target) return;
