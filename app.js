@@ -274,7 +274,8 @@ function setSessionStorageMode(value) {
 }
 function getCurrentSessionUser() {
   const sessionId = getSessionUserId();
-  return users.find(x => x.userId === sessionId && x.status === "Active") || users.find(x => x.status === "Active") || null;
+  if (!sessionId) return null;
+  return users.find(x => x.userId === sessionId && x.status === "Active") || null;
 }
 function populateUserAdminForm(user) {
   document.getElementById("userAdminUserId").value = user?.userId || "";
@@ -314,7 +315,7 @@ function saveUserAdminRecord() {
   else existing.unshift(record);
   setStoredUsers(existing);
   users = ensureDefaultUsers();
-  if (!getSessionUserId()) setSessionUserId(record.userId);
+
   renderUserAdmin();
   resetUserAdminForm();
 }
@@ -436,7 +437,7 @@ function renderUserAdmin() {
   const currentSessionUser = getCurrentSessionUser();
   if (sessionSelect) {
     sessionSelect.innerHTML = activeUsers.map(u => `<option value="${escapeHtml(u.userId)}">${escapeHtml(u.displayName)} (${escapeHtml(u.role)})</option>`).join("");
-    setSelectValueSafe("sessionActiveUserId", currentSessionUser?.userId || activeUsers[0]?.userId || "");
+    setSelectValueSafe("sessionActiveUserId", getSessionUserId() || activeUsers[0]?.userId || "");
   }
   setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
   document.getElementById("sessionUserDisplay").textContent = currentSessionUser?.displayName || "Not Set";

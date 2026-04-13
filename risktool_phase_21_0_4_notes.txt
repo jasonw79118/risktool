@@ -1,0 +1,11 @@
+RISKTOOL PHASE 21.0.4 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.4
+- Login Required modal appears on load before any session is started
+- The app does not auto-treat the first active user as logged in
+- A session begins only after clicking Start Session
+
+What was fixed:
+- removed automatic fallback to first active user
+- removed auto-session assignment when a user is created
