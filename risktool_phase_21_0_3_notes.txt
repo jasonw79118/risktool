@@ -1,0 +1,23 @@
+RISKTOOL PHASE 21.0.3 NOTES
+
+Visible changes to verify:
+1. Version note updates to 21.0.3
+2. Scenario Ownership cards are REMOVED from:
+   - Single Scenario
+   - Complex Scenario
+3. A Login Required modal now appears until a user session is started
+4. Session is started by selecting a user and storage mode, then clicking Start Session
+5. User Admin still remains available to manage users
+
+Behavior changes:
+- scenarios are auto-stamped to the logged-in session user
+- users no longer manually select owner inside scenario screens
+- created by / assigned owner / last updated by are session-driven
+- storage mode is session-driven by default
+- app actions are blocked until a user logs in
+
+What did NOT change:
+- scenario order
+- complex scenario hierarchy
+- Monte Carlo logic
+- general navigation structure after login

@@ -342,52 +342,88 @@ function getActiveUserOptions() {
 function refreshOwnershipSelects() {
   const activeUsers = getActiveUserOptions();
   const options = activeUsers.map(u => u.userId);
-  populateSelect("singleAssignedOwnerUserId", options);
-  populateSelect("complexAssignedOwnerUserId", options);
+  populateSelect("sessionActiveUserId", options);
+  populateSelect("loginGateUserId", options);
   const sessionUser = getCurrentSessionUser();
-  setSelectValueSafe("singleAssignedOwnerUserId", document.getElementById("singleAssignedOwnerUserId")?.value || sessionUser?.userId || activeUsers[0]?.userId || "");
-  setSelectValueSafe("complexAssignedOwnerUserId", document.getElementById("complexAssignedOwnerUserId")?.value || sessionUser?.userId || activeUsers[0]?.userId || "");
-  setSelectValueSafe("singleStorageMode", document.getElementById("singleStorageMode")?.value || getSessionStorageMode());
-  setSelectValueSafe("complexStorageMode", document.getElementById("complexStorageMode")?.value || getSessionStorageMode());
+  setSelectValueSafe("sessionActiveUserId", getSessionUserId() || sessionUser?.userId || activeUsers[0]?.userId || "");
+  setSelectValueSafe("loginGateUserId", getSessionUserId() || sessionUser?.userId || activeUsers[0]?.userId || "");
+  setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
+  setSelectValueSafe("loginGateStorageMode", getSessionStorageMode());
 }
 function applyOwnershipFieldsToForms(record, mode) {
-  const sessionUser = getCurrentSessionUser();
-  const prefix = mode === "single" ? "single" : "complex";
-  const assignedOwnerUserId = record?.assignedOwnerUserId || sessionUser?.userId || "";
-  const assignedOwner = users.find(x => x.userId === assignedOwnerUserId) || sessionUser || null;
-  const createdByName = record?.createdByName || sessionUser?.displayName || "";
-  const lastUpdatedByName = record?.lastUpdatedByName || sessionUser?.displayName || "";
-  const teamOrDepartment = record?.teamOrDepartment || assignedOwner?.department || sessionUser?.department || "";
-  const storageMode = record?.storageMode || getSessionStorageMode();
-
-  const createdEl = document.getElementById(`${prefix}CreatedByName`);
-  const lastUpdatedEl = document.getElementById(`${prefix}LastUpdatedByName`);
-  const teamEl = document.getElementById(`${prefix}TeamOrDepartment`);
-  if (createdEl) createdEl.value = createdByName;
-  if (lastUpdatedEl) lastUpdatedEl.value = lastUpdatedByName;
-  if (teamEl) teamEl.value = teamOrDepartment;
-
-  refreshOwnershipSelects();
-  setSelectValueSafe(`${prefix}AssignedOwnerUserId`, assignedOwnerUserId);
-  setSelectValueSafe(`${prefix}StorageMode`, storageMode);
+  return;
 }
 function collectOwnershipFieldsFromForms(payload, mode, existingRecord) {
-  const prefix = mode === "single" ? "single" : "complex";
-  const sessionUser = getCurrentSessionUser();
-  const assignedOwnerUserId = document.getElementById(`${prefix}AssignedOwnerUserId`)?.value || existingRecord?.assignedOwnerUserId || sessionUser?.userId || "";
-  const assignedOwner = users.find(x => x.userId === assignedOwnerUserId) || null;
-  payload.createdByUserId = existingRecord?.createdByUserId || sessionUser?.userId || "";
-  payload.createdByName = existingRecord?.createdByName || sessionUser?.displayName || "";
-  payload.assignedOwnerUserId = assignedOwnerUserId;
-  payload.assignedOwnerName = assignedOwner?.displayName || existingRecord?.assignedOwnerName || sessionUser?.displayName || "";
-  payload.lastUpdatedByUserId = sessionUser?.userId || "";
-  payload.lastUpdatedByName = sessionUser?.displayName || "";
-  payload.teamOrDepartment = document.getElementById(`${prefix}TeamOrDepartment`)?.value || assignedOwner?.department || existingRecord?.teamOrDepartment || "";
-  payload.storageMode = document.getElementById(`${prefix}StorageMode`)?.value || existingRecord?.storageMode || getSessionStorageMode();
-  return payload;
+  return applyOwnershipMetadata(payload, existingRecord);
 }
 function resetOwnershipFields(mode) {
-  applyOwnershipFieldsToForms(null, mode);
+  return;
+}
+
+
+function isUserLoggedIn() {
+  const sessionUser = getCurrentSessionUser();
+  return !!sessionUser;
+}
+function refreshLoginGateOptions() {
+  const activeUsers = getActiveUserOptions();
+  const select = document.getElementById("loginGateUserId");
+  if (select) {
+    select.innerHTML = activeUsers.map(u => `<option value="${escapeHtml(u.userId)}">${escapeHtml(u.displayName)} (${escapeHtml(u.role)})</option>`).join("");
+    setSelectValueSafe("loginGateUserId", getSessionUserId() || activeUsers[0]?.userId || "");
+  }
+  setSelectValueSafe("loginGateStorageMode", getSessionStorageMode());
+}
+function showLoginGate() {
+  refreshLoginGateOptions();
+  const gate = document.getElementById("loginGate");
+  if (gate) gate.style.display = "flex";
+}
+function hideLoginGate() {
+  const gate = document.getElementById("loginGate");
+  if (gate) gate.style.display = "none";
+}
+function updateLoginState() {
+  const sessionUser = getCurrentSessionUser();
+  if (!sessionUser) {
+    showLoginGate();
+    document.getElementById("sessionUserDisplay") && (document.getElementById("sessionUserDisplay").textContent = "Not Set");
+  } else {
+    hideLoginGate();
+    document.getElementById("sessionUserDisplay") && (document.getElementById("sessionUserDisplay").textContent = sessionUser.displayName || "Not Set");
+  }
+  document.getElementById("sessionStorageDisplay") && (document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode());
+}
+function startUserSession() {
+  const userId = document.getElementById("loginGateUserId")?.value || "";
+  if (!userId) {
+    const status = document.getElementById("loginGateStatus");
+    if (status) status.textContent = "Select a user first.";
+    return;
+  }
+  setSessionUserId(userId);
+  setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
+  renderUserAdmin();
+  updateLoginState();
+}
+function guardLoggedInAction(event) {
+  const allowedIds = new Set([
+    "loginGateContinueBtn",
+    "saveUserAdminBtn",
+    "cancelUserAdminEditBtn",
+    "sessionActiveUserId",
+    "sessionStorageMode",
+    "loginGateUserId",
+    "loginGateStorageMode"
+  ]);
+  const target = event.target.closest("button, a, select, input, textarea");
+  if (!target) return;
+  if (allowedIds.has(target.id)) return;
+  if (target.closest("#view-users")) return;
+  if (isUserLoggedIn()) return;
+  event.preventDefault();
+  event.stopPropagation();
+  showLoginGate();
 }
 
 function renderUserAdmin() {
@@ -405,6 +441,7 @@ function renderUserAdmin() {
   setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
   document.getElementById("sessionUserDisplay").textContent = currentSessionUser?.displayName || "Not Set";
   document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode();
+  updateLoginState();
   refreshOwnershipSelects();
   if (!users.length) {
     body.innerHTML = '<tr><td colspan="8">No users available.</td></tr>';
@@ -706,7 +743,6 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexAcceptanceDate").value = component.acceptedRisk?.acceptanceDate || "";
   document.getElementById("complexReviewDate").value = component.acceptedRisk?.reviewDate || "";
   document.getElementById("complexDecisionLogic").value = component.acceptedRisk?.decisionLogic || "";
-  applyOwnershipFieldsToForms(component, "complex");
   updateInherentScores();
 }
 function renderComplexScenarioComponents() {
@@ -907,8 +943,6 @@ function refreshLibraries() {
   users = ensureDefaultUsers();
   renderCategoryAdmin();
   renderUserAdmin();
-  applyOwnershipFieldsToForms(null, "single");
-  applyOwnershipFieldsToForms(null, "complex");
   renderSavedScenarios();
   renderDashboardOpenTable();
   renderComplexScenarioComponents();
@@ -1063,17 +1097,11 @@ function getSinglePayload() {
     hardFacts: singleHardFacts.slice(),
     mitigations: singleMitigations.slice(),
     acceptedRiskEntries: (window.singleAcceptedRisks || []).map(item => ({ ...item })),
-    acceptedRisk: getAcceptedRisk("single"),
-    createdByName: document.getElementById("singleCreatedByName")?.value || "",
-    assignedOwnerUserId: document.getElementById("singleAssignedOwnerUserId")?.value || "",
-    lastUpdatedByName: document.getElementById("singleLastUpdatedByName")?.value || "",
-    teamOrDepartment: document.getElementById("singleTeamOrDepartment")?.value || "",
-    storageMode: document.getElementById("singleStorageMode")?.value || getSessionStorageMode()
+    acceptedRisk: getAcceptedRisk("single")
   };
 }
 function getComplexPayload() {
   const currentComponent = getCurrentComplexComponentSnapshot();
-  applyOwnershipFieldsToForms(currentComponent, "complex");
   const existingIndex = complexScenarioComponents.findIndex(x => x.componentId === currentComponent.componentId);
   const allComponents = existingIndex >= 0
     ? complexScenarioComponents.map((component, idx) => idx === existingIndex ? currentComponent : component)
@@ -1118,12 +1146,7 @@ function getComplexPayload() {
     components: allComponents.map(component => ({ ...component })),
     mitigations: allMitigations,
     acceptedRiskEntries: (window.complexAcceptedRisks || []).map(item => ({ ...item })),
-    acceptedRisk: getAcceptedRisk("complex"),
-    createdByName: document.getElementById("complexCreatedByName")?.value || "",
-    assignedOwnerUserId: document.getElementById("complexAssignedOwnerUserId")?.value || "",
-    lastUpdatedByName: document.getElementById("complexLastUpdatedByName")?.value || "",
-    teamOrDepartment: document.getElementById("complexTeamOrDepartment")?.value || "",
-    storageMode: document.getElementById("complexStorageMode")?.value || getSessionStorageMode()
+    acceptedRisk: getAcceptedRisk("complex")
   };
 }
 
@@ -1539,6 +1562,7 @@ function runBetaScenario() {
   });
 }
 function saveBetaScenario(event) {
+  if (!isUserLoggedIn()) { showLoginGate(); return; }
   if (event?.preventDefault) event.preventDefault();
   if (event?.stopPropagation) event.stopPropagation();
   let payload = getBetaPayload();
@@ -1625,22 +1649,21 @@ function runScenario() {
 function applyOwnershipMetadata(payload, existingRecord) {
   const sessionUser = getCurrentSessionUser();
   const sessionStorageMode = getSessionStorageMode();
-  const createdByUserId = existingRecord?.createdByUserId || sessionUser?.userId || "";
-  const createdByName = existingRecord?.createdByName || payload.createdByName || sessionUser?.displayName || "";
-  const assignedOwnerUserId = payload.assignedOwnerUserId || existingRecord?.assignedOwnerUserId || sessionUser?.userId || "";
+  const assignedOwnerUserId = sessionUser?.userId || existingRecord?.assignedOwnerUserId || "";
   const assignedOwner = users.find(x => x.userId === assignedOwnerUserId) || sessionUser || null;
-  payload.createdByUserId = createdByUserId;
-  payload.createdByName = createdByName;
+  payload.createdByUserId = existingRecord?.createdByUserId || sessionUser?.userId || "";
+  payload.createdByName = existingRecord?.createdByName || sessionUser?.displayName || "";
   payload.assignedOwnerUserId = assignedOwnerUserId;
-  payload.assignedOwnerName = assignedOwner?.displayName || existingRecord?.assignedOwnerName || sessionUser?.displayName || "";
+  payload.assignedOwnerName = assignedOwner?.displayName || existingRecord?.assignedOwnerName || "";
   payload.lastUpdatedByUserId = sessionUser?.userId || "";
   payload.lastUpdatedByName = sessionUser?.displayName || "";
-  payload.teamOrDepartment = payload.teamOrDepartment || existingRecord?.teamOrDepartment || assignedOwner?.department || sessionUser?.department || "";
-  payload.storageMode = payload.storageMode || sessionStorageMode || existingRecord?.storageMode || "Local Workspace";
+  payload.teamOrDepartment = existingRecord?.teamOrDepartment || assignedOwner?.department || sessionUser?.department || "";
+  payload.storageMode = sessionStorageMode || existingRecord?.storageMode || "Local Workspace";
   return payload;
 }
 
 function saveScenario(event) {
+  if (!isUserLoggedIn()) { showLoginGate(); return; }
   if (event?.preventDefault) event.preventDefault();
   if (event?.stopPropagation) event.stopPropagation();
   const activeViewEl = document.querySelector(".view.active");
@@ -1752,7 +1775,6 @@ function openScenario(id) {
     document.getElementById("singleSoftCostLikely").value = s.softCostLikely || 0;
     document.getElementById("singleSoftCostMax").value = s.softCostMax || 0;
     setCurrencyFieldValue("singleMitigationCost", s.mitigationCost || 0);
-    applyOwnershipFieldsToForms(s, "single");
     const singleRandom = document.getElementById("singleRandomScenarioCount");
     if (singleRandom) singleRandom.value = String(s.randomScenarioCount || 1000);
     singleInsurance = Array.isArray(s.insurance) ? s.insurance.slice() : [];
@@ -2945,8 +2967,6 @@ function init() {
   wireDelegatedActionHandlers();
   wireRecordMaintenanceEnhancements();
   syncComplexComponentIdField(true);
-  applyOwnershipFieldsToForms(null, "single");
-  applyOwnershipFieldsToForms(null, "complex");
   renderUserAdmin();
 }
 document.addEventListener("DOMContentLoaded", init);
