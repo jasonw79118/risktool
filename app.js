@@ -4623,5 +4623,33 @@ function getExpandedPolishedManualHtmlV2() {
     </div>
   `;
 
-  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide + screenGuide + exampleGuide + reportUseGuide;
+  
+  /* PHASE 20.1.49 SAFE APPEND */
+  const validationGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Validation Checklist</div>
+      <div class="card-body">
+        <ul>
+          <li>Reporting Lines reflects ownership</li>
+          <li>Primary Product / Service reflects correct product</li>
+          <li>Evidence supports the scenario</li>
+          <li>Mitigation is actionable</li>
+          <li>Insurance evaluated against loss</li>
+          <li>Acceptance includes rationale</li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const modelingGuide = `
+    <div class="card mt-3">
+      <div class="card-header">Modeling Guidance</div>
+      <div class="card-body">
+        <p>Focus on ranges, not a single number. The model supports decisions, not precision.</p>
+      </div>
+    </div>
+  `;
+
+  return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide + screenGuide + exampleGuide + reportUseGuide + validationGuide + modelingGuide;
+
 }
