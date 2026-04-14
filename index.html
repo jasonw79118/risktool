@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 21.0.5</h4>
+<h4>Phase 21.0.6</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -890,19 +890,31 @@
 <div class="stat-card help-tip" data-help="The default storage mode applied to newly saved scenarios."><span>Storage Mode</span><strong id="sessionStorageDisplay">Local Workspace</strong></div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Session Defaults</h3><span>Local Workspace Foundation</span></div>
+<div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
 <select id="sessionActiveUserId"></select>
 </div>
 <div>
-<label class="help-label" data-help="Default storage mode saved with new scenario records. Shared Workspace is planning-ready only in this phase.">Default Storage Mode</label>
+<label class="help-label" data-help="Default storage mode saved with new scenario records.">Default Storage Mode</label>
 <select id="sessionStorageMode">
 <option value="Local Workspace">Local Workspace</option>
 <option value="Shared Workspace">Shared Workspace</option>
 </select>
 </div>
+<div class="full-span">
+<label class="help-label" data-help="Reference path for the local workspace root used by this browser session. This is stored as a path setting only.">Local Workspace Path</label>
+<input id="workspaceLocalPath" placeholder="e.g. C:\RiskTool\Workspace" type="text"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Reference path for the shared workspace root used by this browser session. This is stored as a path setting only.">Shared Workspace Path</label>
+<input id="workspaceSharedPath" placeholder="e.g. \\Server\RiskTool\Workspace" type="text"/>
+</div>
+</div>
+<div class="builder-actions">
+<button class="btn btn-primary" id="saveWorkspaceSetupBtn" type="button">Save Workspace Setup</button>
+<div class="note-box" id="workspaceSetupStatus">Workspace path settings are saved locally in this browser.</div>
 </div>
 </div>
 <div class="card">
@@ -1218,8 +1230,9 @@
     <div class="card-header"><h3>Login Required</h3><span>Select a local user session to continue</span></div>
     <div class="form-grid">
       <div class="full-span">
-        <label class="help-label" data-help="Select the local user session for this workspace before using the application.">User</label>
-        <select id="loginGateUserId"></select>
+        <label class="help-label" data-help="Type the user display name or login name to start a session.">User</label>
+        <input id="loginGateUserText" placeholder="Type display name or login" type="text" list="loginGateUserSuggestions"/>
+        <datalist id="loginGateUserSuggestions"></datalist>
       </div>
       <div class="full-span">
         <label class="help-label" data-help="Enter the password for the selected local user.">Password</label>

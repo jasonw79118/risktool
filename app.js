@@ -132,6 +132,8 @@ const LEGACY_STORAGE_KEY = "risk_manager_saved_evaluations_v2";
 const USER_STORAGE_KEY = "risk_manager_users_v2101";
 const SESSION_USER_KEY = "risk_manager_session_user_v2101";
 const SESSION_STORAGE_MODE_KEY = "risk_manager_session_storage_mode_v2101";
+const WORKSPACE_LOCAL_PATH_KEY = "risk_manager_workspace_local_path_v2101";
+const WORKSPACE_SHARED_PATH_KEY = "risk_manager_workspace_shared_path_v2101";
 
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
@@ -274,6 +276,27 @@ function getSessionStorageMode() {
 function setSessionStorageMode(value) {
   localStorage.setItem(SESSION_STORAGE_MODE_KEY, String(value || "Local Workspace"));
 }
+
+function getWorkspaceLocalPath() {
+  return localStorage.getItem(WORKSPACE_LOCAL_PATH_KEY) || "";
+}
+function setWorkspaceLocalPath(value) {
+  localStorage.setItem(WORKSPACE_LOCAL_PATH_KEY, String(value || ""));
+}
+function getWorkspaceSharedPath() {
+  return localStorage.getItem(WORKSPACE_SHARED_PATH_KEY) || "";
+}
+function setWorkspaceSharedPath(value) {
+  localStorage.setItem(WORKSPACE_SHARED_PATH_KEY, String(value || ""));
+}
+function saveWorkspaceSetup() {
+  setSessionStorageMode(document.getElementById("sessionStorageMode")?.value || "Local Workspace");
+  setWorkspaceLocalPath(document.getElementById("workspaceLocalPath")?.value || "");
+  setWorkspaceSharedPath(document.getElementById("workspaceSharedPath")?.value || "");
+  const status = document.getElementById("workspaceSetupStatus");
+  if (status) status.textContent = "Workspace setup saved locally in this browser.";
+  renderUserAdmin();
+}
 function getCurrentSessionUser() {
   const sessionId = getSessionUserId();
   if (!sessionId) return null;
@@ -296,8 +319,13 @@ function resetUserAdminForm() {
 }
 function saveUserAdminRecord() {
   const displayName = document.getElementById("userAdminDisplayName").value.trim();
+  const passwordValue = document.getElementById("userAdminPassword").value;
   if (!displayName) {
     alert("Display Name is required.");
+    return;
+  }
+  if (!passwordValue) {
+    alert("Password is required.");
     return;
   }
   const existing = getStoredUsers();
@@ -348,12 +376,13 @@ function refreshOwnershipSelects() {
   const activeUsers = getActiveUserOptions();
   const options = activeUsers.map(u => u.userId);
   populateSelect("sessionActiveUserId", options);
-  populateSelect("loginGateUserId", options);
   const sessionUser = getCurrentSessionUser();
   setSelectValueSafe("sessionActiveUserId", getSessionUserId() || sessionUser?.userId || activeUsers[0]?.userId || "");
-  setSelectValueSafe("loginGateUserId", getSessionUserId() || sessionUser?.userId || activeUsers[0]?.userId || "");
   setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
-  setSelectValueSafe("loginGateStorageMode", getSessionStorageMode());
+  const localPath = document.getElementById("workspaceLocalPath");
+  const sharedPath = document.getElementById("workspaceSharedPath");
+  if (localPath) localPath.value = getWorkspaceLocalPath();
+  if (sharedPath) sharedPath.value = getWorkspaceSharedPath();
 }
 function applyOwnershipFieldsToForms(record, mode) {
   return;
@@ -372,10 +401,14 @@ function isUserLoggedIn() {
 }
 function refreshLoginGateOptions() {
   const activeUsers = getActiveUserOptions();
-  const select = document.getElementById("loginGateUserId");
-  if (select) {
-    select.innerHTML = activeUsers.map(u => `<option value="${escapeHtml(u.userId)}">${escapeHtml(u.displayName)} (${escapeHtml(u.role)})</option>`).join("");
-    setSelectValueSafe("loginGateUserId", getSessionUserId() || activeUsers[0]?.userId || "");
+  const list = document.getElementById("loginGateUserSuggestions");
+  if (list) {
+    const options = [];
+    activeUsers.forEach(u => {
+      if (u.displayName) options.push(`<option value="${escapeHtml(u.displayName)}"></option>`);
+      if (u.emailOrLogin) options.push(`<option value="${escapeHtml(u.emailOrLogin)}"></option>`);
+    });
+    list.innerHTML = options.join("");
   }
   const pwd = document.getElementById("loginGatePassword");
   if (pwd) pwd.value = "";
@@ -402,23 +435,31 @@ function updateLoginState() {
   document.getElementById("sessionStorageDisplay") && (document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode());
 }
 function startUserSession() {
-  const userId = document.getElementById("loginGateUserId")?.value || "";
-  const password = document.getElementById("loginGatePassword")?.value || "";
+  const userText = (document.getElementById("loginGateUserText")?.value || "").trim();
+  const password = String(document.getElementById("loginGatePassword")?.value || "");
   const status = document.getElementById("loginGateStatus");
-  if (!userId) {
-    if (status) status.textContent = "Select a user first.";
+  if (!userText) {
+    if (status) status.textContent = "Enter a user name or login first.";
     return;
   }
-  const user = users.find(x => x.userId === userId && x.status === "Active");
+  const normalizedUserText = userText.toLowerCase();
+  const user = users.find(x =>
+    x.status === "Active" &&
+    (
+      String(x.displayName || "").trim().toLowerCase() === normalizedUserText ||
+      String(x.emailOrLogin || "").trim().toLowerCase() === normalizedUserText
+    )
+  );
   if (!user) {
-    if (status) status.textContent = "Selected user is not active.";
+    if (status) status.textContent = "User was not found.";
     return;
   }
-  if ((user.password || "") !== password) {
+  const expectedPassword = String(user.password || "").trim();
+  if (expectedPassword !== password) {
     if (status) status.textContent = "Password is incorrect.";
     return;
   }
-  setSessionUserId(userId);
+  setSessionUserId(user.userId);
   setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
   if (status) status.textContent = "Session started.";
   renderUserAdmin();
@@ -428,7 +469,7 @@ function openUserAdminFromLogin() {
   hideLoginGate();
   activateView("users");
   const status = document.getElementById("loginGateStatus");
-  if (status) status.textContent = "You can manage users here. Use the default Local Admin / admin credentials unless changed.";
+  if (status) status.textContent = "You can manage users and workspace setup here. Default Local Admin password is admin unless changed.";
 }
 
 function guardLoggedInAction(event) {
@@ -439,7 +480,7 @@ function guardLoggedInAction(event) {
     "cancelUserAdminEditBtn",
     "sessionActiveUserId",
     "sessionStorageMode",
-    "loginGateUserId",
+    "loginGateUserText",
     "loginGatePassword",
     "loginGateStorageMode",
     "userAdminPassword"
@@ -2990,6 +3031,7 @@ function init() {
     setSessionStorageMode(event.target.value || "Local Workspace");
     renderUserAdmin();
   });
+  document.getElementById("saveWorkspaceSetupBtn")?.addEventListener("click", saveWorkspaceSetup);
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
