@@ -400,16 +400,6 @@ function isUserLoggedIn() {
   return !!sessionUser;
 }
 function refreshLoginGateOptions() {
-  const activeUsers = getActiveUserOptions();
-  const list = document.getElementById("loginGateUserSuggestions");
-  if (list) {
-    const options = [];
-    activeUsers.forEach(u => {
-      if (u.displayName) options.push(`<option value="${escapeHtml(u.displayName)}"></option>`);
-      if (u.emailOrLogin) options.push(`<option value="${escapeHtml(u.emailOrLogin)}"></option>`);
-    });
-    list.innerHTML = options.join("");
-  }
   const pwd = document.getElementById("loginGatePassword");
   if (pwd) pwd.value = "";
   setSelectValueSafe("loginGateStorageMode", getSessionStorageMode());
@@ -435,7 +425,9 @@ function updateLoginState() {
   document.getElementById("sessionStorageDisplay") && (document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode());
 }
 function startUserSession() {
-  const userText = (document.getElementById("loginGateUserText")?.value || "").trim();
+  ensureDefaultUsers();
+  users = getStoredUsers();
+  const userText = String(document.getElementById("loginGateUserText")?.value || "").trim();
   const password = String(document.getElementById("loginGatePassword")?.value || "");
   const status = document.getElementById("loginGateStatus");
   if (!userText) {
@@ -443,13 +435,16 @@ function startUserSession() {
     return;
   }
   const normalizedUserText = userText.toLowerCase();
-  const user = users.find(x =>
+  let user = users.find(x =>
     x.status === "Active" &&
     (
       String(x.displayName || "").trim().toLowerCase() === normalizedUserText ||
       String(x.emailOrLogin || "").trim().toLowerCase() === normalizedUserText
     )
   );
+  if (!user && normalizedUserText === "local admin") {
+    user = users.find(x => String(x.userId || "") === "USR-LOCAL-ADMIN");
+  }
   if (!user) {
     if (status) status.textContent = "User was not found.";
     return;
@@ -463,8 +458,28 @@ function startUserSession() {
   setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
   if (status) status.textContent = "Session started.";
   renderUserAdmin();
+  wirePasswordVisibilityToggles();
   updateLoginState();
 }
+function wirePasswordVisibilityToggles() {
+  const loginToggle = document.getElementById("loginGateShowPassword");
+  const loginInput = document.getElementById("loginGatePassword");
+  if (loginToggle && loginInput && !loginToggle.dataset.wired) {
+    loginToggle.dataset.wired = "true";
+    loginToggle.addEventListener("change", () => {
+      loginInput.type = loginToggle.checked ? "text" : "password";
+    });
+  }
+  const adminToggle = document.getElementById("userAdminShowPassword");
+  const adminInput = document.getElementById("userAdminPassword");
+  if (adminToggle && adminInput && !adminToggle.dataset.wired) {
+    adminToggle.dataset.wired = "true";
+    adminToggle.addEventListener("change", () => {
+      adminInput.type = adminToggle.checked ? "text" : "password";
+    });
+  }
+}
+
 function openUserAdminFromLogin() {
   hideLoginGate();
   activateView("users");
