@@ -458,28 +458,8 @@ function startUserSession() {
   setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
   if (status) status.textContent = "Session started.";
   renderUserAdmin();
-  wirePasswordVisibilityToggles();
   updateLoginState();
 }
-function wirePasswordVisibilityToggles() {
-  const loginToggle = document.getElementById("loginGateShowPassword");
-  const loginInput = document.getElementById("loginGatePassword");
-  if (loginToggle && loginInput && !loginToggle.dataset.wired) {
-    loginToggle.dataset.wired = "true";
-    loginToggle.addEventListener("change", () => {
-      loginInput.type = loginToggle.checked ? "text" : "password";
-    });
-  }
-  const adminToggle = document.getElementById("userAdminShowPassword");
-  const adminInput = document.getElementById("userAdminPassword");
-  if (adminToggle && adminInput && !adminToggle.dataset.wired) {
-    adminToggle.dataset.wired = "true";
-    adminToggle.addEventListener("change", () => {
-      adminInput.type = adminToggle.checked ? "text" : "password";
-    });
-  }
-}
-
 function openUserAdminFromLogin() {
   hideLoginGate();
   activateView("users");
