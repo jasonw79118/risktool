@@ -468,21 +468,9 @@ function openUserAdminFromLogin() {
 }
 
 function guardLoggedInAction(event) {
-  const allowedIds = new Set([
-    "loginGateContinueBtn",
-    "loginGateOpenAdminBtn",
-    "saveUserAdminBtn",
-    "cancelUserAdminEditBtn",
-    "sessionActiveUserId",
-    "sessionStorageMode",
-    "loginGateUserText",
-    "loginGatePassword",
-    "loginGateStorageMode",
-    "userAdminPassword"
-  ]);
   const target = event.target.closest("button, a, select, input, textarea");
   if (!target) return;
-  if (allowedIds.has(target.id)) return;
+  if (target.closest("#loginGate")) return;
   if (target.closest("#view-users")) return;
   if (isUserLoggedIn()) return;
   event.preventDefault();
