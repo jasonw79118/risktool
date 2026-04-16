@@ -1,0 +1,14 @@
+RISKTOOL PHASE 21.0.12 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.12
+- Default admin identities now include:
+  - Admin / admin
+  - Local Admin / admin
+
+What was fixed:
+- app now guarantees a default Admin user exists
+- app still guarantees a default Local Admin user exists
+- initial login should work with either:
+  - user: Admin / password: admin
+  - user: Local Admin / password: admin
