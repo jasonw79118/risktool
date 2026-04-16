@@ -3015,12 +3015,21 @@ function init() {
     renderUserAdmin();
   });
   document.getElementById("saveWorkspaceSetupBtn")?.addEventListener("click", saveWorkspaceSetup);
+  document.getElementById("loginGateContinueBtn")?.addEventListener("click", startUserSession);
+  document.getElementById("loginGateOpenAdminBtn")?.addEventListener("click", openUserAdminFromLogin);
+  document.addEventListener("click", guardLoggedInAction, true);
+  document.addEventListener("change", (event) => {
+    if (!isUserLoggedIn() && !event.target.closest("#view-users") && !event.target.closest("#loginGate")) {
+      showLoginGate();
+    }
+  }, true);
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
   wireDelegatedActionHandlers();
   wireRecordMaintenanceEnhancements();
   syncComplexComponentIdField(true);
   renderUserAdmin();
+  updateLoginState();
 }
 document.addEventListener("DOMContentLoaded", init);
 
