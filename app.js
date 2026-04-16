@@ -415,11 +415,17 @@ function hideLoginGate() {
 }
 function updateLoginState() {
   const sessionUser = getCurrentSessionUser();
+  const sidebar = document.querySelector(".sidebar");
+  const main = document.querySelector(".main");
   if (!sessionUser) {
     showLoginGate();
+    if (sidebar) { sidebar.style.pointerEvents = "none"; sidebar.style.opacity = "0.55"; }
+    if (main) { main.style.pointerEvents = "none"; main.style.opacity = "0.55"; }
     document.getElementById("sessionUserDisplay") && (document.getElementById("sessionUserDisplay").textContent = "Not Set");
   } else {
     hideLoginGate();
+    if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
+    if (main) { main.style.pointerEvents = ""; main.style.opacity = ""; }
     document.getElementById("sessionUserDisplay") && (document.getElementById("sessionUserDisplay").textContent = sessionUser.displayName || "Not Set");
   }
   document.getElementById("sessionStorageDisplay") && (document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode());
@@ -468,14 +474,7 @@ function openUserAdminFromLogin() {
 }
 
 function guardLoggedInAction(event) {
-  const target = event.target.closest("button, a, select, input, textarea");
-  if (!target) return;
-  if (target.closest("#loginGate")) return;
-  if (target.closest("#view-users")) return;
-  if (isUserLoggedIn()) return;
-  event.preventDefault();
-  event.stopPropagation();
-  showLoginGate();
+  return;
 }
 
 function renderUserAdmin() {
@@ -3017,12 +3016,6 @@ function init() {
   document.getElementById("saveWorkspaceSetupBtn")?.addEventListener("click", saveWorkspaceSetup);
   document.getElementById("loginGateContinueBtn")?.addEventListener("click", startUserSession);
   document.getElementById("loginGateOpenAdminBtn")?.addEventListener("click", openUserAdminFromLogin);
-  document.addEventListener("click", guardLoggedInAction, true);
-  document.addEventListener("change", (event) => {
-    if (!isUserLoggedIn() && !event.target.closest("#view-users") && !event.target.closest("#loginGate")) {
-      showLoginGate();
-    }
-  }, true);
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
   wireDelegatedActionHandlers();

@@ -1,0 +1,14 @@
+RISKTOOL PHASE 21.0.11 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.11
+- Login password field should accept typing
+- Start Session button should work
+- Open User Admin button should work
+- Pressing Enter in the password field should start login
+
+What changed:
+- removed global click/change interception for login locking
+- app shell is now disabled until login instead
+- login modal is left fully interactive
+- added inline backup handlers for both login buttons
