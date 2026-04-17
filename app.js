@@ -134,6 +134,7 @@ const SESSION_USER_KEY = "risk_manager_session_user_v2101";
 const SESSION_STORAGE_MODE_KEY = "risk_manager_session_storage_mode_v2101";
 const WORKSPACE_LOCAL_PATH_KEY = "risk_manager_workspace_local_path_v2101";
 const WORKSPACE_SHARED_PATH_KEY = "risk_manager_workspace_shared_path_v2101";
+const SCENARIO_SAVE_ENGINE_KEY = "risk_manager_scenario_save_engine_v2101";
 
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
@@ -289,12 +290,30 @@ function getWorkspaceSharedPath() {
 function setWorkspaceSharedPath(value) {
   localStorage.setItem(WORKSPACE_SHARED_PATH_KEY, String(value || ""));
 }
+function getScenarioSaveEngine() {
+  return localStorage.getItem(SCENARIO_SAVE_ENGINE_KEY) || "Local Browser Storage";
+}
+function setScenarioSaveEngine(value) {
+  localStorage.setItem(SCENARIO_SAVE_ENGINE_KEY, String(value || "Local Browser Storage"));
+}
+function getCurrentSaveDestinationText() {
+  const engine = getScenarioSaveEngine();
+  if (engine === "Shared Workspace Reference Only") {
+    const sharedPath = getWorkspaceSharedPath();
+    return sharedPath ? `Browser local storage + shared workspace reference (${sharedPath})` : "Browser local storage + shared workspace reference (path not set)";
+  }
+  const localPath = getWorkspaceLocalPath();
+  return localPath ? `Browser local storage (workspace reference: ${localPath})` : "Browser local storage";
+}
 function saveWorkspaceSetup() {
+  setScenarioSaveEngine(document.getElementById("scenarioSaveEngine")?.value || "Local Browser Storage");
   setSessionStorageMode(document.getElementById("sessionStorageMode")?.value || "Local Workspace");
   setWorkspaceLocalPath(document.getElementById("workspaceLocalPath")?.value || "");
   setWorkspaceSharedPath(document.getElementById("workspaceSharedPath")?.value || "");
   const status = document.getElementById("workspaceSetupStatus");
-  if (status) status.textContent = "Workspace setup saved locally in this browser.";
+  if (status) {
+    status.textContent = `Workspace setup saved. Scenario records now use: ${getCurrentSaveDestinationText()}`;
+  }
   renderUserAdmin();
 }
 function getCurrentSessionUser() {
@@ -1006,6 +1025,8 @@ function getSavedScenarios() {
   return migrated;
 }
 function setSavedScenarios(items) {
+  // Current browser build saves scenario records locally in browser storage.
+  // "Shared Workspace Reference Only" updates metadata and path references but does not write records to a remote store.
   writeJSON(STORAGE_KEY, items);
 }
 function generateScenarioId(existingScenarios) {
@@ -3078,6 +3099,10 @@ function init() {
     renderUserAdmin();
   });
   document.getElementById("saveWorkspaceSetupBtn")?.addEventListener("click", saveWorkspaceSetup);
+  document.getElementById("scenarioSaveEngine")?.addEventListener("change", (event) => {
+    setScenarioSaveEngine(event.target.value || "Local Browser Storage");
+    renderUserAdmin();
+  });
   document.getElementById("loginGateContinueBtn")?.addEventListener("click", startUserSession);
   document.getElementById("loginGateOpenAdminBtn")?.addEventListener("click", openUserAdminFromLogin);
   setupRandomOutcomesCsvButton();

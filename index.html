@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 21.0.16</h4>
+<h4>Phase 21.0.17</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -887,7 +887,7 @@
 <div class="grid three">
 <div class="stat-card help-tip" data-help="Number of active users available for ownership and assignment."><span>Active Users</span><strong id="activeUserCount">0</strong></div>
 <div class="stat-card help-tip" data-help="The current local session user used as the default owner for new scenario saves."><span>Session User</span><strong id="sessionUserDisplay">Not Set</strong></div>
-<div class="stat-card help-tip" data-help="The default storage mode applied to newly saved scenarios."><span>Storage Mode</span><strong id="sessionStorageDisplay">Local Workspace</strong></div>
+<div class="stat-card help-tip" data-help="The default storage mode applied to newly saved scenarios."><span>Save Engine</span><strong id="sessionStorageDisplay">Local Browser Storage</strong></div>
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
@@ -897,7 +897,14 @@
 <select id="sessionActiveUserId"></select>
 </div>
 <div>
-<label class="help-label" data-help="Default storage mode saved with new scenario records.">Default Storage Mode</label>
+<label class="help-label" data-help="This controls how scenario records are saved in this browser build. Local Browser Storage keeps records in browser storage and does not use Supabase.">Scenario Save Engine</label>
+<select id="scenarioSaveEngine">
+<option value="Local Browser Storage">Local Browser Storage</option>
+<option value="Shared Workspace Reference Only">Shared Workspace Reference Only</option>
+</select>
+</div>
+<div>
+<label class="help-label" data-help="Default storage mode stamped onto scenario records.">Storage Mode Tag</label>
 <select id="sessionStorageMode">
 <option value="Local Workspace">Local Workspace</option>
 <option value="Shared Workspace">Shared Workspace</option>
@@ -911,10 +918,14 @@
 <label class="help-label" data-help="Reference path for the shared workspace root used by this browser session. This is stored as a path setting only.">Shared Workspace Path</label>
 <input id="workspaceSharedPath" placeholder="e.g. \\Server\RiskTool\Workspace" type="text"/>
 </div>
+<div class="full-span">
+<label class="help-label" data-help="Shows where scenario records are currently being saved by this browser build.">Current Save Destination</label>
+<input id="workspaceSaveDestination" readonly type="text"/>
+</div>
 </div>
 <div class="builder-actions">
 <button class="btn btn-primary" id="saveWorkspaceSetupBtn" type="button">Save Workspace Setup</button>
-<div class="note-box" id="workspaceSetupStatus">Workspace path settings are saved locally in this browser.</div>
+<div class="note-box" id="workspaceSetupStatus">Scenario records currently save to browser local storage unless changed here.</div>
 </div>
 </div>
 <div class="card">

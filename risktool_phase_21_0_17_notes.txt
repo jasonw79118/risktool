@@ -1,0 +1,22 @@
+RISKTOOL PHASE 21.0.17 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.17
+- User Admin / Workspace Setup now includes:
+  - Scenario Save Engine
+  - Storage Mode Tag
+  - Local Workspace Path
+  - Shared Workspace Path
+  - Current Save Destination
+- Save Engine should default to:
+  - Local Browser Storage
+
+Behavior changes:
+- scenario saving is now explicitly labeled as Local Browser Storage by default
+- current save destination is shown in the UI
+- changing workspace setup updates the visible destination summary
+- current browser build continues to save scenario records locally in browser storage
+
+Important:
+- this pack does not add a remote backend
+- it makes local saving explicit and avoids any hidden expectation of Supabase-based saving in this browser build
