@@ -407,11 +407,21 @@ function refreshLoginGateOptions() {
 function showLoginGate() {
   refreshLoginGateOptions();
   const gate = document.getElementById("loginGate");
-  if (gate) gate.style.display = "flex";
+  if (gate) {
+    gate.style.display = "flex";
+    gate.style.pointerEvents = "auto";
+    gate.style.visibility = "visible";
+    gate.style.opacity = "1";
+  }
 }
 function hideLoginGate() {
   const gate = document.getElementById("loginGate");
-  if (gate) gate.style.display = "none";
+  if (gate) {
+    gate.style.display = "none";
+    gate.style.pointerEvents = "none";
+    gate.style.visibility = "hidden";
+    gate.style.opacity = "0";
+  }
 }
 function updateLoginState() {
   const sessionUser = getCurrentSessionUser();
@@ -421,14 +431,17 @@ function updateLoginState() {
     showLoginGate();
     if (sidebar) { sidebar.style.pointerEvents = "none"; sidebar.style.opacity = "0.55"; }
     if (main) { main.style.pointerEvents = "none"; main.style.opacity = "0.55"; }
-    document.getElementById("sessionUserDisplay") && (document.getElementById("sessionUserDisplay").textContent = "Not Set");
+    const sessionUserDisplay = document.getElementById("sessionUserDisplay");
+    if (sessionUserDisplay) sessionUserDisplay.textContent = "Not Set";
   } else {
     hideLoginGate();
     if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
     if (main) { main.style.pointerEvents = ""; main.style.opacity = ""; }
-    document.getElementById("sessionUserDisplay") && (document.getElementById("sessionUserDisplay").textContent = sessionUser.displayName || "Not Set");
+    const sessionUserDisplay = document.getElementById("sessionUserDisplay");
+    if (sessionUserDisplay) sessionUserDisplay.textContent = sessionUser.displayName || "Not Set";
   }
-  document.getElementById("sessionStorageDisplay") && (document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode());
+  const sessionStorageDisplay = document.getElementById("sessionStorageDisplay");
+  if (sessionStorageDisplay) sessionStorageDisplay.textContent = getSessionStorageMode();
 }
 function startUserSession() {
   ensureDefaultUsers();
@@ -491,6 +504,11 @@ function startUserSession() {
   setSessionUserId(user.userId);
   setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
   if (status) status.textContent = "Session started.";
+  hideLoginGate();
+  const sidebar = document.querySelector(".sidebar");
+  const main = document.querySelector(".main");
+  if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
+  if (main) { main.style.pointerEvents = ""; main.style.opacity = ""; }
   renderUserAdmin();
   updateLoginState();
 }
