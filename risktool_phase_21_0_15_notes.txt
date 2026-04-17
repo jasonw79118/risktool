@@ -1,0 +1,11 @@
+RISKTOOL PHASE 21.0.15 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.15
+- After successful login, the system should no longer stay greyed out
+- Sidebar and main area should be clickable immediately
+
+What was fixed:
+- added explicit app shell unlock logic
+- successful login now force-unlocks the sidebar and main area
+- login state now uses dedicated lock/unlock helpers

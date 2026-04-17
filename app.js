@@ -414,6 +414,26 @@ function showLoginGate() {
     gate.style.opacity = "1";
   }
 }
+function lockAppShell() {
+  const sidebar = document.querySelector(".sidebar");
+  const main = document.querySelector(".main");
+  if (sidebar) { sidebar.style.pointerEvents = "none"; sidebar.style.opacity = "0.55"; }
+  if (main) { main.style.pointerEvents = "none"; main.style.opacity = "0.55"; }
+}
+
+function unlockAppShell() {
+  const sidebar = document.querySelector(".sidebar");
+  const main = document.querySelector(".main");
+  if (sidebar) {
+    sidebar.style.pointerEvents = "auto";
+    sidebar.style.opacity = "1";
+  }
+  if (main) {
+    main.style.pointerEvents = "auto";
+    main.style.opacity = "1";
+  }
+}
+
 function destroyLoginGate() {
   const gate = document.getElementById("loginGate");
   if (gate && gate.parentNode) {
@@ -432,19 +452,15 @@ function hideLoginGate() {
 }
 function updateLoginState() {
   const sessionUser = getCurrentSessionUser();
-  const sidebar = document.querySelector(".sidebar");
-  const main = document.querySelector(".main");
   const gate = document.getElementById("loginGate");
   if (!sessionUser) {
     if (gate) showLoginGate();
-    if (sidebar) { sidebar.style.pointerEvents = "none"; sidebar.style.opacity = "0.55"; }
-    if (main) { main.style.pointerEvents = "none"; main.style.opacity = "0.55"; }
+    lockAppShell();
     const sessionUserDisplay = document.getElementById("sessionUserDisplay");
     if (sessionUserDisplay) sessionUserDisplay.textContent = "Not Set";
   } else {
     if (gate) hideLoginGate();
-    if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
-    if (main) { main.style.pointerEvents = ""; main.style.opacity = ""; }
+    unlockAppShell();
     const sessionUserDisplay = document.getElementById("sessionUserDisplay");
     if (sessionUserDisplay) sessionUserDisplay.textContent = sessionUser.displayName || "Not Set";
   }
@@ -514,10 +530,7 @@ function startUserSession() {
   if (status) status.textContent = "Session started.";
   hideLoginGate();
   destroyLoginGate();
-  const sidebar = document.querySelector(".sidebar");
-  const main = document.querySelector(".main");
-  if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
-  if (main) { main.style.pointerEvents = ""; main.style.opacity = ""; }
+  unlockAppShell();
   renderUserAdmin();
   updateLoginState();
 }
