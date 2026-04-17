@@ -1,0 +1,11 @@
+RISKTOOL PHASE 21.0.14 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.14
+- After successful login, the login bubble should be completely gone
+- The app should be clickable immediately after session start
+
+What was changed:
+- successful login now removes the login overlay from the DOM
+- login state handling is tolerant of the overlay no longer existing
+- this avoids any stuck display or blocking state from the old login bubble

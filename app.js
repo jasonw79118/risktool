@@ -414,6 +414,13 @@ function showLoginGate() {
     gate.style.opacity = "1";
   }
 }
+function destroyLoginGate() {
+  const gate = document.getElementById("loginGate");
+  if (gate && gate.parentNode) {
+    gate.parentNode.removeChild(gate);
+  }
+}
+
 function hideLoginGate() {
   const gate = document.getElementById("loginGate");
   if (gate) {
@@ -427,14 +434,15 @@ function updateLoginState() {
   const sessionUser = getCurrentSessionUser();
   const sidebar = document.querySelector(".sidebar");
   const main = document.querySelector(".main");
+  const gate = document.getElementById("loginGate");
   if (!sessionUser) {
-    showLoginGate();
+    if (gate) showLoginGate();
     if (sidebar) { sidebar.style.pointerEvents = "none"; sidebar.style.opacity = "0.55"; }
     if (main) { main.style.pointerEvents = "none"; main.style.opacity = "0.55"; }
     const sessionUserDisplay = document.getElementById("sessionUserDisplay");
     if (sessionUserDisplay) sessionUserDisplay.textContent = "Not Set";
   } else {
-    hideLoginGate();
+    if (gate) hideLoginGate();
     if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
     if (main) { main.style.pointerEvents = ""; main.style.opacity = ""; }
     const sessionUserDisplay = document.getElementById("sessionUserDisplay");
@@ -505,6 +513,7 @@ function startUserSession() {
   setSessionStorageMode(document.getElementById("loginGateStorageMode")?.value || "Local Workspace");
   if (status) status.textContent = "Session started.";
   hideLoginGate();
+  destroyLoginGate();
   const sidebar = document.querySelector(".sidebar");
   const main = document.querySelector(".main");
   if (sidebar) { sidebar.style.pointerEvents = ""; sidebar.style.opacity = ""; }
