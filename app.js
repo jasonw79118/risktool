@@ -415,22 +415,19 @@ function showLoginGate() {
   }
 }
 function lockAppShell() {
-  const sidebar = document.querySelector(".sidebar");
-  const main = document.querySelector(".main");
-  if (sidebar) { sidebar.style.pointerEvents = "none"; sidebar.style.opacity = "0.55"; }
-  if (main) { main.style.pointerEvents = "none"; main.style.opacity = "0.55"; }
+  return;
 }
 
 function unlockAppShell() {
   const sidebar = document.querySelector(".sidebar");
   const main = document.querySelector(".main");
   if (sidebar) {
-    sidebar.style.pointerEvents = "auto";
-    sidebar.style.opacity = "1";
+    sidebar.style.pointerEvents = "";
+    sidebar.style.opacity = "";
   }
   if (main) {
-    main.style.pointerEvents = "auto";
-    main.style.opacity = "1";
+    main.style.pointerEvents = "";
+    main.style.opacity = "";
   }
 }
 
@@ -455,7 +452,6 @@ function updateLoginState() {
   const gate = document.getElementById("loginGate");
   if (!sessionUser) {
     if (gate) showLoginGate();
-    lockAppShell();
     const sessionUserDisplay = document.getElementById("sessionUserDisplay");
     if (sessionUserDisplay) sessionUserDisplay.textContent = "Not Set";
   } else {

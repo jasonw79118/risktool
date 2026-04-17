@@ -1,0 +1,11 @@
+RISKTOOL PHASE 21.0.16 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.16
+- After successful login, the app should not remain greyed out
+- Sidebar and main area should be clickable immediately
+
+What changed:
+- removed shell-lock behavior as an enforcement method
+- login overlay is now the only gate before session start
+- this avoids the stuck greyed-out state after a successful login
