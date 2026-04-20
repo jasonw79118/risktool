@@ -1,0 +1,233 @@
+RISKTOOL PHASE 23.0.2
+WORKSPACE CONFIG FILE HANDLING SPEC
+
+PURPOSE
+Define the first real shared-workspace file phase after the shell/bridge foundation.
+This phase focuses on reading and writing workspace configuration files before scenario-file migration.
+
+PRIMARY GOALS
+1. Read/write users.json
+2. Read/write admin-settings.json
+3. Read/write workspace-settings.json
+4. Read/write roles.json
+5. Keep scenario saving unchanged for this phase
+6. Preserve current scenario layouts
+7. Keep visible frontend version aligned to 23.0.2
+
+==================================================
+1. WHAT THIS PHASE SHOULD DO
+==================================================
+
+The app should:
+- connect to a selected workspace root
+- verify config folder exists
+- read config files into the app
+- create missing config files with default content if permitted
+- allow User Admin and Workspace Setup to use shared workspace config files
+- stop treating browser local storage as the source of truth for:
+  - users
+  - admin settings
+  - workspace settings
+  - roles
+
+This phase does NOT yet require:
+- scenario JSON save/load
+- attachment writing
+- audit log writing
+- file locking for scenario edits
+
+==================================================
+2. REQUIRED FILES
+==================================================
+
+Workspace root:
+RiskToolWorkspace/
+  config/
+    users.json
+    admin-settings.json
+    workspace-settings.json
+    roles.json
+
+If missing, Phase 23.0.2 should be able to create them.
+
+==================================================
+3. FILE SCHEMAS
+==================================================
+
+users.json
+{
+  "users": [
+    {
+      "userId": "USR-ADMIN",
+      "displayName": "Admin",
+      "emailOrLogin": "admin",
+      "passwordHash": "<hash or placeholder for early phase>",
+      "role": "Admin",
+      "reportingLine": "Administration",
+      "department": "Administration",
+      "status": "Active",
+      "createdAt": "2026-04-20T00:00:00Z",
+      "updatedAt": "2026-04-20T00:00:00Z"
+    }
+  ]
+}
+
+admin-settings.json
+{
+  "versionDisplayMode": "frontend",
+  "defaultSaveEngine": "Shared Workspace File Store",
+  "requireLogin": true,
+  "allowWorkspaceCreate": true,
+  "allowFolderCreate": true,
+  "retainArchivedScenarios": true
+}
+
+workspace-settings.json
+{
+  "workspaceName": "RiskTool Shared Workspace",
+  "workspaceRoot": "",
+  "configRoot": "config",
+  "scenarioRoot": "scenarios",
+  "singleScenarioRoot": "scenarios/single",
+  "complexScenarioRoot": "scenarios/complex",
+  "betaScenarioRoot": "scenarios/beta",
+  "attachmentsRoot": "attachments",
+  "exportsRoot": "exports",
+  "auditRoot": "audit",
+  "archiveRoot": "archive",
+  "defaultStorageModeTag": "Shared Workspace",
+  "versionTarget": "23.0.2",
+  "active": true
+}
+
+roles.json
+{
+  "roles": [
+    {
+      "name": "Admin",
+      "permissions": ["*"]
+    },
+    {
+      "name": "Manager / Reviewer",
+      "permissions": ["view_team", "view_assigned", "review", "comment"]
+    },
+    {
+      "name": "Standard User",
+      "permissions": ["view_own", "edit_own", "create"]
+    },
+    {
+      "name": "Read Only",
+      "permissions": ["view_only"]
+    }
+  ]
+}
+
+==================================================
+4. FILE BRIDGE METHODS REQUIRED NOW
+==================================================
+
+The shell bridge should support at minimum:
+- selectWorkspaceRoot()
+- getWorkspaceRoot()
+- validateWorkspaceStructure(root)
+- createWorkspaceStructure(root)
+- readWorkspaceFile(relativePath)
+- writeWorkspaceFile(relativePath, content)
+- fileExists(relativePath)
+
+Expected config paths:
+- config/users.json
+- config/admin-settings.json
+- config/workspace-settings.json
+- config/roles.json
+
+==================================================
+5. FRONTEND BEHAVIOR CHANGES
+==================================================
+
+USER ADMIN
+- reads users from config/users.json
+- saves user changes back to config/users.json
+- no longer treats browser local user storage as primary
+
+WORKSPACE SETUP
+- reads workspace settings from config/workspace-settings.json
+- reads admin settings from config/admin-settings.json
+- reads roles from config/roles.json where needed
+- displays connected workspace name/path
+
+LOGIN
+- should prepare to authenticate against users.json in next phase
+- for this phase, login can remain transitional if needed
+- user list should come from config file, not browser-only storage
+
+LOCAL STORAGE
+- may still be used as temporary fallback/cache only
+- should not be the intended source of truth for users/settings/admin
+
+==================================================
+6. DEFAULT FILE CREATION RULES
+==================================================
+
+If config files are missing and workspace creation is allowed:
+- create config folder if missing
+- create users.json with default Admin user
+- create admin-settings.json with safe defaults
+- create workspace-settings.json with workspace references
+- create roles.json with baseline roles
+
+If creation is not allowed:
+- show validation failure clearly
+- do not silently continue
+
+==================================================
+7. VERSIONING REQUIREMENT
+==================================================
+
+Frontend visible version must update to:
+23.0.2
+
+This should be shown in the existing frontend version location.
+
+==================================================
+8. SAFETY RULES
+==================================================
+
+Do NOT change:
+- scenario order
+- complex scenario hierarchy
+- Monte Carlo logic
+- reporting calculation logic
+- Information structure unless only to update workspace guidance
+
+Keep this phase focused on config-file handling only.
+
+==================================================
+9. VERIFICATION FOR 23.0.2
+==================================================
+
+Verify:
+- workspace can be selected
+- config folder can be validated
+- config files can be created when missing
+- users load from users.json
+- workspace settings load from workspace-settings.json
+- admin settings load from admin-settings.json
+- roles load from roles.json
+- user edits write back to users.json
+- visible frontend version shows 23.0.2
+- no scenario layout regressions occur
+
+==================================================
+10. NEXT PHASE AFTER 23.0.2
+==================================================
+
+PHASE 23.0.3
+- local file login against users.json
+- password hashing enforcement
+- authenticated session from shared workspace config
+
+PHASE 23.0.4
+- scenario save/load to workspace JSON files
+
+END OF SPEC

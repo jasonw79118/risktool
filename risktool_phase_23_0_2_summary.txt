@@ -1,0 +1,12 @@
+RISKTOOL PHASE 23.0.2 SUMMARY
+
+This pack defines the workspace config-file phase:
+- users.json
+- admin-settings.json
+- workspace-settings.json
+- roles.json
+
+Main goal:
+Move users/admin/workspace config out of browser storage and into the shared workspace.
+
+This pack does NOT modify the app yet.

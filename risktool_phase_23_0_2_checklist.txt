@@ -1,0 +1,22 @@
+PHASE 23.0.2 CHECKLIST
+
+Workspace
+[ ] workspace root selectable
+[ ] config folder validated
+[ ] missing config files creatable
+
+Files
+[ ] users.json handled
+[ ] admin-settings.json handled
+[ ] workspace-settings.json handled
+[ ] roles.json handled
+
+Frontend
+[ ] User Admin reads shared config
+[ ] Workspace Setup reads shared config
+[ ] visible version shows 23.0.2
+
+Safety
+[ ] scenario layouts unchanged
+[ ] complex hierarchy unchanged
+[ ] Monte Carlo unchanged
