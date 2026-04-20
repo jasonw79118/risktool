@@ -1,0 +1,9 @@
+RISKTOOL PHASE 23.0.1 SUMMARY
+
+This pack defines the next implementation phase:
+- desktop shell
+- controlled filesystem bridge
+- workspace initialization
+- visible frontend version bump to 23.0.1
+
+This pack does NOT modify the current app yet.
