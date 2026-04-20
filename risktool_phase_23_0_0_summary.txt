@@ -1,0 +1,17 @@
+RISKTOOL PHASE 23.0.0 SUMMARY
+
+This pack does NOT modify the current app.
+
+It defines the new target architecture:
+- desktop-wrapped browser-style app
+- shared workspace folder as primary storage
+- users/admin/settings outside browser storage
+- scenario JSON files outside browser storage
+- audit log file
+- no backend requirement
+
+Recommended next coding phase:
+PHASE 23.0.1
+- Electron or Tauri shell
+- file service bridge
+- workspace initialization

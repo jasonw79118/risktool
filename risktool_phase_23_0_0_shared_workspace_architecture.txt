@@ -1,0 +1,352 @@
+RISKTOOL PHASE 23.0.0
+SHARED-WORKSPACE FILE ARCHITECTURE FOUNDATION
+
+PURPOSE
+Move RiskTool away from browser-local primary storage and away from backend-controlled storage.
+Use a browser-style application shell with real file-based saving to a shared workspace.
+
+TARGET OUTCOME
+- app remains browser-style
+- user/admin/settings files live on a different machine or mapped shared folder
+- scenario files live in that shared workspace
+- reports and attachments live in that shared workspace
+- browser local storage is reduced to temporary cache / session convenience only
+
+BEST-FIT IMPLEMENTATION MODEL
+Use a desktop wrapper around the current web app:
+- Electron or Tauri
+
+WHY
+A plain browser app cannot reliably write arbitrary files to local or network paths without user-granted file access limits.
+A desktop wrapper can:
+- read/write JSON files
+- access approved workspace folders
+- support mapped network drives
+- keep the current frontend largely intact
+
+==================================================
+1. RECOMMENDED HIGH-LEVEL ARCHITECTURE
+==================================================
+
+APP SHELL
+- Tauri or Electron desktop shell
+- loads the RiskTool frontend locally
+- provides controlled filesystem access
+
+FRONTEND
+- current RiskTool UI
+- scenario builder
+- Monte Carlo calculations
+- dashboard
+- reports
+- information/help system
+
+FILE STORAGE LAYER
+- workspace folder selected/configured by admin
+- file service reads/writes:
+  - users
+  - admin settings
+  - workspace settings
+  - scenarios
+  - attachments
+  - exports
+  - audit log
+
+NO PRIMARY DATABASE
+- primary source of truth is controlled JSON / structured files in the shared workspace
+
+==================================================
+2. SHARED WORKSPACE FOLDER STRUCTURE
+==================================================
+
+Recommended root structure:
+
+RiskToolWorkspace/
+  config/
+    users.json
+    admin-settings.json
+    workspace-settings.json
+    roles.json
+  scenarios/
+    single/
+    complex/
+    beta/
+  components/
+  attachments/
+  exports/
+    pdf/
+    docx/
+    csv/
+    json/
+  audit/
+    audit-log.jsonl
+  archive/
+  temp/
+
+NOTES
+- config files are centrally managed
+- scenario files are separated by mode
+- audit log uses append-friendly format
+- archive supports retention / cleanup later
+
+==================================================
+3. CORE FILES
+==================================================
+
+users.json
+- user records
+- role
+- reporting line
+- department
+- status
+- password hash if local auth is retained in file model
+
+admin-settings.json
+- admin preferences
+- version policy
+- feature flags
+- lock settings
+- retention settings
+
+workspace-settings.json
+- workspace name
+- workspace mode
+- default save paths
+- export destinations
+- audit settings
+
+roles.json
+- role capability map
+- permissions by action
+
+audit-log.jsonl
+- append-only audit entries
+- one JSON object per line
+
+scenario files
+- one file per scenario
+- structured JSON
+- stable schema
+- scenario ownership metadata included
+
+==================================================
+4. SCENARIO FILE MODEL
+==================================================
+
+Recommended naming:
+- single_SCN-000001.json
+- complex_SCN-000002.json
+- beta_SCN-000003.json
+
+Each scenario file should include:
+- scenario id
+- mode
+- scenario data
+- ownership fields
+- created by
+- assigned owner
+- last updated by
+- storage mode tag
+- timestamps
+- version number
+- file revision number
+
+Complex scenario files should include:
+- top-level product section
+- scenario components
+- nested risk items
+- insurance
+- hard facts/evidence
+- mitigation
+- accepted risk
+- report metadata
+
+==================================================
+5. USER / ADMIN / SETTINGS STORAGE
+==================================================
+
+USER RECORD EXAMPLE
+{
+  "userId": "USR-ADMIN",
+  "displayName": "Admin",
+  "emailOrLogin": "admin",
+  "passwordHash": "<hash>",
+  "role": "Admin",
+  "reportingLine": "Administration",
+  "department": "Administration",
+  "status": "Active",
+  "createdAt": "2026-04-20T00:00:00Z",
+  "updatedAt": "2026-04-20T00:00:00Z"
+}
+
+WORKSPACE SETTINGS EXAMPLE
+{
+  "workspaceName": "RiskTool Shared Workspace",
+  "defaultScenarioSaveMode": "Shared Workspace",
+  "scenarioRoot": "RiskToolWorkspace/scenarios",
+  "attachmentsRoot": "RiskToolWorkspace/attachments",
+  "exportsRoot": "RiskToolWorkspace/exports",
+  "auditRoot": "RiskToolWorkspace/audit",
+  "versionDisplayMode": "frontend",
+  "active": true
+}
+
+==================================================
+6. AUTHENTICATION MODEL FOR FILE-BASED VERSION
+==================================================
+
+OPTION A (recommended for this design)
+- local app login against users.json
+- passwords stored as hashes
+- session exists only inside app runtime
+- user actions stamped into scenario files and audit log
+
+OPTION B
+- Windows user / OS identity mapping later
+
+RECOMMENDATION
+Use local file-based login first:
+- username/login
+- hashed password
+- role lookup from users.json
+
+NEVER
+- store plaintext passwords long-term
+
+==================================================
+7. SECURITY / SAFEGUARD MODEL
+==================================================
+
+SECURE WHAT MATTERS
+- keep user/admin/settings files outside browser storage
+- keep scenario files outside browser storage
+- hash passwords
+- append audit log on all critical actions
+- restrict workspace path to approved folder
+- disable arbitrary path writing after setup if desired
+
+RECOMMENDED SAFEGUARDS
+- workspace lock file
+- file revision number
+- optimistic concurrency check
+- backup/export snapshots
+- read-only mode for reviewers
+- archive deleted scenarios instead of hard delete
+
+==================================================
+8. FILE LOCKING / CONCURRENCY
+==================================================
+
+Because this is file-based, concurrency must be handled explicitly.
+
+Recommended minimum:
+- open scenario creates in-memory edit session
+- save checks revision number
+- if revision changed since load, show collision warning
+- optionally create .lock file for active edit session
+
+Recommended later:
+- conflict resolution workflow
+- read-only open when another user holds lock
+
+==================================================
+9. AUDIT LOG MODEL
+==================================================
+
+Use append-only JSONL:
+audit-log.jsonl
+
+Each line:
+{
+  "timestamp": "2026-04-20T12:00:00Z",
+  "actorUserId": "USR-ADMIN",
+  "actorName": "Admin",
+  "actionType": "SCENARIO_SAVE",
+  "recordType": "scenario",
+  "recordId": "SCN-000123",
+  "summary": "Saved single scenario",
+  "details": {
+    "mode": "single",
+    "workspace": "Shared Workspace"
+  }
+}
+
+Audit events to capture:
+- login success/failure
+- user create/update/deactivate
+- workspace setting changes
+- scenario create/update/archive
+- ownership reassignment
+- accepted risk changes
+- export generation
+
+==================================================
+10. FRONTEND / APP CHANGES REQUIRED
+==================================================
+
+REMOVE AS PRIMARY SAVE ENGINE
+- browser local storage for scenarios
+
+KEEP ONLY FOR
+- temporary UI cache
+- session convenience
+- non-sensitive preferences if needed
+
+ADD
+- workspace initialization flow
+- select or confirm workspace root
+- file service bridge
+- save/load scenario JSON
+- load users/admin/settings from workspace config
+- audit log append on actions
+
+USER ADMIN
+- reads/writes users.json
+- reads/writes roles/settings files
+
+WORKSPACE SETUP
+- explicit workspace root
+- validate required subfolders
+- create missing folders if allowed
+- display current connected workspace
+
+==================================================
+11. IMPLEMENTATION PHASES
+==================================================
+
+PHASE 23.0.0
+Shared-workspace architecture foundation
+
+PHASE 23.0.1
+Desktop shell setup (Electron or Tauri) + filesystem bridge
+
+PHASE 23.0.2
+Workspace initialization + config file handling
+
+PHASE 23.0.3
+User login against users.json + password hashing
+
+PHASE 23.0.4
+Scenario save/load to JSON files
+
+PHASE 23.0.5
+Dashboard / saved scenarios reads from workspace files
+
+PHASE 23.0.6
+Audit logging + revision control
+
+PHASE 23.0.7
+Attachments / export writing to workspace folders
+
+==================================================
+12. RECOMMENDED NEXT BUILD PACK
+==================================================
+
+PHASE 23.0.1 should include:
+- desktop wrapper foundation
+- file service abstraction
+- workspace picker/setup
+- visible version bump on frontend
+- no scenario layout changes
+
+END OF DOCUMENT
