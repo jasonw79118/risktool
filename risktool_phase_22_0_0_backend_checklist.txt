@@ -1,0 +1,28 @@
+BACKEND FOUNDATION CHECKLIST
+
+Architecture
+[ ] backend selected
+[ ] database selected
+[ ] auth model selected
+[ ] role matrix approved
+
+Security
+[ ] password hashing
+[ ] auth token/session approach
+[ ] audit log design
+[ ] deactivate user workflow
+
+Data
+[ ] users table
+[ ] scenarios table
+[ ] complex components table
+[ ] supporting child tables
+[ ] audit log table
+[ ] workspace settings table
+
+Frontend migration
+[ ] login screen targets backend
+[ ] saved scenarios target backend
+[ ] dashboard target backend
+[ ] scenario save/update target backend
+[ ] local storage retired as primary save engine

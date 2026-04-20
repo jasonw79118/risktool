@@ -1,0 +1,17 @@
+RISKTOOL PHASE 22.0.0 IMPLEMENTATION SUMMARY
+
+This pack does NOT modify the current app.
+
+It defines the backend-controlled direction:
+- PostgreSQL-backed scenario records
+- authenticated login
+- role-based access
+- scenario ownership in database
+- audit logging
+- shared storage only for exports/attachments
+
+Recommended immediate next coding pack:
+PHASE 22.0.1
+- backend auth service
+- backend user service
+- frontend login to backend
