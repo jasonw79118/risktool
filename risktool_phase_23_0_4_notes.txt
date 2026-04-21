@@ -1,0 +1,24 @@
+RISKTOOL PHASE 23.0.4 NOTES
+
+REAL FRONTEND UPDATE PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.4
+2. Workspace Setup phase note updates to 23.0.4
+3. New card appears:
+   - Shared Workspace Config Targets
+4. New card lists:
+   - config/users.json
+   - config/admin-settings.json
+   - config/workspace-settings.json
+   - config/roles.json
+
+What this pack does:
+- provides a real pushable frontend update
+- keeps the shared-workspace direction visible in the UI
+- gives you another real version bump
+
+What it does NOT do:
+- no scenario layout changes
+- no complex hierarchy changes
+- no file-save migration yet

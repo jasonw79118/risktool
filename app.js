@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.3";
+const APP_VERSION = "23.0.4";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
