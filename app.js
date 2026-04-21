@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.6";
+const APP_VERSION = "23.0.7";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -1014,21 +1014,11 @@ function normalizeScenario(saved) {
   };
 }
 function getSavedScenarios() {
-  const direct = readJSON(STORAGE_KEY, null);
-  if (Array.isArray(direct)) return direct.map(normalizeScenario);
-  const legacy = readJSON(LEGACY_STORAGE_KEY, []);
-  const migrated = Array.isArray(legacy) ? legacy.map(x => {
-    const scenario = normalizeScenario(x);
-    if (!scenario.id) scenario.id = generateScenarioId([]);
-    return scenario;
-  }) : [];
-  if (migrated.length) writeJSON(STORAGE_KEY, migrated);
-  return migrated;
+  const raw = readJSON(STORAGE_KEY, []);
+  return Array.isArray(raw) ? raw : [];
 }
 function setSavedScenarios(items) {
-  // Current browser build saves scenario records locally in browser storage.
-  // "Shared Workspace Reference Only" updates metadata and path references but does not write records to a remote store.
-  writeJSON(STORAGE_KEY, items);
+  writeJSON(STORAGE_KEY, Array.isArray(items) ? items : []);
 }
 function generateScenarioId(existingScenarios) {
   const stamp = currentDateStamp();
@@ -1713,6 +1703,8 @@ function saveBetaScenario(event) {
   const existingIndex = saved.findIndex(x => x.id === payload.id);
   if (existingIndex >= 0) saved[existingIndex] = normalizeScenario(payload); else saved.unshift(normalizeScenario(payload));
   setSavedScenarios(saved);
+  if (typeof renderSavedScenarios === "function") renderSavedScenarios();
+  if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable();
   setBetaOutputs({
     relativeMean: payload.betaRelativeMean,
     a: payload.betaShapeA,
@@ -1822,6 +1814,8 @@ function saveScenario(event) {
   const existingIndex = saved.findIndex(x => x.id === summary.id);
   if (existingIndex >= 0) saved[existingIndex] = summary; else saved.unshift(summary);
   setSavedScenarios(saved);
+  if (typeof renderSavedScenarios === "function") renderSavedScenarios();
+  if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable();
   lastSummary = summary;
   renderScenarioSummary(summary);
   renderMonteCarloTable(summary);
@@ -2072,6 +2066,8 @@ function replaceCategoryUsage(key, oldValue, newValue) {
     return s;
   });
   setSavedScenarios(saved);
+  if (typeof renderSavedScenarios === "function") renderSavedScenarios();
+  if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable();
 }
 function renderEditableList(targetId, key, values) {
   const container = document.getElementById(targetId);
@@ -3114,6 +3110,8 @@ function init() {
   renderUserAdmin();
   updateLoginState();
   syncAppVersionDisplay();
+  document.getElementById("downloadCurrentScenarioBtn")?.addEventListener("click", triggerScenarioJsonDownload);
+  document.getElementById("uploadScenarioFileInput")?.addEventListener("change", handleScenarioJsonUpload);
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -5143,4 +5141,68 @@ function getExpandedPolishedManualHtmlV2() {
 function syncAppVersionDisplay() {
   const el = document.getElementById("appVersion");
   if (el) el.textContent = APP_VERSION;
+}
+
+
+function getActiveScenarioPayloadForDownload() {
+  if (typeof activeMode !== "undefined" && activeMode === "complex" && typeof getComplexPayload === "function") return getComplexPayload();
+  if (typeof activeMode !== "undefined" && activeMode === "beta" && typeof getBetaPayload === "function") return getBetaPayload();
+  if (typeof getSinglePayload === "function") return getSinglePayload();
+  return null;
+}
+
+function triggerScenarioJsonDownload() {
+  const payload = getActiveScenarioPayloadForDownload();
+  const status = document.getElementById("scenarioFileStatus");
+  if (!payload) {
+    if (status) status.textContent = "No scenario payload available to download.";
+    return;
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const filename = `${String(payload.mode || "scenario")}_${String(payload.id || "scenario")}.json`;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  if (status) status.textContent = `Downloaded ${filename}`;
+}
+
+function importScenarioObject(obj) {
+  if (!obj || typeof obj !== "object") throw new Error("Invalid scenario JSON.");
+  const saved = getSavedScenarios();
+  const idx = saved.findIndex(x => String(x.id || "") === String(obj.id || ""));
+  if (idx >= 0) saved[idx] = obj;
+  else saved.unshift(obj);
+  setSavedScenarios(saved);
+  if (typeof renderSavedScenarios === "function") renderSavedScenarios();
+  if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable();
+  if (typeof renderSavedScenarios === "function") renderSavedScenarios();
+  if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable();
+  return obj;
+}
+
+function handleScenarioJsonUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  const status = document.getElementById("scenarioFileStatus");
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || "{}"));
+      const imported = importScenarioObject(parsed);
+      if (status) status.textContent = `Imported ${imported.id || file.name}`;
+      if (typeof openScenario === "function" && imported.id) {
+        try { openScenario(imported.id); } catch (e) {}
+      }
+    } catch (err) {
+      if (status) status.textContent = `Import failed: ${err.message}`;
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
 }
