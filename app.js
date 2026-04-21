@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.7";
+const APP_VERSION = "23.0.8";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -845,7 +845,7 @@ function applyComplexComponentSnapshot(component) {
   setSelectValueSafe("complexRiskDomain", component.riskDomain || riskDomains[0] || "");
   setSelectValueSafe("complexPrimaryProduct", component.primaryProduct || productGroups[0] || "");
   setSelectValueSafe("complexPrimaryRegulation", component.primaryRegulation || regulations[0] || "");
-  document.getElementById("complexScenarioOwner").value = component.scenarioOwner || "";
+  (document.getElementById("complexScenarioOwner")?.value || "") = component.scenarioOwner || "";
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
   document.getElementById("complexScenarioDescription").value = component.description || "";
   document.getElementById("complexControlEffectiveness").value = component.control || 0;
@@ -1204,7 +1204,7 @@ function getSinglePayload() {
     scenarioSource: document.getElementById("singleScenarioSource").value,
     primaryProduct: document.getElementById("singlePrimaryProduct").value,
     primaryRegulation: document.getElementById("singlePrimaryRegulation").value,
-    scenarioOwner: document.getElementById("singleScenarioOwner").value,
+    scenarioOwner: (document.getElementById("singleScenarioOwner")?.value || ""),
     identifiedDate: document.getElementById("singleIdentifiedDate").value,
     description: document.getElementById("singleScenarioDescription").value,
     likelihood: Number(document.getElementById("singleLikelihood").value || 0),
@@ -1251,7 +1251,7 @@ function getComplexPayload() {
     scenarioSource: document.getElementById("complexScenarioSource").value,
     primaryProduct: document.getElementById("complexPrimaryProduct").value,
     primaryRegulation: document.getElementById("complexPrimaryRegulation").value,
-    scenarioOwner: document.getElementById("complexScenarioOwner").value,
+    scenarioOwner: (document.getElementById("complexScenarioOwner")?.value || ""),
     identifiedDate: document.getElementById("complexIdentifiedDate").value,
     description: document.getElementById("complexScenarioDescription").value,
     likelihood: 0,
@@ -1646,7 +1646,7 @@ function getBetaPayload() {
     scenarioStatus: document.getElementById("betaScenarioStatus").value || "Draft",
     primaryProduct: document.getElementById("betaProjectOrProductName").value || "",
     projectOrProductName: document.getElementById("betaProjectOrProductName").value || "",
-    scenarioOwner: document.getElementById("betaScenarioOwner").value || "",
+    scenarioOwner: (document.getElementById("betaScenarioOwner")?.value || "") || "",
     identifiedDate: document.getElementById("betaIdentifiedDate").value || "",
     plannedDecisionDate: document.getElementById("betaPlannedDecisionDate").value || "",
     plannedGoLiveDate: document.getElementById("betaPlannedGoLiveDate").value || "",
@@ -1729,7 +1729,7 @@ function loadBetaTestScenario() {
   setSelectValueSafe("betaRiskDomain", "Strategic & Business Model Risk");
   document.getElementById("betaScenarioStatus").value = "Under Review";
   document.getElementById("betaProjectOrProductName").value = "Embedded Payments Launch";
-  document.getElementById("betaScenarioOwner").value = "Product Management";
+  (document.getElementById("betaScenarioOwner")?.value || "") = "Product Management";
   document.getElementById("betaIdentifiedDate").value = todayIso();
   document.getElementById("betaPlannedDecisionDate").value = todayIso();
   document.getElementById("betaPlannedGoLiveDate").value = todayIso();
@@ -1755,7 +1755,7 @@ function promoteBetaScenario() {
   document.getElementById("singleScenarioName").value = payload.name || "";
   setSelectValueSafe("singleProductGroup", payload.productGroup || productGroups[0] || "");
   setSelectValueSafe("singleRiskDomain", payload.riskDomain || riskDomains[0] || "");
-  document.getElementById("singleScenarioOwner").value = payload.scenarioOwner || "";
+  (document.getElementById("singleScenarioOwner")?.value || "") = payload.scenarioOwner || "";
   document.getElementById("singleIdentifiedDate").value = payload.identifiedDate || "";
   document.getElementById("singleScenarioDescription").value = payload.description || "";
   singleInsurance = Array.isArray(payload.insurance) ? payload.insurance.slice() : [];
@@ -1893,7 +1893,7 @@ function openScenario(id) {
     document.getElementById("singleScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
     setSelectValueSafe("singlePrimaryProduct", s.primaryProduct || productGroups[0] || "");
     document.getElementById("singlePrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
-    document.getElementById("singleScenarioOwner").value = s.scenarioOwner || "";
+    (document.getElementById("singleScenarioOwner")?.value || "") = s.scenarioOwner || "";
     document.getElementById("singleIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("singleScenarioDescription").value = s.description || "";
     document.getElementById("singleLikelihood").value = s.likelihood || 0;
@@ -1934,7 +1934,7 @@ function openScenario(id) {
     setSelectValueSafe("betaRiskDomain", s.riskDomain || riskDomains[0] || "");
     setSelectValueSafe("betaScenarioStatus", s.scenarioStatus || "Draft");
     document.getElementById("betaProjectOrProductName").value = s.projectOrProductName || s.primaryProduct || "";
-    document.getElementById("betaScenarioOwner").value = s.scenarioOwner || "";
+    (document.getElementById("betaScenarioOwner")?.value || "") = s.scenarioOwner || "";
     document.getElementById("betaIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("betaPlannedDecisionDate").value = s.plannedDecisionDate || "";
     document.getElementById("betaPlannedGoLiveDate").value = s.plannedGoLiveDate || "";
@@ -1963,7 +1963,7 @@ function openScenario(id) {
     document.getElementById("complexScenarioSource").value = s.scenarioSource || scenarioSources[0] || "";
     document.getElementById("complexPrimaryProduct").value = s.primaryProduct || products[0] || "";
     document.getElementById("complexPrimaryRegulation").value = s.primaryRegulation || regulations[0] || "";
-    document.getElementById("complexScenarioOwner").value = s.scenarioOwner || "";
+    (document.getElementById("complexScenarioOwner")?.value || "") = s.scenarioOwner || "";
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
@@ -2099,7 +2099,7 @@ function loadSingleTestScenario() {
   document.getElementById("singleScenarioSource").value = "New Regulation";
   document.getElementById("singlePrimaryProduct").value = "Debit Card Program";
   document.getElementById("singlePrimaryRegulation").value = "Reg E";
-  document.getElementById("singleScenarioOwner").value = "Compliance";
+  (document.getElementById("singleScenarioOwner")?.value || "") = "Compliance";
   document.getElementById("singleIdentifiedDate").value = todayIso();
   document.getElementById("singleLikelihood").value = 8;
   document.getElementById("singleImpact").value = 9;
@@ -2153,7 +2153,7 @@ function loadComplexTestScenario() {
   document.getElementById("complexScenarioSource").value = "Risk";
   document.getElementById("complexPrimaryProduct").value = "Deposits";
   document.getElementById("complexPrimaryRegulation").value = "Reg DD";
-  document.getElementById("complexScenarioOwner").value = "Enterprise Risk";
+  (document.getElementById("complexScenarioOwner")?.value || "") = "Enterprise Risk";
   document.getElementById("complexIdentifiedDate").value = todayIso();
   document.getElementById("complexControlEffectiveness").value = 28;
   setCurrencyFieldValue("complexHardCostMin", 125000);
