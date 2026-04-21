@@ -1,3 +1,4 @@
+const APP_VERSION = "23.0.3";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -3112,6 +3113,7 @@ function init() {
   syncComplexComponentIdField(true);
   renderUserAdmin();
   updateLoginState();
+  syncAppVersionDisplay();
 }
 document.addEventListener("DOMContentLoaded", init);
 
@@ -5135,4 +5137,10 @@ function getExpandedPolishedManualHtmlV2() {
   return prior + fieldGuide + reportGuide + examinerGuide + qaGuide + walkthroughGuide + decisionGuide + boardGuide + glossaryGuide + screenGuide + exampleGuide + reportUseGuide + validationGuide + modelingGuide + boardPacketGuide + narrativeGuide + reviewGuide;
 
 
+}
+
+
+function syncAppVersionDisplay() {
+  const el = document.getElementById("appVersion");
+  if (el) el.textContent = APP_VERSION;
 }
