@@ -5213,51 +5213,144 @@ function handleScenarioJsonUpload(event) {
   reader.readAsText(file);
 }
 
-// ===== HARD SAVE FIX 23.0.11 =====
-const STORAGE_KEY = "risktool_scenarios_v1";
 
-function rt_getSaved() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
-  catch(e){ return []; }
+/* ===== PHASE 23.0.11 SAVE OVERRIDE ===== */
+function rtSafeSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
-
-function rt_setSaved(arr) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr||[]));
+function rtWriteSaved(items) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.isArray(items) ? items : []));
 }
-
-function rt_forceSave(payload) {
-  if(!payload) return;
-  const saved = rt_getSaved();
-  const idx = saved.findIndex(x => x.id === payload.id);
-  if(idx>=0) saved[idx]=payload;
-  else saved.unshift(payload);
-  rt_setSaved(saved);
-
-  try{ renderSavedScenarios && renderSavedScenarios(); }catch(e){}
-  try{ renderDashboardOpenTable && renderDashboardOpenTable(); }catch(e){}
+function rtGenerateScenarioId() {
+  return "SCN-" + Date.now();
 }
-
-document.addEventListener("click", function(e){
-  const btn = e.target.closest("button");
-  if(!btn) return;
-
-  if(btn.innerText && btn.innerText.toLowerCase().includes("save scenario")){
-    try{
-      let payload=null;
-      if(window.getSinglePayload) payload=getSinglePayload();
-      if(window.activeMode==="complex" && window.getComplexPayload) payload=getComplexPayload();
-      if(window.activeMode==="beta" && window.getBetaPayload) payload=getBetaPayload();
-
-      if(!payload) return;
-
-      if(!payload.id) payload.id="SCN-"+Date.now();
-
-      rt_forceSave(payload);
-
-      const el=document.getElementById("scenarioFileStatus");
-      if(el) el.textContent="Saved OK "+payload.id;
-
-    }catch(err){console.error(err);}
+function rtBuildSummary(payload) {
+  const inherent = Number(payload?.inherent || 0);
+  const control = Number(payload?.control || 0);
+  const residual = Math.max(0, Math.round(inherent * (1 - control / 100)));
+  return {
+    ...payload,
+    id: payload?.id || rtGenerateScenarioId(),
+    name: payload?.name || "Unnamed Scenario",
+    mode: payload?.mode || "single",
+    productGroup: payload?.productGroup || "",
+    riskDomain: payload?.riskDomain || "",
+    scenarioStatus: payload?.scenarioStatus || "Open",
+    identifiedDate: payload?.identifiedDate || "",
+    primaryProduct: payload?.primaryProduct || "",
+    primaryRegulation: payload?.primaryRegulation || "",
+    inherent,
+    residual
+  };
+}
+function setSavedScenarios(items) {
+  rtWriteSaved(items);
+}
+function getSavedScenarios() {
+  return rtSafeSaved();
+}
+function renderSavedScenarios() {
+  const tbody = document.getElementById("savedEvaluationsBody");
+  const countEl = document.getElementById("savedCount");
+  if (!tbody) return;
+  const saved = getSavedScenarios();
+  if (countEl) countEl.textContent = String(saved.length);
+  if (!saved.length) {
+    tbody.innerHTML = '<tr><td colspan="11">No saved scenarios yet.</td></tr>';
+    return;
   }
+  tbody.innerHTML = saved.map(s => `<tr>
+    <td>${escapeHtml(String(s.id || ""))}</td>
+    <td>${escapeHtml(String(s.name || ""))}</td>
+    <td>${s.mode === "single" ? "Single" : s.mode === "complex" ? "Complex" : s.mode === "beta" ? "Beta" : "Unknown"}</td>
+    <td>${escapeHtml(String(s.productGroup || ""))}</td>
+    <td>${escapeHtml(String(s.scenarioStatus || ""))}</td>
+    <td>${escapeHtml(String(s.assignedOwnerName || ""))}</td>
+    <td>${escapeHtml(String(s.storageMode || "Local Browser Storage"))}</td>
+    <td>${Number(s.inherent || 0)}</td>
+    <td>${Number(s.residual || 0)}</td>
+    <td>${escapeHtml(String(s.identifiedDate || ""))}</td>
+    <td>
+      <button class="btn btn-secondary small-btn" data-action="open" data-id="${escapeHtml(String(s.id || ""))}">Open</button>
+      <button class="btn btn-secondary small-btn" data-action="delete" data-id="${escapeHtml(String(s.id || ""))}">Delete</button>
+    </td>
+  </tr>`).join("");
+}
+function renderDashboardOpenTable() {
+  const tbody = document.getElementById("dashboardOpenScenarioBody");
+  if (!tbody) return;
+  const rows = getSavedScenarios().filter(s => String(s.scenarioStatus || "").toLowerCase() !== "closed");
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="11">No open scenarios available.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(s => `<tr>
+    <td><button class="scenario-link" data-open-id="${escapeHtml(String(s.id || ""))}">${escapeHtml(String(s.id || ""))}</button></td>
+    <td>${s.mode === "single" ? "Single Scenario" : s.mode === "complex" ? "Complex Scenario" : s.mode === "beta" ? "Beta Scenario" : "Unknown"}</td>
+    <td>${escapeHtml(String(s.name || ""))}</td>
+    <td>${escapeHtml(String(s.scenarioStatus || ""))}</td>
+    <td>${Number(s.inherent || 0)}</td>
+    <td>${escapeHtml(String(s.identifiedDate || ""))}</td>
+    <td>${escapeHtml(String(s.productGroup || ""))}</td>
+    <td>${escapeHtml(String(s.riskDomain || ""))}</td>
+    <td>${escapeHtml(String(s.assignedOwnerName || ""))}</td>
+    <td>${escapeHtml(String(s.storageMode || "Local Browser Storage"))}</td>
+    <td><button class="btn btn-secondary small-btn" data-report-id="${escapeHtml(String(s.id || ""))}">Open Report</button></td>
+  </tr>`).join("");
+  tbody.querySelectorAll("[data-open-id]").forEach(btn => btn.addEventListener("click", () => {
+    try { openScenario(btn.dataset.openId); } catch(e) { console.error(e); }
+  }));
+}
+function rtPersistPayload(payload) {
+  const summary = rtBuildSummary(payload);
+  const saved = getSavedScenarios();
+  const idx = saved.findIndex(x => String(x.id || "") === String(summary.id || ""));
+  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
+  setSavedScenarios(saved);
+  try { renderSavedScenarios(); } catch(e) { console.error(e); }
+  try { renderDashboardOpenTable(); } catch(e) { console.error(e); }
+  return summary;
+}
+saveScenario = function(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  let payload = null;
+  const activeViewEl = document.querySelector(".view.active");
+  const currentViewName = activeViewEl?.id?.replace(/^view-/, "") || (typeof activeMode !== "undefined" ? activeMode : "single");
+  if (currentViewName === "beta" || (typeof activeMode !== "undefined" && activeMode === "beta")) {
+    return saveBetaScenario(event);
+  }
+  payload = (typeof activeMode !== "undefined" && activeMode === "complex" && typeof getComplexPayload === "function")
+    ? getComplexPayload()
+    : (typeof getSinglePayload === "function" ? getSinglePayload() : null);
+  if (!payload) return;
+  if (!payload.id) {
+    payload.id = rtGenerateScenarioId();
+    const idEl = document.getElementById(payload.mode === "complex" ? "complexScenarioId" : "singleScenarioId");
+    if (idEl) idEl.value = payload.id;
+  }
+  const summary = rtPersistPayload(payload);
+  try { lastSummary = summary; } catch(e) {}
+  const status = document.getElementById("scenarioFileStatus");
+  if (status) status.textContent = `Saved OK: ${summary.id}`;
+};
+saveBetaScenario = function(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  if (typeof getBetaPayload !== "function") return;
+  const payload = getBetaPayload();
+  if (!payload.id) {
+    payload.id = rtGenerateScenarioId();
+    const idEl = document.getElementById("betaScenarioId");
+    if (idEl) idEl.value = payload.id;
+  }
+  const summary = rtPersistPayload(payload);
+  try { lastSummary = summary; } catch(e) {}
+  const status = document.getElementById("scenarioFileStatus");
+  if (status) status.textContent = `Saved OK: ${summary.id}`;
+};
+document.addEventListener("DOMContentLoaded", () => {
+  try { renderSavedScenarios(); } catch(e) {}
+  try { renderDashboardOpenTable(); } catch(e) {}
 });
-// ===== END FIX =====
+/* ===== END PHASE 23.0.11 SAVE OVERRIDE ===== */
