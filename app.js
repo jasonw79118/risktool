@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.11";
+const APP_VERSION = "23.0.13";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -303,14 +303,107 @@ function getScenarioSaveEngine() {
 function setScenarioSaveEngine(value) {
   localStorage.setItem(SCENARIO_SAVE_ENGINE_KEY, String(value || "Local Browser Storage"));
 }
+function getActualBrowserSaveLocationText() {
+  const origin = (() => {
+    try {
+      return window.location?.origin || window.location?.href || "browser origin";
+    } catch {
+      return "browser origin";
+    }
+  })();
+  return `${origin} :: localStorage[${STORAGE_KEY}]`;
+}
 function getCurrentSaveDestinationText() {
   const engine = getScenarioSaveEngine();
-  if (engine === "Shared Workspace Reference Only") {
+  const actual = getActualBrowserSaveLocationText();
+  if (engine === "Shared Workspace Package Bridge") {
     const sharedPath = getWorkspaceSharedPath();
-    return sharedPath ? `Browser local storage + shared workspace reference (${sharedPath})` : "Browser local storage + shared workspace reference (path not set)";
+    return sharedPath ? `${actual} + workspace package bridge (${sharedPath})` : `${actual} + workspace package bridge (shared path not set)`;
   }
   const localPath = getWorkspaceLocalPath();
-  return localPath ? `Browser local storage (workspace reference: ${localPath})` : "Browser local storage";
+  return localPath ? `${actual} (workspace reference: ${localPath})` : actual;
+}
+function buildWorkspacePackagePayload() {
+  return {
+    packageVersion: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    workspace: {
+      sessionUserId: getSessionUserId(),
+      storageMode: getSessionStorageMode(),
+      scenarioSaveEngine: getScenarioSaveEngine(),
+      localPath: getWorkspaceLocalPath(),
+      sharedPath: getWorkspaceSharedPath(),
+      actualBrowserSaveLocation: getActualBrowserSaveLocationText()
+    },
+    users: getStoredUsers(),
+    categories: {
+      productGroups: getStoredArray(CAT_KEYS.productGroups),
+      products: getStoredArray(CAT_KEYS.products),
+      regulations: getStoredArray(CAT_KEYS.regulations),
+      riskDomains: getStoredArray(CAT_KEYS.riskDomains),
+      scenarioStatuses: getStoredArray(CAT_KEYS.scenarioStatuses),
+      scenarioSources: getStoredArray(CAT_KEYS.scenarioSources),
+      acceptanceAuthorities: getStoredArray(CAT_KEYS.acceptanceAuthorities)
+    },
+    scenarios: getSavedScenarios()
+  };
+}
+function exportWorkspacePackage() {
+  const payload = buildWorkspacePackagePayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `risk_manager_workspace_package_${currentDateStamp()}.json`;
+  link.click();
+  const status = document.getElementById("workspaceSetupStatus");
+  if (status) status.textContent = `Workspace package downloaded. Live saves still use ${getActualBrowserSaveLocationText()}`;
+}
+function importWorkspacePackage(file) {
+  if (!file) return;
+  file.text().then(text => {
+    const payload = JSON.parse(text);
+    if (!payload || (!Array.isArray(payload.scenarios) && !Array.isArray(payload.users))) {
+      alert("Invalid workspace package JSON.");
+      return;
+    }
+    if (payload.workspace) {
+      setSessionUserId(payload.workspace.sessionUserId || "");
+      setSessionStorageMode(payload.workspace.storageMode || "Local Workspace");
+      setScenarioSaveEngine(payload.workspace.scenarioSaveEngine || "Local Browser Storage");
+      setWorkspaceLocalPath(payload.workspace.localPath || "");
+      setWorkspaceSharedPath(payload.workspace.sharedPath || "");
+    }
+    if (Array.isArray(payload.users)) {
+      setStoredUsers(payload.users.map(normalizeUserRecord));
+    }
+    if (payload.categories) {
+      if (Array.isArray(payload.categories.productGroups)) setStoredArray(CAT_KEYS.productGroups, payload.categories.productGroups);
+      if (Array.isArray(payload.categories.products)) setStoredArray(CAT_KEYS.products, payload.categories.products);
+      if (Array.isArray(payload.categories.regulations)) setStoredArray(CAT_KEYS.regulations, payload.categories.regulations);
+      if (Array.isArray(payload.categories.riskDomains)) setStoredArray(CAT_KEYS.riskDomains, payload.categories.riskDomains);
+      if (Array.isArray(payload.categories.scenarioStatuses)) setStoredArray(CAT_KEYS.scenarioStatuses, payload.categories.scenarioStatuses);
+      if (Array.isArray(payload.categories.scenarioSources)) setStoredArray(CAT_KEYS.scenarioSources, payload.categories.scenarioSources);
+      if (Array.isArray(payload.categories.acceptanceAuthorities)) setStoredArray(CAT_KEYS.acceptanceAuthorities, payload.categories.acceptanceAuthorities);
+    }
+    if (Array.isArray(payload.scenarios)) {
+      const mergedMap = new Map(getSavedScenarios().map(s => [String(s.id || ""), s]));
+      payload.scenarios.map(normalizeScenario).forEach(s => {
+        if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
+        mergedMap.set(String(s.id || ""), s);
+      });
+      setSavedScenarios(Array.from(mergedMap.values()));
+    }
+    refreshLibraries();
+    renderUserAdmin();
+    renderSavedScenarios();
+    renderDashboardOpenTable();
+    renderHeatMap();
+    const status = document.getElementById("workspaceSetupStatus");
+    if (status) status.textContent = `Workspace package loaded. Live saves now use ${getActualBrowserSaveLocationText()}`;
+    alert("Workspace package loaded.");
+  }).catch(() => {
+    alert("Unable to import workspace package JSON.");
+  });
 }
 function saveWorkspaceSetup() {
   setScenarioSaveEngine(document.getElementById("scenarioSaveEngine")?.value || "Local Browser Storage");
@@ -487,7 +580,7 @@ function updateLoginState() {
     if (sessionUserDisplay) sessionUserDisplay.textContent = sessionUser.displayName || "Not Set";
   }
   const sessionStorageDisplay = document.getElementById("sessionStorageDisplay");
-  if (sessionStorageDisplay) sessionStorageDisplay.textContent = getSessionStorageMode();
+  if (sessionStorageDisplay) sessionStorageDisplay.textContent = getScenarioSaveEngine();
 }
 function startUserSession() {
   ensureDefaultUsers();
@@ -581,7 +674,11 @@ function renderUserAdmin() {
   }
   setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
   document.getElementById("sessionUserDisplay").textContent = currentSessionUser?.displayName || "Not Set";
-  document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode();
+  document.getElementById("sessionStorageDisplay").textContent = getScenarioSaveEngine();
+  const actualLocation = document.getElementById("workspaceActualBrowserLocation");
+  if (actualLocation) actualLocation.value = getActualBrowserSaveLocationText();
+  const saveDestination = document.getElementById("workspaceSaveDestination");
+  if (saveDestination) saveDestination.value = getCurrentSaveDestinationText();
   updateLoginState();
   refreshOwnershipSelects();
   if (!users.length) {
@@ -2297,6 +2394,12 @@ function wireInputs() {
   if (exportBtn) exportBtn.addEventListener("click", exportScenarioLibrary);
   const importFile = document.getElementById("importScenariosFile");
   if (importFile) importFile.addEventListener("change", (event) => importScenarioLibrary(event.target.files?.[0]));
+  const exportWorkspaceBtn = document.getElementById("exportWorkspacePackageBtn");
+  if (exportWorkspaceBtn) exportWorkspaceBtn.addEventListener("click", exportWorkspacePackage);
+  const importWorkspaceBtn = document.getElementById("importWorkspacePackageBtn");
+  const importWorkspaceFile = document.getElementById("importWorkspacePackageFile");
+  if (importWorkspaceBtn && importWorkspaceFile) importWorkspaceBtn.addEventListener("click", () => importWorkspaceFile.click());
+  if (importWorkspaceFile) importWorkspaceFile.addEventListener("change", (event) => { importWorkspacePackage(event.target.files?.[0]); event.target.value = ""; });
   const boardBtn = document.getElementById("downloadBoardPacketBtn");
   if (boardBtn) boardBtn.addEventListener("click", downloadBoardPacketDocx);
   const aiBtn = document.getElementById("downloadAIPacketBtn");
@@ -5214,12 +5317,16 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.11 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.13 STORAGE ENGINE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
 function rtWriteSaved(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.isArray(items) ? items : []));
+  const saveDestination = document.getElementById("workspaceSaveDestination");
+  if (saveDestination) saveDestination.value = getCurrentSaveDestinationText();
+  const actualLocation = document.getElementById("workspaceActualBrowserLocation");
+  if (actualLocation) actualLocation.value = getActualBrowserSaveLocationText();
 }
 function rtGenerateScenarioId() {
   return "SCN-" + Date.now();
@@ -5332,7 +5439,7 @@ saveScenario = function(event) {
   const summary = rtPersistPayload(payload);
   try { lastSummary = summary; } catch(e) {}
   const status = document.getElementById("scenarioFileStatus");
-  if (status) status.textContent = `Saved OK: ${summary.id}`;
+  if (status) status.textContent = `Saved OK: ${summary.id} • ${getActualBrowserSaveLocationText()}`;
 };
 saveBetaScenario = function(event) {
   if (event?.preventDefault) event.preventDefault();
@@ -5347,10 +5454,10 @@ saveBetaScenario = function(event) {
   const summary = rtPersistPayload(payload);
   try { lastSummary = summary; } catch(e) {}
   const status = document.getElementById("scenarioFileStatus");
-  if (status) status.textContent = `Saved OK: ${summary.id}`;
+  if (status) status.textContent = `Saved OK: ${summary.id} • ${getActualBrowserSaveLocationText()}`;
 };
 document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.11 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.13 STORAGE ENGINE ===== */

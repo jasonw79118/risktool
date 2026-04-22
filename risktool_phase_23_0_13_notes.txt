@@ -1,0 +1,43 @@
+RISKTOOL PHASE 23.0.13 NOTES
+
+USER DELIVERY PREFERENCE
+- ZIP files only
+- Do not paste code into chat
+- Keep original filenames whenever possible
+
+PHASE 23.0.13 PURPOSE
+- Proceed to the next storage phase without pretending the browser can write directly to C: paths or network shares from a GitHub Pages site.
+- Keep the now-working browser save engine stable.
+- Add a real cross-terminal bridge that can move workspace settings, users, categories, and scenarios together.
+
+WHAT CHANGED
+- Version advanced to 23.0.13 in the UI and app.js.
+- User Admin now shows the actual live browser save location using the current origin and localStorage key.
+- Current Save Destination now reflects the true browser storage destination plus any workspace path reference.
+- Added Workspace Package export/import in User Admin:
+  - Download Workspace Package
+  - Load Workspace Package
+- Workspace Package includes:
+  - workspace settings
+  - users
+  - categories
+  - saved scenarios
+- Script tags in index.html now include ?v=23.0.13 to reduce stale browser JS after pushes.
+
+IMPORTANT BEHAVIOR NOTE
+- Live scenario saving still writes to browser localStorage in this phase.
+- This phase does NOT directly write JSON files into the configured User Admin local/shared paths because a static browser app on GitHub Pages cannot safely do that by itself.
+- The new Workspace Package is the honest bridge for moving a workspace between terminals until a desktop wrapper, browser extension, local companion process, or backend writer is added.
+
+WHY THIS PHASE IS USEFUL
+- Users can now see exactly where live saves are happening.
+- The app no longer implies that it is writing directly to the workspace path when it is not.
+- Cross-terminal movement is improved because one package can move users, settings, categories, and scenarios together.
+
+SUGGESTED NEXT PHASE
+- Phase 23.0.14
+- Add a true file-writer bridge for workspace folders by one of these routes:
+  1. desktop wrapper (Electron/Tauri)
+  2. local companion service
+  3. backend API + authenticated workspace storage
+- Then wire User Admin local/shared paths to real read/write operations.

@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.11</h4>
+<h4>Phase 23.0.13</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -891,17 +891,17 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.11. Hidden compatibility fields are restored so save/load testing works again while shared-workspace migration remains the active implementation track.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.13. This phase keeps live saving in browser storage, but adds a real workspace package bridge so users, settings, and scenarios can move together between terminals until a true desktop/shared-folder writer is added.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
 <select id="sessionActiveUserId"></select>
 </div>
 <div>
-<label class="help-label" data-help="This controls how scenario records are saved in this browser build. Local Browser Storage keeps records in browser storage and does not use Supabase.">Scenario Save Engine</label>
+<label class="help-label" data-help="This controls the active browser save behavior. GitHub Pages cannot write directly to C: paths or network shares, so browser storage remains the live engine in this phase.">Scenario Save Engine</label>
 <select id="scenarioSaveEngine">
 <option value="Local Browser Storage">Local Browser Storage</option>
-<option value="Shared Workspace Reference Only">Shared Workspace Reference Only</option>
+<option value="Shared Workspace Package Bridge">Shared Workspace Package Bridge</option>
 </select>
 </div>
 <div>
@@ -912,21 +912,28 @@
 </select>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Reference path for the local workspace root used by this browser session. This is stored as a path setting only.">Local Workspace Path</label>
+<label class="help-label" data-help="Reference path for the local workspace root used by this browser session. This phase stores the path and can package data for that workspace, but cannot write directly to the path from the browser alone.">Local Workspace Path</label>
 <input id="workspaceLocalPath" placeholder="e.g. C:\RiskTool\Workspace" type="text"/>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Reference path for the shared workspace root used by this browser session. This is stored as a path setting only.">Shared Workspace Path</label>
+<label class="help-label" data-help="Reference path for the shared workspace root used by this browser session. This phase stores the path and can package data for that workspace, but cannot write directly to the path from the browser alone.">Shared Workspace Path</label>
 <input id="workspaceSharedPath" placeholder="e.g. \\Server\RiskTool\Workspace" type="text"/>
 </div>
 <div class="full-span">
 <label class="help-label" data-help="Shows where scenario records are currently being saved by this browser build.">Current Save Destination</label>
 <input id="workspaceSaveDestination" readonly type="text"/>
 </div>
+<div class="full-span">
+<label class="help-label" data-help="Shows the actual browser origin and storage key currently holding live scenario data in this terminal.">Actual Browser Save Location</label>
+<input id="workspaceActualBrowserLocation" readonly type="text"/>
+</div>
 </div>
 <div class="builder-actions">
 <button class="btn btn-primary" id="saveWorkspaceSetupBtn" type="button">Save Workspace Setup</button>
-<div class="note-box" id="workspaceSetupStatus">Scenario records currently save to browser local storage unless changed here.</div>
+<button class="btn btn-secondary" id="exportWorkspacePackageBtn" type="button">Download Workspace Package</button>
+<input accept=".json" id="importWorkspacePackageFile" style="display:none;" type="file"/>
+<button class="btn btn-secondary" id="importWorkspacePackageBtn" type="button">Load Workspace Package</button>
+<div class="note-box" id="workspaceSetupStatus">Live saves still go to browser storage in this phase. Use Workspace Package to move users, settings, categories, and scenarios between terminals.</div>
 </div>
 <div class="card mt-3">
 <div class="card-header"><h3>Shared Workspace Config Targets</h3><span>Phase 23 Track</span></div>
@@ -938,11 +945,11 @@
 <li><code>config/workspace-settings.json</code></li>
 <li><code>config/roles.json</code></li>
 </ul>
-<p>This frontend build still uses browser-local scenario storage, but these are the config-file targets the next workspace phases will read from and write to.</p>
+<p>This frontend build still uses browser-local scenario storage for live saving, but Workspace Package export/import now lets these settings and records travel together while the true shared-folder writer is still pending.</p>
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.11</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.13</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -954,7 +961,7 @@
 <li>Scenario JSON folder structure approved</li>
 <li>Audit log location approved</li>
 </ul>
-<p>This checklist is for the upcoming shared-workspace file migration and does not change current scenario save behavior yet.</p>
+<p>This checklist now pairs with Workspace Package export/import for cross-terminal movement, but direct writing to a local or shared folder still requires a desktop wrapper or backend bridge.</p>
 </div>
 </div>
 </div>
@@ -1022,7 +1029,7 @@
 <section class="view" id="view-saved">
 <div class="section-header">
 <h2>Saved Scenarios</h2>
-<p>Saved locally in the browser so they can be reopened, updated, and reprinted later. This phase adds export/import so scenarios can move across machines.</p>
+<p>Saved locally in the browser so they can be reopened, updated, and reprinted later. This phase also supports a workspace package bridge so users, settings, categories, and scenarios can move together across machines.</p>
 </div>
 <div class="builder-actions">
 <button class="btn btn-secondary" id="exportScenariosBtn">Export Scenario Library</button>
@@ -1263,8 +1270,8 @@
 </div>
 </section>
 </main>
-<script src="beta_scenario_engine.js"></script>
-<script src="app.js"></script>
+<script src="beta_scenario_engine.js?v=23.0.13"></script>
+<script src="app.js?v=23.0.13"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">
