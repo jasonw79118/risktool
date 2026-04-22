@@ -1,0 +1,13 @@
+RISKTOOL PHASE 23.0.9 NOTES
+
+FULL PROJECT FIX PACK
+
+Visible changes to verify:
+1. Phase updates to 23.0.9
+2. Site clicks should work again
+3. Logic screen should come up again
+4. Save path no longer hits invalid owner-field assignments in app.js
+
+What was fixed:
+- corrected invalid JavaScript assignments to scenario owner fields
+- rebuilt from the full uploaded project baseline you provided
