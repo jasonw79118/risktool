@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.10";
+const APP_VERSION = "23.0.11";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -5212,3 +5212,52 @@ function handleScenarioJsonUpload(event) {
   };
   reader.readAsText(file);
 }
+
+// ===== HARD SAVE FIX 23.0.11 =====
+const STORAGE_KEY = "risktool_scenarios_v1";
+
+function rt_getSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+  catch(e){ return []; }
+}
+
+function rt_setSaved(arr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr||[]));
+}
+
+function rt_forceSave(payload) {
+  if(!payload) return;
+  const saved = rt_getSaved();
+  const idx = saved.findIndex(x => x.id === payload.id);
+  if(idx>=0) saved[idx]=payload;
+  else saved.unshift(payload);
+  rt_setSaved(saved);
+
+  try{ renderSavedScenarios && renderSavedScenarios(); }catch(e){}
+  try{ renderDashboardOpenTable && renderDashboardOpenTable(); }catch(e){}
+}
+
+document.addEventListener("click", function(e){
+  const btn = e.target.closest("button");
+  if(!btn) return;
+
+  if(btn.innerText && btn.innerText.toLowerCase().includes("save scenario")){
+    try{
+      let payload=null;
+      if(window.getSinglePayload) payload=getSinglePayload();
+      if(window.activeMode==="complex" && window.getComplexPayload) payload=getComplexPayload();
+      if(window.activeMode==="beta" && window.getBetaPayload) payload=getBetaPayload();
+
+      if(!payload) return;
+
+      if(!payload.id) payload.id="SCN-"+Date.now();
+
+      rt_forceSave(payload);
+
+      const el=document.getElementById("scenarioFileStatus");
+      if(el) el.textContent="Saved OK "+payload.id;
+
+    }catch(err){console.error(err);}
+  }
+});
+// ===== END FIX =====
