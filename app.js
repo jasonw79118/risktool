@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.13";
+const APP_VERSION = "23.0.11";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -142,6 +142,7 @@ const SESSION_STORAGE_MODE_KEY = "risk_manager_session_storage_mode_v2101";
 const WORKSPACE_LOCAL_PATH_KEY = "risk_manager_workspace_local_path_v2101";
 const WORKSPACE_SHARED_PATH_KEY = "risk_manager_workspace_shared_path_v2101";
 const SCENARIO_SAVE_ENGINE_KEY = "risk_manager_scenario_save_engine_v2101";
+const WORKSPACE_PACKAGE_EXPORT_KEY = "risk_manager_workspace_package_export_v23014";
 
 const CAT_KEYS = {
   productGroups: "risk_manager_product_groups_v431",
@@ -303,106 +304,126 @@ function getScenarioSaveEngine() {
 function setScenarioSaveEngine(value) {
   localStorage.setItem(SCENARIO_SAVE_ENGINE_KEY, String(value || "Local Browser Storage"));
 }
-function getActualBrowserSaveLocationText() {
-  const origin = (() => {
-    try {
-      return window.location?.origin || window.location?.href || "browser origin";
-    } catch {
-      return "browser origin";
-    }
-  })();
-  return `${origin} :: localStorage[${STORAGE_KEY}]`;
-}
 function getCurrentSaveDestinationText() {
   const engine = getScenarioSaveEngine();
-  const actual = getActualBrowserSaveLocationText();
-  if (engine === "Shared Workspace Package Bridge") {
+  if (engine === "Shared Workspace Reference Only") {
     const sharedPath = getWorkspaceSharedPath();
-    return sharedPath ? `${actual} + workspace package bridge (${sharedPath})` : `${actual} + workspace package bridge (shared path not set)`;
+    return sharedPath ? `Browser local storage + shared workspace reference (${sharedPath})` : "Browser local storage + shared workspace reference (path not set)";
   }
   const localPath = getWorkspaceLocalPath();
-  return localPath ? `${actual} (workspace reference: ${localPath})` : actual;
+  return localPath ? `Browser local storage (workspace reference: ${localPath})` : "Browser local storage";
+}
+function getActualBrowserSaveLocationText() {
+  const origin = (() => {
+    try { return window.location.origin || "browser origin"; } catch (e) { return "browser origin"; }
+  })();
+  return `${origin} -> localStorage[${STORAGE_KEY}]`;
+}
+function getLastWorkspacePackageExport() {
+  return localStorage.getItem(WORKSPACE_PACKAGE_EXPORT_KEY) || "Not yet exported";
+}
+function setLastWorkspacePackageExport(value) {
+  localStorage.setItem(WORKSPACE_PACKAGE_EXPORT_KEY, String(value || ""));
+}
+function getWorkspaceCategorySnapshot() {
+  return {
+    productGroups: getStoredArray(CAT_KEYS.productGroups),
+    products: getStoredArray(CAT_KEYS.products),
+    regulations: getStoredArray(CAT_KEYS.regulations),
+    riskDomains: getStoredArray(CAT_KEYS.riskDomains),
+    scenarioStatuses: getStoredArray(CAT_KEYS.scenarioStatuses),
+    scenarioSources: getStoredArray(CAT_KEYS.scenarioSources),
+    acceptanceAuthorities: getStoredArray(CAT_KEYS.acceptanceAuthorities)
+  };
+}
+function refreshWorkspaceDiagnostics() {
+  const saveDest = document.getElementById("workspaceSaveDestination");
+  if (saveDest) saveDest.value = getCurrentSaveDestinationText();
+  const actual = document.getElementById("workspaceActualBrowserLocation");
+  if (actual) actual.value = getActualBrowserSaveLocationText();
+  const lastExport = document.getElementById("workspaceLastPackageExport");
+  if (lastExport) lastExport.value = getLastWorkspacePackageExport();
 }
 function buildWorkspacePackagePayload() {
   return {
-    packageVersion: APP_VERSION,
     exportedAt: new Date().toISOString(),
-    workspace: {
+    phase: "23.0.14",
+    workspaceSetup: {
       sessionUserId: getSessionUserId(),
-      storageMode: getSessionStorageMode(),
+      sessionStorageMode: getSessionStorageMode(),
       scenarioSaveEngine: getScenarioSaveEngine(),
       localPath: getWorkspaceLocalPath(),
       sharedPath: getWorkspaceSharedPath(),
+      currentSaveDestination: getCurrentSaveDestinationText(),
       actualBrowserSaveLocation: getActualBrowserSaveLocationText()
     },
     users: getStoredUsers(),
-    categories: {
-      productGroups: getStoredArray(CAT_KEYS.productGroups),
-      products: getStoredArray(CAT_KEYS.products),
-      regulations: getStoredArray(CAT_KEYS.regulations),
-      riskDomains: getStoredArray(CAT_KEYS.riskDomains),
-      scenarioStatuses: getStoredArray(CAT_KEYS.scenarioStatuses),
-      scenarioSources: getStoredArray(CAT_KEYS.scenarioSources),
-      acceptanceAuthorities: getStoredArray(CAT_KEYS.acceptanceAuthorities)
-    },
+    categories: getWorkspaceCategorySnapshot(),
     scenarios: getSavedScenarios()
   };
 }
-function exportWorkspacePackage() {
+function downloadWorkspacePackage() {
   const payload = buildWorkspacePackagePayload();
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `risk_manager_workspace_package_${currentDateStamp()}.json`;
-  link.click();
+  const stamp = new Date().toISOString();
+  setLastWorkspacePackageExport(stamp);
+  refreshWorkspaceDiagnostics();
+  triggerDownload(`risktool_workspace_package_${currentDateStamp()}.json`, new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
   const status = document.getElementById("workspaceSetupStatus");
-  if (status) status.textContent = `Workspace package downloaded. Live saves still use ${getActualBrowserSaveLocationText()}`;
+  if (status) status.textContent = `Workspace package downloaded at ${stamp}.`;
 }
-function importWorkspacePackage(file) {
+function mergeUniqueStrings(existing, incoming) {
+  return sortedUnique([...(Array.isArray(existing) ? existing : []), ...(Array.isArray(incoming) ? incoming : [])]);
+}
+function importWorkspacePackageFile(file) {
   if (!file) return;
   file.text().then(text => {
     const payload = JSON.parse(text);
-    if (!payload || (!Array.isArray(payload.scenarios) && !Array.isArray(payload.users))) {
+    if (!payload || !Array.isArray(payload.scenarios)) {
       alert("Invalid workspace package JSON.");
       return;
     }
-    if (payload.workspace) {
-      setSessionUserId(payload.workspace.sessionUserId || "");
-      setSessionStorageMode(payload.workspace.storageMode || "Local Workspace");
-      setScenarioSaveEngine(payload.workspace.scenarioSaveEngine || "Local Browser Storage");
-      setWorkspaceLocalPath(payload.workspace.localPath || "");
-      setWorkspaceSharedPath(payload.workspace.sharedPath || "");
-    }
-    if (Array.isArray(payload.users)) {
-      setStoredUsers(payload.users.map(normalizeUserRecord));
-    }
-    if (payload.categories) {
-      if (Array.isArray(payload.categories.productGroups)) setStoredArray(CAT_KEYS.productGroups, payload.categories.productGroups);
-      if (Array.isArray(payload.categories.products)) setStoredArray(CAT_KEYS.products, payload.categories.products);
-      if (Array.isArray(payload.categories.regulations)) setStoredArray(CAT_KEYS.regulations, payload.categories.regulations);
-      if (Array.isArray(payload.categories.riskDomains)) setStoredArray(CAT_KEYS.riskDomains, payload.categories.riskDomains);
-      if (Array.isArray(payload.categories.scenarioStatuses)) setStoredArray(CAT_KEYS.scenarioStatuses, payload.categories.scenarioStatuses);
-      if (Array.isArray(payload.categories.scenarioSources)) setStoredArray(CAT_KEYS.scenarioSources, payload.categories.scenarioSources);
-      if (Array.isArray(payload.categories.acceptanceAuthorities)) setStoredArray(CAT_KEYS.acceptanceAuthorities, payload.categories.acceptanceAuthorities);
-    }
-    if (Array.isArray(payload.scenarios)) {
-      const mergedMap = new Map(getSavedScenarios().map(s => [String(s.id || ""), s]));
-      payload.scenarios.map(normalizeScenario).forEach(s => {
-        if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
-        mergedMap.set(String(s.id || ""), s);
+    if (Array.isArray(payload.users) && payload.users.length) {
+      const existingUsers = getStoredUsers();
+      const mergedUsers = new Map(existingUsers.map(u => [String(u.userId || ""), u]));
+      payload.users.forEach(u => {
+        if (u && u.userId) mergedUsers.set(String(u.userId), u);
       });
-      setSavedScenarios(Array.from(mergedMap.values()));
+      writeJSON(USER_STORAGE_KEY, Array.from(mergedUsers.values()));
+      users = ensureDefaultUsers();
     }
+    if (payload.workspaceSetup) {
+      setSessionUserId(payload.workspaceSetup.sessionUserId || getSessionUserId() || "");
+      setSessionStorageMode(payload.workspaceSetup.sessionStorageMode || getSessionStorageMode());
+      setScenarioSaveEngine(payload.workspaceSetup.scenarioSaveEngine || getScenarioSaveEngine());
+      setWorkspaceLocalPath(payload.workspaceSetup.localPath || getWorkspaceLocalPath());
+      setWorkspaceSharedPath(payload.workspaceSetup.sharedPath || getWorkspaceSharedPath());
+    }
+    const cats = payload.categories || {};
+    if (cats.productGroups) setStoredArray(CAT_KEYS.productGroups, mergeUniqueStrings(getStoredArray(CAT_KEYS.productGroups), cats.productGroups));
+    if (cats.products) setStoredArray(CAT_KEYS.products, mergeUniqueStrings(getStoredArray(CAT_KEYS.products), cats.products));
+    if (cats.regulations) setStoredArray(CAT_KEYS.regulations, mergeUniqueStrings(getStoredArray(CAT_KEYS.regulations), cats.regulations));
+    if (cats.riskDomains) setStoredArray(CAT_KEYS.riskDomains, mergeUniqueStrings(getStoredArray(CAT_KEYS.riskDomains), cats.riskDomains));
+    if (cats.scenarioStatuses) setStoredArray(CAT_KEYS.scenarioStatuses, mergeUniqueStrings(getStoredArray(CAT_KEYS.scenarioStatuses), cats.scenarioStatuses));
+    if (cats.scenarioSources) setStoredArray(CAT_KEYS.scenarioSources, mergeUniqueStrings(getStoredArray(CAT_KEYS.scenarioSources), cats.scenarioSources));
+    if (cats.acceptanceAuthorities) setStoredArray(CAT_KEYS.acceptanceAuthorities, mergeUniqueStrings(getStoredArray(CAT_KEYS.acceptanceAuthorities), cats.acceptanceAuthorities));
+    const existing = getSavedScenarios();
+    const mergedMap = new Map(existing.map(s => [String(s.id || ""), s]));
+    payload.scenarios.map(normalizeScenario).forEach(s => {
+      if (!s.id) s.id = generateScenarioId(Array.from(mergedMap.values()));
+      mergedMap.set(String(s.id), s);
+    });
+    setSavedScenarios(Array.from(mergedMap.values()));
     refreshLibraries();
     renderUserAdmin();
     renderSavedScenarios();
     renderDashboardOpenTable();
     renderHeatMap();
+    refreshWorkspaceDiagnostics();
     const status = document.getElementById("workspaceSetupStatus");
-    if (status) status.textContent = `Workspace package loaded. Live saves now use ${getActualBrowserSaveLocationText()}`;
-    alert("Workspace package loaded.");
-  }).catch(() => {
+    if (status) status.textContent = `Workspace package imported: ${file.name}`;
+  }).catch(err => {
     alert("Unable to import workspace package JSON.");
+    console.error(err);
   });
 }
 function saveWorkspaceSetup() {
@@ -415,6 +436,7 @@ function saveWorkspaceSetup() {
     status.textContent = `Workspace setup saved. Scenario records now use: ${getCurrentSaveDestinationText()}`;
   }
   renderUserAdmin();
+  refreshWorkspaceDiagnostics();
 }
 function getCurrentSessionUser() {
   const sessionId = getSessionUserId();
@@ -580,7 +602,7 @@ function updateLoginState() {
     if (sessionUserDisplay) sessionUserDisplay.textContent = sessionUser.displayName || "Not Set";
   }
   const sessionStorageDisplay = document.getElementById("sessionStorageDisplay");
-  if (sessionStorageDisplay) sessionStorageDisplay.textContent = getScenarioSaveEngine();
+  if (sessionStorageDisplay) sessionStorageDisplay.textContent = getSessionStorageMode();
 }
 function startUserSession() {
   ensureDefaultUsers();
@@ -674,13 +696,10 @@ function renderUserAdmin() {
   }
   setSelectValueSafe("sessionStorageMode", getSessionStorageMode());
   document.getElementById("sessionUserDisplay").textContent = currentSessionUser?.displayName || "Not Set";
-  document.getElementById("sessionStorageDisplay").textContent = getScenarioSaveEngine();
-  const actualLocation = document.getElementById("workspaceActualBrowserLocation");
-  if (actualLocation) actualLocation.value = getActualBrowserSaveLocationText();
-  const saveDestination = document.getElementById("workspaceSaveDestination");
-  if (saveDestination) saveDestination.value = getCurrentSaveDestinationText();
+  document.getElementById("sessionStorageDisplay").textContent = getSessionStorageMode();
   updateLoginState();
   refreshOwnershipSelects();
+  refreshWorkspaceDiagnostics();
   if (!users.length) {
     body.innerHTML = '<tr><td colspan="8">No users available.</td></tr>';
     return;
@@ -2394,12 +2413,15 @@ function wireInputs() {
   if (exportBtn) exportBtn.addEventListener("click", exportScenarioLibrary);
   const importFile = document.getElementById("importScenariosFile");
   if (importFile) importFile.addEventListener("change", (event) => importScenarioLibrary(event.target.files?.[0]));
-  const exportWorkspaceBtn = document.getElementById("exportWorkspacePackageBtn");
-  if (exportWorkspaceBtn) exportWorkspaceBtn.addEventListener("click", exportWorkspacePackage);
-  const importWorkspaceBtn = document.getElementById("importWorkspacePackageBtn");
-  const importWorkspaceFile = document.getElementById("importWorkspacePackageFile");
-  if (importWorkspaceBtn && importWorkspaceFile) importWorkspaceBtn.addEventListener("click", () => importWorkspaceFile.click());
-  if (importWorkspaceFile) importWorkspaceFile.addEventListener("change", (event) => { importWorkspacePackage(event.target.files?.[0]); event.target.value = ""; });
+  const workspaceDownloadBtn = document.getElementById("downloadWorkspacePackageBtn");
+  if (workspaceDownloadBtn) workspaceDownloadBtn.addEventListener("click", downloadWorkspacePackage);
+  const workspaceLoadBtn = document.getElementById("loadWorkspacePackageBtn");
+  const workspaceLoadFile = document.getElementById("loadWorkspacePackageFile");
+  if (workspaceLoadBtn && workspaceLoadFile) workspaceLoadBtn.addEventListener("click", () => workspaceLoadFile.click());
+  if (workspaceLoadFile) workspaceLoadFile.addEventListener("change", (event) => {
+    importWorkspacePackageFile(event.target.files?.[0]);
+    event.target.value = "";
+  });
   const boardBtn = document.getElementById("downloadBoardPacketBtn");
   if (boardBtn) boardBtn.addEventListener("click", downloadBoardPacketDocx);
   const aiBtn = document.getElementById("downloadAIPacketBtn");
@@ -5317,16 +5339,12 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.13 STORAGE ENGINE ===== */
+/* ===== PHASE 23.0.11 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
 function rtWriteSaved(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.isArray(items) ? items : []));
-  const saveDestination = document.getElementById("workspaceSaveDestination");
-  if (saveDestination) saveDestination.value = getCurrentSaveDestinationText();
-  const actualLocation = document.getElementById("workspaceActualBrowserLocation");
-  if (actualLocation) actualLocation.value = getActualBrowserSaveLocationText();
 }
 function rtGenerateScenarioId() {
   return "SCN-" + Date.now();
@@ -5439,7 +5457,7 @@ saveScenario = function(event) {
   const summary = rtPersistPayload(payload);
   try { lastSummary = summary; } catch(e) {}
   const status = document.getElementById("scenarioFileStatus");
-  if (status) status.textContent = `Saved OK: ${summary.id} • ${getActualBrowserSaveLocationText()}`;
+  if (status) status.textContent = `Saved OK: ${summary.id}`;
 };
 saveBetaScenario = function(event) {
   if (event?.preventDefault) event.preventDefault();
@@ -5454,10 +5472,17 @@ saveBetaScenario = function(event) {
   const summary = rtPersistPayload(payload);
   try { lastSummary = summary; } catch(e) {}
   const status = document.getElementById("scenarioFileStatus");
-  if (status) status.textContent = `Saved OK: ${summary.id} • ${getActualBrowserSaveLocationText()}`;
+  if (status) status.textContent = `Saved OK: ${summary.id}`;
 };
 document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.13 STORAGE ENGINE ===== */
+/* ===== END PHASE 23.0.11 SAVE OVERRIDE ===== */
+
+
+/* ===== PHASE 23.0.14 WORKSPACE BRIDGE ===== */
+document.addEventListener("DOMContentLoaded", () => {
+  try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
+});
+/* ===== END PHASE 23.0.14 WORKSPACE BRIDGE ===== */

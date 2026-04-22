@@ -1,0 +1,42 @@
+RISKTOOL PHASE 23.0.14 NOTES
+
+USER DELIVERY PREFERENCE
+- ZIP files only
+- Do not paste code in chat
+- Keep original filenames when possible
+- Include handoff notes when moving phases
+
+PHASE 23.0.14 FOCUS
+- Keep Save Scenario stable after the 23.0.11 recovery
+- Make the live save destination more explicit in User Admin
+- Add a practical workspace bridge that can move the current browser workspace between terminals
+- Package files so they extract directly into the project folder without an extra nesting level
+
+WHAT CHANGED
+- Phase display advanced to 23.0.14
+- Added Actual Browser Save Location field in User Admin
+- Added Last Workspace Package Export field in User Admin
+- Added Download Workspace Package button
+- Added Load Workspace Package button
+- Workspace package includes:
+  - workspace setup values
+  - users
+  - categories
+  - saved scenarios
+- Updated workspace setup note text so it no longer implies direct file-path writing from the browser build
+- Added versioned script references to reduce stale-browser JS after pushes
+
+IMPORTANT LIMITATION
+- This GitHub Pages/browser build still saves live scenario data to browser localStorage
+- It does not directly write to C:\ paths or network share paths from User Admin
+- The workspace package is the practical transfer bridge until a desktop wrapper, local service, or backend file-writer is added
+
+EXPECTED NEXT PHASE
+- 23.0.15 should add a real writer layer if the project moves to:
+  - Electron or another desktop wrapper
+  - a local companion service
+  - a backend API / shared storage service
+
+PACKAGING NOTE
+- This ZIP was built so the project files extract directly into the existing risktool folder
+- There is no extra parent folder in the ZIP
