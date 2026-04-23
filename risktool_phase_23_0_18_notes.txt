@@ -1,0 +1,6 @@
+Phase 23.0.18
+- Added real workspace session-state support in config/session-state.json
+- Added User Admin fields for Last Session Found and Last Session Timestamp
+- Added Restore Previous Session and Clear Session State buttons
+- Restore now checks the live connected workspace folder handle instead of a stale UI-only state
+- Session state updates on workspace connect, scenario open, scenario save, and major view navigation

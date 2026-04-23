@@ -1,0 +1,48 @@
+RISKTOOL PHASE 23.0.17 NOTES
+
+USER DELIVERY PREFERENCE
+- ZIP files only
+- No code pasted into chat
+- Keep filenames intact where possible
+- Flat ZIP preferred for direct extraction into project folder
+
+PHASE 23.0.17 FOCUS
+- Add previous-session restore for Chrome/Edge workspace-folder mode
+- Persist session state into workspace files instead of relying on browser-held state
+
+WHAT THIS PHASE ADDS
+- config/session-state.json written inside the selected workspace folder
+- Session state captures:
+  - last scenario id
+  - last scenario name
+  - last active view
+  - current mode
+  - current user
+  - saved timestamp
+- New User Admin fields:
+  - Last Session Found
+  - Last Session Timestamp
+- New User Admin actions:
+  - Restore Previous Session
+  - Clear Session State
+
+EXPECTED WORKFLOW
+1. Open RiskTool in Chrome or Edge
+2. Click Select Workspace Folder
+3. Choose the same approved local/shared workspace folder
+4. Review Last Session Found / Last Session Timestamp
+5. Click Restore Previous Session to reopen prior work
+
+IMPORTANT LIMITATION
+- Browser security still requires the user to reconnect the workspace folder each new session
+- Live work data should stay in the selected workspace folder, not browser storage
+
+FILES WRITTEN IN WORKSPACE MODE
+- config/workspace-settings.json
+- config/users.json
+- config/categories.json
+- config/session-state.json
+- scenarios/index.json
+- scenarios/<scenario-id>.json
+- reports/workspace-summary.json
+- audit/last-write.json
