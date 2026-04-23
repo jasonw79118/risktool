@@ -1,0 +1,24 @@
+RISKTOOL PHASE 23.0.16
+
+Summary
+- Adds Chrome/Edge workspace-folder mode intended for real work-file saving.
+- Scenarios can now be written as JSON files into a selected workspace folder.
+- User Admin now shows browser support, connection status, selected folder, and last successful file write.
+
+Important behavior
+- In the prior baseline, scenarios were still living in browser localStorage under risk_manager_scenarios_v431.
+- This phase adds actual file writing when Chrome/Edge workspace-folder mode is selected and a folder is connected.
+- Workspace folder mode is session-based. Users should click Select Workspace Folder each browser session.
+
+Expected workspace files
+- config/workspace-settings.json
+- config/users.json
+- config/categories.json
+- scenarios/index.json
+- scenarios/<scenario-id>.json
+- reports/workspace-summary.json
+- audit/last-write.json
+
+Notes
+- Typed paths remain guidance/documentation unless a real folder has been selected through the browser.
+- If no folder is selected, browser storage remains temporary fallback only.

@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.14</h4>
+<h4>Phase 23.0.16</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -891,7 +891,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.14. Save/load is stable in browser storage, and this phase adds a workspace package bridge so the same workspace can move cleanly between terminals while file-writer migration remains the active implementation track.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.16. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -901,6 +901,7 @@
 <label class="help-label" data-help="This controls how scenario records are saved in this browser build. Local Browser Storage keeps records in browser storage and does not use Supabase.">Scenario Save Engine</label>
 <select id="scenarioSaveEngine">
 <option value="Local Browser Storage">Local Browser Storage</option>
+<option value="Chrome/Edge Workspace Folder">Chrome/Edge Workspace Folder</option>
 <option value="Shared Workspace Reference Only">Shared Workspace Reference Only</option>
 </select>
 </div>
@@ -912,12 +913,29 @@
 </select>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Reference path for the local workspace root used by this browser session. This phase stores the path as a reference setting only and does not write directly to the file system from the browser build.">Local Workspace Path</label>
+<label class="help-label" data-help="Reference path for the local workspace root used by this browser session. In Chrome or Edge, users should also click Select Workspace Folder so the browser grants real file access for this folder.">Local Workspace Path</label>
 <input id="workspaceLocalPath" placeholder="e.g. C:\RiskTool\Workspace" type="text"/>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Reference path for the shared workspace root used by this browser session. This phase stores the path as a reference setting only and does not write directly to the file system from the browser build.">Shared Workspace Path</label>
+<label class="help-label" data-help="Reference path for the shared workspace root used by this browser session. In Chrome or Edge, users should also click Select Workspace Folder and choose the approved shared-drive folder for live work data.">Shared Workspace Path</label>
 <input id="workspaceSharedPath" placeholder="e.g. \\Server\RiskTool\Workspace" type="text"/>
+</div>
+
+<div class="full-span">
+<label class="help-label" data-help="Shows whether this browser supports live workspace folder mode. Use Chrome or Edge for work-folder saving.">Browser Support Check</label>
+<input id="workspaceBrowserSupport" readonly type="text"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Shows whether a real workspace folder is currently connected for this browser session.">Workspace Connection Status</label>
+<input id="workspaceConnectionStatus" readonly type="text"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Shows the actual folder name currently selected for live workspace file writing in this browser session.">Selected Workspace Folder</label>
+<input id="workspaceSelectedFolder" readonly type="text"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Shows the last successful file write completed through Chrome or Edge workspace-folder mode.">Last Successful File Write</label>
+<input id="workspaceLastFileWrite" readonly type="text"/>
 </div>
 <div class="full-span">
 <label class="help-label" data-help="Shows where scenario records are currently being saved by this browser build.">Current Save Destination</label>
@@ -934,10 +952,12 @@
 </div>
 <div class="builder-actions">
 <button class="btn btn-primary" id="saveWorkspaceSetupBtn" type="button">Save Workspace Setup</button>
+<button class="btn btn-primary" id="selectWorkspaceFolderBtn" type="button">Select Workspace Folder</button>
+<button class="btn btn-secondary" id="disconnectWorkspaceFolderBtn" type="button">Disconnect Folder</button>
 <button class="btn btn-secondary" id="downloadWorkspacePackageBtn" type="button">Download Workspace Package</button>
 <button class="btn btn-secondary" id="loadWorkspacePackageBtn" type="button">Load Workspace Package</button>
 <input accept=".json" id="loadWorkspacePackageFile" style="display:none" type="file"/>
-<div class="note-box" id="workspaceSetupStatus">Scenario records currently save to browser local storage. Workspace package export/import is the bridge for moving a workspace between terminals in this phase.</div>
+<div class="note-box" id="workspaceSetupStatus">Use Chrome or Edge for work-folder mode. Typed paths are not active by themselves. Click Select Workspace Folder and choose the approved local or shared-drive folder before saving live data. If no folder is selected, browser storage is temporary only.</div>
 </div>
 <div class="card mt-3">
 <div class="card-header"><h3>Shared Workspace Config Targets</h3><span>Phase 23 Track</span></div>
@@ -949,11 +969,11 @@
 <li><code>config/workspace-settings.json</code></li>
 <li><code>config/roles.json</code></li>
 </ul>
-<p>This frontend build still uses browser-local scenario storage. Use the workspace package buttons above to move the full workspace state between terminals until a real file-writer layer is added.</p>
+<p>This frontend build now targets Chrome or Edge workspace-folder writes for live data. The workspace package buttons remain available for backup and migration support.</p>
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.14</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.16</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>

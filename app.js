@@ -5486,3 +5486,198 @@ document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
 /* ===== END PHASE 23.0.14 WORKSPACE BRIDGE ===== */
+
+/* ===== PHASE 23.0.16 CHROME EDGE WORKSPACE MODE ===== */
+const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
+let workspaceFolderHandle = null;
+let workspaceFolderName = "Not connected";
+let workspaceScenarioCache = [];
+function getLastWorkspaceFileWrite() { return localStorage.getItem(WORKSPACE_LAST_FILE_WRITE_KEY) || "None yet"; }
+function setLastWorkspaceFileWrite(value) { localStorage.setItem(WORKSPACE_LAST_FILE_WRITE_KEY, String(value || "")); }
+function browserSupportsWorkspaceFolderMode() { return !!(window && window.showDirectoryPicker && window.FileSystemHandle); }
+function workspaceFolderModeEnabled() { return getScenarioSaveEngine() === "Chrome/Edge Workspace Folder"; }
+function getWorkspaceConnectionStatusText() { return workspaceFolderHandle ? "Connected" : "Not connected"; }
+function getCurrentWorkspaceFolderLabel() { return workspaceFolderHandle ? workspaceFolderName : "Not connected"; }
+function workspaceStatus(msg) { const el = document.getElementById("workspaceSetupStatus"); if (el) el.textContent = msg; const s=document.getElementById("scenarioFileStatus"); if (s && msg) s.textContent = msg; }
+function refreshWorkspaceFolderModeUi() {
+  const support = document.getElementById("workspaceBrowserSupport"); if (support) support.value = browserSupportsWorkspaceFolderMode() ? "Supported in this browser" : "Not supported here - use Chrome or Edge";
+  const conn = document.getElementById("workspaceConnectionStatus"); if (conn) conn.value = getWorkspaceConnectionStatusText();
+  const folder = document.getElementById("workspaceSelectedFolder"); if (folder) folder.value = getCurrentWorkspaceFolderLabel();
+  const last = document.getElementById("workspaceLastFileWrite"); if (last) last.value = getLastWorkspaceFileWrite();
+  const actual = document.getElementById("workspaceActualBrowserLocation");
+  if (actual && workspaceFolderModeEnabled() && workspaceFolderHandle) actual.value = `${workspaceFolderName} -> scenarios/*.json, scenarios/index.json`;
+  const saveDest = document.getElementById("workspaceSaveDestination");
+  if (saveDest && workspaceFolderModeEnabled() && workspaceFolderHandle) saveDest.value = `Workspace folder (${workspaceFolderName})`;
+  else if (saveDest && workspaceFolderModeEnabled()) saveDest.value = "Chrome/Edge workspace folder mode selected, but no folder is connected yet";
+}
+async function getOrCreateDirectory(parentHandle, name) {
+  return await parentHandle.getDirectoryHandle(name, { create: true });
+}
+async function writeJsonFile(dirHandle, fileName, data) {
+  const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+  const writable = await fileHandle.createWritable();
+  await writable.write(JSON.stringify(data, null, 2));
+  await writable.close();
+}
+function buildWorkspaceConfigSnapshot() {
+  return {
+    exportedAt: new Date().toISOString(),
+    sessionUserId: getSessionUserId(),
+    sessionStorageMode: getSessionStorageMode(),
+    scenarioSaveEngine: getScenarioSaveEngine(),
+    localPath: getWorkspaceLocalPath(),
+    sharedPath: getWorkspaceSharedPath()
+  };
+}
+async function flushWorkspaceFiles() {
+  if (!workspaceFolderHandle) throw new Error("No workspace folder selected");
+  const configDir = await getOrCreateDirectory(workspaceFolderHandle, "config");
+  const scenariosDir = await getOrCreateDirectory(workspaceFolderHandle, "scenarios");
+  const reportsDir = await getOrCreateDirectory(workspaceFolderHandle, "reports");
+  const auditDir = await getOrCreateDirectory(workspaceFolderHandle, "audit");
+  await writeJsonFile(configDir, "workspace-settings.json", buildWorkspaceConfigSnapshot());
+  try { await writeJsonFile(configDir, "users.json", getStoredUsers()); } catch (e) { console.error(e); }
+  try { await writeJsonFile(configDir, "categories.json", getWorkspaceCategorySnapshot()); } catch (e) { console.error(e); }
+  const scenarioIndex = workspaceScenarioCache.map(item => ({
+    id: item.id || "",
+    name: item.name || "",
+    mode: item.mode || "single",
+    productGroup: item.productGroup || "",
+    scenarioStatus: item.scenarioStatus || "Open",
+    assignedOwnerName: item.assignedOwnerName || "",
+    storageMode: item.storageMode || getSessionStorageMode() || "Local Workspace",
+    inherent: Number(item.inherent || 0),
+    residual: Number(item.residual || 0),
+    identifiedDate: item.identifiedDate || "",
+    riskDomain: item.riskDomain || ""
+  }));
+  await writeJsonFile(scenariosDir, "index.json", scenarioIndex);
+  for (const item of workspaceScenarioCache) {
+    if (!item?.id) continue;
+    await writeJsonFile(scenariosDir, `${String(item.id).replace(/[^a-zA-Z0-9_-]/g, "_")}.json`, item);
+  }
+  await writeJsonFile(reportsDir, "workspace-summary.json", { generatedAt: new Date().toISOString(), scenarioCount: scenarioIndex.length });
+  const stamp = `${new Date().toLocaleString()} :: ${workspaceFolderName}`;
+  await writeJsonFile(auditDir, "last-write.json", { lastWriteAt: new Date().toISOString(), folder: workspaceFolderName, scenarioCount: scenarioIndex.length });
+  setLastWorkspaceFileWrite(stamp);
+  refreshWorkspaceFolderModeUi();
+  return stamp;
+}
+async function loadWorkspaceScenarioCache() {
+  workspaceScenarioCache = [];
+  if (!workspaceFolderHandle) return [];
+  try {
+    const scenariosDir = await getOrCreateDirectory(workspaceFolderHandle, "scenarios");
+    const indexHandle = await scenariosDir.getFileHandle("index.json", { create: false });
+    const file = await indexHandle.getFile();
+    const text = await file.text();
+    const indexItems = JSON.parse(text || "[]");
+    if (!Array.isArray(indexItems)) return [];
+    const out = [];
+    for (const item of indexItems) {
+      try {
+        const fh = await scenariosDir.getFileHandle(`${String(item.id).replace(/[^a-zA-Z0-9_-]/g, "_")}.json`, { create: false });
+        const f = await fh.getFile();
+        const payload = JSON.parse(await f.text());
+        out.push(payload);
+      } catch (e) { out.push(item); }
+    }
+    workspaceScenarioCache = out;
+  } catch (e) { console.error(e); }
+  return workspaceScenarioCache;
+}
+async function selectWorkspaceFolder() {
+  if (!browserSupportsWorkspaceFolderMode()) { alert("Use Chrome or Edge for workspace-folder mode."); return; }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+    workspaceFolderHandle = handle;
+    workspaceFolderName = handle?.name || "Selected folder";
+    if (!getWorkspaceLocalPath()) setWorkspaceLocalPath(workspaceFolderName);
+    await loadWorkspaceScenarioCache();
+    await flushWorkspaceFiles();
+    refreshWorkspaceDiagnostics();
+    refreshWorkspaceFolderModeUi();
+    try { renderSavedScenarios(); renderDashboardOpenTable(); } catch (e) { console.error(e); }
+    workspaceStatus(`Workspace folder connected: ${workspaceFolderName}`);
+  } catch (e) { console.error(e); workspaceStatus("Workspace folder selection was cancelled or failed."); }
+}
+function disconnectWorkspaceFolder() {
+  workspaceFolderHandle = null; workspaceFolderName = "Not connected"; workspaceScenarioCache = [];
+  refreshWorkspaceDiagnostics(); refreshWorkspaceFolderModeUi(); renderSavedScenarios(); renderDashboardOpenTable();
+  workspaceStatus("Workspace folder disconnected. Browser storage is now temporary only.");
+}
+const __rtOriginalGetSavedScenarios = getSavedScenarios;
+const __rtOriginalSetSavedScenarios = setSavedScenarios;
+getSavedScenarios = function() {
+  if (workspaceFolderModeEnabled() && workspaceFolderHandle) return Array.isArray(workspaceScenarioCache) ? workspaceScenarioCache.slice() : [];
+  return __rtOriginalGetSavedScenarios();
+};
+setSavedScenarios = function(items) {
+  if (workspaceFolderModeEnabled() && workspaceFolderHandle) { workspaceScenarioCache = Array.isArray(items) ? items.slice() : []; return; }
+  return __rtOriginalSetSavedScenarios(items);
+};
+deleteScenario = async function(id) {
+  const next = getSavedScenarios().filter(x => x.id !== id);
+  setSavedScenarios(next);
+  if (workspaceFolderModeEnabled() && workspaceFolderHandle) {
+    await flushWorkspaceFiles();
+    workspaceStatus(`Deleted scenario ${id} from workspace folder.`);
+  }
+  renderSavedScenarios(); renderDashboardOpenTable(); refreshLibraries();
+};
+rtPersistPayload = async function(payload) {
+  const summary = rtBuildSummary(payload);
+  const saved = getSavedScenarios();
+  const idx = saved.findIndex(x => String(x.id || "") === String(summary.id || ""));
+  if (idx >= 0) saved[idx] = summary; else saved.unshift(summary);
+  setSavedScenarios(saved);
+  if (workspaceFolderModeEnabled()) {
+    if (!workspaceFolderHandle) throw new Error("Select Workspace Folder before saving live data in Chrome/Edge workspace mode.");
+    await flushWorkspaceFiles();
+  } else {
+    __rtOriginalSetSavedScenarios(saved);
+  }
+  try { renderSavedScenarios(); } catch(e) { console.error(e); }
+  try { renderDashboardOpenTable(); } catch(e) { console.error(e); }
+  return summary;
+};
+saveScenario = async function(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  let payload = null;
+  const activeViewEl = document.querySelector(".view.active");
+  const currentViewName = activeViewEl?.id?.replace(/^view-/, "") || (typeof activeMode !== "undefined" ? activeMode : "single");
+  if (currentViewName === "beta" || (typeof activeMode !== "undefined" && activeMode === "beta")) return saveBetaScenario(event);
+  payload = (typeof activeMode !== "undefined" && activeMode === "complex" && typeof getComplexPayload === "function") ? getComplexPayload() : (typeof getSinglePayload === "function" ? getSinglePayload() : null);
+  if (!payload) return;
+  if (!payload.id) { payload.id = rtGenerateScenarioId(); const idEl = document.getElementById(payload.mode === "complex" ? "complexScenarioId" : "singleScenarioId"); if (idEl) idEl.value = payload.id; }
+  try {
+    const summary = await rtPersistPayload(payload);
+    try { lastSummary = summary; } catch(e) {}
+    const status = document.getElementById("scenarioFileStatus");
+    if (status) status.textContent = workspaceFolderModeEnabled() && workspaceFolderHandle ? `Saved to workspace folder: ${summary.id}` : `Saved OK: ${summary.id}`;
+  } catch (e) {
+    console.error(e); alert(e.message || "Unable to save scenario.");
+  }
+};
+saveBetaScenario = async function(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  if (typeof getBetaPayload !== "function") return;
+  const payload = getBetaPayload();
+  if (!payload.id) { payload.id = rtGenerateScenarioId(); const idEl = document.getElementById("betaScenarioId"); if (idEl) idEl.value = payload.id; }
+  try {
+    const summary = await rtPersistPayload(payload);
+    try { lastSummary = summary; } catch(e) {}
+    const status = document.getElementById("scenarioFileStatus");
+    if (status) status.textContent = workspaceFolderModeEnabled() && workspaceFolderHandle ? `Saved to workspace folder: ${summary.id}` : `Saved OK: ${summary.id}`;
+  } catch (e) { console.error(e); alert(e.message || "Unable to save beta scenario."); }
+};
+document.addEventListener("DOMContentLoaded", () => {
+  try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); }
+  document.getElementById("selectWorkspaceFolderBtn")?.addEventListener("click", selectWorkspaceFolder);
+  document.getElementById("disconnectWorkspaceFolderBtn")?.addEventListener("click", disconnectWorkspaceFolder);
+});
+const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
+refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
+/* ===== END PHASE 23.0.16 CHROME EDGE WORKSPACE MODE ===== */

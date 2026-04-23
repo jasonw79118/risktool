@@ -1,0 +1,50 @@
+RISKTOOL PHASE 23.0.15 NOTES
+
+USER DELIVERY PREFERENCE
+- ZIP files only
+- Do not paste code into chat
+- Keep original filenames where possible
+- Flat ZIP preferred so contents extract directly into the target risktool folder
+
+PHASE FOCUS
+- Chrome and Edge workspace-folder mode for live work files
+- Clear User Admin instructions that a folder must be selected in-session
+- Stop treating typed paths as active by themselves
+- Keep browser-local storage available only as fallback mode
+
+WHAT CHANGED
+- Phase display advanced to 23.0.15
+- User Admin now emphasizes Chrome / Edge workspace-folder mode
+- Added Browser Support Check
+- Added Workspace Connection Status
+- Added Selected Workspace Folder
+- Added Last Successful File Write
+- Added Select Workspace Folder button
+- Added Disconnect Folder button
+- Updated save-engine wording to make Local Browser Storage fallback only
+- Save Scenario now blocks live saves in workspace mode until a folder is selected
+- Workspace folder mode writes real files to:
+  - config/users.json
+  - config/categories.json
+  - config/workspace-settings.json
+  - scenarios/index.json
+  - scenarios/<scenario-id>.json
+  - reports/workspace-summary.json
+  - audit/last-write.json
+- Added cache-busting query string updates for script references
+
+IMPORTANT BEHAVIOR
+- For live work storage, users must use Chrome or Edge
+- Users must click Select Workspace Folder each browser session
+- Typed local/shared paths remain documentation and readiness fields
+- The browser cannot activate a typed path by itself
+- Folder permission must be granted through the browser picker
+
+CURRENT LIMITATION
+- Workspace folder handles are session-based in this build, so users reconnect the folder after reopening the browser
+- Local Browser Storage still exists as fallback mode and migration safety, but should not be used for live work files
+
+NEXT LOGICAL PHASE
+- Strengthen file-locking / conflict handling for 2-3 shared users
+- Add clearer workspace validation / test-write messaging
+- Expand audit logging beyond last-write summary
