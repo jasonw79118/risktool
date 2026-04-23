@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.22";
+const APP_VERSION = "23.0.24";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -299,10 +299,10 @@ function setWorkspaceSharedPath(value) {
   localStorage.setItem(WORKSPACE_SHARED_PATH_KEY, String(value || ""));
 }
 function getScenarioSaveEngine() {
-  return localStorage.getItem(SCENARIO_SAVE_ENGINE_KEY) || "Local Browser Storage";
+  return localStorage.getItem(SCENARIO_SAVE_ENGINE_KEY) || "Chrome/Edge Workspace Folder";
 }
 function setScenarioSaveEngine(value) {
-  localStorage.setItem(SCENARIO_SAVE_ENGINE_KEY, String(value || "Local Browser Storage"));
+  localStorage.setItem(SCENARIO_SAVE_ENGINE_KEY, String(value || "Chrome/Edge Workspace Folder"));
 }
 function getCurrentSaveDestinationText() {
   const engine = getScenarioSaveEngine();
@@ -5932,76 +5932,119 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 /* ===== END PHASE 23.0.21 SESSION RESTORE AFTER LOGIN ===== */
 
+/* ===== PHASE 23.0.24 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+(function(){
+  const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
+  let postLoginReconnectPromptOpen = false;
+  let postLoginReconnectPromptDismissed = false;
 
-/* ===== PHASE 23.0.22 RECONNECT + RESTORE PROMPT ===== */
-let workspaceReconnectPromptOpen = false;
-function ensureReconnectWorkspacePromptShell() {
-  if (document.getElementById('workspaceReconnectModal')) return;
-  const modal = document.createElement('div');
-  modal.id = 'workspaceReconnectModal';
-  modal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:10002; align-items:center; justify-content:center; padding:24px;';
-  modal.innerHTML = `
-    <div class="card" style="width:min(560px,96vw); max-height:90vh; overflow:auto;">
-      <div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required for session restore</span></div>
-      <div class="card-body">
-        <p id="workspaceReconnectMessage" style="margin-top:0;">To restore your previous session, reconnect the workspace folder used for your saved scenarios.</p>
-        <div class="builder-actions">
-          <button class="btn btn-primary" type="button" id="workspaceReconnectConfirmBtn">Reconnect Workspace Folder</button>
-          <button class="btn btn-secondary" type="button" id="workspaceReconnectNotNowBtn">Not Now</button>
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  document.getElementById('workspaceReconnectNotNowBtn')?.addEventListener('click', () => {
-    modal.style.display = 'none';
-    workspaceReconnectPromptOpen = false;
-  });
-  document.getElementById('workspaceReconnectConfirmBtn')?.addEventListener('click', async () => {
-    modal.style.display = 'none';
-    workspaceReconnectPromptOpen = false;
-    try {
-      await selectWorkspaceFolder();
-    } catch (e) {
-      console.error(e);
-    }
-  });
-}
-function showReconnectWorkspacePrompt() {
-  ensureReconnectWorkspacePromptShell();
-  const modal = document.getElementById('workspaceReconnectModal');
-  if (modal) modal.style.display = 'flex';
-  workspaceReconnectPromptOpen = true;
-}
-async function maybePromptWorkspaceReconnect(trigger) {
-  if (!isUserLoggedIn()) return false;
-  if (workspaceReconnectPromptOpen || workspaceRestorePromptOpen) return false;
-  if (!workspaceFolderModeEnabled()) return false;
-  if (!browserSupportsWorkspaceFolderMode()) return false;
-  if (workspaceFolderHandle) return false;
-  showReconnectWorkspacePrompt();
-  return true;
-}
-const rtOriginalMaybePromptWorkspaceRestore = maybePromptWorkspaceRestore;
-maybePromptWorkspaceRestore = async function(trigger) {
-  if (!workspaceFolderHandle && workspaceFolderModeEnabled()) {
-    await maybePromptWorkspaceReconnect(trigger);
-    return false;
+  function rt2424IsWorkspaceModeAvailable() {
+    try { return typeof window.showDirectoryPicker === 'function'; } catch (e) { return false; }
   }
-  return rtOriginalMaybePromptWorkspaceRestore.apply(this, arguments);
-};
-const rtOriginalUpdateLoginState = updateLoginState;
-updateLoginState = function() {
-  const result = rtOriginalUpdateLoginState.apply(this, arguments);
-  setTimeout(() => {
-    maybePromptWorkspaceReconnect('login-state').catch(console.error);
-    maybePromptWorkspaceRestore('login-state').catch(console.error);
-  }, 300);
-  return result;
-};
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    maybePromptWorkspaceReconnect('page-load').catch(console.error);
-    maybePromptWorkspaceRestore('page-load').catch(console.error);
-  }, 500);
-});
-/* ===== END PHASE 23.0.22 RECONNECT + RESTORE PROMPT ===== */
+
+  function rt2424ForceLoginOnFreshLoad() {
+    if (!RT_FORCE_LOGIN_EACH_PAGE_LOAD) return;
+    try { localStorage.removeItem(SESSION_USER_KEY); } catch (e) { console.warn(e); }
+  }
+
+  function rt2424EnsureReconnectPromptShell() {
+    if (document.getElementById('postLoginWorkspaceReconnectModal')) return;
+    const modal = document.createElement('div');
+    modal.id = 'postLoginWorkspaceReconnectModal';
+    modal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:10002; align-items:center; justify-content:center; padding:24px;';
+    modal.innerHTML = `
+      <div class="card" style="width:min(640px,96vw); max-height:90vh; overflow:auto;">
+        <div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required before restoring or saving live work files</span></div>
+        <div class="card-body">
+          <p style="margin-top:0;">RiskTool work mode uses Chrome or Edge folder access so scenario files stay in your selected local or shared-drive workspace folder.</p>
+          <p>After login, reconnect the same workspace folder. If <code>config/session-state.json</code> exists, RiskTool will then offer to restore your previous session.</p>
+          <div class="note-box" id="postLoginWorkspaceReconnectStatus">No workspace folder is connected for this browser session yet.</div>
+          <div class="builder-actions">
+            <button class="btn btn-primary" type="button" id="postLoginReconnectFolderBtn">Reconnect Workspace Folder</button>
+            <button class="btn btn-secondary" type="button" id="postLoginSkipReconnectBtn">Not Now</button>
+            <button class="btn btn-secondary" type="button" id="postLoginOpenUserAdminBtn">Open User Admin</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('postLoginSkipReconnectBtn')?.addEventListener('click', () => {
+      postLoginReconnectPromptDismissed = true;
+      postLoginReconnectPromptOpen = false;
+      modal.style.display = 'none';
+    });
+    document.getElementById('postLoginOpenUserAdminBtn')?.addEventListener('click', () => {
+      postLoginReconnectPromptDismissed = true;
+      postLoginReconnectPromptOpen = false;
+      modal.style.display = 'none';
+      try { activateView('users'); } catch(e) { console.error(e); }
+    });
+    document.getElementById('postLoginReconnectFolderBtn')?.addEventListener('click', async () => {
+      const status = document.getElementById('postLoginWorkspaceReconnectStatus');
+      try {
+        if (!rt2424IsWorkspaceModeAvailable()) {
+          if (status) status.textContent = 'This browser does not support workspace folder access. Use current Chrome or Edge.';
+          return;
+        }
+        setScenarioSaveEngine('Chrome/Edge Workspace Folder');
+        if (typeof selectWorkspaceFolder === 'function') {
+          await selectWorkspaceFolder();
+        } else if (typeof window.showDirectoryPicker === 'function') {
+          workspaceFolderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          workspaceFolderName = workspaceFolderHandle?.name || 'Selected folder';
+        }
+        if (status) status.textContent = `Workspace folder connected: ${workspaceFolderName || 'Selected folder'}. Checking for previous session...`;
+        postLoginReconnectPromptOpen = false;
+        modal.style.display = 'none';
+        try { if (typeof refreshWorkspaceDiagnostics === 'function') refreshWorkspaceDiagnostics(); } catch(e) {}
+        try { if (typeof refreshWorkspaceFolderModeUi === 'function') refreshWorkspaceFolderModeUi(); } catch(e) {}
+        if (typeof maybePromptWorkspaceRestore === 'function') {
+          const shown = await maybePromptWorkspaceRestore('post-login-reconnect');
+          if (!shown && status) workspaceStatus('Workspace folder connected. No previous session file was found.');
+        }
+      } catch (e) {
+        console.error(e);
+        if (status) status.textContent = 'Workspace folder was not connected. Select the approved workspace folder to restore or save live work files.';
+      }
+    });
+  }
+
+  function rt2424ShowPostLoginReconnectPrompt(reason) {
+    if (!isUserLoggedIn || !isUserLoggedIn()) return false;
+    if (postLoginReconnectPromptOpen || postLoginReconnectPromptDismissed) return false;
+    if (!rt2424IsWorkspaceModeAvailable()) return false;
+    try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
+    if (typeof workspaceFolderHandle !== 'undefined' && workspaceFolderHandle) {
+      if (typeof maybePromptWorkspaceRestore === 'function') maybePromptWorkspaceRestore(reason || 'post-login').catch(console.error);
+      return false;
+    }
+    rt2424EnsureReconnectPromptShell();
+    const modal = document.getElementById('postLoginWorkspaceReconnectModal');
+    const status = document.getElementById('postLoginWorkspaceReconnectStatus');
+    if (status) status.textContent = 'Login complete. Reconnect the approved workspace folder to continue with file-based storage and previous-session restore.';
+    if (modal) modal.style.display = 'flex';
+    postLoginReconnectPromptOpen = true;
+    return true;
+  }
+
+  const rt2424PriorStartUserSession = startUserSession;
+  startUserSession = function() {
+    const before = isUserLoggedIn ? isUserLoggedIn() : false;
+    const result = rt2424PriorStartUserSession.apply(this, arguments);
+    const after = isUserLoggedIn ? isUserLoggedIn() : false;
+    if (!before && after) {
+      setTimeout(() => rt2424ShowPostLoginReconnectPrompt('login'), 350);
+    }
+    return result;
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    rt2424ForceLoginOnFreshLoad();
+    try { updateLoginState(); } catch(e) { console.error(e); }
+    try { showLoginGate(); } catch(e) { console.error(e); }
+    setTimeout(() => {
+      if (isUserLoggedIn && isUserLoggedIn()) rt2424ShowPostLoginReconnectPrompt('already-logged-in');
+    }, 500);
+  });
+})();
+/* ===== END PHASE 23.0.24 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+
