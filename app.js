@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.21";
+const APP_VERSION = "23.0.22";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -5931,3 +5931,77 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) { console.error(e); }
 });
 /* ===== END PHASE 23.0.21 SESSION RESTORE AFTER LOGIN ===== */
+
+
+/* ===== PHASE 23.0.22 RECONNECT + RESTORE PROMPT ===== */
+let workspaceReconnectPromptOpen = false;
+function ensureReconnectWorkspacePromptShell() {
+  if (document.getElementById('workspaceReconnectModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'workspaceReconnectModal';
+  modal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:10002; align-items:center; justify-content:center; padding:24px;';
+  modal.innerHTML = `
+    <div class="card" style="width:min(560px,96vw); max-height:90vh; overflow:auto;">
+      <div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required for session restore</span></div>
+      <div class="card-body">
+        <p id="workspaceReconnectMessage" style="margin-top:0;">To restore your previous session, reconnect the workspace folder used for your saved scenarios.</p>
+        <div class="builder-actions">
+          <button class="btn btn-primary" type="button" id="workspaceReconnectConfirmBtn">Reconnect Workspace Folder</button>
+          <button class="btn btn-secondary" type="button" id="workspaceReconnectNotNowBtn">Not Now</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('workspaceReconnectNotNowBtn')?.addEventListener('click', () => {
+    modal.style.display = 'none';
+    workspaceReconnectPromptOpen = false;
+  });
+  document.getElementById('workspaceReconnectConfirmBtn')?.addEventListener('click', async () => {
+    modal.style.display = 'none';
+    workspaceReconnectPromptOpen = false;
+    try {
+      await selectWorkspaceFolder();
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
+function showReconnectWorkspacePrompt() {
+  ensureReconnectWorkspacePromptShell();
+  const modal = document.getElementById('workspaceReconnectModal');
+  if (modal) modal.style.display = 'flex';
+  workspaceReconnectPromptOpen = true;
+}
+async function maybePromptWorkspaceReconnect(trigger) {
+  if (!isUserLoggedIn()) return false;
+  if (workspaceReconnectPromptOpen || workspaceRestorePromptOpen) return false;
+  if (!workspaceFolderModeEnabled()) return false;
+  if (!browserSupportsWorkspaceFolderMode()) return false;
+  if (workspaceFolderHandle) return false;
+  showReconnectWorkspacePrompt();
+  return true;
+}
+const rtOriginalMaybePromptWorkspaceRestore = maybePromptWorkspaceRestore;
+maybePromptWorkspaceRestore = async function(trigger) {
+  if (!workspaceFolderHandle && workspaceFolderModeEnabled()) {
+    await maybePromptWorkspaceReconnect(trigger);
+    return false;
+  }
+  return rtOriginalMaybePromptWorkspaceRestore.apply(this, arguments);
+};
+const rtOriginalUpdateLoginState = updateLoginState;
+updateLoginState = function() {
+  const result = rtOriginalUpdateLoginState.apply(this, arguments);
+  setTimeout(() => {
+    maybePromptWorkspaceReconnect('login-state').catch(console.error);
+    maybePromptWorkspaceRestore('login-state').catch(console.error);
+  }, 300);
+  return result;
+};
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    maybePromptWorkspaceReconnect('page-load').catch(console.error);
+    maybePromptWorkspaceRestore('page-load').catch(console.error);
+  }, 500);
+});
+/* ===== END PHASE 23.0.22 RECONNECT + RESTORE PROMPT ===== */
