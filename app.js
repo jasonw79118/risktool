@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.20";
+const APP_VERSION = "23.0.21";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -5681,3 +5681,253 @@ document.addEventListener("DOMContentLoaded", () => {
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
 /* ===== END PHASE 23.0.16 CHROME EDGE WORKSPACE MODE ===== */
+
+
+/* ===== PHASE 23.0.21 SESSION RESTORE AFTER LOGIN ===== */
+const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
+let workspaceRestorePromptOpen = false;
+let lastWorkspaceSessionSnapshot = null;
+function getActiveViewNameForSessionState() {
+  try {
+    return document.querySelector('.view.active')?.id?.replace(/^view-/, '') || (activeMode === 'complex' ? 'complex' : activeMode === 'beta' ? 'beta' : 'single');
+  } catch (e) {
+    return activeMode === 'complex' ? 'complex' : activeMode === 'beta' ? 'beta' : 'single';
+  }
+}
+function getCurrentScenarioIdForSessionState() {
+  const ids = [
+    document.getElementById('singleScenarioId')?.value,
+    document.getElementById('complexScenarioId')?.value,
+    document.getElementById('betaScenarioId')?.value
+  ].map(v => String(v || '').trim()).filter(Boolean);
+  return ids[0] || '';
+}
+function getCurrentScenarioNameForSessionState() {
+  const names = [
+    document.getElementById('singleScenarioName')?.value,
+    document.getElementById('complexScenarioName')?.value,
+    document.getElementById('betaScenarioName')?.value
+  ].map(v => String(v || '').trim()).filter(Boolean);
+  return names[0] || '';
+}
+function buildWorkspaceSessionState(reason, extra) {
+  const sessionUser = getCurrentSessionUser();
+  return {
+    updatedAt: new Date().toISOString(),
+    reason: String(reason || ''),
+    sessionUserId: sessionUser?.userId || getSessionUserId() || '',
+    sessionUserName: sessionUser?.displayName || '',
+    scenarioId: String(extra?.scenarioId || getCurrentScenarioIdForSessionState() || ''),
+    scenarioName: String(extra?.scenarioName || getCurrentScenarioNameForSessionState() || ''),
+    activeView: String(extra?.activeView || getActiveViewNameForSessionState() || 'dashboard'),
+    activeMode: String(extra?.activeMode || activeMode || 'single'),
+    workspaceFolderName: workspaceFolderName || '',
+    saveEngine: getScenarioSaveEngine(),
+    storageMode: getSessionStorageMode()
+  };
+}
+async function writeWorkspaceSessionState(reason, extra) {
+  if (!workspaceFolderModeEnabled() || !workspaceFolderHandle) return null;
+  try {
+    const configDir = await getOrCreateDirectory(workspaceFolderHandle, 'config');
+    const snapshot = buildWorkspaceSessionState(reason, extra || {});
+    await writeJsonFile(configDir, WORKSPACE_SESSION_STATE_FILE, snapshot);
+    lastWorkspaceSessionSnapshot = snapshot;
+    const foundEl = document.getElementById('workspaceLastSessionFound');
+    if (foundEl) foundEl.value = snapshot.scenarioId ? 'Yes' : 'No saved scenario recorded';
+    const stampEl = document.getElementById('workspaceLastSessionTimestamp');
+    if (stampEl) stampEl.value = snapshot.updatedAt || '';
+    return snapshot;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+async function readWorkspaceSessionState() {
+  if (!workspaceFolderModeEnabled() || !workspaceFolderHandle) return null;
+  try {
+    const configDir = await getOrCreateDirectory(workspaceFolderHandle, 'config');
+    const fileHandle = await configDir.getFileHandle(WORKSPACE_SESSION_STATE_FILE, { create: false });
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    const payload = JSON.parse(text || '{}');
+    lastWorkspaceSessionSnapshot = payload;
+    const foundEl = document.getElementById('workspaceLastSessionFound');
+    if (foundEl) foundEl.value = payload?.scenarioId ? 'Yes' : 'No saved scenario recorded';
+    const stampEl = document.getElementById('workspaceLastSessionTimestamp');
+    if (stampEl) stampEl.value = payload?.updatedAt || '';
+    return payload;
+  } catch (e) {
+    const foundEl = document.getElementById('workspaceLastSessionFound');
+    if (foundEl) foundEl.value = 'No';
+    const stampEl = document.getElementById('workspaceLastSessionTimestamp');
+    if (stampEl) stampEl.value = '';
+    return null;
+  }
+}
+async function clearWorkspaceSessionState() {
+  if (!workspaceFolderModeEnabled() || !workspaceFolderHandle) return;
+  try {
+    const configDir = await getOrCreateDirectory(workspaceFolderHandle, 'config');
+    const fileHandle = await configDir.getFileHandle(WORKSPACE_SESSION_STATE_FILE, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify({ clearedAt: new Date().toISOString(), clearedByUserId: getSessionUserId() || '' }, null, 2));
+    await writable.close();
+    lastWorkspaceSessionSnapshot = null;
+    const foundEl = document.getElementById('workspaceLastSessionFound');
+    if (foundEl) foundEl.value = 'No';
+    const stampEl = document.getElementById('workspaceLastSessionTimestamp');
+    if (stampEl) stampEl.value = '';
+    workspaceStatus('Previous session state cleared.');
+  } catch (e) { console.error(e); }
+}
+function ensureRestorePromptShell() {
+  if (document.getElementById('restoreSessionModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'restoreSessionModal';
+  modal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:10001; align-items:center; justify-content:center; padding:24px;';
+  modal.innerHTML = `
+    <div class="card" style="width:min(560px,96vw); max-height:90vh; overflow:auto;">
+      <div class="card-header"><h3>Restore Previous Session</h3><span>Resume your last saved workspace session</span></div>
+      <div class="card-body">
+        <p id="restoreSessionMessage" style="margin-top:0;">A previous session was found.</p>
+        <div class="builder-actions">
+          <button class="btn btn-primary" type="button" id="restoreSessionConfirmBtn">Restore Previous Session</button>
+          <button class="btn btn-secondary" type="button" id="restoreSessionNotNowBtn">Not Now</button>
+          <button class="btn btn-secondary" type="button" id="restoreSessionClearBtn">Clear Session State</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('restoreSessionNotNowBtn')?.addEventListener('click', () => {
+    modal.style.display = 'none';
+    workspaceRestorePromptOpen = false;
+  });
+  document.getElementById('restoreSessionConfirmBtn')?.addEventListener('click', async () => {
+    modal.style.display = 'none';
+    workspaceRestorePromptOpen = false;
+    await restoreWorkspaceSessionFromFile();
+  });
+  document.getElementById('restoreSessionClearBtn')?.addEventListener('click', async () => {
+    await clearWorkspaceSessionState();
+    modal.style.display = 'none';
+    workspaceRestorePromptOpen = false;
+  });
+}
+function showRestorePrompt(snapshot) {
+  ensureRestorePromptShell();
+  const modal = document.getElementById('restoreSessionModal');
+  const msg = document.getElementById('restoreSessionMessage');
+  if (msg) {
+    const name = snapshot?.scenarioName || snapshot?.scenarioId || 'your last scenario';
+    const when = snapshot?.updatedAt ? new Date(snapshot.updatedAt).toLocaleString() : 'an earlier session';
+    msg.textContent = `A previous session was found for ${name}. Last updated ${when}. Would you like to restore it now?`;
+  }
+  if (modal) modal.style.display = 'flex';
+  workspaceRestorePromptOpen = true;
+}
+async function maybePromptWorkspaceRestore(trigger) {
+  if (workspaceRestorePromptOpen) return false;
+  if (!isUserLoggedIn()) return false;
+  if (!workspaceFolderModeEnabled() || !workspaceFolderHandle) return false;
+  const snapshot = await readWorkspaceSessionState();
+  if (!snapshot || !snapshot.scenarioId) return false;
+  showRestorePrompt(snapshot);
+  return true;
+}
+async function restoreWorkspaceSessionFromFile() {
+  if (!workspaceFolderModeEnabled() || !workspaceFolderHandle) {
+    alert('Connect a workspace folder first.');
+    return false;
+  }
+  const snapshot = await readWorkspaceSessionState();
+  if (!snapshot || !snapshot.scenarioId) {
+    alert('No previous session was found in the connected workspace folder.');
+    return false;
+  }
+  try { await loadWorkspaceScenarioCache(); } catch (e) { console.error(e); }
+  const saved = getSavedScenarios();
+  const match = saved.find(x => String(x.id || '') === String(snapshot.scenarioId || ''));
+  if (!match) {
+    alert('The previous scenario was not found in the connected workspace folder.');
+    return false;
+  }
+  openScenario(match.id);
+  if (snapshot.activeView && ['dashboard','single','complex','beta','saved','reports','users','information'].includes(snapshot.activeView)) {
+    activateView(snapshot.activeView);
+  }
+  workspaceStatus(`Previous session restored: ${snapshot.scenarioName || snapshot.scenarioId}`);
+  return true;
+}
+const rtOriginalActivateView = activateView;
+activateView = function(viewName) {
+  const result = rtOriginalActivateView.apply(this, arguments);
+  if (workspaceFolderModeEnabled() && workspaceFolderHandle && isUserLoggedIn()) {
+    writeWorkspaceSessionState('view-change', { activeView: viewName }).catch(console.error);
+  }
+  return result;
+};
+const rtOriginalOpenScenario = openScenario;
+openScenario = function(id) {
+  const result = rtOriginalOpenScenario.apply(this, arguments);
+  const match = getSavedScenarios().find(x => String(x.id || '') === String(id || ''));
+  if (match && workspaceFolderModeEnabled() && workspaceFolderHandle && isUserLoggedIn()) {
+    writeWorkspaceSessionState('scenario-open', {
+      scenarioId: match.id || '',
+      scenarioName: match.name || '',
+      activeView: match.mode === 'complex' ? 'complex' : match.mode === 'beta' ? 'beta' : 'single',
+      activeMode: match.mode || activeMode || 'single'
+    }).catch(console.error);
+  }
+  return result;
+};
+const rtOriginalSaveScenario = saveScenario;
+saveScenario = function(event) {
+  const result = rtOriginalSaveScenario.apply(this, arguments);
+  if (workspaceFolderModeEnabled() && workspaceFolderHandle && isUserLoggedIn()) {
+    const scenarioId = getCurrentScenarioIdForSessionState();
+    const scenarioName = getCurrentScenarioNameForSessionState();
+    writeWorkspaceSessionState('scenario-save', {
+      scenarioId,
+      scenarioName,
+      activeView: getActiveViewNameForSessionState(),
+      activeMode: activeMode || 'single'
+    }).catch(console.error);
+  }
+  return result;
+};
+const rtOriginalStartUserSession = startUserSession;
+startUserSession = function() {
+  const result = rtOriginalStartUserSession.apply(this, arguments);
+  setTimeout(() => { maybePromptWorkspaceRestore('login').catch(console.error); }, 250);
+  return result;
+};
+const rtOriginalSelectWorkspaceFolder = selectWorkspaceFolder;
+selectWorkspaceFolder = async function() {
+  const result = await rtOriginalSelectWorkspaceFolder.apply(this, arguments);
+  await readWorkspaceSessionState();
+  await maybePromptWorkspaceRestore('folder-connect');
+  return result;
+};
+const rtOriginalFlushWorkspaceFiles = flushWorkspaceFiles;
+flushWorkspaceFiles = async function() {
+  const result = await rtOriginalFlushWorkspaceFiles.apply(this, arguments);
+  await writeWorkspaceSessionState('workspace-flush', {
+    scenarioId: getCurrentScenarioIdForSessionState(),
+    scenarioName: getCurrentScenarioNameForSessionState(),
+    activeView: getActiveViewNameForSessionState(),
+    activeMode: activeMode || 'single'
+  });
+  return result;
+};
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const restoreBtn = document.getElementById('restorePreviousSessionBtn');
+    if (restoreBtn) restoreBtn.addEventListener('click', () => restoreWorkspaceSessionFromFile().catch(console.error));
+    const clearBtn = document.getElementById('clearPreviousSessionBtn');
+    if (clearBtn) clearBtn.addEventListener('click', () => clearWorkspaceSessionState().catch(console.error));
+    readWorkspaceSessionState().catch(() => {});
+    syncAppVersionDisplay();
+  } catch (e) { console.error(e); }
+});
+/* ===== END PHASE 23.0.21 SESSION RESTORE AFTER LOGIN ===== */

@@ -32,7 +32,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.20</h4>
+<h4>Phase 23.0.21</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -891,7 +891,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.20. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.16. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -949,6 +949,14 @@
 <label class="help-label" data-help="Shows the last workspace package export generated from this browser.">Last Workspace Package Export</label>
 <input id="workspaceLastPackageExport" readonly type="text"/>
 </div>
+<div class="full-span">
+<label class="help-label" data-help="Shows whether a previous session file exists in the connected workspace folder.">Last Session Found</label>
+<input id="workspaceLastSessionFound" readonly type="text"/>
+</div>
+<div class="full-span">
+<label class="help-label" data-help="Shows the timestamp of the last saved workspace session state.">Last Session Timestamp</label>
+<input id="workspaceLastSessionTimestamp" readonly type="text"/>
+</div>
 </div>
 <div class="builder-actions">
 <button class="btn btn-primary" id="saveWorkspaceSetupBtn" type="button">Save Workspace Setup</button>
@@ -956,6 +964,8 @@
 <button class="btn btn-secondary" id="disconnectWorkspaceFolderBtn" type="button">Disconnect Folder</button>
 <button class="btn btn-secondary" id="downloadWorkspacePackageBtn" type="button">Download Workspace Package</button>
 <button class="btn btn-secondary" id="loadWorkspacePackageBtn" type="button">Load Workspace Package</button>
+<button class="btn btn-secondary" id="restorePreviousSessionBtn" type="button">Restore Previous Session</button>
+<button class="btn btn-secondary" id="clearPreviousSessionBtn" type="button">Clear Session State</button>
 <input accept=".json" id="loadWorkspacePackageFile" style="display:none" type="file"/>
 <div class="note-box" id="workspaceSetupStatus">Use Chrome or Edge for work-folder mode. Typed paths are not active by themselves. Click Select Workspace Folder and choose the approved local or shared-drive folder before saving live data. If no folder is selected, browser storage is temporary only.</div>
 </div>
@@ -973,7 +983,7 @@
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.20</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.21</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -1294,8 +1304,9 @@
 </div>
 </section>
 </main>
-<script src="beta_scenario_engine.js?v=23.0.20"></script>
-<script src="app.js?v=23.0.20"></script>
+<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.21</div>
+<script src="beta_scenario_engine.js?v=23.0.21"></script>
+<script src="app.js?v=23.0.21"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">

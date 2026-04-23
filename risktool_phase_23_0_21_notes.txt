@@ -1,0 +1,8 @@
+Phase 23.0.21
+- Stripped extra root folder in delivery ZIP
+- Bumped real app.js APP_VERSION to 23.0.21
+- Added restore previous session prompt after login when workspace folder is already connected
+- Added restore prompt after workspace folder connect
+- Added config/session-state.json read/write support
+- Added User Admin fields for Last Session Found and Last Session Timestamp
+- Added User Admin buttons for Restore Previous Session and Clear Session State
