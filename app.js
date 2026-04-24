@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.26";
+const APP_VERSION = "23.0.27";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -670,6 +670,7 @@ function startUserSession() {
   unlockAppShell();
   renderUserAdmin();
   updateLoginState();
+  try { setTimeout(() => { if (typeof window.rtForcePostLoginWorkspaceReconnect === "function") window.rtForcePostLoginWorkspaceReconnect("startUserSession"); }, 250); } catch (e) { console.error(e); }
 }
 function openUserAdminFromLogin() {
   hideLoginGate();
@@ -6051,7 +6052,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.25 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.26";
+  const PHASE = "23.0.25";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6149,110 +6150,51 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 /* ===== END PHASE 23.0.25 ===== */
 
-
-/* ===== PHASE 23.0.26 DIRECT POST-LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.27 DIRECT POST-LOGIN RECONNECT PROMPT ===== */
 (function(){
-  const PHASE = "23.0.26";
-  let suppressUntil = 0;
-  function safe(fn, fallback) { try { return fn(); } catch (e) { return fallback; } }
-  function folderConnected() { return safe(() => !!workspaceFolderHandle, false); }
-  function pickerSupported() { return typeof window.showDirectoryPicker === "function"; }
-  function loggedIn() { return safe(() => typeof isUserLoggedIn === "function" && isUserLoggedIn(), false); }
-  function workspaceModeSelected() {
-    return safe(() => {
-      if (typeof setScenarioSaveEngine === "function") setScenarioSaveEngine("Chrome/Edge Workspace Folder");
-      if (typeof getScenarioSaveEngine === "function") return getScenarioSaveEngine() === "Chrome/Edge Workspace Folder";
-      return true;
-    }, true);
-  }
-  function setVersionDisplays() {
-    ["appVersion", "bottomLeftVersion", "versionDisplay", "footerVersion"].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = PHASE; });
-    document.querySelectorAll("[data-app-version]").forEach(el => { el.textContent = PHASE; });
-  }
-  async function loadWorkspaceCacheIfPossible() {
-    try { if (typeof loadWorkspaceScenarioCache === "function") await loadWorkspaceScenarioCache(); } catch (e) { console.error(e); }
-    try { if (typeof renderSavedScenarios === "function") renderSavedScenarios(); } catch (e) { console.error(e); }
-    try { if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable(); } catch (e) { console.error(e); }
-  }
-  async function readSessionState() {
-    if (!folderConnected()) return null;
-    try {
-      const cfg = await workspaceFolderHandle.getDirectoryHandle("config", { create: true });
-      const fh = await cfg.getFileHandle("session-state.json", { create: false });
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    } catch (e) { return null; }
-  }
-  async function promptRestoreAfterReconnect() {
-    await loadWorkspaceCacheIfPossible();
-    const session = await readSessionState();
-    const id = session && (session.scenarioId || session.lastScenarioId || session.activeScenarioId);
-    if (!id) return false;
-    const scenarios = safe(() => typeof getSavedScenarios === "function" ? getSavedScenarios() : [], []);
-    const match = scenarios.find(s => String(s.id || "") === String(id));
-    const label = (match && match.name) || session.scenarioName || session.lastScenarioName || id;
-    const when = session.updatedAt || session.timestamp || session.lastSavedAt || "Unknown";
-    const ok = window.confirm(`Restore previous RiskTool session?\n\nScenario: ${label}\nLast saved: ${when}`);
-    if (!ok) return true;
-    if (match && typeof openScenario === "function") {
-      openScenario(match.id);
-      return true;
-    }
-    window.alert("Previous session was found, but the matching scenario was not found in the connected workspace folder.");
-    return true;
-  }
-  function ensureModal() {
-    let modal = document.getElementById("rtPostLoginReconnect26");
+  const PHASE = "23.0.27";
+  let modalOpen = false;
+  let userDismissed = false;
+  function isLoggedInNow(){ try { return typeof isUserLoggedIn === 'function' && isUserLoggedIn(); } catch(e) { return false; } }
+  function supportsFolderPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
+  function hasWorkspaceHandle(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
+  function setVersionDisplays(){ try { const el = document.getElementById('appVersion'); if (el) el.textContent = PHASE; const note = document.getElementById('workspacePhaseNote'); if (note) note.textContent = `Current frontend phase: ${PHASE}. Chrome/Edge workspace mode requires reconnecting the approved folder after login before saved scenarios appear or previous sessions can be restored.`; } catch(e) {} }
+  function ensureModal(){
+    let modal = document.getElementById('rtPostLoginReconnect27');
     if (modal) return modal;
-    modal = document.createElement("div");
-    modal.id = "rtPostLoginReconnect26";
-    modal.style.cssText = "display:none;position:fixed;inset:0;z-index:30000;background:rgba(15,23,42,.74);align-items:center;justify-content:center;padding:24px;";
-    modal.innerHTML = `<div class="card" style="width:min(720px,96vw);max-height:90vh;overflow:auto;"><div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required after login for secure file storage and restore</span></div><div class="card-body"><p style="margin-top:0;">RiskTool does not keep live work files on the website. Choose your approved local or shared-drive workspace folder before viewing, saving, deleting, or restoring scenarios.</p><div class="note-box" id="rtPostLoginReconnect26Status">Login complete. Choose the same workspace folder you used before.</div><div class="builder-actions"><button type="button" class="btn btn-primary" id="rtPostLoginChooseWorkspace26">Reconnect Workspace Folder</button><button type="button" class="btn btn-secondary" id="rtPostLoginSkipWorkspace26">Not Now</button></div></div></div>`;
+    modal = document.createElement('div');
+    modal.id = 'rtPostLoginReconnect27';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:30000;background:rgba(15,23,42,.74);align-items:center;justify-content:center;padding:24px;';
+    modal.innerHTML = `<div class="card" style="width:min(720px,96vw);max-height:90vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.35);"><div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required after login for file-based storage</span></div><div class="card-body"><p style="margin-top:0;">RiskTool does not keep live work scenarios on the website. After each login or hard refresh, Chrome/Edge requires you to choose the approved local or shared-drive workspace folder again.</p><div class="note-box" id="rtPostLoginReconnect27Status">Login complete. Choose the workspace folder to load saved scenarios and check for a previous session.</div><div class="builder-actions"><button class="btn btn-primary" type="button" id="rtPostLoginChooseFolder27">Reconnect Workspace Folder</button><button class="btn btn-secondary" type="button" id="rtPostLoginNotNow27">Not Now</button></div></div></div>`;
     document.body.appendChild(modal);
-    modal.querySelector("#rtPostLoginSkipWorkspace26")?.addEventListener("click", () => { suppressUntil = Date.now() + 30000; modal.style.display = "none"; });
-    modal.querySelector("#rtPostLoginChooseWorkspace26")?.addEventListener("click", async () => {
-      const status = document.getElementById("rtPostLoginReconnect26Status");
+    modal.querySelector('#rtPostLoginNotNow27')?.addEventListener('click', () => { userDismissed = true; modalOpen = false; modal.style.display = 'none'; });
+    modal.querySelector('#rtPostLoginChooseFolder27')?.addEventListener('click', async () => {
+      const status = document.getElementById('rtPostLoginReconnect27Status');
       try {
-        if (!pickerSupported()) { if (status) status.textContent = "Use current Chrome or Microsoft Edge for workspace folder access."; return; }
-        try { if (typeof setScenarioSaveEngine === "function") setScenarioSaveEngine("Chrome/Edge Workspace Folder"); } catch (e) {}
-        if (typeof selectWorkspaceFolder === "function") await selectWorkspaceFolder();
-        else { workspaceFolderHandle = await window.showDirectoryPicker({ mode: "readwrite" }); workspaceFolderName = workspaceFolderHandle?.name || "Selected folder"; }
-        if (status) status.textContent = `Workspace connected: ${safe(() => workspaceFolderName, "Selected folder")}. Checking for previous session...`;
-        modal.style.display = "none";
-        const shown = await promptRestoreAfterReconnect();
-        if (!shown) window.alert("Workspace folder connected. No previous session file was found yet.");
-      } catch (e) {
-        console.error(e);
-        if (status) status.textContent = "Workspace folder was not connected. Choose the folder again when you are ready.";
-      }
+        if (!supportsFolderPicker()) { if (status) status.textContent = 'Workspace folder access requires current Chrome or Microsoft Edge.'; return; }
+        try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
+        if (typeof selectWorkspaceFolder === 'function') await selectWorkspaceFolder();
+        else { workspaceFolderHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); workspaceFolderName = workspaceFolderHandle?.name || 'Selected folder'; }
+        if (status) status.textContent = `Workspace connected: ${workspaceFolderName || 'Selected folder'}. Checking for previous session...`;
+        try { if (typeof loadWorkspaceScenarioCache === 'function') await loadWorkspaceScenarioCache(); } catch(e) { console.error(e); }
+        try { if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); } catch(e) {}
+        try { if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) {}
+        let session = null;
+        try { const cfg = await workspaceFolderHandle.getDirectoryHandle('config', { create: true }); const fh = await cfg.getFileHandle('session-state.json', { create: false }); const file = await fh.getFile(); session = JSON.parse(await file.text()); } catch(e) {}
+        modalOpen = false; modal.style.display = 'none';
+        const sid = session?.scenarioId || session?.lastScenarioId || '';
+        if (sid) { const saved = (typeof getSavedScenarios === 'function') ? getSavedScenarios() : []; const match = saved.find(s => String(s.id || '') === String(sid)); const label = match?.name || session?.scenarioName || sid; const ok = confirm(`Restore previous RiskTool session?\n\nScenario: ${label}\nLast saved: ${session.updatedAt || session.timestamp || 'Unknown'}`); if (ok && match && typeof openScenario === 'function') openScenario(match.id); else if (ok) alert('A previous session was found, but that scenario was not found in the connected workspace folder.'); }
+        else alert('Workspace folder connected. No previous session was found yet.');
+      } catch(e) { console.error(e); if (status) status.textContent = 'Workspace folder was not connected.'; }
     });
     return modal;
   }
-  function showReconnectModal(reason) {
-    setVersionDisplays();
-    if (!loggedIn()) return false;
-    if (!workspaceModeSelected()) return false;
-    if (Date.now() < suppressUntil) return false;
-    if (folderConnected()) { promptRestoreAfterReconnect().catch(console.error); return true; }
-    const modal = ensureModal();
-    const status = document.getElementById("rtPostLoginReconnect26Status");
-    if (status) status.textContent = reason === "login-click" ? "Login complete. Reconnect the approved workspace folder to continue." : "Reconnect the approved workspace folder to continue.";
-    modal.style.display = "flex";
-    return true;
-  }
-  function installLoginButtonHook() {
-    const btn = document.getElementById("loginGateContinueBtn");
-    if (!btn || btn.dataset.rtPostLoginHook26 === "1") return;
-    btn.dataset.rtPostLoginHook26 = "1";
-    btn.addEventListener("click", () => setTimeout(() => showReconnectModal("login-click"), 650));
-  }
-  document.addEventListener("DOMContentLoaded", () => {
-    setVersionDisplays();
-    try { if (typeof setScenarioSaveEngine === "function") setScenarioSaveEngine("Chrome/Edge Workspace Folder"); } catch (e) {}
-    installLoginButtonHook();
-    try { new MutationObserver(() => installLoginButtonHook()).observe(document.body, { childList: true, subtree: true }); } catch (e) {}
-    setTimeout(() => { if (loggedIn() && !folderConnected()) showReconnectModal("already-logged-in"); }, 900);
-  });
-  window.rtShowPostLoginReconnectPrompt = showReconnectModal;
+  function showPrompt(reason){ setVersionDisplays(); if (!isLoggedInNow()) return false; if (hasWorkspaceHandle()) return false; if (modalOpen || userDismissed) return false; const modal = ensureModal(); const status = document.getElementById('rtPostLoginReconnect27Status'); if (status) status.textContent = `Login complete. Reconnect the approved workspace folder to continue. (${reason || 'post-login'})`; modal.style.display = 'flex'; modalOpen = true; return true; }
+  window.rtForcePostLoginWorkspaceReconnect = showPrompt;
+  const priorStartUserSession27 = startUserSession;
+  startUserSession = function(){ const result = priorStartUserSession27.apply(this, arguments); setTimeout(() => showPrompt('login'), 300); setTimeout(() => showPrompt('login-confirm'), 900); return result; };
+  document.addEventListener('click', (event) => { const target = event.target && event.target.closest ? event.target.closest('#loginGateContinueBtn') : null; if (target) { userDismissed = false; setTimeout(() => showPrompt('login-button'), 700); setTimeout(() => showPrompt('login-button-confirm'), 1400); } }, true);
+  document.addEventListener('keydown', (event) => { const target = event.target; if (event.key === 'Enter' && target && target.id === 'loginGatePassword') { userDismissed = false; setTimeout(() => showPrompt('login-enter'), 700); setTimeout(() => showPrompt('login-enter-confirm'), 1400); } }, true);
+  document.addEventListener('DOMContentLoaded', () => { setVersionDisplays(); setTimeout(setVersionDisplays, 500); });
 })();
-/* ===== END PHASE 23.0.26 DIRECT POST-LOGIN RECONNECT HOOK ===== */
+/* ===== END PHASE 23.0.27 DIRECT POST-LOGIN RECONNECT PROMPT ===== */
