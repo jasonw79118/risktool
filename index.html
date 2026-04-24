@@ -33,7 +33,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.27</h4>
+<h4>Phase 23.0.28</h4>
 <p>Information buildout expanded safely with screen-specific guidance, scenario examples, and report-use notes while preserving the working scenario layout.</p>
 </div>
 </aside>
@@ -892,7 +892,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.27. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.28. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -984,7 +984,7 @@
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.27</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.28</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -1305,9 +1305,9 @@
 </div>
 </section>
 </main>
-<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.27</div>
-<script src="beta_scenario_engine.js?v=23.0.27"></script>
-<script src="app.js?v=23.0.27"></script>
+<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.28</div>
+<script src="beta_scenario_engine.js?v=23.0.28"></script>
+<script src="app.js?v=23.0.28"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">
@@ -1319,7 +1319,7 @@
       </div>
       <div class="full-span">
         <label class="help-label" data-help="Enter the password for the selected local user.">Password</label>
-        <input id="loginGatePassword" placeholder="Enter password" type="password" onkeydown="if(event.key===&#39;Enter&#39;){startUserSession();}"/>
+        <input id="loginGatePassword" placeholder="Enter password" type="password" onkeydown="if(event.key===&#39;Enter&#39;){rtLoginAndReconnect();}"/>
       </div>
       <div>
         <label class="help-label" data-help="Select the default storage mode that will be stamped onto new scenario records in this session.">Storage Mode</label>
@@ -1330,7 +1330,7 @@
       </div>
     </div>
     <div class="builder-actions">
-      <button class="btn btn-primary" id="loginGateContinueBtn" type="button" onclick="startUserSession()">Start Session</button>
+      <button class="btn btn-primary" id="loginGateContinueBtn" type="button" onclick="rtLoginAndReconnect()">Start Session</button>
       <button class="btn btn-secondary" id="loginGateOpenAdminBtn" type="button" onclick="openUserAdminFromLogin()">Open User Admin</button>
       <div class="note-box" id="loginGateStatus">Select a user and enter the password to unlock the application.</div>
     </div>
