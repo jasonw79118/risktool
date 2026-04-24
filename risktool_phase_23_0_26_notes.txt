@@ -1,0 +1,7 @@
+RiskTool Phase 23.0.26
+
+Fixes the post-login reconnect flow by binding directly to the actual Login button event after init binds its original handler. This avoids the previous issue where wrapping startUserSession did not affect the already-bound click listener.
+
+Also confirms workspace-gated scenario lists remain in place and bumps runtime/cache version to 23.0.26.
+
+ZIP is flat and excludes .git.
