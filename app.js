@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.28";
+const APP_VERSION = "23.0.29";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -670,6 +670,7 @@ function startUserSession() {
   unlockAppShell();
   renderUserAdmin();
   updateLoginState();
+  setTimeout(function(){ if (typeof rtShowReconnectWorkspaceModal === "function") rtShowReconnectWorkspaceModal("login"); }, 250);
 }
 function openUserAdminFromLogin() {
   hideLoginGate();
@@ -3231,7 +3232,7 @@ function init() {
     setScenarioSaveEngine(event.target.value || "Local Browser Storage");
     renderUserAdmin();
   });
-  document.getElementById("loginGateContinueBtn")?.addEventListener("click", startUserSession);
+  document.getElementById("loginGateContinueBtn")?.addEventListener("click", rtStartSessionAndReconnect);
   document.getElementById("loginGateOpenAdminBtn")?.addEventListener("click", openUserAdminFromLogin);
   setupRandomOutcomesCsvButton();
   wireStabilityHandlers();
@@ -6287,3 +6288,134 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 /* ===== END PHASE 23.0.28 ===== */
 
+
+
+/* ===== PHASE 23.0.29 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+(function(){
+  const PHASE = "23.0.29";
+  function setPhase29Displays(){
+    ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
+    document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
+  }
+  function userLoggedIn29(){
+    try { return typeof isUserLoggedIn === 'function' ? !!isUserLoggedIn() : !!(typeof getSessionUserId === 'function' && getSessionUserId()); } catch(e) { return false; }
+  }
+  function folderConnected29(){
+    try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; }
+  }
+  function supportsFolderPicker29(){
+    try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; }
+  }
+  async function readSessionState29(){
+    try {
+      if (!folderConnected29()) return null;
+      const cfg = await workspaceFolderHandle.getDirectoryHandle('config', { create: true });
+      const fh = await cfg.getFileHandle('session-state.json', { create: false });
+      const file = await fh.getFile();
+      return JSON.parse(await file.text());
+    } catch(e) { return null; }
+  }
+  async function writeSessionState29(reason, extra){
+    try {
+      if (!folderConnected29()) return null;
+      const cfg = await workspaceFolderHandle.getDirectoryHandle('config', { create: true });
+      const fh = await cfg.getFileHandle('session-state.json', { create: true });
+      const writable = await fh.createWritable();
+      const activeView = document.querySelector('.view.active')?.id?.replace(/^view-/,'') || '';
+      const payload = Object.assign({ phase: PHASE, reason: reason || 'update', updatedAt: new Date().toISOString(), activeView, userId: (typeof getSessionUserId === 'function' ? getSessionUserId() : '') }, extra || {});
+      await writable.write(JSON.stringify(payload, null, 2));
+      await writable.close();
+      return payload;
+    } catch(e) { console.error('Phase 23.0.29 session write failed', e); return null; }
+  }
+  async function offerRestore29(){
+    if (!folderConnected29()) return false;
+    try { if (typeof loadWorkspaceScenarioCache === 'function') await loadWorkspaceScenarioCache(); } catch(e) { console.error(e); }
+    try { if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) {}
+    const session = await readSessionState29();
+    if (!session) return false;
+    const id = session.scenarioId || session.lastScenarioId || '';
+    if (!id) return false;
+    const saved = (typeof getSavedScenarios === 'function') ? getSavedScenarios() : [];
+    const match = saved.find(s => String(s.id || '') === String(id));
+    const label = (match && match.name) || session.scenarioName || id;
+    const answer = confirm(`Restore previous RiskTool session?\n\nScenario: ${label}\nLast saved: ${session.updatedAt || session.timestamp || 'Unknown'}`);
+    if (!answer) return true;
+    if (match && typeof openScenario === 'function') { openScenario(match.id); return true; }
+    alert('Previous session was found, but the matching scenario was not found in the selected workspace folder.');
+    return true;
+  }
+  function ensureReconnectModal29(){
+    let modal = document.getElementById('rtReconnectWorkspace29');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'rtReconnectWorkspace29';
+    modal.style.cssText = 'display:none; position:fixed; inset:0; z-index:30000; background:rgba(15,23,42,.74); align-items:center; justify-content:center; padding:24px;';
+    modal.innerHTML = `
+      <div class="card" style="width:min(700px,96vw);max-height:90vh;overflow:auto;">
+        <div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required before saved scenarios or session restore can load</span></div>
+        <div class="card-body">
+          <p style="margin-top:0;">RiskTool does not keep work scenarios in the website. After login, choose the approved local or shared-drive workspace folder so saved scenarios and previous session restore can load.</p>
+          <div class="note-box" id="rtReconnectWorkspace29Status">Login complete. Choose the workspace folder to continue.</div>
+          <div class="builder-actions">
+            <button type="button" class="btn btn-primary" id="rtChooseWorkspace29">Reconnect Workspace Folder</button>
+            <button type="button" class="btn btn-secondary" id="rtSkipWorkspace29">Not Now</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#rtSkipWorkspace29')?.addEventListener('click', () => { modal.style.display = 'none'; });
+    modal.querySelector('#rtChooseWorkspace29')?.addEventListener('click', async () => {
+      const status = document.getElementById('rtReconnectWorkspace29Status');
+      try {
+        if (!supportsFolderPicker29()) { if (status) status.textContent = 'Use Chrome or Edge for workspace folder access.'; return; }
+        try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
+        if (typeof selectWorkspaceFolder === 'function') await selectWorkspaceFolder();
+        else {
+          workspaceFolderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          workspaceFolderName = workspaceFolderHandle?.name || 'Selected folder';
+        }
+        if (status) status.textContent = `Workspace connected: ${typeof workspaceFolderName !== 'undefined' ? workspaceFolderName : 'Selected folder'}. Checking previous session...`;
+        try { if (typeof loadWorkspaceScenarioCache === 'function') await loadWorkspaceScenarioCache(); } catch(e) {}
+        try { if (typeof refreshWorkspaceFolderModeUi === 'function') refreshWorkspaceFolderModeUi(); if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) {}
+        modal.style.display = 'none';
+        const restoredPromptShown = await offerRestore29();
+        if (!restoredPromptShown) alert('Workspace folder connected. No previous session file was found yet.');
+      } catch(e) {
+        console.error(e);
+        if (status) status.textContent = 'Workspace folder was not connected.';
+      }
+    });
+    return modal;
+  }
+  window.rtShowReconnectWorkspaceModal = function(reason){
+    setPhase29Displays();
+    if (!userLoggedIn29()) return;
+    if (folderConnected29()) { offerRestore29().catch(console.error); return; }
+    ensureReconnectModal29().style.display = 'flex';
+  };
+  window.rtStartSessionAndReconnect = function(){
+    try { if (typeof startUserSession === 'function') startUserSession(); } catch(e) { console.error(e); }
+    setTimeout(() => { window.rtShowReconnectWorkspaceModal('login-direct'); }, 300);
+  };
+  document.addEventListener('DOMContentLoaded', () => {
+    setPhase29Displays();
+    const oldBtn = document.getElementById('loginGateContinueBtn');
+    if (oldBtn) {
+      const btn = oldBtn.cloneNode(true);
+      oldBtn.parentNode.replaceChild(btn, oldBtn);
+      btn.onclick = function(event){ event.preventDefault(); window.rtStartSessionAndReconnect(); return false; };
+    }
+    const pwd = document.getElementById('loginGatePassword');
+    if (pwd) pwd.onkeydown = function(event){ if(event.key === 'Enter'){ event.preventDefault(); window.rtStartSessionAndReconnect(); return false; } };
+  });
+  try {
+    const priorOpen = typeof openScenario === 'function' ? openScenario : null;
+    if (priorOpen) openScenario = function(id){ const result = priorOpen.apply(this, arguments); const m=(typeof getSavedScenarios === 'function' ? getSavedScenarios() : []).find(s=>String(s.id||'')===String(id||'')); if(m) writeSessionState29('scenario-open', {scenarioId:m.id, scenarioName:m.name}).catch(console.error); return result; };
+  } catch(e) {}
+  try {
+    const priorSave = typeof saveScenario === 'function' ? saveScenario : null;
+    if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
+  } catch(e) {}
+})();
+/* ===== END PHASE 23.0.29 ===== */
