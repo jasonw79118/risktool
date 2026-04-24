@@ -1,0 +1,5 @@
+Phase 23.0.30
+- Reconnect workspace modal is now called directly after successful login.
+- Saved scenario and dashboard scenario lists remain empty until a workspace folder is connected.
+- Delete Scenario now removes the scenario from workspace cache/index and attempts to remove the matching JSON file.
+- Flat ZIP package; no nested risktool folder.
