@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.32";
+const APP_VERSION = "23.0.33";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -6053,7 +6053,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.32 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.32";
+  const PHASE = "23.0.33";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6154,7 +6154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.32 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.32";
+  const PHASE = "23.0.33";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6293,7 +6293,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.32 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.32";
+  const PHASE = "23.0.33";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6424,7 +6424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.32 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
 (function(){
-  const PHASE = "23.0.32";
+  const PHASE = "23.0.33";
   function setVersion32(){
     try { ["appVersion","versionDisplay","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=PHASE; }); } catch(e) {}
     try { document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); } catch(e) {}
@@ -6519,3 +6519,137 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 /* ===== END PHASE 23.0.32 ===== */
+
+
+/* ===== PHASE 23.0.33 SAVED SCENARIO DELETE HARDENING ===== */
+(function(){
+  const PHASE = "23.0.33";
+
+  function rt33SetVersion(){
+    try {
+      const ids = ["appVersion","versionDisplay","footerVersion","phaseVersion"];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = PHASE;
+      });
+      document.querySelectorAll("[data-app-version]").forEach(el => { el.textContent = PHASE; });
+    } catch(e) {}
+  }
+
+  function rt33FolderConnected(){
+    try { return typeof workspaceFolderHandle !== "undefined" && !!workspaceFolderHandle; } catch(e) { return false; }
+  }
+
+  function rt33SafeScenarioFileName(id){
+    return String(id || "").replace(/[^a-zA-Z0-9_-]/g, "_") + ".json";
+  }
+
+  async function rt33RefreshLists(){
+    try { if (typeof loadWorkspaceScenarioCache === "function" && rt33FolderConnected()) await loadWorkspaceScenarioCache(); } catch(e) { console.warn("Reload after delete failed", e); }
+    try { if (typeof renderSavedScenarios === "function") renderSavedScenarios(); } catch(e) { console.warn(e); }
+    try { if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable(); } catch(e) { console.warn(e); }
+    try { if (typeof refreshLibraries === "function") refreshLibraries(); } catch(e) { console.warn(e); }
+    try { if (typeof refreshWorkspaceFolderModeUi === "function") refreshWorkspaceFolderModeUi(); } catch(e) { console.warn(e); }
+  }
+
+  window.deleteScenario = deleteScenario = async function(id){
+    id = String(id || "");
+    if (!id) {
+      alert("No scenario id was supplied for deletion.");
+      return;
+    }
+
+    if (!rt33FolderConnected()) {
+      alert("Connect the approved workspace folder before deleting saved scenario files.");
+      return;
+    }
+
+    let current = [];
+    try {
+      current = Array.isArray(workspaceScenarioCache) ? workspaceScenarioCache.slice() : [];
+      if (!current.length && typeof loadWorkspaceScenarioCache === "function") {
+        current = await loadWorkspaceScenarioCache();
+      }
+    } catch(e) {
+      console.warn("Could not read workspace scenario cache before delete", e);
+      current = [];
+    }
+
+    const match = current.find(x => String(x && x.id || "") === id);
+    const label = match && match.name ? `${match.name} (${id})` : id;
+
+    if (!confirm(`Delete saved scenario?\n\n${label}\n\nThis removes it from the connected workspace index and attempts to remove the matching JSON file.`)) {
+      return;
+    }
+
+    try {
+      workspaceScenarioCache = current.filter(x => String(x && x.id || "") !== id);
+    } catch(e) {
+      console.error("Could not update in-memory scenario list", e);
+      alert("Delete failed before the workspace list could be updated.");
+      return;
+    }
+
+    try {
+      const scenariosDir = await workspaceFolderHandle.getDirectoryHandle("scenarios", { create: true });
+      const fileName = rt33SafeScenarioFileName(id);
+      try {
+        await scenariosDir.removeEntry(fileName);
+      } catch(removeErr) {
+        // If the file was already missing, still continue and rewrite index.json.
+        console.warn("Scenario file removal skipped or failed; index will still be rewritten.", removeErr);
+      }
+    } catch(dirErr) {
+      console.warn("Could not access scenarios directory during delete; index rewrite will still be attempted.", dirErr);
+    }
+
+    try {
+      if (typeof flushWorkspaceFiles === "function") {
+        await flushWorkspaceFiles();
+      }
+    } catch(flushErr) {
+      console.error("Failed to rewrite workspace files after delete", flushErr);
+      alert("The scenario was removed from the screen cache, but RiskTool could not rewrite the workspace files. Reconnect the workspace folder and try again.");
+      await rt33RefreshLists();
+      return;
+    }
+
+    await rt33RefreshLists();
+    try { if (typeof workspaceStatus === "function") workspaceStatus(`Deleted scenario ${id} from the connected workspace folder.`); } catch(e) {}
+  };
+
+  function rt33HandleSavedScenarioClick(event){
+    const btn = event.target && event.target.closest ? event.target.closest("#savedEvaluationsBody button[data-action]") : null;
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const id = btn.dataset.id || "";
+
+    if (action === "delete") {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      window.deleteScenario(id);
+      return false;
+    }
+
+    if (action === "open" && typeof openScenario === "function") {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      openScenario(id);
+      return false;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    rt33SetVersion();
+
+    const tbody = document.getElementById("savedEvaluationsBody");
+    if (tbody && !tbody.dataset.rt33DeleteHandler) {
+      tbody.dataset.rt33DeleteHandler = "true";
+      tbody.addEventListener("click", rt33HandleSavedScenarioClick, true);
+    }
+  });
+})();
+/* ===== END PHASE 23.0.33 ===== */
