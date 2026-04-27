@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.30";
+const APP_VERSION = "23.0.32";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -670,8 +670,9 @@ function startUserSession() {
   unlockAppShell();
   renderUserAdmin();
   updateLoginState();
-  setTimeout(function(){ if (typeof rtShowReconnectWorkspaceModal === "function") rtShowReconnectWorkspaceModal("login"); }, 250);
+  setTimeout(function(){ if (typeof showPostLoginRestoreScreen === "function") showPostLoginRestoreScreen(); }, 150);
 }
+
 function openUserAdminFromLogin() {
   hideLoginGate();
   activateView("users");
@@ -6050,9 +6051,9 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ===== END PHASE 23.0.24 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.25 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.32 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.25";
+  const PHASE = "23.0.32";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6148,12 +6149,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.25 ===== */
+/* ===== END PHASE 23.0.32 ===== */
 
 
-/* ===== PHASE 23.0.28 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.32 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.28";
+  const PHASE = "23.0.32";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6286,13 +6287,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.28 ===== */
+/* ===== END PHASE 23.0.32 ===== */
 
 
 
-/* ===== PHASE 23.0.29 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.32 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.29";
+  const PHASE = "23.0.32";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6326,7 +6327,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.29 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.32 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6418,31 +6419,103 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.29 ===== */
+/* ===== END PHASE 23.0.32 ===== */
 
 
-/* ===== PHASE 23.0.30 CLEAN LOGIN RECONNECT + DELETE FIX ===== */
+/* ===== PHASE 23.0.32 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
 (function(){
-  const PHASE = "23.0.30";
-  function setPhaseDisplays30(){ try { ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{const el=document.getElementById(id); if(el) el.textContent=PHASE;}); document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); document.querySelectorAll('.sidebar-note h4').forEach(el=>{ if((el.textContent||'').indexOf('Phase 23.0.')>=0) el.textContent='Phase '+PHASE; }); } catch(e){} }
-  function folderConnected30(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
-  function pickerSupported30(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
-  function savedRows30(){ try { return Array.isArray(workspaceScenarioCache) ? workspaceScenarioCache.slice() : []; } catch(e) { return []; } }
-  function safeId30(id){ return String(id || '').replace(/[^a-zA-Z0-9_-]/g, '_'); }
-  async function readSession30(){ try { if(!folderConnected30()) return null; const cfg=await workspaceFolderHandle.getDirectoryHandle('config',{create:true}); const fh=await cfg.getFileHandle('session-state.json',{create:false}); const file=await fh.getFile(); return JSON.parse(await file.text()); } catch(e){ return null; } }
-  async function writeSession30(reason, extra){ try { if(!folderConnected30()) return null; const cfg=await workspaceFolderHandle.getDirectoryHandle('config',{create:true}); const fh=await cfg.getFileHandle('session-state.json',{create:true}); const writable=await fh.createWritable(); const payload=Object.assign({phase:PHASE,reason:reason||'update',updatedAt:new Date().toISOString(),userId:(typeof getSessionUserId==='function'?getSessionUserId():'')}, extra||{}); await writable.write(JSON.stringify(payload,null,2)); await writable.close(); return payload; } catch(e){ console.error('session write failed', e); return null; } }
-  async function offerRestore30(){ if(!folderConnected30()) return false; try{ if(typeof loadWorkspaceScenarioCache==='function') await loadWorkspaceScenarioCache(); }catch(e){} try{ renderSavedScenarios(); renderDashboardOpenTable(); }catch(e){} const session=await readSession30(); if(!session) return false; const id=session.scenarioId||session.lastScenarioId||''; if(!id) return false; const match=savedRows30().find(s=>String(s.id||'')===String(id)); const label=(match&&match.name)||session.scenarioName||id; const restore=confirm('Restore previous RiskTool session?\n\nScenario: '+label+'\nLast saved: '+(session.updatedAt||session.timestamp||'Unknown')); if(!restore) return true; if(match && typeof openScenario==='function'){ openScenario(match.id); return true; } alert('Previous session was found, but the matching scenario was not found in the selected workspace folder.'); return true; }
-  function ensureReconnectModal30(){ let modal=document.getElementById('rtReconnectWorkspace30'); if(modal) return modal; modal=document.createElement('div'); modal.id='rtReconnectWorkspace30'; modal.style.cssText='display:none; position:fixed; inset:0; z-index:50000; background:rgba(15,23,42,.76); align-items:center; justify-content:center; padding:24px;'; modal.innerHTML='<div class="card" style="width:min(720px,96vw);max-height:90vh;overflow:auto;"><div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Required after login</span></div><div class="card-body"><p style="margin-top:0;">RiskTool does not keep saved work scenarios on the website. Choose the approved local or shared-drive workspace folder so saved scenarios and previous session restore can load.</p><div class="note-box" id="rtReconnectWorkspace30Status">Login complete. Choose the workspace folder to continue.</div><div class="builder-actions"><button type="button" class="btn btn-primary" id="rtChooseWorkspace30">Reconnect Workspace Folder</button><button type="button" class="btn btn-secondary" id="rtSkipWorkspace30">Not Now</button></div></div></div>'; document.body.appendChild(modal); modal.querySelector('#rtSkipWorkspace30')?.addEventListener('click',()=>{modal.style.display='none';}); modal.querySelector('#rtChooseWorkspace30')?.addEventListener('click', async()=>{ const status=document.getElementById('rtReconnectWorkspace30Status'); try{ if(!pickerSupported30()){ if(status) status.textContent='Use Chrome or Edge for workspace-folder mode.'; return; } try{ if(typeof setScenarioSaveEngine==='function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); }catch(e){} workspaceFolderHandle=await window.showDirectoryPicker({mode:'readwrite'}); workspaceFolderName=workspaceFolderHandle?.name||'Selected folder'; try{ if(typeof loadWorkspaceScenarioCache==='function') await loadWorkspaceScenarioCache(); }catch(e){} try{ if(typeof refreshWorkspaceFolderModeUi==='function') refreshWorkspaceFolderModeUi(); renderSavedScenarios(); renderDashboardOpenTable(); if(typeof refreshLibraries==='function') refreshLibraries(); }catch(e){} if(status) status.textContent='Workspace connected: '+workspaceFolderName+'. Checking previous session...'; modal.style.display='none'; const shown=await offerRestore30(); if(!shown) alert('Workspace folder connected. No previous session was found yet.'); }catch(e){ console.error(e); if(status) status.textContent='Workspace folder was not connected. Choose the folder again to continue.'; } }); return modal; }
-  window.rt30ShowReconnectWorkspace=function(){ setPhaseDisplays30(); ensureReconnectModal30().style.display='flex'; };
-  const originalStart30=(typeof startUserSession==='function') ? startUserSession : null;
-  if(originalStart30){ startUserSession=function(){ const result=originalStart30.apply(this, arguments); setTimeout(()=>{ try{ if(typeof isUserLoggedIn !== 'function' || isUserLoggedIn()) window.rt30ShowReconnectWorkspace('post-login'); }catch(e){ console.error(e); } },150); return result; }; }
-  window.rt30LoginAndReconnect=function(event){ if(event&&event.preventDefault) event.preventDefault(); if(typeof startUserSession==='function') return startUserSession(); };
-  window.rtLoginAndReconnect=window.rt30LoginAndReconnect; window.rtStartSessionAndReconnect=window.rt30LoginAndReconnect;
-  function renderSavedScenarios30(){ const tbody=document.getElementById('savedEvaluationsBody'); const count=document.getElementById('savedCount'); if(!tbody) return; if(!folderConnected30()){ if(count) count.textContent='0'; tbody.innerHTML='<tr><td colspan="11">Connect a workspace folder to view saved scenarios.</td></tr>'; return; } const saved=savedRows30(); if(count) count.textContent=String(saved.length); if(!saved.length){ tbody.innerHTML='<tr><td colspan="11">No saved scenarios found in the connected workspace folder.</td></tr>'; return; } tbody.innerHTML=saved.map(s=>'<tr><td>'+escapeHtml(s.id||'')+'</td><td>'+escapeHtml(s.name||'')+'</td><td>'+(s.mode==='single'?'Single':s.mode==='complex'?'Complex':s.mode==='beta'?'Beta':'Unknown')+'</td><td>'+escapeHtml(s.productGroup||'')+'</td><td>'+escapeHtml(s.scenarioStatus||'')+'</td><td>'+escapeHtml(s.assignedOwnerName||'')+'</td><td>'+escapeHtml(s.storageMode||'Chrome/Edge Workspace Folder')+'</td><td>'+Number(s.inherent||0)+'</td><td>'+Number(s.residual||0)+'</td><td>'+escapeHtml(s.identifiedDate||'')+'</td><td><button class="btn btn-secondary small-btn" type="button" data-action="open" data-id="'+escapeHtml(s.id||'')+'">Open</button> <button class="btn btn-secondary small-btn" type="button" data-action="delete" data-id="'+escapeHtml(s.id||'')+'">Delete</button></td></tr>').join(''); tbody.querySelectorAll('button[data-action]').forEach(btn=>btn.addEventListener('click', async()=>{ const id=btn.dataset.id; if(btn.dataset.action==='open'){ if(typeof openScenario==='function') openScenario(id); const s=savedRows30().find(x=>String(x.id||'')===String(id||'')); if(s) await writeSession30('scenario-open',{scenarioId:s.id,scenarioName:s.name}); } if(btn.dataset.action==='delete') await deleteScenario(id); })); }
-  function renderDashboardOpenTable30(){ const tbody=document.getElementById('dashboardOpenScenarioBody'); if(!tbody) return; if(!folderConnected30()){ tbody.innerHTML='<tr><td colspan="11">Connect a workspace folder to view open scenarios.</td></tr>'; return; } const rows=savedRows30().filter(x=>String(x.scenarioStatus||'').toLowerCase()!=='closed'); if(!rows.length){ tbody.innerHTML='<tr><td colspan="11">No open scenarios found in the connected workspace folder.</td></tr>'; return; } tbody.innerHTML=rows.map(s=>'<tr><td><button class="scenario-link" type="button" data-open-id="'+escapeHtml(s.id||'')+'">'+escapeHtml(s.id||'')+'</button></td><td>'+(s.mode==='single'?'Single Scenario':s.mode==='complex'?'Complex Scenario':s.mode==='beta'?'Beta Scenario':'Unknown')+'</td><td>'+escapeHtml(s.name||'')+'</td><td>'+escapeHtml(s.scenarioStatus||'')+'</td><td>'+Number(s.inherent||0)+'</td><td>'+escapeHtml(s.identifiedDate||'')+'</td><td>'+escapeHtml(s.productGroup||'')+'</td><td>'+escapeHtml(s.riskDomain||'')+'</td><td>'+escapeHtml(s.assignedOwnerName||'')+'</td><td>'+escapeHtml(s.storageMode||'Chrome/Edge Workspace Folder')+'</td><td><button class="btn btn-secondary small-btn" type="button" data-report-id="'+escapeHtml(s.id||'')+'">Open Report</button></td></tr>').join(''); tbody.querySelectorAll('[data-open-id]').forEach(btn=>btn.addEventListener('click',()=>{ if(typeof openScenario==='function') openScenario(btn.dataset.openId); })); tbody.querySelectorAll('[data-report-id]').forEach(btn=>btn.addEventListener('click',()=>{ if(typeof openScenarioReport==='function') openScenarioReport(btn.dataset.reportId); })); }
-  renderSavedScenarios=renderSavedScenarios30; renderDashboardOpenTable=renderDashboardOpenTable30;
-  deleteScenario=async function(id){ if(!folderConnected30()){ alert('Connect a workspace folder before deleting scenario files.'); return; } const target=String(id||''); if(!target) return; if(!confirm('Delete scenario '+target+'? This removes it from the connected workspace folder.')) return; workspaceScenarioCache=savedRows30().filter(x=>String(x.id||'')!==target); try{ const dir=await workspaceFolderHandle.getDirectoryHandle('scenarios',{create:true}); try{ await dir.removeEntry(safeId30(target)+'.json'); }catch(e){} try{ await dir.removeEntry(target+'.json'); }catch(e){} }catch(e){ console.warn(e); } try{ if(typeof flushWorkspaceFiles==='function') await flushWorkspaceFiles(); }catch(e){ console.error(e); } try{ renderSavedScenarios30(); renderDashboardOpenTable30(); if(typeof refreshLibraries==='function') refreshLibraries(); }catch(e){} };
-  const priorSave30=(typeof saveScenario==='function') ? saveScenario : null; if(priorSave30){ saveScenario=async function(){ const result=await priorSave30.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value||document.getElementById('complexScenarioId')?.value||document.getElementById('betaScenarioId')?.value||''; const name=document.getElementById('singleScenarioName')?.value||document.getElementById('complexScenarioName')?.value||document.getElementById('betaScenarioName')?.value||''; if(id) await writeSession30('scenario-save',{scenarioId:id,scenarioName:name}); return result; }; }
-  document.addEventListener('DOMContentLoaded',()=>{ setPhaseDisplays30(); const btn=document.getElementById('loginGateContinueBtn'); if(btn){ btn.onclick=window.rt30LoginAndReconnect; } const pwd=document.getElementById('loginGatePassword'); if(pwd){ pwd.onkeydown=function(event){ if(event.key==='Enter') return window.rt30LoginAndReconnect(event); }; } setTimeout(()=>{ try{ renderSavedScenarios30(); renderDashboardOpenTable30(); }catch(e){} },200); });
+  const PHASE = "23.0.32";
+  function setVersion32(){
+    try { ["appVersion","versionDisplay","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=PHASE; }); } catch(e) {}
+    try { document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); } catch(e) {}
+    try { document.querySelectorAll('.sidebar-note h4').forEach(el=>{ if((el.textContent||'').indexOf('Phase 23.0.')>=0) el.textContent='Phase '+PHASE; }); } catch(e) {}
+  }
+  function supportsFolder32(){ return typeof window.showDirectoryPicker === 'function'; }
+  function hasFolder32(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
+  async function loadWorkspace32(){
+    try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
+    try { if (typeof loadWorkspaceScenarioCache === 'function') await loadWorkspaceScenarioCache(); } catch(e) { console.warn(e); }
+    try { if (typeof refreshWorkspaceFolderModeUi === 'function') refreshWorkspaceFolderModeUi(); } catch(e) {}
+    try { if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); } catch(e) {}
+    try { if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) {}
+    try { if (typeof refreshLibraries === 'function') refreshLibraries(); } catch(e) {}
+  }
+  async function readSession32(){
+    try {
+      if(!hasFolder32()) return null;
+      const cfg = await workspaceFolderHandle.getDirectoryHandle('config', { create: true });
+      const fh = await cfg.getFileHandle('session-state.json', { create: false });
+      const file = await fh.getFile();
+      return JSON.parse(await file.text());
+    } catch(e) { return null; }
+  }
+  function getSaved32(){
+    try { if (Array.isArray(workspaceScenarioCache)) return workspaceScenarioCache.slice(); } catch(e) {}
+    try { if (typeof getSavedScenarios === 'function') return getSavedScenarios(); } catch(e) {}
+    return [];
+  }
+  async function offerRestore32(){
+    await loadWorkspace32();
+    const session = await readSession32();
+    if(!session){ alert('Workspace folder connected. No previous session file was found yet.'); return false; }
+    const id = String(session.scenarioId || session.lastScenarioId || '');
+    if(!id){ alert('Workspace folder connected, but the previous session file did not include a scenario ID.'); return false; }
+    const saved = getSaved32();
+    const match = saved.find(s => String(s.id || '') === id);
+    const label = (match && match.name) || session.scenarioName || id;
+    const restore = confirm('Restore previous RiskTool session?\n\nScenario: ' + label + '\nLast saved: ' + (session.updatedAt || session.timestamp || 'Unknown'));
+    if(!restore) return true;
+    if(match && typeof openScenario === 'function') { openScenario(match.id); return true; }
+    alert('Previous session was found, but the matching scenario was not found in the connected workspace folder.');
+    return true;
+  }
+  function ensurePostLoginModal32(){
+    let modal = document.getElementById('rtPostLoginRestore32');
+    if(modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'rtPostLoginRestore32';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:70000;background:rgba(15,23,42,.78);align-items:center;justify-content:center;padding:24px;';
+    modal.innerHTML = '<div class="card" style="width:min(760px,96vw);max-height:90vh;overflow:auto;"><div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Restore previous session</span></div><div class="card-body"><p style="margin-top:0;">Login was successful. RiskTool does not keep work scenarios on the website. Reconnect the approved local or shared-drive workspace folder to load saved scenarios and restore your previous session.</p><div class="note-box" id="rtPostLoginRestore32Status">Choose the same workspace folder used for RiskTool files.</div><div class="builder-actions"><button type="button" class="btn btn-primary" id="rtPostLoginRestore32Choose">Reconnect Workspace Folder</button><button type="button" class="btn btn-secondary" id="rtPostLoginRestore32Skip">Continue Without Restore</button></div></div></div>';
+    document.body.appendChild(modal);
+    modal.querySelector('#rtPostLoginRestore32Skip')?.addEventListener('click',()=>{ modal.style.display='none'; });
+    modal.querySelector('#rtPostLoginRestore32Choose')?.addEventListener('click', async ()=>{
+      const status = document.getElementById('rtPostLoginRestore32Status');
+      try {
+        if(!supportsFolder32()) { if(status) status.textContent='Use Chrome or Edge. This browser does not support workspace folder access.'; return; }
+        if(status) status.textContent='Waiting for folder selection...';
+        const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        try { workspaceFolderHandle = handle; workspaceFolderName = handle?.name || 'Selected folder'; } catch(e) {}
+        try { window.workspaceFolderHandle = handle; window.workspaceFolderName = handle?.name || 'Selected folder'; } catch(e) {}
+        if(status) status.textContent='Workspace connected: ' + (handle?.name || 'Selected folder') + '. Checking previous session...';
+        modal.style.display='none';
+        await offerRestore32();
+      } catch(e) {
+        console.error(e);
+        if(status) status.textContent='Workspace folder was not connected. Choose the folder again to restore saved work.';
+      }
+    });
+    return modal;
+  }
+  window.showPostLoginRestoreScreen = function(){
+    setVersion32();
+    ensurePostLoginModal32().style.display='flex';
+  };
+  // Remove old stacked login listeners by replacing the button once, then bind directly to the original startUserSession.
+  document.addEventListener('DOMContentLoaded', function(){
+    setVersion32();
+    try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
+    const btn = document.getElementById('loginGateContinueBtn');
+    if(btn){
+      const clone = btn.cloneNode(true);
+      clone.removeAttribute('onclick');
+      clone.onclick = function(event){ event.preventDefault(); if(typeof startUserSession === 'function') startUserSession(); return false; };
+      btn.parentNode.replaceChild(clone, btn);
+    }
+    const pwd = document.getElementById('loginGatePassword');
+    if(pwd){
+      pwd.removeAttribute('onkeydown');
+      pwd.onkeydown = function(event){ if(event.key === 'Enter'){ event.preventDefault(); if(typeof startUserSession === 'function') startUserSession(); return false; } };
+    }
+  });
 })();
-/* ===== END PHASE 23.0.30 ===== */
+/* ===== END PHASE 23.0.32 ===== */
