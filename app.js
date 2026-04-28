@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.33";
+const APP_VERSION = "23.0.34";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -347,7 +347,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.14",
+    phase: "23.0.34",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -5341,7 +5341,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.11 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.34 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5480,16 +5480,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.11 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.34 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.14 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.34 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.14 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.34 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.16 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.34 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -5682,10 +5682,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.16 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.34 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.21 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.34 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -5932,9 +5932,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.21 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.34 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.24 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.34 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6048,12 +6048,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.24 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.34 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.32 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.34 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.33";
+  const PHASE = "23.0.34";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6149,12 +6149,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.32 ===== */
+/* ===== END PHASE 23.0.34 ===== */
 
 
-/* ===== PHASE 23.0.32 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.34 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.33";
+  const PHASE = "23.0.34";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6287,13 +6287,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.32 ===== */
+/* ===== END PHASE 23.0.34 ===== */
 
 
 
-/* ===== PHASE 23.0.32 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.34 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.33";
+  const PHASE = "23.0.34";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6327,7 +6327,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.32 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.34 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6419,12 +6419,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.32 ===== */
+/* ===== END PHASE 23.0.34 ===== */
 
 
-/* ===== PHASE 23.0.32 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
+/* ===== PHASE 23.0.34 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
 (function(){
-  const PHASE = "23.0.33";
+  const PHASE = "23.0.34";
   function setVersion32(){
     try { ["appVersion","versionDisplay","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=PHASE; }); } catch(e) {}
     try { document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); } catch(e) {}
@@ -6518,12 +6518,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
-/* ===== END PHASE 23.0.32 ===== */
+/* ===== END PHASE 23.0.34 ===== */
 
 
-/* ===== PHASE 23.0.33 SAVED SCENARIO DELETE HARDENING ===== */
+/* ===== PHASE 23.0.34 SAVED SCENARIO DELETE HARDENING ===== */
 (function(){
-  const PHASE = "23.0.33";
+  const PHASE = "23.0.34";
 
   function rt33SetVersion(){
     try {
@@ -6652,4 +6652,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
-/* ===== END PHASE 23.0.33 ===== */
+/* ===== END PHASE 23.0.34 ===== */
