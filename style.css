@@ -143,7 +143,7 @@ th { background: #f7f9fc; color: var(--royal-blue-dark); }
 }
 
 
-/* ===== PHASE 23.0.36 INFORMATION VIEW CONTAINER FIX ===== */
+/* ===== PHASE 23.0.37 INFORMATION VIEW CONTAINER FIX ===== */
 #view-information { width: 100%; max-width: 100%; }
 #view-information .information-grid,
 #view-information .grid.two { grid-template-columns: minmax(0, 1fr) !important; width: 100%; }
@@ -156,4 +156,22 @@ th { background: #f7f9fc; color: var(--royal-blue-dark); }
 #view-information .manual-field-item { max-width: 100%; }
 #view-information table, #view-information pre, #view-information code { max-width: 100%; }
 @media (min-width: 901px) { #view-information .manual-copy { max-width: calc(100vw - 340px); } }
-/* ===== END PHASE 23.0.36 ===== */
+/* ===== END PHASE 23.0.37 ===== */
+
+/* Phase 23.0.37: Information quick-link spacing and wrapping */
+.manual-nav, .risktool-info-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  row-gap: 12px;
+  align-items: center;
+}
+.manual-nav a, .risktool-info-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px 4px 0;
+  white-space: normal;
+  word-break: normal;
+  line-height: 1.25;
+}
