@@ -1,0 +1,28 @@
+RISKTOOL HANDOFF — PHASE 23.0.36
+Date: 04.28.2026
+
+Objective
+- Correct the Information view so it fits inside the main content container and no longer renders as a cramped half-width/two-column panel.
+- Preserve Phase 23.0.35 deletion fixes for complex product cascade delete and risk item row delete.
+
+Files included
+- index.html
+- app.js
+- app_23_0_36.js
+- style.css
+- beta_scenario_engine.js
+- risktool_handoff_23_0_36.txt
+
+Changes made
+1. Version bumped from 23.0.35 to 23.0.36.
+2. index.html script reference updated to app_23_0_36.js?v=23.0.36 for cache busting.
+3. Information section grid changed from shared two-column grid to dedicated one-column information-grid.
+4. style.css adds Phase 23.0.36 overrides forcing Information/manual/card content to use the available main container width without overflow.
+
+Test checklist
+1. Push all files to the site root.
+2. Hard refresh the browser.
+3. Confirm sidebar shows Phase 23.0.36.
+4. Open Information from the left navigation.
+5. Confirm the User Manual card spans the main content area and does not appear squeezed into a half-width column.
+6. Confirm Complex Scenario product deletion and Risk Item deletion still work.

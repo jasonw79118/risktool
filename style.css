@@ -141,3 +141,19 @@ th { background: #f7f9fc; color: var(--royal-blue-dark); }
   0% { background: rgba(217,107,31,0.30); }
   100% { background: transparent; }
 }
+
+
+/* ===== PHASE 23.0.36 INFORMATION VIEW CONTAINER FIX ===== */
+#view-information { width: 100%; max-width: 100%; }
+#view-information .information-grid,
+#view-information .grid.two { grid-template-columns: minmax(0, 1fr) !important; width: 100%; }
+#view-information .card,
+#view-information .manual-copy,
+#view-information .manual-card { width: 100%; max-width: 100%; min-width: 0; }
+#view-information .manual-card { overflow-wrap: anywhere; }
+#view-information .manual-nav { max-width: 100%; }
+#view-information .manual-section,
+#view-information .manual-field-item { max-width: 100%; }
+#view-information table, #view-information pre, #view-information code { max-width: 100%; }
+@media (min-width: 901px) { #view-information .manual-copy { max-width: calc(100vw - 340px); } }
+/* ===== END PHASE 23.0.36 ===== */
