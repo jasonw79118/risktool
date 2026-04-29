@@ -175,3 +175,6 @@ th { background: #f7f9fc; color: var(--royal-blue-dark); }
   word-break: normal;
   line-height: 1.25;
 }
+
+.clickable-rollup-row { cursor: pointer; }
+.clickable-rollup-row:hover { filter: brightness(0.98); }

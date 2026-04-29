@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=23.0.41" rel="stylesheet"/>
+<link href="style.css?v=23.0.42" rel="stylesheet"/>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <link rel="icon" href="data:,">
 </head>
@@ -33,7 +33,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.41</h4>
+<h4>Phase 23.0.42</h4>
 <p>Information quick links now wrap with spacing, and visible dashboard/version labels are synchronized for deployment verification.</p>
 </div>
 </aside>
@@ -343,22 +343,13 @@
 <div class="card-header"><h3>Area Rollup Summary</h3><span>Parent area summary with component/product-service rows underneath</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>Component / Product-Service</th><th>Risk Items</th><th>Inherent Score</th><th>Residual Score</th><th>Highest Driver</th><th>Status</th></tr></thead>
+<thead><tr><th>Component / Product-Service</th><th>Risk Items</th><th>Inherent</th><th>Residual</th><th>Delta Risk</th><th>Insurance Impact</th><th>Highest Driver</th><th>Status / Actions</th></tr></thead>
 <tbody id="complexProductSectionsBody"></tbody>
 </table>
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Area Components</h3><span>Component ID opens that component workspace for editing</span></div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Component ID</th><th>Component Name</th><th>Reporting Lines</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
-<tbody id="complexScenarioComponentsBody"></tbody>
-</table>
-</div>
-</div>
-<div class="card">
-<div class="card-header"><h3>Selected Component Workspace</h3><span>Complete the component, then save it to Area Components</span></div>
+<div class="card-header"><h3>Selected Component Workspace</h3><span>Complete the component, then save it to the Area Rollup</span></div>
 <div class="note-box" id="currentComplexEditingIndicator">Currently Editing Component: New / Unsaved Component</div>
 <div class="form-grid">
 <div>
@@ -892,7 +883,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.41. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.42. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -984,7 +975,7 @@
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.41</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.42</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -1305,9 +1296,9 @@
 </div>
 </section>
 </main>
-<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.41</div>
-<script src="beta_scenario_engine.js?v=23.0.41"></script>
-<script src="app_23_0_41.js?v=23.0.41"></script>
+<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.42</div>
+<script src="beta_scenario_engine.js?v=23.0.42"></script>
+<script src="app_23_0_42.js?v=23.0.42"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">

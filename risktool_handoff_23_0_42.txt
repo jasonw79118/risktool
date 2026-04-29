@@ -1,0 +1,8 @@
+RISKTOOL HANDOFF — PHASE 23.0.42
+Date: 04.29.2026
+
+- Removed redundant Area Components table.
+- Area Rollup Summary is the single source of truth for component/product-service rows.
+- Added Delta Risk and Insurance Impact columns.
+- Rollup rows are clickable and include Open action.
+- Version/cache references bumped to 23.0.42.
