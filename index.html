@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=23.0.53" rel="stylesheet"/>
+<link href="style.css?v=23.0.45" rel="stylesheet"/>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <link rel="icon" href="data:,">
 </head>
@@ -33,7 +33,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.53</h4>
+<h4>Phase 23.0.45</h4>
 <p>Information quick links now wrap with spacing, and visible dashboard/version labels are synchronized for deployment verification.</p>
 </div>
 </aside>
@@ -134,15 +134,15 @@
 <input id="singleIdentifiedDate" type="date"/>
 </div>
 <div>
-<label class="help-label" data-help="Likelihood on a 1-10 scale. This contributes to the calculated inherent risk score.">Evidence-derived probability seed (legacy hidden)</label>
+<label class="help-label" data-help="Likelihood on a 1-10 scale. This contributes to the calculated inherent risk score.">Likelihood (1-10)</label>
 <input id="singleLikelihood" max="10" min="1" type="number" value="8"/>
 </div>
 <div>
-<label class="help-label" data-help="Impact on a 1-10 scale. This contributes to the calculated inherent risk score.">Evidence-derived impact seed (legacy hidden)</label>
+<label class="help-label" data-help="Impact on a 1-10 scale. This contributes to the calculated inherent risk score.">Impact (1-10)</label>
 <input id="singleImpact" max="10" min="1" type="number" value="8"/>
 </div>
 <div>
-<label class="help-label" data-help="Calculated from likelihood and impact. This field is read-only.">Evidence-Derived Expected Loss ($)</label>
+<label class="help-label" data-help="Calculated from likelihood and impact. This field is read-only.">Inherent Risk Score</label>
 <input id="singleInherentRiskScore" readonly="" type="number"/>
 </div>
 <div>
@@ -326,7 +326,7 @@
 <select id="complexSectionProduct"></select>
 </div>
 <div>
-<label class="help-label" data-help="Calculated from linked risk items, evidence strength, mitigation status, insurance coverage, and scenario exposure estimates. This follows quantitative risk logic by using measured exposure drivers instead of a manual opinion score.">Average Component Residual Risk ($)</label>
+<label class="help-label" data-help="Calculated from linked risk items, evidence strength, mitigation status, insurance coverage, and scenario exposure estimates. This follows quantitative risk logic by using measured exposure drivers instead of a manual opinion score.">Calculated Area Rollup Score</label>
 <input id="complexSectionWeight" readonly type="text" value="Calculated after add"/>
 </div>
 <div class="full-span">
@@ -401,7 +401,7 @@
 <input id="complexIdentifiedDate" type="date"/>
 </div>
 <div>
-<label class="help-label" data-help="Calculated from this component's weighted risk items. This field is read-only.">Evidence-Derived Expected Loss ($)</label>
+<label class="help-label" data-help="Calculated from this component's weighted risk items. This field is read-only.">Inherent Risk Score</label>
 <input id="complexInherentRiskScore" readonly="" type="number"/>
 </div>
 <div>
@@ -475,11 +475,11 @@
 <select id="riskItemReg"></select>
 </div>
 <div>
-<label class="help-label" data-help="Risk score for this individual item.">Retired Item Score (not used)</label>
+<label class="help-label" data-help="Risk score for this individual item.">Item Risk Score (0-100)</label>
 <input id="riskItemScore" max="100" min="0" type="number" value="65"/>
 </div>
 <div>
-<label class="help-label" data-help="Relative importance of this item inside the selected component.">Retired Weight (not used)</label>
+<label class="help-label" data-help="Relative importance of this item inside the selected component.">Weight (1-5)</label>
 <input id="riskItemWeight" max="5" min="1" type="number" value="3"/>
 </div>
 </div>
@@ -883,7 +883,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.53. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.45. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -975,7 +975,7 @@
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.53</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.45</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -1296,9 +1296,9 @@
 </div>
 </section>
 </main>
-<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.53</div>
-<script src="beta_scenario_engine.js?v=23.0.53"></script>
-<script src="app_23_0_53.js?v=23.0.53"></script>
+<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.45</div>
+<script src="beta_scenario_engine.js?v=23.0.45"></script>
+<script src="app_23_0_45.js?v=23.0.45"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">
