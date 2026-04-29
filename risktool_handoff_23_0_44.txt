@@ -1,0 +1,19 @@
+RISKTOOL HANDOFF — PHASE 23.0.44
+Date: 04.29.2026
+
+Changes delivered:
+1. Area Rollup Score now calculates from component residual risk using exposure-weighted component rollups.
+2. Removed/hid the repetitive area setup snippet after components exist.
+3. Cleaned Area Rollup action controls so Open and Delete display as consistent side-by-side buttons.
+4. Added Overall Saved Scenario Risk Ranking report on Reports screen.
+5. Report ranks saved scenarios highest-to-lowest by residual risk, then inherent risk and expected loss where available.
+6. Report includes management concern and reasoning for why each scenario should receive attention.
+7. Report can download as TXT or save JSON/TXT into the connected workspace folder under /reports when Chrome/Edge workspace mode is connected.
+8. Version/cache references bumped to 23.0.44.
+
+Test focus:
+- Add components and confirm Calculated Area Rollup Score updates.
+- Confirm Area/Product Family setup no longer repeats rollup detail below the setup card.
+- Confirm Open/Delete buttons are side-by-side in Area Rollup Summary.
+- Save several scenarios and generate Reports > Overall Saved Scenario Risk Ranking.
+- In workspace folder mode, confirm report files write into reports/.

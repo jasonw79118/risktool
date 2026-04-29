@@ -178,3 +178,10 @@ th { background: #f7f9fc; color: var(--royal-blue-dark); }
 
 .clickable-rollup-row { cursor: pointer; }
 .clickable-rollup-row:hover { filter: brightness(0.98); }
+
+/* Phase 23.0.44 rollup action cleanup */
+.rollup-actions{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:nowrap;}
+.rollup-actions .btn{white-space:nowrap;margin:0;}
+.clickable-rollup-row:hover{background:rgba(0,0,0,0.025);}
+#complexProductSectionStatus.hidden{display:none;}
+#overallRiskReportCard table td{vertical-align:top;}
