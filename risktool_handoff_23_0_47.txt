@@ -1,0 +1,59 @@
+RISKTOOL HANDOFF — PHASE 23.0.47
+Date: 04.29.2026
+
+OBJECTIVE
+Correct the Complex Scenario rollup and replace the prior score/rating behavior with a rankable, examiner-explainable average component residual risk value. Add Scenario Review reporting across saved Single and Complex scenarios with auto-run Monte Carlo outputs.
+
+KEY CHANGE 1 — CALCULATED AREA ROLLUP SCORE
+- The field now displays average component residual expected loss.
+- It no longer shows a 1/5 score or old residual score text.
+- Formula:
+  Component Residual Risk = Expected Loss - Mitigation Reduction - Insurance Offset
+  Area Rollup Score = Average(Component Residual Risk across saved components)
+- Display format:
+  $X avg component residual risk | N components | Status
+
+KEY CHANGE 2 — COMPONENT RISK LOGIC
+- Risk item expected loss uses probability × dollar impact.
+- If probability/impact ranges exist, those are used.
+- If ranges do not exist, defaults are inferred from available score/severity data.
+- Mitigation reduces expected loss by effectiveness.
+- Insurance offsets residual risk after deductibles/retentions where available.
+
+KEY CHANGE 3 — SCENARIO REVIEW + HOT PRODUCT RANKING REPORT
+- Added report card on Reports view.
+- Reviews saved Single and Complex scenarios.
+- Ranks scenarios by average residual expected loss.
+- Complex scenario ranking uses average residual risk across components.
+- Includes:
+  - Scenario ranking graph
+  - Average residual risk
+  - P95 and P99 Monte Carlo outputs
+  - Time horizon exposure: 1 year, 3 years, 5 years
+  - Top driver
+  - Management concern narrative
+  - View Outcomes button
+  - CSV export button
+
+KEY CHANGE 4 — MONTE CARLO AUTO-RUN
+- Monte Carlo runs automatically when the Scenario Review report is generated.
+- Outcomes are bound to each report row.
+- View Outcomes previews the first 25 rows.
+- CSV exports the scenario outcome table for examiner/auditor support.
+
+VERSION / CACHE
+- Version bumped to 23.0.47.
+- index.html references app_23_0_47.js?v=23.0.47.
+- app.js and app_23_0_47.js both included.
+
+TEST CASES
+1. Open Complex Scenario Builder.
+2. Add Area/Product Family.
+3. Add one or more components with risk items.
+4. Confirm Calculated Area Rollup Score displays average component residual risk in dollars.
+5. Save several Single and Complex scenarios.
+6. Open Reports and click Generate / Refresh Scenario Review.
+7. Confirm ranking table and graph are populated.
+8. Click View Outcomes for a scenario.
+9. Export CSV.
+10. Save report to workspace folder if connected.
