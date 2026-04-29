@@ -1,0 +1,16 @@
+RISKTOOL HANDOFF — PHASE 23.0.51
+
+Scope:
+- Unified visible version to 23.0.51.
+- Changed Complex Area Rollup display to Average Component Residual Risk using dollar exposure.
+- Rebuilt Portfolio Report as all saved Single + Complex scenarios with Monte Carlo count selector.
+- Scenario Review remains separate.
+- Added bank core product/service templates.
+
+Testing:
+1. Confirm 23.0.51 displays after deploy.
+2. Confirm Complex Area Rollup shows dollar average and total exposure, not 1/5.
+3. Save multiple scenarios and confirm Portfolio Report lists all saved scenarios.
+4. Test 100 / 1,000 / 10,000 / 100,000 Monte Carlo selector.
+
+Next phase: add explicit probability min/likely/max and impact min/likely/max inputs per risk item.
