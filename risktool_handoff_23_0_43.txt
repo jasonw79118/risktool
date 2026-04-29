@@ -1,0 +1,17 @@
+RISKTOOL HANDOFF — PHASE 23.0.43
+Date: 04.29.2026
+
+Scope completed:
+- Added Delete action to each Area Rollup component row.
+- Delete confirms before removal.
+- Delete cascades component-owned risk items, evidence, mitigations, insurance, and accepted-risk entries by removing the saved component snapshot.
+- If the deleted component is currently open, workspace tables are cleared and a fresh component ID is assigned.
+- Area Rollup refreshes immediately after delete.
+- Version/cache references bumped to 23.0.43.
+
+Files included flat for GitHub upload:
+- index.html
+- app.js
+- app_23_0_43.js
+- style.css
+- beta_scenario_engine.js
