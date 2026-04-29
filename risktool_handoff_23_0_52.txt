@@ -1,0 +1,12 @@
+RISKTOOL HANDOFF — PHASE 23.0.52
+Date: 04.29.2026
+
+Objective: fix version rollback and retire subjective scoring from active risk workflow.
+
+Changes:
+- Unified version strings to 23.0.52.
+- index.html references app_23_0_52.js with cache busting.
+- Retired Risk Item Score and Weight fields from active use.
+- Reframed rollup as Average Component Residual Risk ($).
+- Added evidence-driven calculation using internal/external hard facts, historical loss amounts, component cost ranges, mitigation/control effect, and insurance offset.
+- Area rollup displays inherent $, residual $, delta $, and insurance impact $ instead of 1/5 or 0-100 subjective values.
