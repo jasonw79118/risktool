@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.52";
+const APP_VERSION = "23.0.45";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -347,7 +347,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.52",
+    phase: "23.0.45",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -5533,7 +5533,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.52 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.45 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5672,16 +5672,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.52 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.45 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.52 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.45 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.52 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.45 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.52 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.45 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -5874,10 +5874,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.52 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.45 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.52 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.45 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6124,9 +6124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.52 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.45 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.52 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.45 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6240,12 +6240,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.52 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.45 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.52 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.45 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6341,12 +6341,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
-/* ===== PHASE 23.0.52 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.45 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6479,13 +6479,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
 
-/* ===== PHASE 23.0.52 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.45 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6519,7 +6519,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.52 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.45 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6611,12 +6611,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
-/* ===== PHASE 23.0.52 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
+/* ===== PHASE 23.0.45 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
   function setVersion32(){
     try { ["appVersion","versionDisplay","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=PHASE; }); } catch(e) {}
     try { document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); } catch(e) {}
@@ -6710,12 +6710,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
-/* ===== PHASE 23.0.52 SAVED SCENARIO DELETE HARDENING ===== */
+/* ===== PHASE 23.0.45 SAVED SCENARIO DELETE HARDENING ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
 
   function rt33SetVersion(){
     try {
@@ -6844,11 +6844,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
-/* ===== PHASE 23.0.52 AREA ROLLUP + ENTERPRISE RISK REPORT ===== */
+/* ===== PHASE 23.0.45 AREA ROLLUP + ENTERPRISE RISK REPORT ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
 
   function rt44Num(value, fallback){ const n = Number(value); return Number.isFinite(n) ? n : (fallback || 0); }
@@ -7074,11 +7074,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try { const appVer = document.getElementById('appVersion'); if (appVer) appVer.textContent = PHASE; } catch(e) {}
   });
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
-/* ===== PHASE 23.0.52 HUBBARD EXPECTED LOSS + PORTFOLIO AREA RANKING ===== */
+/* ===== PHASE 23.0.45 HUBBARD EXPECTED LOSS + PORTFOLIO AREA RANKING ===== */
 (function(){
-  const PHASE = "23.0.52";
+  const PHASE = "23.0.45";
   const impactMap = { low:10000, moderate:50000, medium:50000, high:250000, severe:1000000, critical:1000000 };
   function n(v){ const x = Number(String(v ?? '').replace(/[^0-9.-]/g,'')); return Number.isFinite(x) ? x : 0; }
   function pct(v, fallback){ let x=n(v); if(!x && fallback!==undefined) x=fallback; if(x>1) x=x/100; return Math.max(0, Math.min(1, x)); }
@@ -7099,51 +7099,256 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', function(e){ if(e.target&&e.target.id==='savePortfolioRiskReport45') saveSnapshot(); if(e.target&&(e.target.id==='generateOverallRiskReport'||e.target.id==='generatePortfolioRiskReport')) setTimeout(window.generatePortfolioRiskRanking45,0); });
   function syncVersion(){ document.querySelectorAll('[data-version], .version, #appVersion, #versionLabel, #dashboardVersion').forEach(el=>{ if(el) el.textContent = PHASE; }); } document.addEventListener('DOMContentLoaded', syncVersion); setTimeout(syncVersion,500);
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
-/* ===== PHASE 23.0.52 EVIDENCE-DRIVEN RISK ENGINE + VERSION STABILIZATION ===== */
+/* ===== PHASE 23.0.50 PORTFOLIO REPORT MODE REWRITE ===== */
 (function(){
-  const PHASE="23.0.52";
-  const num=v=>{const n=Number(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0};
-  const pct=v=>{let n=num(v);if(n>1)n=n/100;return Math.max(0,Math.min(1,n));};
-  const money=v=>{try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(num(v));}catch(e){return '$'+Math.round(num(v)).toLocaleString();}};
-  const esc=v=>(typeof escapeHtml==='function')?escapeHtml(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  try{window.RISKTOOL_RUNTIME_VERSION=PHASE;}catch(e){}
-  function evidence(c){let list=[];if(Array.isArray(c?.hardFacts))list=list.concat(c.hardFacts);try{if(Array.isArray(complexHardFacts))list=list.concat(complexHardFacts);}catch(e){}return list.filter(x=>num(x?.lossAmount??x?.amount??x?.costAmount??x?.loss)>0);}
-  function risks(c){return (Array.isArray(c?.items)?c.items:[]).concat(Array.isArray(c?.riskItems)?c.riskItems:[]);}
-  function mitigations(c){return Array.isArray(c?.mitigations)?c.mitigations:[];}
-  function insurance(c){return Array.isArray(c?.insurance)?c.insurance:[];}
-  function statusCredit(s){s=String(s||'').toLowerCase();if(/effective|implemented|complete|closed|validated|active/.test(s))return .35;if(/progress|partial|testing|pending/.test(s))return .18;if(/planned|draft|proposed/.test(s))return .08;return 0;}
-  function calcEvidenceRollup(c){
-    const facts=evidence(c), riskCount=risks(c).length;
-    const amounts=facts.map(f=>num(f.lossAmount??f.amount??f.costAmount??f.loss)).sort((a,b)=>a-b);
-    const likelyEvidence=amounts.length?amounts[Math.floor(amounts.length/2)]:0;
-    const impact=Math.max(1,likelyEvidence||num(c?.hardCostLikely||c?.hardCostMostLikely||c?.costLikely||0)||50000);
-    const probability=amounts.length?Math.min(.85,.10+amounts.length*.08):Math.min(.45,.10+riskCount*.05);
-    const inherent=probability*impact*(1+Math.max(0,num(c?.softCostLikely||0)));
-    const manualControl=pct(c?.control||c?.controlEffectiveness||0);
-    const mitigationControl=mitigations(c).length?mitigations(c).reduce((s,m)=>s+statusCredit(m.status),0)/mitigations(c).length:0;
-    const control=Math.min(.85,Math.max(manualControl,mitigationControl));
-    const residualBeforeInsurance=inherent*(1-control);
-    const coverage=insurance(c).reduce((s,i)=>s+num(i.coverageAmount||i.coverage||i.limit||i.policyLimit),0);
-    const deductible=insurance(c).reduce((s,i)=>s+num(i.deductible||i.retention),0);
-    const insuranceImpact=Math.max(0,Math.min(residualBeforeInsurance,coverage-deductible));
-    const residual=Math.max(0,residualBeforeInsurance-insuranceImpact);
-    const topFact=facts.slice().sort((a,b)=>num(b.lossAmount??b.amount??b.costAmount)-num(a.lossAmount??a.amount??a.costAmount))[0];
-    const topRisk=risks(c)[0];
-    return{inherent,residual,deltaRisk:Math.max(0,inherent-residual),insuranceImpact,riskItemCount:riskCount,evidenceCount:facts.length,highestDriver:topFact?.description||topFact?.notes||topRisk?.name||topRisk?.issue||'No quantified evidence yet',status:residual>=500000?'High':residual>=100000?'Elevated':residual>=25000?'Moderate':'Low'};
+  const PHASE = "23.0.50";
+  const ITERATION_OPTIONS = [100, 1000, 10000, 100000];
+  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
+
+  function num(v, fallback = 0){
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    const n = Number(String(v ?? "").replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(n) ? n : fallback;
   }
-  try{calculateComplexComponentRollup=calcEvidenceRollup;}catch(e){}try{window.calculateComplexComponentRollup=calcEvidenceRollup;}catch(e){}
-  function syncVersion(){document.querySelectorAll('.sidebar-note h4,#appVersion,#workspacePhaseNote,.card-header span').forEach(el=>{const t=String(el.textContent||'');if(el.id==='workspacePhaseNote')el.textContent='Current frontend phase: '+PHASE+'. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.';else if(/23\.0\.|Phase/.test(t))el.textContent=t.replace(/Phase\s+23\.0\.\d+/,'Phase '+PHASE).replace(/23\.0\.\d+/g,PHASE);});const av=document.getElementById('appVersion');if(av)av.textContent=PHASE;}
-  function retireSubjectiveFields(){
-    const labels={riskItemScore:'Retired: subjective item score is not used',riskItemWeight:'Retired: subjective weighting is not used',complexSectionWeight:'Average Component Residual Risk ($)',complexInherentRiskScore:'Evidence-Derived Expected Loss ($)',singleInherentRiskScore:'Evidence-Derived Expected Loss ($)',singleLikelihood:'Legacy probability seed; evidence should support it',singleImpact:'Legacy impact seed; evidence should support it'};
-    Object.entries(labels).forEach(([id,text])=>{const el=document.getElementById(id),lab=el?.parentElement?.querySelector('label');if(lab){lab.textContent=text;lab.dataset.help='RiskTool 23.0.52 retires subjective scoring. Risk should be supported by internal/external historical evidence, quantified cost ranges, controls, mitigations, insurance, and Monte Carlo outcomes.';}});
-    ['riskItemScore','riskItemWeight'].forEach(id=>{const el=document.getElementById(id);if(el){el.disabled=true;el.value='';el.parentElement.style.opacity='0.65';}});
-    if(!document.getElementById('rt52EvidenceNote')){const card=document.getElementById('addRiskItemBtn')?.closest('.card');if(card){const n=document.createElement('div');n.id='rt52EvidenceNote';n.className='note-box';n.innerHTML='<strong>Evidence-driven scoring:</strong> subjective item score and weight are retired. Add internal/external hard facts, historical loss amounts, controls, insurance, and component cost ranges. RiskTool calculates expected loss and average residual risk from those records.';card.insertBefore(n,card.querySelector('.builder-actions'));}}
+  function esc(v){
+    if (typeof escapeHtml === "function") return escapeHtml(v);
+    return String(v ?? "").replace(/[&<>\"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
   }
-  function renderEvidenceRollup(){const tbody=document.getElementById('complexProductSectionsBody');if(!tbody)return;let comps=[];try{comps=Array.isArray(complexScenarioComponents)?complexScenarioComponents:[];}catch(e){}const field=document.getElementById('complexSectionWeight');if(!comps.length){if(field)field.value='Add components with evidence';return;}const rows=comps.map(c=>({c,r:calcEvidenceRollup(c),name:c.scenarioName||c.primaryProduct||c.componentName||c.componentId||'Unnamed Component'}));const avg=rows.reduce((s,row)=>s+row.r.residual,0)/Math.max(1,rows.length);if(field)field.value=money(avg)+' average residual risk | '+rows.length+' component'+(rows.length===1?'':'s');tbody.innerHTML=rows.map(row=>'<tr class="clickable-rollup-row" data-open-complex-component="'+esc(row.c.componentId||'')+'"><td><strong>'+esc(row.name)+'</strong><br><small>'+esc(row.c.componentId||'')+'</small></td><td>'+row.r.riskItemCount+'</td><td>'+money(row.r.inherent)+'</td><td><strong>'+money(row.r.residual)+'</strong></td><td>'+money(row.r.deltaRisk)+'</td><td>'+money(row.r.insuranceImpact)+'</td><td>'+esc(row.r.highestDriver)+'</td><td>'+esc(row.r.status)+'</td><td><div class="rollup-actions"><button class="btn btn-secondary small-btn" type="button" data-open-complex-component-button="'+esc(row.c.componentId||'')+'">Open</button><button class="btn btn-danger small-btn" type="button" data-delete-complex-component="'+esc(row.c.componentId||'')+'">Delete</button></div></td></tr>').join('');tbody.querySelectorAll('[data-open-complex-component-button]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();if(typeof openComplexScenarioComponent==='function')openComplexScenarioComponent(btn.dataset.openComplexComponentButton);}));}
-  const oldRender=(typeof renderComplexProductSections==='function')?renderComplexProductSections:null;if(oldRender){const patched=function(){const out=oldRender.apply(this,arguments);setTimeout(renderEvidenceRollup,0);return out;};try{renderComplexProductSections=patched;window.renderComplexProductSections=patched;}catch(e){window.renderComplexProductSections=patched;}}
-  function init(){syncVersion();retireSubjectiveFields();renderEvidenceRollup();}
-  document.addEventListener('DOMContentLoaded',init);setTimeout(init,400);setTimeout(init,1200);
+  function fmt(v){
+    try { return new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }).format(num(v)); }
+    catch(e){ return "$" + Math.round(num(v)).toLocaleString(); }
+  }
+  function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0; }
+  function percentile(sorted, p){
+    if (!sorted.length) return 0;
+    const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p/100) * sorted.length) - 1));
+    return sorted[idx];
+  }
+  function triangular(min, mode, max){
+    min = Math.max(0, num(min)); mode = Math.max(min, num(mode, min)); max = Math.max(mode, num(max, mode));
+    if (max <= min) return min;
+    const u = Math.random();
+    const c = (mode - min) / (max - min || 1);
+    return u < c ? min + Math.sqrt(u * (max-min) * (mode-min)) : max - Math.sqrt((1-u) * (max-min) * (max-mode));
+  }
+  function scenarioLabel(s){ return s?.name || s?.scenarioName || s?.primaryProduct || s?.id || "Unnamed Scenario"; }
+  function scenarioArea(s){
+    const fromSection = Array.isArray(s?.productSections) && s.productSections[0] ? (s.productSections[0].productServiceArea || s.productSections[0].productName || s.productSections[0].areaName) : "";
+    return fromSection || s?.primaryProduct || s?.productGroup || s?.riskDomain || "Unmapped Area";
+  }
+  function statusFromRisk(v){ return v >= 500000 ? "High" : v >= 100000 ? "Elevated" : v >= 25000 ? "Moderate" : "Lower"; }
+  function componentLabel(c, idx){ return c?.scenarioName || c?.componentName || c?.name || c?.primaryProduct || `Component ${idx+1}`; }
+  function componentInputs(c, parent){
+    const hardLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
+    const hardMin = num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
+    const hardMax = num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
+    const softLikely = num(c?.softCostLikely, num(parent?.softCostLikely, 0.25));
+    const softMin = num(c?.softCostMin, num(parent?.softCostMin, 0.05));
+    const softMax = num(c?.softCostMax, num(parent?.softCostMax, Math.max(softLikely, 0.75)));
+    const control = Math.max(0, Math.min(100, num(c?.control, num(parent?.control, 0)))) / 100;
+    const mitigationCost = num(c?.mitigationCost, 0);
+    const rollup = (typeof window.calculateComplexComponentRollup === "function" && parent?.mode === "complex") ? window.calculateComplexComponentRollup(c) : null;
+    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup };
+  }
+  function getScenarioComponents(s){
+    if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) return s.components;
+    return [s || {}];
+  }
+  function runScenarioMonteCarlo50(s, iterations){
+    iterations = ITERATION_OPTIONS.includes(Number(iterations)) ? Number(iterations) : 1000;
+    const comps = getScenarioComponents(s);
+    const compInputs = comps.map(c => componentInputs(c, s));
+    const outcomes = [];
+    for (let i = 0; i < iterations; i++) {
+      let inherent = 0, residual = 0;
+      compInputs.forEach(input => {
+        const hard = triangular(input.hardMin, input.hardLikely, input.hardMax);
+        const softMultiplier = triangular(input.softMin, input.softLikely, input.softMax);
+        const gross = hard + (hard * softMultiplier);
+        const afterControl = Math.max(0, gross * (1 - input.control));
+        inherent += gross;
+        residual += Math.max(0, afterControl + input.mitigationCost);
+      });
+      outcomes.push({ scenarioNumber: i + 1, inherentLoss: Math.round(inherent), residualLoss: Math.round(residual) });
+    }
+    const residualSorted = outcomes.map(x => x.residualLoss).sort((a,b)=>a-b);
+    const inherentSorted = outcomes.map(x => x.inherentLoss).sort((a,b)=>a-b);
+    const componentRisks = compInputs.map(input => {
+      if (input.rollup && num(input.rollup.residual) > 0) return num(input.rollup.residual);
+      const hard = input.hardLikely || avg([input.hardMin,input.hardMax]);
+      const gross = hard + (hard * input.softLikely);
+      return Math.max(0, gross * (1 - input.control) + input.mitigationCost);
+    });
+    const totalExposure = avg(residualSorted);
+    return {
+      iterations,
+      outcomes,
+      avgComponentRisk: Math.round(avg(componentRisks)),
+      totalExposure: Math.round(totalExposure),
+      expectedLoss: Math.round(avg(inherentSorted)),
+      residualExpectedLoss: Math.round(totalExposure),
+      p50: Math.round(percentile(residualSorted, 50)),
+      p90: Math.round(percentile(residualSorted, 90)),
+      p95: Math.round(percentile(residualSorted, 95)),
+      p99: Math.round(percentile(residualSorted, 99)),
+      volatility: Math.round(percentile(residualSorted, 95) - percentile(residualSorted, 50)),
+      riskReduction: Math.max(0, Math.round(avg(inherentSorted) - totalExposure)),
+      componentCount: comps.length,
+      componentRisks
+    };
+  }
+  function topDriverForScenario(s, metrics){
+    if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) {
+      let rows = s.components.map((c, idx) => ({ name: componentLabel(c, idx), metric: componentInputs(c, s).rollup }));
+      rows = rows.sort((a,b) => num(b.metric?.residual) - num(a.metric?.residual));
+      if (rows[0]?.metric?.highestDriver) return `${rows[0].name}: ${rows[0].metric.highestDriver}`;
+      return rows[0]?.name || "Largest component exposure";
+    }
+    return s?.riskDomain || s?.primaryRegulation || s?.primaryProduct || "Scenario exposure assumptions";
+  }
+  function recommendationForScenario(s, m){
+    const name = scenarioLabel(s), area = scenarioArea(s), driver = topDriverForScenario(s, m);
+    const status = statusFromRisk(m.avgComponentRisk);
+    let action = "maintain existing controls and continue scheduled monitoring";
+    if (status === "High") action = "prioritize immediate management review, validate control design, and consider stronger mitigation or risk transfer";
+    else if (status === "Elevated") action = "assign a management owner, validate assumptions, strengthen controls, and track remediation timing";
+    else if (status === "Moderate") action = "monitor through normal governance and test key controls for continued effectiveness";
+    return `${name} in ${area} ranks ${status.toLowerCase()} based on average component residual risk of ${fmt(m.avgComponentRisk)} and total modeled exposure of ${fmt(m.totalExposure)}. The main concern is ${driver}. Monte Carlo results show P95 residual exposure of ${fmt(m.p95)} and P99 exposure of ${fmt(m.p99)}, so management should ${action}.`;
+  }
+  function getPortfolioRows50(){
+    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
+    const iterations = Number(document.getElementById("portfolioMonteCarloIterations50")?.value || 1000);
+    return saved.map(s => {
+      const metrics = runScenarioMonteCarlo50(s, iterations);
+      return { scenario: s, metrics, driver: topDriverForScenario(s, metrics), recommendation: recommendationForScenario(s, metrics) };
+    }).sort((a,b) => (b.metrics.avgComponentRisk - a.metrics.avgComponentRisk) || (b.metrics.totalExposure - a.metrics.totalExposure));
+  }
+  function drawBarChart50(canvasId, rows, metricName, label){
+    const canvas = document.getElementById(canvasId); if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d"); const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h); ctx.font = "12px Inter, Arial"; ctx.fillStyle = "#334155";
+    if (!rows.length) { ctx.fillText("No saved scenarios available.", 20, 40); return; }
+    const max = Math.max(...rows.map(r => num(r.metrics[metricName])), 1);
+    const pad = 42, barH = Math.max(16, Math.min(34, (h - pad - 20) / rows.length - 8));
+    rows.forEach((r, i) => {
+      const y = pad + i * (barH + 8);
+      const val = num(r.metrics[metricName]);
+      const barW = Math.max(2, (w - 260) * val / max);
+      ctx.fillStyle = "#e2e8f0"; ctx.fillRect(210, y, w - 250, barH);
+      ctx.fillStyle = "#64748b"; ctx.fillRect(210, y, barW, barH);
+      ctx.fillStyle = "#0f172a"; ctx.fillText(String(i+1)+". "+scenarioLabel(r.scenario).slice(0,24), 10, y + barH - 4);
+      ctx.fillText(fmt(val), 220 + barW, y + barH - 4);
+    });
+    ctx.fillStyle = "#0f172a"; ctx.font = "14px Inter, Arial"; ctx.fillText(label, 10, 20);
+  }
+  function drawDistribution50(canvasId, outcomes){
+    const canvas = document.getElementById(canvasId); if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h); ctx.font = "12px Inter, Arial"; ctx.fillStyle = "#334155";
+    if (!outcomes || !outcomes.length) { ctx.fillText("Select a scenario to preview Monte Carlo distribution.", 20, 40); return; }
+    const vals = outcomes.map(o => o.residualLoss); const min = Math.min(...vals), max = Math.max(...vals); const bins = 20; const counts = Array(bins).fill(0);
+    vals.forEach(v => { const idx = Math.min(bins-1, Math.max(0, Math.floor(((v-min)/(max-min || 1))*bins))); counts[idx]++; });
+    const maxCount = Math.max(...counts, 1), pad = 34, bw = (w - pad*2) / bins;
+    counts.forEach((c,i) => { const bh = (h - 70) * c / maxCount; ctx.fillStyle = "#64748b"; ctx.fillRect(pad + i*bw, h - pad - bh, Math.max(1,bw-2), bh); });
+    ctx.fillStyle = "#0f172a"; ctx.fillText(`Distribution: ${fmt(min)} to ${fmt(max)}`, 10, 20);
+  }
+  function renderPortfolioReport50(){
+    const host = document.getElementById("portfolioReportBody50"); if (!host) return;
+    const rows = getPortfolioRows50();
+    if (!rows.length) {
+      host.innerHTML = '<div class="note-box">No saved scenarios found. Save Single and Complex scenarios first, then run the Portfolio Report.</div>';
+      drawBarChart50("portfolioAvgRiskChart50", [], "avgComponentRisk", "Average Component Risk");
+      drawBarChart50("portfolioTotalRiskChart50", [], "totalExposure", "Total Exposure");
+      return;
+    }
+    host.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Scenario</th><th>Type</th><th>Area / Product Family</th><th>Avg Component Risk</th><th>Total Exposure</th><th>P95</th><th>P99</th><th>Components</th><th>Top Driver</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td><strong>${esc(scenarioLabel(r.scenario))}</strong><br><small>${esc(r.scenario.id || "")}</small></td><td>${esc(r.scenario.mode || "")}</td><td>${esc(scenarioArea(r.scenario))}</td><td><strong>${fmt(r.metrics.avgComponentRisk)}</strong></td><td>${fmt(r.metrics.totalExposure)}</td><td>${fmt(r.metrics.p95)}</td><td>${fmt(r.metrics.p99)}</td><td>${r.metrics.componentCount}</td><td>${esc(r.driver)}</td><td>${statusFromRisk(r.metrics.avgComponentRisk)}</td><td><button class="btn btn-secondary small-btn" data-pr-scenario="${esc(r.scenario.id || "")}">Review</button><button class="btn btn-secondary small-btn" data-outcomes50="${esc(r.scenario.id || "")}">View Outcomes</button><button class="btn btn-secondary small-btn" data-export50="${esc(r.scenario.id || "")}">Export CSV</button></td></tr><tr><td></td><td colspan="11"><strong>Management recommendation:</strong> ${esc(r.recommendation)}</td></tr>`).join("")}</tbody></table></div>`;
+    drawBarChart50("portfolioAvgRiskChart50", rows, "avgComponentRisk", "Portfolio Ranking by Average Component Risk");
+    drawBarChart50("portfolioTotalRiskChart50", rows, "totalExposure", "Portfolio Total Exposure by Scenario");
+    host.querySelectorAll("[data-pr-scenario]").forEach(btn => btn.addEventListener("click", () => renderScenarioReview50(btn.dataset.prScenario)));
+    host.querySelectorAll("[data-outcomes50]").forEach(btn => btn.addEventListener("click", () => previewOutcomes50(btn.dataset.outcomes50)));
+    host.querySelectorAll("[data-export50]").forEach(btn => btn.addEventListener("click", () => exportOutcomes50(btn.dataset.export50)));
+  }
+  function rowForId(id){ return getPortfolioRows50().find(r => String(r.scenario.id || "") === String(id)); }
+  function previewOutcomes50(id){
+    const row = rowForId(id); if (!row) return;
+    const box = document.getElementById("portfolioOutcomesPreview50"); if (!box) return;
+    const sample = row.metrics.outcomes.slice(0, 100);
+    box.innerHTML = `<h3>Monte Carlo Outcomes — ${esc(scenarioLabel(row.scenario))}</h3><p class="muted">Showing first ${sample.length} of ${row.metrics.iterations.toLocaleString()} random scenarios. Full CSV is available from Export CSV.</p><div class="table-wrap"><table><thead><tr><th>#</th><th>Inherent Loss</th><th>Residual Loss</th></tr></thead><tbody>${sample.map(o=>`<tr><td>${o.scenarioNumber}</td><td>${fmt(o.inherentLoss)}</td><td>${fmt(o.residualLoss)}</td></tr>`).join("")}</tbody></table></div>`;
+    drawDistribution50("portfolioDistributionChart50", row.metrics.outcomes);
+  }
+  function csvEscape(v){ return `"${String(v ?? "").replace(/"/g,'""')}"`; }
+  function exportOutcomes50(id){
+    const row = rowForId(id); if (!row) return;
+    const lines = [["scenario_id","scenario_name","iteration","inherent_loss","residual_loss"].join(",")].concat(row.metrics.outcomes.map(o => [row.scenario.id, scenarioLabel(row.scenario), o.scenarioNumber, o.inherentLoss, o.residualLoss].map(csvEscape).join(",")));
+    const blob = new Blob([lines.join("\n")], {type:"text/csv"}); const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `risktool-outcomes-${(row.scenario.id || "scenario")}-${Date.now()}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+  function renderScenarioReview50(id){
+    const select = document.getElementById("scenarioReviewSelect50");
+    if (select && id) select.value = id;
+    const row = id ? rowForId(id) : rowForId(select?.value);
+    const host = document.getElementById("scenarioReviewBody50"); if (!host) return;
+    if (!row) { host.innerHTML = '<div class="note-box">Select a scenario to review.</div>'; return; }
+    const s = row.scenario, m = row.metrics;
+    host.innerHTML = `<div class="card"><div class="card-header"><h3>${esc(scenarioLabel(s))}</h3><span>${esc(s.mode || "Scenario")}</span></div><div class="card-body"><p>${esc(row.recommendation)}</p><div class="table-wrap"><table><tbody><tr><th>Area / Product Family</th><td>${esc(scenarioArea(s))}</td></tr><tr><th>Average Component Risk</th><td>${fmt(m.avgComponentRisk)}</td></tr><tr><th>Total Exposure</th><td>${fmt(m.totalExposure)}</td></tr><tr><th>Expected Loss</th><td>${fmt(m.expectedLoss)}</td></tr><tr><th>P50 / P90 / P95 / P99</th><td>${fmt(m.p50)} / ${fmt(m.p90)} / ${fmt(m.p95)} / ${fmt(m.p99)}</td></tr><tr><th>Volatility</th><td>${fmt(m.volatility)}</td></tr><tr><th>Top Driver</th><td>${esc(row.driver)}</td></tr><tr><th>Management Status</th><td>${statusFromRisk(m.avgComponentRisk)}</td></tr></tbody></table></div><div class="builder-actions"><button class="btn btn-secondary" id="scenarioReviewOutcomes50">View Outcomes</button><button class="btn btn-secondary" id="scenarioReviewExport50">Export Outcomes CSV</button></div></div></div>`;
+    document.getElementById("scenarioReviewOutcomes50")?.addEventListener("click", () => previewOutcomes50(s.id));
+    document.getElementById("scenarioReviewExport50")?.addEventListener("click", () => exportOutcomes50(s.id));
+    try { if (typeof activateView === "function") activateView("scenario-review"); } catch(e) {}
+  }
+  function savePortfolioSnapshot50(){
+    const rows = getPortfolioRows50();
+    const body = `RiskTool Portfolio Report ${PHASE}\nGenerated: ${new Date().toLocaleString()}\nMonte Carlo Iterations: ${document.getElementById("portfolioMonteCarloIterations50")?.value || 1000}\n\n` + rows.map((r,i)=>`${i+1}. ${scenarioLabel(r.scenario)} | Area: ${scenarioArea(r.scenario)} | Avg Component Risk: ${fmt(r.metrics.avgComponentRisk)} | Total Exposure: ${fmt(r.metrics.totalExposure)} | P95: ${fmt(r.metrics.p95)} | Recommendation: ${r.recommendation}`).join("\n\n");
+    const blob = new Blob([body], {type:"text/plain"}); const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `risktool-portfolio-report-${Date.now()}.txt`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function installViews50(){
+    const nav = document.querySelector(".nav");
+    if (nav && !document.querySelector('[data-view="portfolio-report"]')) {
+      const savedBtn = nav.querySelector('[data-view="saved"]');
+      const portfolioBtn = document.createElement("button"); portfolioBtn.className = "nav-item"; portfolioBtn.dataset.view = "portfolio-report"; portfolioBtn.textContent = "Portfolio Report";
+      const reportBtn = nav.querySelector('[data-view="reports"]'); if (reportBtn) reportBtn.textContent = "Scenario Review";
+      if (reportBtn) nav.insertBefore(portfolioBtn, reportBtn); else if (savedBtn?.nextSibling) nav.insertBefore(portfolioBtn, savedBtn.nextSibling); else nav.appendChild(portfolioBtn);
+      portfolioBtn.addEventListener("click", () => { try { activateView("portfolio-report"); } catch(e){} renderPortfolioReport50(); });
+    }
+    const main = document.querySelector("main.main") || document.querySelector("main") || document.body;
+    if (!document.getElementById("view-portfolio-report")) {
+      const section = document.createElement("section"); section.className = "view"; section.id = "view-portfolio-report";
+      section.innerHTML = `<div class="section-header"><h2>Portfolio Report</h2><p>Runs every saved Single and Complex scenario, ranks by average component risk, and shows total exposure for management review.</p></div><div class="card"><div class="card-header"><h3>Portfolio Controls</h3><span>Monte Carlo</span></div><div class="builder-actions"><label>Random scenarios per saved scenario <select id="portfolioMonteCarloIterations50"><option value="100">100</option><option value="1000" selected>1,000</option><option value="10000">10,000</option><option value="100000">100,000</option></select></label><button class="btn btn-primary" id="runPortfolioReport50" type="button">Run Portfolio Report</button><button class="btn btn-secondary" id="savePortfolioSnapshot50" type="button">Save Report Snapshot</button></div><div class="note-box">Ranking uses average component residual risk so large and small scenarios can be compared consistently. Total exposure is shown beside it for dollar materiality.</div></div><div class="grid two"><div class="card"><div class="card-header"><h3>Average Risk Ranking</h3><span>Rank Metric</span></div><canvas id="portfolioAvgRiskChart50" width="760" height="300"></canvas></div><div class="card"><div class="card-header"><h3>Total Exposure</h3><span>Dollar Exposure</span></div><canvas id="portfolioTotalRiskChart50" width="760" height="300"></canvas></div></div><div class="card"><div class="card-header"><h3>Portfolio Ranking & Recommendations</h3><span>All saved scenarios</span></div><div id="portfolioReportBody50"><div class="note-box">Run the portfolio report to evaluate all saved scenarios.</div></div></div><div class="card"><div class="card-header"><h3>Selected Scenario Outcomes</h3><span>Auditor / Examiner Support</span></div><canvas id="portfolioDistributionChart50" width="760" height="260"></canvas><div id="portfolioOutcomesPreview50" class="note-box">Select View Outcomes to preview Monte Carlo rows for a scenario.</div></div>`;
+      main.appendChild(section);
+      section.querySelector("#runPortfolioReport50")?.addEventListener("click", renderPortfolioReport50);
+      section.querySelector("#portfolioMonteCarloIterations50")?.addEventListener("change", renderPortfolioReport50);
+      section.querySelector("#savePortfolioSnapshot50")?.addEventListener("click", savePortfolioSnapshot50);
+    }
+    if (!document.getElementById("view-scenario-review")) {
+      const section = document.createElement("section"); section.className = "view"; section.id = "view-scenario-review";
+      section.innerHTML = `<div class="section-header"><h2>Scenario Review</h2><p>Individual scenario review remains available separately from the portfolio-wide report.</p></div><div class="card"><div class="card-header"><h3>Select Scenario</h3><span>Single review</span></div><div class="builder-actions"><select id="scenarioReviewSelect50"></select><button class="btn btn-primary" id="runScenarioReview50" type="button">Review Scenario</button></div></div><div id="scenarioReviewBody50"><div class="note-box">Select one saved scenario to review.</div></div>`;
+      main.appendChild(section);
+      section.querySelector("#runScenarioReview50")?.addEventListener("click", () => renderScenarioReview50());
+    }
+    const reportBtn = document.querySelector('[data-view="reports"]');
+    if (reportBtn && !reportBtn.dataset.rt50Alias) {
+      reportBtn.dataset.rt50Alias = "true";
+      reportBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); populateScenarioReview50(); try { activateView("scenario-review"); } catch(e){} }, true);
+    }
+    populateScenarioReview50();
+  }
+  function populateScenarioReview50(){
+    const select = document.getElementById("scenarioReviewSelect50"); if (!select) return;
+    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
+    const current = select.value;
+    select.innerHTML = saved.length ? saved.map(s=>`<option value="${esc(s.id || "")}">${esc(scenarioLabel(s))} (${esc(s.mode || "")})</option>`).join("") : '<option value="">No saved scenarios</option>';
+    if (saved.some(s => String(s.id) === String(current))) select.value = current;
+  }
+  function syncVersion50(){
+    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
+    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    installViews50(); syncVersion50(); setTimeout(()=>{ installViews50(); syncVersion50(); }, 500);
+  });
+  window.renderPortfolioReport50 = renderPortfolioReport50;
+  window.renderScenarioReview50 = renderScenarioReview50;
 })();
-/* ===== END PHASE 23.0.52 ===== */
+/* ===== END PHASE 23.0.50 ===== */
