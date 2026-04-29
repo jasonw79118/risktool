@@ -1,0 +1,31 @@
+RISKTOOL HANDOFF — PHASE 23.0.46
+Date: 04.29.2026
+
+Objective:
+Move reporting and rollups from subjective/scored output toward a scenario-level, range-based Monte Carlo review engine.
+
+Implemented:
+1. Added scenario-level Monte Carlo engine for saved Single and Complex scenarios.
+2. Uses Option A: probability and impact ranges. Current UI maps existing likelihood and hard/soft cost range fields into triangular probability and impact distributions; future phase should expose explicit probability min / most likely / max fields.
+3. Complex scenarios aggregate component simulations by iteration, so scenario risk is the sum of component risk rather than a separate arbitrary area rollup.
+4. Report page now includes Scenario Review & Hot Product Ranking:
+   - ranks saved Single and Complex scenarios by residual expected loss ($)
+   - groups scenario results into Area / Product Family hot spots
+   - includes ranking charts for scenario risk and hot products
+   - includes management concern language, top driver, P95, P99, and 5-year exposure
+5. Outcome tables are available per scenario from the review table through View Outcomes and CSV.
+6. Save Review to Workspace writes TXT and JSON to the reports folder when workspace folder access is connected; otherwise it downloads the report.
+7. Version bumped to 23.0.46 and cache reference updated to app_23_0_46.js.
+
+Testing Focus:
+- Save at least one Single scenario and one Complex scenario.
+- Open Reports and click Generate / Refresh Scenario Review.
+- Confirm ranking is by residual expected loss dollars, not just residual score.
+- Confirm Hot Products table groups areas/product families and shows highest-dollar concentrations.
+- Click View Outcomes for a saved scenario and download CSV for examiner/auditor verification.
+- Test workspace save from Reports page with Chrome/Edge folder access connected.
+
+Known Next Phase Ideas:
+23.0.47 — Add explicit Probability Min / Most Likely / Max fields to Single and Complex component workspaces.
+23.0.48 — Add printable/PDF board packet with scenario ranking graph and outcome table appendix.
+23.0.49 — Add deterministic seeded Monte Carlo runs for exact reproducibility.
