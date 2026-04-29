@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=23.0.38" rel="stylesheet"/>
+<link href="style.css?v=23.0.39" rel="stylesheet"/>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <link rel="icon" href="data:,">
 </head>
@@ -33,7 +33,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.38</h4>
+<h4>Phase 23.0.39</h4>
 <p>Information quick links now wrap with spacing, and visible dashboard/version labels are synchronized for deployment verification.</p>
 </div>
 </aside>
@@ -94,15 +94,15 @@
 </div>
 <div class="form-grid">
 <div>
-<label class="help-label" data-help="Name used to save, reopen, and print this scenario.">Scenario Name</label>
+<label class="help-label" data-help="Name used to save, reopen, and print this scenario.">Component Name</label>
 <input id="singleScenarioName" placeholder="e.g. Payment Services Disclosure Review" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Scenario ID</label>
+<label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Area Review ID</label>
 <input id="singleScenarioId" placeholder="Generated on save" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall reporting line for this scenario. Values come from the Reporting Lines list in Category Admin.">Reporting Lines</label>
+<label class="help-label" data-help="Reporting line for this component within the area review. Values come from the Reporting Lines list in Category Admin.">Reporting Lines</label>
 <select id="singleProductGroup"></select>
 </div>
 <div>
@@ -110,11 +110,11 @@
 <select id="singleRiskDomain"></select>
 </div>
 <div>
-<label class="help-label" data-help="Current scenario lifecycle status.">Scenario Status</label>
+<label class="help-label" data-help="Current component lifecycle status.">Scenario Status</label>
 <select id="singleScenarioStatus"></select>
 </div>
 <div>
-<label class="help-label" data-help="How the scenario was identified.">Scenario Source</label>
+<label class="help-label" data-help="How this component review was identified.">Scenario Source</label>
 <select id="singleScenarioSource"></select>
 </div>
 <div>
@@ -126,11 +126,11 @@
 <select id="singlePrimaryRegulation"></select>
 </div>
 <div>
-<label class="help-label" data-help="Scenario owner or primary responsible party.">Scenario Owner</label>
+<label class="help-label" data-help="Scenario owner or primary responsible party.">Component Owner</label>
 <input id="singleScenarioOwner" placeholder="e.g. Compliance" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Date the scenario was first identified.">Identified Date</label>
+<label class="help-label" data-help="Date this component was first identified.">Identified Date</label>
 <input id="singleIdentifiedDate" type="date"/>
 </div>
 <div>
@@ -150,15 +150,15 @@
 <input id="singleControlEffectiveness" max="100" min="0" type="number" value="30"/>
 </div>
 <div>
-<label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
+<label class="help-label" data-help="Minimum direct hard-cost loss estimate for this component.">Hard Cost Min ($)</label>
 <input data-currency="usd" id="singleHardCostMin" inputmode="decimal" min="0" step="1000" type="text" value="50000"/>
 </div>
 <div>
-<label class="help-label" data-help="Most likely direct hard-cost loss estimate for the scenario.">Hard Cost Most Likely ($)</label>
+<label class="help-label" data-help="Most likely direct hard-cost loss estimate for this component.">Hard Cost Most Likely ($)</label>
 <input data-currency="usd" id="singleHardCostLikely" inputmode="decimal" min="0" step="1000" type="text" value="150000"/>
 </div>
 <div>
-<label class="help-label" data-help="Maximum direct hard-cost loss estimate for the scenario.">Hard Cost Max ($)</label>
+<label class="help-label" data-help="Maximum direct hard-cost loss estimate for this component.">Hard Cost Max ($)</label>
 <input data-currency="usd" id="singleHardCostMax" inputmode="decimal" min="0" step="1000" type="text" value="400000"/>
 </div>
 <div>
@@ -188,7 +188,7 @@
 </select>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
+<label class="help-label" data-help="Brief component description, issue summary, or narrative.">Scenario Description</label>
 <textarea id="singleScenarioDescription" placeholder="Describe the issue, trigger, scope, and why it matters." rows="4"></textarea>
 </div>
 </div>
@@ -315,102 +315,102 @@
 <section class="view" id="view-complex">
 <div class="section-header">
 <h2>Complex Scenario Builder</h2>
-<p>Use this for a broader project, business area, or product family with multiple risk items.</p>
+<p>Use this to review an entire area, such as Loans, with multiple components like statements, disclosures, rates, transactions, escrow, or collections. Each component carries its own evidence, mitigation, insurance, and score, then rolls up to the area score.</p>
 </div>
 
 <div class="card">
-<div class="card-header"><h3>Product Section Entry</h3><span>Define the product / service / area first</span><button class="btn btn-secondary" id="loadComplexTestBtn" type="button">Load Test Scenario</button></div>
+<div class="card-header"><h3>Area / Product Family Setup</h3><span>Define the broader review area first</span><button class="btn btn-secondary" id="loadComplexTestBtn" type="button">Load Test Scenario</button></div>
 <div class="form-grid">
 <div>
-<label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Product/Service/Area</label>
+<label class="help-label" data-help="Select the Product, Service, or Area from the Product Groups list maintained in Category Admin.">Area / Product Family</label>
 <select id="complexSectionProduct"></select>
 </div>
 <div>
-<label class="help-label" data-help="Calculated from linked risk items, evidence strength, mitigation status, insurance coverage, and scenario exposure estimates. This follows quantitative risk logic by using measured exposure drivers instead of a manual opinion score.">Calculated Product Section Weight</label>
+<label class="help-label" data-help="Calculated from linked risk items, evidence strength, mitigation status, insurance coverage, and scenario exposure estimates. This follows quantitative risk logic by using measured exposure drivers instead of a manual opinion score.">Calculated Area Rollup Weight</label>
 <input id="complexSectionWeight" readonly type="text" value="Calculated after add"/>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Product Section Notes</label>
-<input id="complexSectionNotes" placeholder="Describe this product / service / area and why it is in scope." type="text"/>
+<label class="help-label" data-help="Optional note describing why this Product, Service, or Area is part of the complex scenario.">Area Notes</label>
+<input id="complexSectionNotes" placeholder="Describe the broader area, such as Loans, Deposits, Payments, or Mortgage Servicing." type="text"/>
 </div>
 </div>
 <div class="builder-actions">
-<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Product Section</button>
-<div class="note-box" id="complexProductSectionStatus">Define one or more Product Sections before assigning risk items.</div>
+<button class="btn btn-secondary" id="addComplexProductSectionBtn" type="button">Add Area</button>
+<div class="note-box" id="complexProductSectionStatus">Define the Area / Product Family before assigning component risk items.</div>
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Product Section Table</h3><span>Product / Service / Area list for this complex scenario</span></div>
+<div class="card-header"><h3>Area Rollup Summary</h3><span>Area-level rollup across linked components and risk items</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>Product/Service/Area</th><th>Calculated Weight</th><th>Calculation Basis</th><th>Notes</th><th>Actions</th></tr></thead>
+<thead><tr><th>Area / Product Family</th><th>Calculated Rollup Weight</th><th>Calculation Basis</th><th>Notes</th><th>Actions</th></tr></thead>
 <tbody id="complexProductSectionsBody"></tbody>
 </table>
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Overall Scenario Components</h3><span>Scenario ID opens that component for editing</span></div>
+<div class="card-header"><h3>Area Components</h3><span>Component ID opens that component workspace for editing</span></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>Scenario ID</th><th>Scenario Name</th><th>Reporting Lines</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
+<thead><tr><th>Component ID</th><th>Component Name</th><th>Reporting Lines</th><th>Risk Domain</th><th>Inherent Risk</th><th>Risk Items</th><th>Status</th></tr></thead>
 <tbody id="complexScenarioComponentsBody"></tbody>
 </table>
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Scenario Details for Selected Scenario</h3><span>Complete the scenario, then add it to Overall Scenario Components</span></div>
-<div class="note-box" id="currentComplexEditingIndicator">Currently Editing Scenario: New / Unsaved Scenario</div>
+<div class="card-header"><h3>Selected Component Workspace</h3><span>Complete the component, then save it to Area Components</span></div>
+<div class="note-box" id="currentComplexEditingIndicator">Currently Editing Component: New / Unsaved Component</div>
 <div class="form-grid">
 <div>
-<label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Scenario Name</label>
-<input id="complexScenarioName" placeholder="e.g. Deposits Risk Review" type="text"/>
+<label class="help-label" data-help="Name used to save, reopen, and print this complex scenario.">Component Name</label>
+<input id="complexScenarioName" placeholder="e.g. Loan Statements, Loan Disclosures, Loan Rates" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Scenario ID</label>
+<label class="help-label" data-help="Auto-generated on first save in the format YYYYMMDD-00001.">Area Review ID</label>
 <input id="complexScenarioId" placeholder="Generated on save" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Shared umbrella ID for all scenarios added inside this complex build.">Complex Group ID</label>
+<label class="help-label" data-help="Shared umbrella ID for all scenarios added inside this complex build.">Area Group ID</label>
 <input id="complexGroupId" placeholder="Generated automatically" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Auto-filled component scenario ID for the item currently being edited in this complex builder.">Complex Component ID</label>
+<label class="help-label" data-help="Auto-filled component scenario ID for the item currently being edited in this complex builder.">Component ID</label>
 <input id="complexComponentId" placeholder="Generated automatically" readonly="" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Overall reporting line for this scenario. Values come from the Reporting Lines list in Category Admin.">Reporting Lines</label>
+<label class="help-label" data-help="Reporting line for this component within the area review. Values come from the Reporting Lines list in Category Admin.">Reporting Lines</label>
 <select id="complexProductGroup"></select>
 </div>
 <div>
-<label class="help-label" data-help="Primary risk domain for the larger scenario.">Risk Domain</label>
+<label class="help-label" data-help="Primary risk domain for this component.">Risk Domain</label>
 <select id="complexRiskDomain"></select>
 </div>
 <div>
-<label class="help-label" data-help="Current scenario lifecycle status.">Scenario Status</label>
+<label class="help-label" data-help="Current component lifecycle status.">Scenario Status</label>
 <select id="complexScenarioStatus"></select>
 </div>
 <div>
-<label class="help-label" data-help="How the scenario was identified.">Scenario Source</label>
+<label class="help-label" data-help="How this component review was identified.">Scenario Source</label>
 <select id="complexScenarioSource"></select>
 </div>
 <div>
-<label class="help-label" data-help="Main product or service for the full scenario.">Primary Product / Service</label>
+<label class="help-label" data-help="Main area/product family for the full review.">Primary Product / Service</label>
 <select id="complexPrimaryProduct"></select>
 </div>
 <div>
-<label class="help-label" data-help="Main regulation or standard for the full scenario.">Primary Regulation</label>
+<label class="help-label" data-help="Main regulation or standard for this component.">Primary Regulation</label>
 <select id="complexPrimaryRegulation"></select>
 </div>
 <div>
-<label class="help-label" data-help="Scenario owner or primary responsible party.">Scenario Owner</label>
+<label class="help-label" data-help="Scenario owner or primary responsible party.">Component Owner</label>
 <input id="complexScenarioOwner" placeholder="e.g. Enterprise Risk" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Date the scenario was first identified.">Identified Date</label>
+<label class="help-label" data-help="Date this component was first identified.">Identified Date</label>
 <input id="complexIdentifiedDate" type="date"/>
 </div>
 <div>
-<label class="help-label" data-help="Calculated from weighted complex risk items. This field is read-only.">Inherent Risk Score</label>
+<label class="help-label" data-help="Calculated from this component's weighted risk items. This field is read-only.">Inherent Risk Score</label>
 <input id="complexInherentRiskScore" readonly="" type="number"/>
 </div>
 <div>
@@ -418,15 +418,15 @@
 <input id="complexControlEffectiveness" max="100" min="0" type="number" value="28"/>
 </div>
 <div>
-<label class="help-label" data-help="Minimum direct hard-cost loss estimate for the scenario.">Hard Cost Min ($)</label>
+<label class="help-label" data-help="Minimum direct hard-cost loss estimate for this component.">Hard Cost Min ($)</label>
 <input data-currency="usd" id="complexHardCostMin" inputmode="decimal" min="0" step="1000" type="text" value="100000"/>
 </div>
 <div>
-<label class="help-label" data-help="Most likely direct hard-cost loss estimate for the scenario.">Hard Cost Most Likely ($)</label>
+<label class="help-label" data-help="Most likely direct hard-cost loss estimate for this component.">Hard Cost Most Likely ($)</label>
 <input data-currency="usd" id="complexHardCostLikely" inputmode="decimal" min="0" step="1000" type="text" value="350000"/>
 </div>
 <div>
-<label class="help-label" data-help="Maximum direct hard-cost loss estimate for the scenario.">Hard Cost Max ($)</label>
+<label class="help-label" data-help="Maximum direct hard-cost loss estimate for this component.">Hard Cost Max ($)</label>
 <input data-currency="usd" id="complexHardCostMax" inputmode="decimal" min="0" step="1000" type="text" value="900000"/>
 </div>
 <div>
@@ -456,19 +456,19 @@
 </select>
 </div>
 <div class="full-span">
-<label class="help-label" data-help="Brief scenario description, issue summary, or narrative.">Scenario Description</label>
-<textarea id="complexScenarioDescription" placeholder="Describe the broader project, business area, or problem set." rows="4"></textarea>
+<label class="help-label" data-help="Brief component description, issue summary, or narrative.">Scenario Description</label>
+<textarea id="complexScenarioDescription" placeholder="Describe this component and how it fits into the broader area review." rows="4"></textarea>
 </div>
 <div class="builder-actions">
-<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Add Scenario</button>
+<button class="btn btn-primary" id="addComplexScenarioBtn" type="button">Save Component</button>
 </div>
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Risk Item Entry</h3><span>Entry</span></div>
+<div class="card-header"><h3>Risk Item Entry for Selected Component</h3><span>Component-specific entry</span></div>
 <div class="form-grid">
 <div>
-<label class="help-label" data-help="Name of the individual risk item inside the larger scenario.">Risk Item Name</label>
+<label class="help-label" data-help="Name of the individual risk item inside this component.">Risk Item Name</label>
 <input id="riskItemName" placeholder="e.g. Overdraft fee disclosure risk" type="text"/>
 </div>
 <div>
@@ -476,7 +476,7 @@
 <select id="riskItemDomain"></select>
 </div>
 <div>
-<label class="help-label" data-help="Product or service most directly connected to this risk item.">Related Product/Service/Area</label>
+<label class="help-label" data-help="Area / product family connected to this risk item.">Related Area / Product Family</label>
 <select id="riskItemProduct"></select>
 </div>
 <div>
@@ -488,7 +488,7 @@
 <input id="riskItemScore" max="100" min="0" type="number" value="65"/>
 </div>
 <div>
-<label class="help-label" data-help="Relative importance of this item in the complex scenario.">Weight (1-5)</label>
+<label class="help-label" data-help="Relative importance of this item inside the selected component.">Weight (1-5)</label>
 <input id="riskItemWeight" max="5" min="1" type="number" value="3"/>
 </div>
 </div>
@@ -497,7 +497,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-header"><h3>Risk Item Table</h3><span>Multiple Entries • issue links reopen this scenario</span></div>
+<div class="card-header"><h3>Risk Item Table</h3><span>Selected component risk items</span></div>
 <div class="table-wrap">
 <table>
 <thead><tr><th>Item</th><th>Domain</th><th>Product</th><th>Regulation</th><th>Score</th><th>Weight</th><th>Actions</th></tr></thead>
@@ -639,11 +639,11 @@
 </div>
 <div class="form-grid">
 <div>
-<label class="help-label" data-help="Name used to save and report this beta scenario.">Scenario Name</label>
+<label class="help-label" data-help="Name used to save and report this beta scenario.">Component Name</label>
 <input id="betaScenarioName" placeholder="e.g. New Product Launch Planning Scenario" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Auto-generated on first save.">Scenario ID</label>
+<label class="help-label" data-help="Auto-generated on first save.">Area Review ID</label>
 <input id="betaScenarioId" placeholder="Generated on save" readonly="" type="text"/>
 </div>
 <div>
@@ -671,7 +671,7 @@
 <input id="betaProjectOrProductName" placeholder="e.g. Embedded Payments Launch" type="text"/>
 </div>
 <div>
-<label class="help-label" data-help="Scenario owner or responsible party.">Scenario Owner</label>
+<label class="help-label" data-help="Scenario owner or responsible party.">Component Owner</label>
 <input id="betaScenarioOwner" placeholder="e.g. Product Management" type="text"/>
 </div>
 <div>
@@ -856,16 +856,16 @@
 <div class="card category-card">
 <div class="card-header"><h3>Scenario Status</h3><span>Editable</span></div>
 <div class="form-stack">
-<input id="newScenarioStatusName" placeholder="Add Scenario Status" type="text"/>
-<button class="btn btn-primary" id="addScenarioStatusBtn">Add Scenario Status</button>
+<input id="newScenarioStatusName" placeholder="Save Component Status" type="text"/>
+<button class="btn btn-primary" id="addScenarioStatusBtn">Save Component Status</button>
 </div>
 <div class="editable-list" id="scenarioStatusesList"></div>
 </div>
 <div class="card category-card">
 <div class="card-header"><h3>Scenario Source</h3><span>Editable</span></div>
 <div class="form-stack">
-<input id="newScenarioSourceName" placeholder="Add Scenario Source" type="text"/>
-<button class="btn btn-primary" id="addScenarioSourceBtn">Add Scenario Source</button>
+<input id="newScenarioSourceName" placeholder="Save Component Source" type="text"/>
+<button class="btn btn-primary" id="addScenarioSourceBtn">Save Component Source</button>
 </div>
 <div class="editable-list" id="scenarioSourcesList"></div>
 </div>
@@ -892,7 +892,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.38. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.39. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -984,7 +984,7 @@
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.38</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.39</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -1305,9 +1305,9 @@
 </div>
 </section>
 </main>
-<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.38</div>
-<script src="beta_scenario_engine.js?v=23.0.38"></script>
-<script src="app_23_0_38.js?v=23.0.38"></script>
+<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.39</div>
+<script src="beta_scenario_engine.js?v=23.0.39"></script>
+<script src="app_23_0_39.js?v=23.0.39"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">
