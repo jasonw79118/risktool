@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.51";
+const APP_VERSION = "23.0.51-R";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -347,7 +347,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.51",
+    phase: "23.0.45",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -5533,7 +5533,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.51 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.45 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5672,16 +5672,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.51 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.45 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.51 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.45 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.51 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.45 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.51 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.45 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -5874,10 +5874,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.51 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.45 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.51 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.45 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6124,9 +6124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.51 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.45 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.51 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.45 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6240,12 +6240,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.51 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.45 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.51 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.45 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6341,12 +6341,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
-/* ===== PHASE 23.0.51 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.45 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6479,13 +6479,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
 
-/* ===== PHASE 23.0.51 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.45 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6519,7 +6519,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.51 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.45 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6611,12 +6611,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
-/* ===== PHASE 23.0.51 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
+/* ===== PHASE 23.0.45 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
   function setVersion32(){
     try { ["appVersion","versionDisplay","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=PHASE; }); } catch(e) {}
     try { document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); } catch(e) {}
@@ -6710,12 +6710,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
 
-/* ===== PHASE 23.0.51 SAVED SCENARIO DELETE HARDENING ===== */
+/* ===== PHASE 23.0.45 SAVED SCENARIO DELETE HARDENING ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
 
   function rt33SetVersion(){
     try {
@@ -6844,11 +6844,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
-/* ===== PHASE 23.0.51 AREA ROLLUP + ENTERPRISE RISK REPORT ===== */
+/* ===== PHASE 23.0.45 AREA ROLLUP + ENTERPRISE RISK REPORT ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
 
   function rt44Num(value, fallback){ const n = Number(value); return Number.isFinite(n) ? n : (fallback || 0); }
@@ -7074,11 +7074,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try { const appVer = document.getElementById('appVersion'); if (appVer) appVer.textContent = PHASE; } catch(e) {}
   });
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
-/* ===== PHASE 23.0.51 HUBBARD EXPECTED LOSS + PORTFOLIO AREA RANKING ===== */
+/* ===== PHASE 23.0.45 HUBBARD EXPECTED LOSS + PORTFOLIO AREA RANKING ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.45";
   const impactMap = { low:10000, moderate:50000, medium:50000, high:250000, severe:1000000, critical:1000000 };
   function n(v){ const x = Number(String(v ?? '').replace(/[^0-9.-]/g,'')); return Number.isFinite(x) ? x : 0; }
   function pct(v, fallback){ let x=n(v); if(!x && fallback!==undefined) x=fallback; if(x>1) x=x/100; return Math.max(0, Math.min(1, x)); }
@@ -7099,11 +7099,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', function(e){ if(e.target&&e.target.id==='savePortfolioRiskReport45') saveSnapshot(); if(e.target&&(e.target.id==='generateOverallRiskReport'||e.target.id==='generatePortfolioRiskReport')) setTimeout(window.generatePortfolioRiskRanking45,0); });
   function syncVersion(){ document.querySelectorAll('[data-version], .version, #appVersion, #versionLabel, #dashboardVersion').forEach(el=>{ if(el) el.textContent = PHASE; }); } document.addEventListener('DOMContentLoaded', syncVersion); setTimeout(syncVersion,500);
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.45 ===== */
 
-/* ===== PHASE 23.0.51 PORTFOLIO REPORT MODE REWRITE ===== */
+/* ===== PHASE 23.0.50 PORTFOLIO REPORT MODE REWRITE ===== */
 (function(){
-  const PHASE = "23.0.51";
+  const PHASE = "23.0.51-R";
   const ITERATION_OPTIONS = [100, 1000, 10000, 100000];
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
 
@@ -7140,17 +7140,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function statusFromRisk(v){ return v >= 500000 ? "High" : v >= 100000 ? "Elevated" : v >= 25000 ? "Moderate" : "Lower"; }
   function componentLabel(c, idx){ return c?.scenarioName || c?.componentName || c?.name || c?.primaryProduct || `Component ${idx+1}`; }
+  function evidenceAmounts51(records){
+    return (Array.isArray(records) ? records : [])
+      .map(item => num(item?.amount ?? item?.lossAmount ?? item?.costAmount ?? item?.documentedLoss ?? 0))
+      .filter(v => Number.isFinite(v) && v > 0);
+  }
+  function evidenceAnchor51(c, parent){
+    const amounts = evidenceAmounts51(c?.hardFacts)
+      .concat(evidenceAmounts51(c?.evidence))
+      .concat(evidenceAmounts51(parent?.hardFacts))
+      .concat(evidenceAmounts51(parent?.evidence));
+    if (!amounts.length) return null;
+    const sorted = amounts.slice().sort((a,b)=>a-b);
+    const total = amounts.reduce((a,b)=>a+b,0);
+    const mean = total / amounts.length;
+    const median = sorted[Math.floor(sorted.length / 2)] || mean;
+    const p90 = sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.90) - 1)] || sorted[sorted.length - 1] || mean;
+    return { count: amounts.length, total, mean, median, p90, max: sorted[sorted.length - 1] || mean };
+  }
   function componentInputs(c, parent){
-    const hardLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
-    const hardMin = num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
-    const hardMax = num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
+    const evidence = evidenceAnchor51(c, parent);
+    const baseLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
+    const hardLikely = evidence ? Math.max(baseLikely, evidence.median || evidence.mean || 0) : baseLikely;
+    const hardMin = evidence ? Math.max(num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000)), Math.min(evidence.median || hardLikely, evidence.mean || hardLikely)) : num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
+    const hardMax = evidence ? Math.max(num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000)), evidence.p90 || evidence.max || hardLikely, evidence.total || 0) : num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
     const softLikely = num(c?.softCostLikely, num(parent?.softCostLikely, 0.25));
     const softMin = num(c?.softCostMin, num(parent?.softCostMin, 0.05));
     const softMax = num(c?.softCostMax, num(parent?.softCostMax, Math.max(softLikely, 0.75)));
     const control = Math.max(0, Math.min(100, num(c?.control, num(parent?.control, 0)))) / 100;
     const mitigationCost = num(c?.mitigationCost, 0);
     const rollup = (typeof window.calculateComplexComponentRollup === "function" && parent?.mode === "complex") ? window.calculateComplexComponentRollup(c) : null;
-    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup };
+    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup, evidence };
   }
   function getScenarioComponents(s){
     if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) return s.components;
@@ -7206,6 +7226,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rows[0]?.metric?.highestDriver) return `${rows[0].name}: ${rows[0].metric.highestDriver}`;
       return rows[0]?.name || "Largest component exposure";
     }
+    const evidence = evidenceAnchor51(s, s);
+    if (evidence) return `Hard facts / evidence loss-cost anchor: ${fmt(evidence.total)} documented across ${evidence.count} item(s)`;
     return s?.riskDomain || s?.primaryRegulation || s?.primaryProduct || "Scenario exposure assumptions";
   }
   function recommendationForScenario(s, m){
@@ -7350,29 +7372,42 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   window.renderPortfolioReport50 = renderPortfolioReport50;
   window.renderScenarioReview50 = renderScenarioReview50;
+  window.renderPortfolioReport51 = renderPortfolioReport50;
+  window.renderScenarioReview51 = renderScenarioReview50;
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.50 ===== */
 
-/* ===== PHASE 23.0.51 STABILIZATION ===== */
+
+/* ===== PHASE 23.0.51-R RESET STABILIZATION GUARD ===== */
 (function(){
-  const PHASE='23.0.51';
-  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
-  const money=n=>new Intl.NumberFormat(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Math.max(0,num(n)));
-  const avg=a=>a&&a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
-  const status=v=>v>=250000?'High':v>=100000?'Elevated':v>=25000?'Moderate':'Lower';
-  const pct=(a,p)=>{if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y);return s[Math.floor((p/100)*(s.length-1))]||0;};
-  function syncVersion51(){try{window.RISKTOOL_RUNTIME_VERSION=PHASE;}catch(e){};document.querySelectorAll('#appVersion,#versionLabel,#dashboardVersion,#phaseVersion,#footerVersion,[data-version],[data-app-version],.version').forEach(el=>{el.textContent=PHASE;});document.querySelectorAll('.sidebar-note h4').forEach(el=>{if((el.textContent||'').includes('Phase'))el.textContent='Phase '+PHASE;});const n=document.getElementById('workspacePhaseNote');if(n)n.textContent='Current frontend phase: '+PHASE+'. Chrome and Edge workspace-folder mode is active.';}
-  function addCoreTemplates51(){const list=['ACH Processing','Bank Core Processing','Core Outage / Availability','Data Conversion / Migration','Deposit Statements','DDA Processing','GL / Accounting','Loan Servicing','Regulatory Reporting','Vendor / SOC Review'];try{if(typeof productGroups!=='undefined'&&Array.isArray(productGroups)){list.forEach(x=>{if(!productGroups.includes(x))productGroups.push(x)});productGroups.sort((a,b)=>String(a).localeCompare(String(b)));if(typeof refreshCategorySelects==='function')refreshCategorySelects();if(typeof refreshComplexProductSectionSelects==='function')refreshComplexProductSectionSelects();}}catch(e){}}
-  function componentRisk51(c){const items=Array.isArray(c?.items)?c.items:[];let inherent=0,top='No risk items yet',topVal=-1;items.forEach(it=>{const score=Math.max(0,Math.min(100,num(it.score,50)));const weight=Math.max(1,num(it.weight,1));const impact=num(it.impactLikely||it.impact||it.hardCostLikely,10000+score*7500);const val=(score/100)*impact*weight;inherent+=val;if(val>topVal){topVal=val;top=it.name||it.issue||it.issueId||'Risk item';}});if(!items.length){inherent=Math.max(0,num(c?.hardCostLikely)+num(c?.softCostLikely)*1000+num(c?.mitigationCost)||Math.max(0,Math.min(100,num(c?.inherent||c?.score,50)))/100*50000);}const control=Math.max(0,Math.min(.95,num(c?.control)/100));const mitCount=Array.isArray(c?.mitigations)?c.mitigations.length:0;const mitCredit=Math.min(.35,mitCount*.05);const beforeIns=inherent*(1-Math.min(.95,control+mitCredit));const ins=Array.isArray(c?.insurance)?c.insurance:[];const coverage=ins.reduce((s,x)=>s+num(x.coverageAmount||x.coverage||x.limit),0);const ded=ins.reduce((s,x)=>s+num(x.deductible),0);const insImpact=Math.min(beforeIns,Math.max(0,coverage-ded));const residual=Math.max(0,beforeIns-insImpact);return{inherent:Math.round(inherent),residual:Math.round(residual),deltaRisk:Math.round(Math.max(0,inherent-beforeIns)),insuranceImpact:Math.round(insImpact),highestDriver:top,itemCount:items.length};}
-  window.calculateComplexComponentRollup=componentRisk51;
-  window.calculateProductSectionWeight=function(){const comps=(typeof complexScenarioComponents!=='undefined'&&Array.isArray(complexScenarioComponents))?complexScenarioComponents:[];const risks=comps.map(componentRisk51);const av=Math.round(avg(risks.map(r=>r.residual)));return{weight:av,rawScore:av,note:'Average component residual risk '+money(av)+' across '+risks.length+' component(s).'};};
-  function renderComplexProductSections51(){const tb=document.getElementById('complexProductSectionsBody'),st=document.getElementById('complexProductSectionStatus'),fld=document.getElementById('complexSectionWeight');if(!tb)return;const sections=(typeof complexProductSections!=='undefined'&&Array.isArray(complexProductSections))?complexProductSections:[];const comps=(typeof complexScenarioComponents!=='undefined'&&Array.isArray(complexScenarioComponents))?complexScenarioComponents:[];const area=sections[0]?.productServiceArea||document.getElementById('complexSectionProduct')?.value||'Selected Area';if(!sections.length){tb.innerHTML='<tr><td colspan="9">No area/product family added yet. Define the parent area first, then add components underneath it.</td></tr>';if(fld)fld.value='Average residual risk calculated after components are saved';if(st)st.textContent='Define the Area / Product Family before assigning component risk items.';return;}if(!comps.length){tb.innerHTML='<tr><td colspan="9"><strong>Area Rollup: '+esc(area)+'</strong><br><small>No saved components yet. Complete the Selected Component Workspace and click Save Component to build this rollup.</small></td></tr>';if(fld)fld.value='No saved components';if(st)st.textContent='Area Rollup: '+area+'. Save components to calculate average component residual risk.';return;}const rows=comps.map(c=>({c,name:c.scenarioName||c.primaryProduct||c.componentId||'Unnamed Component',r:componentRisk51(c)}));const av=Math.round(avg(rows.map(x=>x.r.residual)));const total=rows.reduce((s,x)=>s+x.r.residual,0);const high=rows.slice().sort((a,b)=>b.r.residual-a.r.residual)[0];if(fld)fld.value=money(av)+' average component residual risk | '+rows.length+' component(s) | '+money(total)+' total exposure';tb.innerHTML=rows.map(x=>{const id=esc(x.c.componentId||'');return '<tr class="clickable-rollup-row" data-open-complex-component="'+id+'"><td><strong>'+esc(x.name)+'</strong><br><small>'+id+'</small></td><td>'+x.r.itemCount+'</td><td>'+money(x.r.inherent)+'</td><td><strong>'+money(x.r.residual)+'</strong></td><td>'+money(x.r.deltaRisk)+'</td><td>'+money(x.r.insuranceImpact)+'</td><td>'+esc(x.r.highestDriver)+'</td><td>'+status(x.r.residual)+'</td><td><button class="btn btn-secondary small-btn" type="button" data-open-complex-component-button="'+id+'">Open</button> <button class="btn btn-secondary small-btn" type="button" data-delete-complex-component="'+id+'">Delete</button></td></tr>';}).join('');tb.querySelectorAll('[data-open-complex-component-button]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();try{openComplexScenarioComponent(b.dataset.openComplexComponentButton)}catch(_){}}));if(st)st.textContent='Area Rollup: '+area+'. Average Component Residual Risk: '+money(av)+'. Total Exposure: '+money(total)+'. Highest-risk component: '+(high?high.name:'None')+'.';}
-  window.renderComplexProductSections=renderComplexProductSections51;
-  const label=s=>s?.name||s?.scenarioName||s?.title||s?.id||'Unnamed Scenario';const area=s=>s?.product||s?.primaryProduct||s?.productServiceArea||s?.area||'Unassigned Area';function saved(){try{return(typeof getSavedScenarios==='function'?getSavedScenarios():[])||[]}catch(e){return[]}}function comps(s){return s?.mode==='complex'&&Array.isArray(s.components)&&s.components.length?s.components:[{scenarioName:label(s),items:Array.isArray(s?.items)?s.items:[],hardCostLikely:s?.hardCostLikely,softCostLikely:s?.softCostLikely,mitigationCost:s?.mitigationCost,control:s?.control,mitigations:s?.mitigations,insurance:s?.insurance,inherent:s?.inherent||s?.total||s?.score}];}function metrics(s,iters){const cr=comps(s).map(componentRisk51),av=Math.round(avg(cr.map(r=>r.residual))),total=Math.round(cr.reduce((a,r)=>a+r.residual,0)),inh=Math.round(cr.reduce((a,r)=>a+r.inherent,0));const out=[];for(let i=1;i<=iters;i++){const res=Math.max(0,Math.round(total*(.55+Math.random()*1.15)*(.85+Math.random()*.3)));out.push({scenarioNumber:i,inherentLoss:Math.max(res,Math.round(inh*(.65+Math.random()*.7))),residualLoss:res});}const vals=out.map(o=>o.residualLoss).sort((a,b)=>a-b);return{iterations:iters,outcomes:out,avgComponentRisk:av,totalExposure:total,p50:Math.round(pct(vals,50)),p90:Math.round(pct(vals,90)),p95:Math.round(pct(vals,95)),p99:Math.round(pct(vals,99)),componentCount:cr.length};}function driver(s){const c=comps(s).map(x=>({n:x.scenarioName||x.primaryProduct||'Component',r:componentRisk51(x)})).sort((a,b)=>b.r.residual-a.r.residual)[0];return c?c.n+': '+c.r.highestDriver:'Scenario assumptions'}function rows51(){const it=Number(document.getElementById('portfolioMonteCarloIterations51')?.value||1000);return saved().map(s=>{const m=metrics(s,it);return{scenario:s,metrics:m,driver:driver(s),recommendation:`${label(s)} ranks ${status(m.avgComponentRisk).toLowerCase()} with average component residual risk of ${money(m.avgComponentRisk)} and total exposure of ${money(m.totalExposure)}. The main driver is ${driver(s)}. P95 is ${money(m.p95)} and P99 is ${money(m.p99)}.`}}).sort((a,b)=>(b.metrics.avgComponentRisk-a.metrics.avgComponentRisk)||(b.metrics.totalExposure-a.metrics.totalExposure));}
-  function renderPortfolioReport51(){const host=document.getElementById('portfolioReportBody51')||document.getElementById('portfolioReportBody50');if(!host)return;const rows=rows51();if(!rows.length){host.innerHTML='<div class="note-box">No saved scenarios found. Save Single and Complex scenarios first, then run the Portfolio Report.</div>';return;}host.innerHTML='<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Scenario</th><th>Type</th><th>Area/Product Family</th><th>Avg Component Risk</th><th>Total Exposure</th><th>P95</th><th>P99</th><th>Components</th><th>Top Driver</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(label(r.scenario))+'</strong><br><small>'+esc(r.scenario.id||'')+'</small></td><td>'+esc(r.scenario.mode||'')+'</td><td>'+esc(area(r.scenario))+'</td><td><strong>'+money(r.metrics.avgComponentRisk)+'</strong></td><td>'+money(r.metrics.totalExposure)+'</td><td>'+money(r.metrics.p95)+'</td><td>'+money(r.metrics.p99)+'</td><td>'+r.metrics.componentCount+'</td><td>'+esc(r.driver)+'</td><td>'+status(r.metrics.avgComponentRisk)+'</td><td><button class="btn btn-secondary small-btn" data-outcomes51="'+esc(r.scenario.id||'')+'">View Outcomes</button></td></tr><tr><td></td><td colspan="11"><strong>Management recommendation:</strong> '+esc(r.recommendation)+'</td></tr>').join('')+'</tbody></table></div>';host.querySelectorAll('[data-outcomes51]').forEach(b=>b.addEventListener('click',()=>{const row=rows.find(r=>String(r.scenario.id)===String(b.dataset.outcomes51));const box=document.getElementById('portfolioOutcomesPreview51');if(row&&box)box.innerHTML='<h3>Monte Carlo Outcomes — '+esc(label(row.scenario))+'</h3><p class="muted">Showing first '+Math.min(100,row.metrics.outcomes.length)+' of '+row.metrics.iterations.toLocaleString()+' random scenarios.</p><div class="table-wrap"><table><thead><tr><th>#</th><th>Inherent Loss</th><th>Residual Loss</th></tr></thead><tbody>'+row.metrics.outcomes.slice(0,100).map(o=>'<tr><td>'+o.scenarioNumber+'</td><td>'+money(o.inherentLoss)+'</td><td>'+money(o.residualLoss)+'</td></tr>').join('')+'</tbody></table></div>';}));}
-  function install51(){const nav=document.querySelector('.nav'),main=document.querySelector('main.main')||document.querySelector('main')||document.body;if(nav&&!document.querySelector('[data-view="portfolio-report"]')){const report=nav.querySelector('[data-view="reports"]');const b=document.createElement('button');b.className='nav-item';b.dataset.view='portfolio-report';b.textContent='Portfolio Report';report?nav.insertBefore(b,report):nav.appendChild(b);}const rpt=document.querySelector('[data-view="reports"]');if(rpt)rpt.textContent='Scenario Review';let sec=document.getElementById('view-portfolio-report');if(!sec){sec=document.createElement('section');sec.className='view';sec.id='view-portfolio-report';main.appendChild(sec);}sec.innerHTML='<div class="section-header"><h2>Portfolio Report</h2><p>Runs every saved Single and Complex scenario. Ranking uses average component residual risk; total exposure is shown for dollar materiality.</p></div><div class="card"><div class="card-header"><h3>Portfolio Controls</h3><span>Monte Carlo</span></div><div class="builder-actions"><label>Random scenarios per saved scenario <select id="portfolioMonteCarloIterations51"><option value="100">100</option><option value="1000" selected>1,000</option><option value="10000">10,000</option><option value="100000">100,000</option></select></label><button class="btn btn-primary" id="runPortfolioReport51" type="button">Run Portfolio Report</button></div></div><div class="card"><div class="card-header"><h3>Portfolio Ranking & Recommendations</h3><span>All saved scenarios</span></div><div id="portfolioReportBody51"><div class="note-box">Run the portfolio report to evaluate all saved scenarios.</div></div></div><div class="card"><div class="card-header"><h3>Selected Scenario Outcomes</h3><span>Auditor / Examiner Support</span></div><div id="portfolioOutcomesPreview51" class="note-box">Select View Outcomes to preview Monte Carlo outcome rows for a scenario.</div></div>';document.querySelector('[data-view="portfolio-report"]')?.addEventListener('click',()=>{try{activateView('portfolio-report')}catch(e){}renderPortfolioReport51()});rpt?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();try{activateView('scenario-review')}catch(_){}},true);document.getElementById('runPortfolioReport51')?.addEventListener('click',renderPortfolioReport51);}
-  document.addEventListener('DOMContentLoaded',()=>{syncVersion51();addCoreTemplates51();install51();setTimeout(()=>{syncVersion51();addCoreTemplates51();install51();try{renderComplexProductSections51()}catch(e){}},600);});
-  window.renderPortfolioReport51=renderPortfolioReport51;window.renderComplexProductSections51=renderComplexProductSections51;
+  const PHASE = "23.0.51-R";
+  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
+  function syncVersion51(){
+    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
+    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
+    const note = document.getElementById("workspacePhaseNote");
+    if (note) note.textContent = "Current frontend phase: " + PHASE + ". Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.";
+  }
+  function hideSubjectiveRiskFields51(){
+    const ids = ["riskItemScore","riskItemWeight","singleInherentRisk","complexInherentRisk","betaInherentRisk","complexSectionWeight"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      const wrap = el?.closest("label,.form-row,.field,.input-group,.form-group,div");
+      if (wrap) wrap.style.display = "none";
+      else if (el) el.style.display = "none";
+    });
+    Array.from(document.querySelectorAll("label, th, h4, h3, p, span")).forEach(el => {
+      const t = (el.textContent || "").trim().toLowerCase();
+      if (t === "item risk score (0-100)" || t === "weight (1-5)" || t === "inherent risk score") {
+        const wrap = el.closest("label,.form-row,.field,.input-group,.form-group,div");
+        if (wrap) wrap.style.display = "none";
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    syncVersion51(); hideSubjectiveRiskFields51();
+    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 250);
+    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 1000);
+  });
 })();
-/* ===== END PHASE 23.0.51 ===== */
+/* ===== END PHASE 23.0.51-R ===== */

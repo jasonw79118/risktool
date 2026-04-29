@@ -1,0 +1,46 @@
+RISKTOOL HANDOFF — 23.0.51-R RESET STABILIZATION
+Date: 04.29.2026
+Baseline used: 23.0.50 package supplied by user in risktool(9).zip
+
+Purpose
+This patch keeps the 23.0.50 report split intact while moving the active version forward to 23.0.51-R. It is a stabilization patch, not a feature-expansion patch.
+
+Files in this flat ZIP
+- index.html
+- app.js
+- app_23_0_51.js
+- risktool_handoff_23_0_51_RESET.txt
+
+Key changes
+1. Version/cache busting
+- index.html now references app_23_0_51.js?v=23.0.51.
+- app.js and app_23_0_51.js contain the same patched logic.
+- Runtime/display version is forced to 23.0.51-R.
+
+2. Portfolio Report / Scenario Review split preserved
+- Portfolio Report remains a separate menu/view.
+- Scenario Review remains a separate single-scenario review path.
+- The original 23.0.50 split logic was preserved and version-guarded.
+
+3. Hard Facts / Evidence loss-cost amounts included in risk calculations
+- Monte Carlo component hard-cost assumptions now use hard facts/evidence amount fields as evidence anchors.
+- Actual loss/cost amounts are pulled from component and scenario hardFacts/evidence arrays.
+- Evidence-adjusted hard cost likely value uses the greater of the user assumption or the evidence median/mean.
+- Evidence-adjusted max also considers evidence p90/max and documented total where applicable.
+- Portfolio recommendations can identify hard facts/evidence as a top driver.
+
+4. Subjective scoring guard
+- Added a UI guard to hide active subjective fields such as item risk score, weight, and inherent risk score if old markup is still present.
+- Legacy fields may remain in saved data for backward compatibility, but this patch prevents them from being presented as active user inputs where the guard can identify them.
+
+5. Packaging
+- ZIP is flat; replacement files are visible immediately when opened.
+
+Testing notes
+- Validate that the footer/bottom-left version reads 23.0.51-R after cache refresh.
+- Validate that the browser loads app_23_0_51.js from index.html.
+- Validate Portfolio Report and Scenario Review remain separate.
+- Add a hard facts/evidence entry with a dollar amount and confirm Portfolio Report exposure/recommendation changes compared with no evidence.
+
+Next phase
+23.0.52-R should continue table action hardening and deeper form cleanup after this reset patch is deployed and visually confirmed.

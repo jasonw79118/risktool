@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.45";
+const APP_VERSION = "23.0.51-R";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -7103,7 +7103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.50 PORTFOLIO REPORT MODE REWRITE ===== */
 (function(){
-  const PHASE = "23.0.50";
+  const PHASE = "23.0.51-R";
   const ITERATION_OPTIONS = [100, 1000, 10000, 100000];
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
 
@@ -7140,17 +7140,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function statusFromRisk(v){ return v >= 500000 ? "High" : v >= 100000 ? "Elevated" : v >= 25000 ? "Moderate" : "Lower"; }
   function componentLabel(c, idx){ return c?.scenarioName || c?.componentName || c?.name || c?.primaryProduct || `Component ${idx+1}`; }
+  function evidenceAmounts51(records){
+    return (Array.isArray(records) ? records : [])
+      .map(item => num(item?.amount ?? item?.lossAmount ?? item?.costAmount ?? item?.documentedLoss ?? 0))
+      .filter(v => Number.isFinite(v) && v > 0);
+  }
+  function evidenceAnchor51(c, parent){
+    const amounts = evidenceAmounts51(c?.hardFacts)
+      .concat(evidenceAmounts51(c?.evidence))
+      .concat(evidenceAmounts51(parent?.hardFacts))
+      .concat(evidenceAmounts51(parent?.evidence));
+    if (!amounts.length) return null;
+    const sorted = amounts.slice().sort((a,b)=>a-b);
+    const total = amounts.reduce((a,b)=>a+b,0);
+    const mean = total / amounts.length;
+    const median = sorted[Math.floor(sorted.length / 2)] || mean;
+    const p90 = sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.90) - 1)] || sorted[sorted.length - 1] || mean;
+    return { count: amounts.length, total, mean, median, p90, max: sorted[sorted.length - 1] || mean };
+  }
   function componentInputs(c, parent){
-    const hardLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
-    const hardMin = num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
-    const hardMax = num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
+    const evidence = evidenceAnchor51(c, parent);
+    const baseLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
+    const hardLikely = evidence ? Math.max(baseLikely, evidence.median || evidence.mean || 0) : baseLikely;
+    const hardMin = evidence ? Math.max(num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000)), Math.min(evidence.median || hardLikely, evidence.mean || hardLikely)) : num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
+    const hardMax = evidence ? Math.max(num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000)), evidence.p90 || evidence.max || hardLikely, evidence.total || 0) : num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
     const softLikely = num(c?.softCostLikely, num(parent?.softCostLikely, 0.25));
     const softMin = num(c?.softCostMin, num(parent?.softCostMin, 0.05));
     const softMax = num(c?.softCostMax, num(parent?.softCostMax, Math.max(softLikely, 0.75)));
     const control = Math.max(0, Math.min(100, num(c?.control, num(parent?.control, 0)))) / 100;
     const mitigationCost = num(c?.mitigationCost, 0);
     const rollup = (typeof window.calculateComplexComponentRollup === "function" && parent?.mode === "complex") ? window.calculateComplexComponentRollup(c) : null;
-    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup };
+    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup, evidence };
   }
   function getScenarioComponents(s){
     if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) return s.components;
@@ -7206,6 +7226,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rows[0]?.metric?.highestDriver) return `${rows[0].name}: ${rows[0].metric.highestDriver}`;
       return rows[0]?.name || "Largest component exposure";
     }
+    const evidence = evidenceAnchor51(s, s);
+    if (evidence) return `Hard facts / evidence loss-cost anchor: ${fmt(evidence.total)} documented across ${evidence.count} item(s)`;
     return s?.riskDomain || s?.primaryRegulation || s?.primaryProduct || "Scenario exposure assumptions";
   }
   function recommendationForScenario(s, m){
@@ -7350,5 +7372,42 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   window.renderPortfolioReport50 = renderPortfolioReport50;
   window.renderScenarioReview50 = renderScenarioReview50;
+  window.renderPortfolioReport51 = renderPortfolioReport50;
+  window.renderScenarioReview51 = renderScenarioReview50;
 })();
 /* ===== END PHASE 23.0.50 ===== */
+
+
+/* ===== PHASE 23.0.51-R RESET STABILIZATION GUARD ===== */
+(function(){
+  const PHASE = "23.0.51-R";
+  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
+  function syncVersion51(){
+    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
+    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
+    const note = document.getElementById("workspacePhaseNote");
+    if (note) note.textContent = "Current frontend phase: " + PHASE + ". Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.";
+  }
+  function hideSubjectiveRiskFields51(){
+    const ids = ["riskItemScore","riskItemWeight","singleInherentRisk","complexInherentRisk","betaInherentRisk","complexSectionWeight"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      const wrap = el?.closest("label,.form-row,.field,.input-group,.form-group,div");
+      if (wrap) wrap.style.display = "none";
+      else if (el) el.style.display = "none";
+    });
+    Array.from(document.querySelectorAll("label, th, h4, h3, p, span")).forEach(el => {
+      const t = (el.textContent || "").trim().toLowerCase();
+      if (t === "item risk score (0-100)" || t === "weight (1-5)" || t === "inherent risk score") {
+        const wrap = el.closest("label,.form-row,.field,.input-group,.form-group,div");
+        if (wrap) wrap.style.display = "none";
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    syncVersion51(); hideSubjectiveRiskFields51();
+    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 250);
+    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 1000);
+  });
+})();
+/* ===== END PHASE 23.0.51-R ===== */
