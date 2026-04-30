@@ -1,0 +1,17 @@
+RiskTool 23.0.62 Regression Fix
+
+Changes included:
+1. Fixed left-pane active state so Complex Scenario is no longer highlighted on every screen.
+2. Restored Category dropdown population and selection behavior for Single, Complex, Risk Item, and Beta category fields.
+3. Added a Beta Category dropdown under Area Review ID and mapped it into beta payloads without removing Project / Product Name.
+4. Rebuilt Single Scenario workspace tabs so each tab shows the correct fields/tables: Scenario Entry; Costs / Losses; Hard Facts / Evidence; Mitigation / Controls; Insurance / Risk Transfer; Accepted Risk.
+5. Rebuilt Beta Scenario workspace tabs so broken/mismatched tab rows are ignored and each tab shows only the correct related content or a clear placeholder.
+6. Preserved existing field IDs so save/run/report paths continue to work.
+
+Regression tests:
+- Open Dashboard, Single, Beta, Category Admin, and Saved Scenarios. Only the selected left nav item should highlight.
+- In Single Scenario, Category should have selectable values and remain under Area Review ID.
+- In Complex Scenario, Category should still be selectable.
+- In Beta Scenario, Category should appear under Area Review ID and be selectable.
+- Single tab 3 should show Hard Facts/Evidence only, tab 4 Mitigation/Controls only, tab 5 Insurance only, tab 6 Accepted Risk only.
+- Beta tabs should not show duplicate old menu rows or unrelated fields.
