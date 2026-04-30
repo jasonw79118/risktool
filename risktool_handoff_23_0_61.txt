@@ -1,0 +1,19 @@
+RISKTOOL HANDOFF — 23.0.61 CATEGORY/TAB FIX
+
+Changes included:
+- Removed duplicate Single Scenario and Beta Scenario tab rows; only one workspace tab row remains.
+- Standardized Single/Beta tabs to Scenario Entry, Costs/Losses, Hard Facts/Evidence, Mitigation/Controls, Insurance/Risk Transfer, Accepted Risk.
+- Moved Single/Beta action buttons from the right side to the left side.
+- Renamed Product Groups to Categories in Category Admin.
+- Replaced Primary Product / Service labels with Category across scenario screens.
+- Moved Category directly below Area Review ID / Area Group ID for Single and Complex.
+- Added Beta Category select sourced from Category Admin while preserving old betaProjectOrProductName for save compatibility.
+- Kept internal data keys for backward compatibility with saved scenarios.
+
+Regression tests:
+1. Single Scenario has one tab row only.
+2. Beta Scenario has one tab row only.
+3. Buttons are left aligned and still work.
+4. Category Admin uses Categories wording.
+5. Category field appears below Area Review ID / Area Group ID.
+6. Existing scenarios still load.
