@@ -8235,9 +8235,9 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 /* ===== END PHASE 23.0.61 CATEGORY + TAB CLEANUP PATCH ===== */
 
-/* ===== PHASE 23.0.62 REGRESSION FIX: NAV ACTIVE, CATEGORY SELECTS, SINGLE/BETA TAB PANELS ===== */
+/* ===== PHASE 23.0.63 REGRESSION FIX: NAV ACTIVE, CATEGORY SELECTS, SINGLE/BETA TAB PANELS ===== */
 (function(){
-  const PHASE='23.0.62';
+  const PHASE='23.0.63';
   const CATEGORY_DEFAULTS=['ACH Processing','Card Services','Consumer Compliance','Core Processing','Deposits','Digital Banking','Lending','Loan Origination','Loan Servicing','Mortgage Servicing','Payments','Third Party','Vendor Management'];
   const TABS=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'];
   function qs(s,r=document){return r.querySelector(s)}
@@ -8371,4 +8371,171 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(()=>{fixNavActive();fixCategorySelects();},60),true);
   document.addEventListener('change',e=>{if(e.target&&e.target.matches&&e.target.matches('select')) setTimeout(fixCategorySelects,20)},true);
 })();
-/* ===== END PHASE 23.0.62 REGRESSION FIX ===== */
+/* ===== END PHASE 23.0.63 REGRESSION FIX ===== */
+
+/* ===== PHASE 23.0.63 CATEGORY FIELD + WORKSPACE TAB FINALIZATION ===== */
+(function(){
+  const PHASE='23.0.63';
+  const TABS=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'];
+  const DEFAULT_CATEGORIES=['ACH Processing','Card Services','Consumer Compliance','Core Processing','Deposits','Digital Banking','Lending','Loan Origination','Loan Servicing','Mortgage Servicing','Payments','Third Party','Vendor Management'];
+  function qs(s,r=document){return r.querySelector(s)}
+  function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
+  function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function wrap(id){const el=qs('#'+id); return el?el.closest('.form-grid > div, .full-span, div'):null}
+  function addStyle(){
+    if(qs('#rt63Styles')) return;
+    const st=document.createElement('style'); st.id='rt63Styles';
+    st.textContent=`
+      #dashboardChartCard{display:none!important;}
+      #view-single .rt58-tabs,#view-single .rt60-tabs,#view-single .rt61-tabs,#view-single .rt62-tabs,
+      #view-beta .rt58-tabs,#view-beta .rt60-tabs,#view-beta .rt61-tabs,#view-beta .rt62-tabs{display:none!important;}
+      #view-single > .rt62-panel,#view-beta > .rt62-panel{display:none!important;}
+      .rt63-tabs{display:flex!important;gap:24px!important;border-bottom:1px solid #dbe4f0!important;margin:8px 0 12px!important;padding:0 6px!important;overflow-x:auto!important;background:transparent!important;}
+      .rt63-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;font-weight:800!important;color:#25324b!important;border-bottom:3px solid transparent!important;white-space:nowrap!important;cursor:pointer!important;}
+      .rt63-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important;}
+      .rt63-panel{display:block!important;margin-bottom:12px;}
+      .rt63-hidden{display:none!important;}
+      .rt63-hidden-field{display:none!important;}
+      .rt63-action-row{display:flex!important;justify-content:flex-start!important;gap:10px!important;align-items:center!important;margin:10px 0 12px!important;}
+      .nav .nav-item.active{background:#1177f2!important;color:#fff!important;}
+      .nav .nav-item:not(.active){background:transparent!important;}
+      select.rt63-category-select{pointer-events:auto!important;opacity:1!important;background:#fff!important;color:#111827!important;}
+    `;
+    document.head.appendChild(st);
+  }
+  function setVersion(){
+    try{window.RISKTOOL_RUNTIME_VERSION=PHASE}catch(e){}
+    qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE);
+    qsa('.sidebar-note h4').forEach(el=>{ if(/^Phase /.test(el.textContent||'')) el.textContent='Phase '+PHASE; });
+  }
+  function categoryList(){
+    let vals=[];
+    try{ if(Array.isArray(window.productGroups)) vals=vals.concat(window.productGroups); }catch(e){}
+    try{ vals=vals.concat(JSON.parse(localStorage.getItem('risk_manager_product_groups_v431')||'[]')||[]); }catch(e){}
+    try{ vals=vals.concat(JSON.parse(localStorage.getItem('risk_manager_product_groups')||'[]')||[]); }catch(e){}
+    vals=vals.concat(DEFAULT_CATEGORIES);
+    return Array.from(new Set(vals.filter(Boolean).map(String))).sort((a,b)=>a.localeCompare(b));
+  }
+  function populate(sel, vals, current){
+    if(!sel) return;
+    const keep=current ?? sel.value;
+    const list=(vals&&vals.length?vals:DEFAULT_CATEGORIES);
+    sel.innerHTML=list.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    if(keep && list.includes(keep)) sel.value=keep; else if(list.length) sel.value=list[0];
+    sel.disabled=false; sel.removeAttribute('disabled'); sel.classList.add('rt63-category-select');
+  }
+  function labelAsCategory(id){
+    const w=wrap(id); if(!w) return;
+    const lab=w.querySelector('label');
+    if(lab){
+      Array.from(lab.childNodes).forEach(n=>{ if(n.nodeType===3) n.nodeValue='Category'; });
+      lab.setAttribute('data-help','Category values come from Category Admin. This replaces the scenario-level Risk Domain field. Risk Domain is now used only for individual risk items.');
+    }
+  }
+  function hideDuplicateCategory(id){ const w=wrap(id); if(w) w.classList.add('rt63-hidden-field'); }
+  function placeAfter(fieldId, anchorId){
+    const f=wrap(fieldId), a=wrap(anchorId);
+    if(f&&a&&f.parentNode===a.parentNode&&a.nextSibling!==f) a.parentNode.insertBefore(f,a.nextSibling);
+  }
+  function syncPair(sourceId,targetId){
+    const s=qs('#'+sourceId), t=qs('#'+targetId); if(!s||!t) return;
+    t.value=s.value;
+  }
+  function fixCategoryFields(){
+    const cats=categoryList();
+    [['singleRiskDomain','singlePrimaryProduct','singleScenarioId'],['complexRiskDomain','complexPrimaryProduct','complexGroupId'],['betaRiskDomain','betaPrimaryProduct','betaScenarioId']].forEach(([visibleId,hiddenId,anchorId])=>{
+      const visible=qs('#'+visibleId);
+      let hidden=qs('#'+hiddenId);
+      const current=(visible&&visible.value)||(hidden&&hidden.value)||'';
+      populate(visible,cats,current);
+      labelAsCategory(visibleId);
+      placeAfter(visibleId,anchorId);
+      if(hidden){ populate(hidden,cats,visible&&visible.value); hideDuplicateCategory(hiddenId); syncPair(visibleId,hiddenId); }
+      if(visible&&!visible.dataset.rt63Sync){
+        visible.dataset.rt63Sync='1';
+        visible.addEventListener('change',()=>{syncPair(visibleId,hiddenId);});
+      }
+    });
+    qsa('#view-categories .card-header h3,.stat-card span').forEach(el=>{
+      if(/Product Groups?/i.test(el.textContent||'')) el.textContent='Category';
+    });
+  }
+  function fixNavActive(){
+    const active=qsa('.view').find(v=>v.classList.contains('active'));
+    const key=active?active.id.replace(/^view-/,''):null;
+    qsa('.nav-item').forEach(btn=>btn.classList.toggle('active',!!key && btn.dataset.view===key));
+  }
+  function getCardByContains(view, rx){
+    return qsa('.card',view).filter(c=>rx.test(txt(c.querySelector('.card-header h3,h3')||c)));
+  }
+  function moveIf(card,panel){ if(card&&panel&&!panel.contains(card)) panel.appendChild(card); }
+  function ensurePanelNote(panel,title,msg){
+    if(panel.children.length) return;
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML=`<div class="card-header"><h3>${esc(title)}</h3><span>Workspace</span></div><div class="note-box">${esc(msg)}</div>`;
+    panel.appendChild(c);
+  }
+  function buildWorkspace(viewId,type){
+    const view=qs('#'+viewId); if(!view) return;
+    let tabs=qs(':scope > .rt63-tabs',view);
+    if(!tabs){
+      tabs=document.createElement('div'); tabs.className='rt63-tabs';
+      tabs.innerHTML=TABS.map((t,i)=>`<button type="button" class="rt63-tab ${i===0?'active':''}" data-rt63-tab="${i}">${esc(t)}</button>`).join('');
+      const summary=qs(':scope > .rt58-summary,:scope > .rt54-summary',view);
+      const header=qs(':scope > .section-header',view);
+      const anchor=summary||header;
+      if(anchor&&anchor.parentNode) anchor.parentNode.insertBefore(tabs,anchor.nextSibling); else view.insertBefore(tabs,view.firstChild);
+    }
+    let panels=qsa(':scope > .rt63-panel',view).sort((a,b)=>Number(a.dataset.rt63Panel)-Number(b.dataset.rt63Panel));
+    if(panels.length!==TABS.length){
+      panels.forEach(p=>p.remove()); panels=[];
+      for(let i=0;i<TABS.length;i++){
+        const p=document.createElement('div'); p.className='rt63-panel '+(i?'rt63-hidden':''); p.dataset.rt63Panel=String(i);
+        if(tabs.nextSibling) tabs.parentNode.insertBefore(p,tabs.nextSibling); else tabs.parentNode.appendChild(p);
+      }
+      panels=qsa(':scope > .rt63-panel',view).sort((a,b)=>Number(a.dataset.rt63Panel)-Number(b.dataset.rt63Panel));
+    }
+    const scenarioCard=qs('#'+(type==='single'?'singleScenarioName':'betaScenarioName'))?.closest('.card');
+    moveIf(scenarioCard,panels[0]);
+    getCardByContains(view,/Hard Facts|Evidence/i).forEach(c=>moveIf(c,panels[2]));
+    getCardByContains(view,/Insurance/i).forEach(c=>moveIf(c,panels[4]));
+    getCardByContains(view,/Accepted Risk/i).forEach(c=>moveIf(c,panels[5]));
+    getCardByContains(view,/Mitigation|Control/i).forEach(c=>moveIf(c,panels[3]));
+    getCardByContains(view,/Cost|Loss|Beta Scenario Output/i).forEach(c=>{ if(!/Hard Facts|Evidence|Mitigation|Insurance|Accepted Risk/i.test(txt(c.querySelector('.card-header h3,h3')||c))) moveIf(c,panels[1]); });
+    ensurePanelNote(panels[1],'Costs / Losses','Use this section for cost/loss ranges and exposure assumptions.');
+    ensurePanelNote(panels[2],'Hard Facts / Evidence','Use this section for factual evidence, loss history, benchmarks, and source links.');
+    ensurePanelNote(panels[3],'Mitigation / Controls','Use this section for controls, mitigation actions, owners, statuses, and implementation costs.');
+    ensurePanelNote(panels[4],'Insurance / Risk Transfer','Use this section for coverage, premium, deductible, limits, exclusions, and net offset.');
+    ensurePanelNote(panels[5],'Accepted Risk','Use this section for governance decisions, acceptance authority, review dates, and decision logic.');
+    if(!tabs.dataset.rt63Bound){
+      tabs.dataset.rt63Bound='1';
+      qsa('.rt63-tab',tabs).forEach(btn=>btn.addEventListener('click',()=>{
+        qsa('.rt63-tab',tabs).forEach(b=>b.classList.toggle('active',b===btn));
+        panels.forEach(p=>p.classList.toggle('rt63-hidden',p.dataset.rt63Panel!==btn.dataset.rt63Tab));
+      }));
+    }
+  }
+  function patchPayloads(){
+    if(window.__rt63PayloadPatched) return; window.__rt63PayloadPatched=true;
+    [['getSinglePayload','singleRiskDomain','singlePrimaryProduct'],['getComplexPayload','complexRiskDomain','complexPrimaryProduct'],['getBetaPayload','betaRiskDomain','betaPrimaryProduct']].forEach(([fn,visibleId,hiddenId])=>{
+      const old=window[fn];
+      if(typeof old==='function'){
+        window[fn]=function(){
+          const p=old.apply(this,arguments)||{};
+          const cat=qs('#'+visibleId)?.value||qs('#'+hiddenId)?.value||p.category||p.primaryProduct||p.riskDomain||'';
+          p.category=cat; p.primaryProduct=cat; p.riskDomain=cat;
+          return p;
+        };
+      }
+    });
+  }
+  function patchDashboardLabels(){
+    qsa('th').forEach(th=>{ if(txt(th)==='Risk Domain' && th.closest('#view-dashboard,#view-saved')) th.textContent='Category'; });
+  }
+  function boot(){addStyle();setVersion();fixCategoryFields();buildWorkspace('view-single','single');buildWorkspace('view-beta','beta');patchPayloads();patchDashboardLabels();fixNavActive();}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,120);setTimeout(boot,900);setTimeout(boot,1800);}); else {setTimeout(boot,120);setTimeout(boot,900);setTimeout(boot,1800);}
+  document.addEventListener('click',()=>setTimeout(()=>{fixNavActive();fixCategoryFields();},80),true);
+  document.addEventListener('change',e=>{if(e.target&&e.target.matches&&e.target.matches('select')) setTimeout(()=>{fixCategoryFields();patchPayloads();},30)},true);
+})();
+/* ===== END PHASE 23.0.63 ===== */
