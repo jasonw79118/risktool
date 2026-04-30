@@ -1,0 +1,27 @@
+RISKTOOL HANDOFF — 23.0.57 COMPONENT CREATE FIX
+Date: 04.30.2026
+Base: 23.0.56 layout correction package
+
+WHAT CHANGED
+1. Added a visible New Component button directly above the Component Summary card in the red-circle location requested by the user.
+2. Clicking New Component clears the component workspace, creates a new Component ID, clears child risk/cost/evidence/mitigation/insurance/accepted-risk tables, switches to Component Entry, and scrolls to the form.
+3. Added mode labeling: Creating New Component vs Currently Editing Component.
+4. Save Component button now displays Add Component in create mode and Update Component in edit mode.
+5. Sidebar icons are injected as inline SVGs so they do not depend on external icon files.
+6. Duplicate Portfolio Report nav entries are removed at runtime.
+7. Content/left-pane spacing is tightened so there is not extra canvas gap beside the sidebar.
+
+REGRESSION TESTS
+- Confirm version shows 23.0.57.
+- Confirm sidebar icons appear.
+- Confirm only one Portfolio Report nav item appears.
+- Confirm New Component appears above Component Summary.
+- Click New Component: form clears, new ID appears, child tables clear, indicator says Creating New Component, button says Add Component.
+- Open an existing component: indicator says Currently Editing Component and button says Update Component.
+- Confirm component tabs remain directly above the entry pane.
+
+FILES
+- index.html
+- app.js
+- app_23_0_57.js
+- risktool_handoff_23_0_57.txt
