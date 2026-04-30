@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=23.0.58" rel="stylesheet"/>
+<link href="style.css?v=23.0.59" rel="stylesheet"/>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <link rel="icon" href="data:,">
 </head>
@@ -33,7 +33,7 @@
 <button class="nav-item" data-view="information">Information</button>
 </nav>
 <div class="sidebar-note">
-<h4>Phase 23.0.58</h4>
+<h4>Phase 23.0.59</h4>
 <p>Portfolio Report now runs all saved scenarios separately from Scenario Review.</p>
 </div>
 </aside>
@@ -134,31 +134,50 @@
 <input id="singleIdentifiedDate" type="date"/>
 </div>
 <div>
-<label class="help-label" data-help="Likelihood on a 1-10 scale. This contributes to the calculated inherent risk score.">Likelihood (1-10)</label>
-<input id="singleLikelihood" max="10" min="1" type="number" value="8"/>
+<label class="help-label" data-help="Minimum evidence-supported probability estimate. This replaces subjective likelihood ratings.">Probability Min (%) <a class="source-link" href="#" data-source="single-probability">(source: Scenario Entry)</a></label>
+<input id="singleProbabilityMin" min="0" max="100" step="1" type="number" value="5"/>
 </div>
 <div>
-<label class="help-label" data-help="Impact on a 1-10 scale. This contributes to the calculated inherent risk score.">Impact (1-10)</label>
-<input id="singleImpact" max="10" min="1" type="number" value="8"/>
+<label class="help-label" data-help="Most likely evidence-supported probability estimate. This replaces subjective likelihood ratings.">Probability Most Likely (%) <a class="source-link" href="#" data-source="single-probability">(source: Scenario Entry)</a></label>
+<input id="singleProbabilityLikely" min="0" max="100" step="1" type="number" value="20"/>
 </div>
 <div>
-<label class="help-label" data-help="Calculated from likelihood and impact. This field is read-only.">Inherent Risk Score</label>
-<input id="singleInherentRiskScore" readonly="" type="number"/>
+<label class="help-label" data-help="Maximum evidence-supported probability estimate. This replaces subjective likelihood ratings.">Probability Max (%) <a class="source-link" href="#" data-source="single-probability">(source: Scenario Entry)</a></label>
+<input id="singleProbabilityMax" min="0" max="100" step="1" type="number" value="45"/>
 </div>
+<div>
+<label class="help-label" data-help="Minimum evidence-supported impact estimate. This replaces subjective impact ratings.">Impact Min ($) <a class="source-link" href="#" data-source="single-impact">(source: Scenario Entry)</a></label>
+<input data-currency="usd" id="singleImpactMin" inputmode="decimal" min="0" step="1000" type="text" value="50000"/>
+</div>
+<div>
+<label class="help-label" data-help="Most likely evidence-supported impact estimate. This replaces subjective impact ratings.">Impact Most Likely ($) <a class="source-link" href="#" data-source="single-impact">(source: Scenario Entry)</a></label>
+<input data-currency="usd" id="singleImpactLikely" inputmode="decimal" min="0" step="1000" type="text" value="150000"/>
+</div>
+<div>
+<label class="help-label" data-help="Maximum evidence-supported impact estimate. This replaces subjective impact ratings.">Impact Max ($) <a class="source-link" href="#" data-source="single-impact">(source: Scenario Entry)</a></label>
+<input data-currency="usd" id="singleImpactMax" inputmode="decimal" min="0" step="1000" type="text" value="400000"/>
+</div>
+<div>
+<label class="help-label" data-help="Confidence in the evidence supporting the probability and impact ranges.">Evidence Quality <a class="source-link" href="#" data-source="single-evidence-quality">(source: Scenario Entry)</a></label>
+<select id="singleEvidenceQuality"><option>Low</option><option selected>Medium</option><option>High</option></select>
+</div>
+<input id="singleLikelihood" type="hidden" value="2"/>
+<input id="singleImpact" type="hidden" value="2"/>
+<input id="singleInherentRiskScore" type="hidden"/>
 <div>
 <label class="help-label" data-help="Estimated percentage reduction from current controls and mitigations.">Control Effectiveness %</label>
 <input id="singleControlEffectiveness" max="100" min="0" type="number" value="30"/>
 </div>
 <div>
-<label class="help-label" data-help="Minimum direct hard-cost loss estimate for this component.">Hard Cost Min ($)</label>
+<label class="help-label" data-help="Minimum evidence-supported cost/loss estimate for this scenario.">Cost / Loss Min ($)</label>
 <input data-currency="usd" id="singleHardCostMin" inputmode="decimal" min="0" step="1000" type="text" value="50000"/>
 </div>
 <div>
-<label class="help-label" data-help="Most likely direct hard-cost loss estimate for this component.">Hard Cost Most Likely ($)</label>
+<label class="help-label" data-help="Most likely evidence-supported cost/loss estimate for this scenario.">Cost / Loss Most Likely ($)</label>
 <input data-currency="usd" id="singleHardCostLikely" inputmode="decimal" min="0" step="1000" type="text" value="150000"/>
 </div>
 <div>
-<label class="help-label" data-help="Maximum direct hard-cost loss estimate for this component.">Hard Cost Max ($)</label>
+<label class="help-label" data-help="Maximum evidence-supported cost/loss estimate for this scenario.">Cost / Loss Max ($)</label>
 <input data-currency="usd" id="singleHardCostMax" inputmode="decimal" min="0" step="1000" type="text" value="400000"/>
 </div>
 <div>
@@ -903,7 +922,7 @@
 </div>
 <div class="card">
 <div class="card-header"><h3>Workspace Setup</h3><span>Local + Shared Workspace Foundation</span></div>
-<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.58. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
+<div class="note-box" id="workspacePhaseNote">Current frontend phase: 23.0.59. Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.</div>
 <div class="form-grid">
 <div>
 <label class="help-label" data-help="Current local session user used for new saves and ownership defaults.">Current Session User</label>
@@ -995,7 +1014,7 @@
 </div>
 </div>
 <div class="card mt-3">
-<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.58</span></div>
+<div class="card-header"><h3>Shared Workspace Readiness Checklist</h3><span>Phase 23.0.59</span></div>
 <div class="card-body">
 <ul>
 <li>Workspace root selected and documented</li>
@@ -1316,9 +1335,9 @@
 </div>
 </section>
 </main>
-<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.58</div>
-<script src="beta_scenario_engine.js?v=23.0.58"></script>
-<script src="app_23_0_58.js?v=23.0.58"></script>
+<div id="appVersion" style="position:fixed; left:12px; bottom:8px; z-index:5000; font-size:12px; color:#5b6475; background:rgba(255,255,255,0.92); padding:4px 8px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">23.0.59</div>
+<script src="beta_scenario_engine.js?v=23.0.59"></script>
+<script src="app_23_0_59.js?v=23.0.59"></script>
 
 <div class="modal-overlay" id="loginGate" style="display:none; position:fixed; inset:0; background:rgba(12,18,34,0.72); z-index:9999; align-items:center; justify-content:center; padding:24px; pointer-events:auto;">
   <div class="card" style="width:min(560px, 96vw); max-height:90vh; overflow:auto;">

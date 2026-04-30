@@ -1,0 +1,21 @@
+RiskTool 23.0.59 - Single/Beta Workspace Alignment
+
+Changes included:
+1. Continued matching Single Scenario and Beta Scenario screens to the Complex Component Workspace visual pattern.
+2. Added workspace-style summary cards and numbered tabs to Single and Beta screens.
+3. Removed active user-entered Single Scenario risk rating fields from the visible UI: Likelihood (1-10), Impact (1-10), and Inherent Risk Score.
+4. Replaced them with fact-based probability and impact ranges: Probability Min/Likely/Max, Impact Min/Likely/Max, and Evidence Quality.
+5. Added hidden backward-compatible derived values only so older report/save paths do not break; users no longer enter risk ratings.
+6. Single Scenario expected loss summary now derives from probability likely x impact likely.
+7. Beta Scenario summary now shows project/product, status, expected value, P50, and P90.
+
+Regression testing:
+- Single Scenario should load without visible Likelihood, Impact, or Inherent Risk Score fields.
+- Single Scenario should still save, run, and appear in Saved Scenarios.
+- Probability and Impact changes should update the Single Summary expected loss.
+- Beta Scenario should still run beta simulation, save, and update summary values.
+- Complex Scenario Builder should remain unchanged from 23.0.58 except for version bump.
+
+Packaging:
+- Flat ZIP; no nested folder.
+- Includes index.html, app.js, app_23_0_59.js, and this handoff.
