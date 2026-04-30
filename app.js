@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.52-R";
+const APP_VERSION = "23.0.53-R";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 23.0.52-R COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 23.0.53-R COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 23.0.52-R ===== */
+/* ===== END PHASE 23.0.53-R ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -7301,7 +7301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===== PHASE 23.0.50 PORTFOLIO REPORT MODE REWRITE ===== */
 (function(){
-  const PHASE = "23.0.52-R";
+  const PHASE = "23.0.53-R";
   const ITERATION_OPTIONS = [100, 1000, 10000, 100000];
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
 
@@ -7576,9 +7576,9 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ===== END PHASE 23.0.50 ===== */
 
 
-/* ===== PHASE 23.0.52-R RESET STABILIZATION GUARD ===== */
+/* ===== PHASE 23.0.53-R RESET STABILIZATION GUARD ===== */
 (function(){
-  const PHASE = "23.0.52-R";
+  const PHASE = "23.0.53-R";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   function syncVersion51(){
     document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
@@ -7608,4 +7608,235 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 1000);
   });
 })();
-/* ===== END PHASE 23.0.52-R ===== */
+/* ===== END PHASE 23.0.53-R ===== */
+
+/* ===== PHASE 23.0.53-R COLUMN SOURCES + FULL ROW EDITING ===== */
+(function(){
+  const PHASE = "23.0.53-R";
+  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId', costLoss: 'costLossId' };
+  const prefixMap = { insurance: 'INS', hardFact: 'HF', mitigation: 'MIT', acceptedRisk: 'AR', costLoss: 'COST' };
+  window.rtEditingRiskItemId = window.rtEditingRiskItemId || null;
+
+  function rtId(prefix){
+    if (typeof nextRecordId === 'function') return nextRecordId(prefix);
+    return prefix + '-' + Date.now() + '-' + Math.floor(Math.random()*100000);
+  }
+  function ensureIds(kind, list){
+    const key = keyMap[kind];
+    const prefix = prefixMap[kind] || 'ROW';
+    if (!Array.isArray(list) || !key) return list || [];
+    list.forEach(row => { if (row && !row[key]) row[key] = rtId(prefix); });
+    return list;
+  }
+  function ensureAllRowIds(){
+    try {
+      ensureIds('insurance', window.singleInsurance || singleInsurance);
+      ensureIds('insurance', window.complexInsurance || complexInsurance);
+      ensureIds('insurance', window.betaInsurance || betaInsurance);
+      ensureIds('hardFact', window.singleHardFacts || singleHardFacts);
+      ensureIds('hardFact', window.complexHardFacts || complexHardFacts);
+      ensureIds('hardFact', window.betaHardFacts || betaHardFacts);
+      ensureIds('mitigation', window.singleMitigations || singleMitigations);
+      ensureIds('mitigation', window.complexMitigations || complexMitigations);
+      ensureIds('acceptedRisk', window.singleAcceptedRisks || []);
+      ensureIds('acceptedRisk', window.complexAcceptedRisks || []);
+      ensureIds('costLoss', window.complexCostLosses || complexCostLosses || []);
+      (window.currentComplexItems || currentComplexItems || []).forEach(item => { if (item && !item.issueId) item.issueId = rtId('ISS'); });
+    } catch(e) {}
+  }
+
+  const columnSources = {
+    'risk-item:item': 'Risk Item Table → Item comes from the Risk Item Name field in the Risk Item Entry form.',
+    'risk-item:domain': 'Risk Item Table → Domain comes from the Risk Domain dropdown in the Risk Item Entry form.',
+    'risk-item:product': 'Risk Item Table → Product comes from the Related Area / Product Family dropdown in the Risk Item Entry form.',
+    'risk-item:regulation': 'Risk Item Table → Regulation comes from the Related Regulation dropdown in the Risk Item Entry form.',
+    'risk-item:probability': 'Risk Item Table → Probability Min / Likely / Max comes from the three Probability fields in the Risk Item Entry form.',
+    'risk-item:impact': 'Risk Item Table → Impact Min / Likely / Max comes from the three Impact fields in the Risk Item Entry form. Cost/Loss entries and hard facts are separately used as exposure anchors in rollups.',
+    'risk-item:evidence': 'Risk Item Table → Evidence Quality comes from the Evidence Quality dropdown in the Risk Item Entry form.',
+    'risk-item:costs': 'Risk Item Table → Linked Costs is calculated from the Cost/Loss table rows tied to this risk item.',
+    'risk-item:status': 'Risk Item Table → Status comes from the Risk Item Status dropdown in the Risk Item Entry form.',
+    'cost-loss:type': 'Cost/Loss Table → Cost Type comes from the Cost Type dropdown.',
+    'cost-loss:applies': 'Cost/Loss Table → Applies To comes from the Applies To dropdown.',
+    'cost-loss:risk': 'Cost/Loss Table → Related Risk Item comes from the Related Risk Item dropdown; blank means component-level exposure.',
+    'cost-loss:min': 'Cost/Loss Table → Amount Min comes from Amount Min ($).',
+    'cost-loss:likely': 'Cost/Loss Table → Amount Likely comes from Amount Likely ($), and is used as a primary exposure anchor.',
+    'cost-loss:max': 'Cost/Loss Table → Amount Max comes from Amount Max ($).',
+    'cost-loss:date': 'Cost/Loss Table → Date/Period comes from Date / Period.',
+    'cost-loss:source': 'Cost/Loss Table → Source Type comes from Source Type.',
+    'cost-loss:notes': 'Cost/Loss Table → Notes comes from Notes.',
+    'hard-fact:source': 'Hard Facts / Evidence Table → Source Type comes from the Hard Fact Source Type dropdown.',
+    'hard-fact:amount': 'Hard Facts / Evidence Table → Amount comes from the Hard Fact Amount field and feeds risk as an actual loss/cost evidence anchor.',
+    'hard-fact:date': 'Hard Facts / Evidence Table → Date comes from the Hard Fact Date field.',
+    'hard-fact:description': 'Hard Facts / Evidence Table → Description comes from the Hard Fact Description field.',
+    'hard-fact:link': 'Hard Facts / Evidence Table → Source Link comes from Source Link / Document Location.',
+    'mitigation:title': 'Mitigation Table → Title comes from the Mitigation Title field.',
+    'mitigation:owner': 'Mitigation Table → Owner comes from the Mitigation Owner field.',
+    'mitigation:status': 'Mitigation Table → Status comes from the Mitigation Status field.',
+    'mitigation:attachment': 'Mitigation Table → Attachment comes from the attachment/source field.',
+    'insurance:policy': 'Insurance Table → Policy Name comes from Policy Name.',
+    'insurance:number': 'Insurance Table → Policy Number comes from Policy Number.',
+    'insurance:carrier': 'Insurance Table → Carrier comes from Carrier.',
+    'insurance:type': 'Insurance Table → Coverage Type comes from Coverage Type.',
+    'insurance:premium': 'Insurance Table → Premium comes from Premium.',
+    'insurance:deductible': 'Insurance Table → Deductible comes from Deductible and reduces net insurance offset.',
+    'insurance:coverage': 'Insurance Table → Coverage Amount comes from Coverage Amount and is used as the gross risk-transfer value.',
+    'insurance:dates': 'Insurance Table → Coverage Dates comes from Coverage Dates.',
+    'insurance:notes': 'Insurance Table → Notes comes from Notes / Exclusions / Comments.',
+    'accepted:flag': 'Accepted Risk Table → Accepted comes from the Risk Accepted checkbox.',
+    'accepted:authority': 'Accepted Risk Table → Authority comes from the Acceptance Authority dropdown.',
+    'accepted:by': 'Accepted Risk Table → Accepted By comes from the Accepted By field.',
+    'accepted:date': 'Accepted Risk Table → Acceptance Date comes from Acceptance Date.',
+    'accepted:review': 'Accepted Risk Table → Review Date comes from Review Date.',
+    'accepted:logic': 'Accepted Risk Table → Decision Logic comes from Decision Logic.'
+  };
+  function src(key){ return '<br><button type="button" class="column-source-link" data-column-source="' + key + '">(source)</button>'; }
+  function showSource(key){
+    const msg = columnSources[key] || 'This column is populated from the matching input field or a calculated related table value.';
+    let box = document.getElementById('rtColumnSourceModal');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'rtColumnSourceModal';
+      box.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.38);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;';
+      box.innerHTML = '<div style="max-width:620px;width:100%;background:#fff;border-radius:16px;box-shadow:0 20px 70px rgba(15,23,42,.28);border:1px solid #dbe6f4;"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid #e7edf7;"><strong>Column Input Source</strong><button type="button" class="btn btn-secondary small-btn" id="rtColumnSourceClose">Close</button></div><div id="rtColumnSourceText" style="padding:18px;line-height:1.55;color:#0f2544;"></div></div>';
+      document.body.appendChild(box);
+      box.addEventListener('click', function(e){ if (e.target === box || e.target.id === 'rtColumnSourceClose') box.style.display='none'; });
+    }
+    const text = document.getElementById('rtColumnSourceText');
+    if (text) text.textContent = msg;
+    box.style.display = 'flex';
+  }
+  function decorateHeaders(){
+    const maps = [
+      ['complexItemsBody', ['risk-item:item','risk-item:domain','risk-item:product','risk-item:regulation','risk-item:probability','risk-item:impact','risk-item:evidence','risk-item:costs','risk-item:status',null]],
+      ['complexCostLossBody', ['cost-loss:type','cost-loss:applies','cost-loss:risk','cost-loss:min','cost-loss:likely','cost-loss:max','cost-loss:date','cost-loss:source','cost-loss:notes',null]],
+      ['complexHardFactsBody', ['hard-fact:source','hard-fact:amount','hard-fact:date','hard-fact:description','hard-fact:link',null]],
+      ['complexMitigationBody', ['mitigation:title','mitigation:owner','mitigation:status','mitigation:attachment',null]],
+      ['complexInsuranceBody', ['insurance:policy','insurance:number','insurance:carrier','insurance:type','insurance:premium','insurance:deductible','insurance:coverage','insurance:dates','insurance:notes',null,null]],
+      ['complexAcceptedRiskBody', ['accepted:flag','accepted:authority','accepted:by','accepted:date','accepted:review','accepted:logic',null]]
+    ];
+    maps.forEach(([tbodyId, keys]) => {
+      const tbody = document.getElementById(tbodyId);
+      const table = tbody?.closest('table');
+      if (!table) return;
+      table.querySelectorAll('thead th').forEach((th, i) => {
+        if (!keys[i] || th.querySelector('.column-source-link')) return;
+        th.insertAdjacentHTML('beforeend', src(keys[i]));
+      });
+    });
+    if (!document.getElementById('rtColumnSourceStyles')) {
+      const style = document.createElement('style');
+      style.id = 'rtColumnSourceStyles';
+      style.textContent = '.column-source-link{border:0;background:transparent;color:#0b5bd3;text-decoration:underline;cursor:pointer;font-size:11px;font-weight:600;padding:1px 0;margin:2px 0 0 0}.column-source-link:hover{color:#063b8c}.rt-editing-row{outline:2px solid #0b5bd3;outline-offset:-2px;background:#f0f6ff!important}';
+      document.head.appendChild(style);
+    }
+  }
+
+  function clearRiskItemForm(){
+    ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    try { setSelectValueSafe('riskItemEvidenceQuality', 'Medium'); setSelectValueSafe('riskItemStatus', 'Open'); } catch(e) {}
+    window.rtEditingRiskItemId = null;
+    const btn = document.getElementById('addRiskItemBtn'); if (btn) btn.textContent = 'Add Risk Item';
+    const status = document.getElementById('riskItemEditStatus'); if (status) status.textContent = 'No risk item selected for editing.';
+    const cancel = document.getElementById('cancelRiskItemEditBtn'); if (cancel) cancel.style.display = 'none';
+    formatAllCurrencyFields && formatAllCurrencyFields();
+  }
+  function ensureRiskEditControls(){
+    const addBtn = document.getElementById('addRiskItemBtn');
+    if (!addBtn) return;
+    let cancel = document.getElementById('cancelRiskItemEditBtn');
+    if (!cancel) {
+      cancel = document.createElement('button');
+      cancel.type = 'button'; cancel.id = 'cancelRiskItemEditBtn'; cancel.className = 'btn btn-secondary'; cancel.textContent = 'Cancel Edit'; cancel.style.display = 'none';
+      addBtn.insertAdjacentElement('afterend', cancel);
+      cancel.addEventListener('click', clearRiskItemForm);
+    }
+    let status = document.getElementById('riskItemEditStatus');
+    if (!status) {
+      status = document.createElement('div');
+      status.id = 'riskItemEditStatus'; status.className = 'note-box'; status.textContent = 'No risk item selected for editing.';
+      cancel.insertAdjacentElement('afterend', status);
+    }
+  }
+  function editRiskItem(issueId){
+    const list = window.currentComplexItems || currentComplexItems || [];
+    const item = list.find(x => String(x.issueId || '') === String(issueId || ''));
+    if (!item) return;
+    window.rtEditingRiskItemId = item.issueId;
+    const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+    setVal('riskItemName', item.name || '');
+    setSelectValueSafe && setSelectValueSafe('riskItemDomain', item.domain || '');
+    setSelectValueSafe && setSelectValueSafe('riskItemProduct', item.product || '');
+    setSelectValueSafe && setSelectValueSafe('riskItemReg', item.regulation || '');
+    setVal('riskItemProbMin', item.probMin ?? 0); setVal('riskItemProbLikely', item.probLikely ?? 0); setVal('riskItemProbMax', item.probMax ?? 0);
+    if (typeof setCurrencyFieldValue === 'function') { setCurrencyFieldValue('riskItemImpactMin', item.impactMin || 0); setCurrencyFieldValue('riskItemImpactLikely', item.impactLikely || 0); setCurrencyFieldValue('riskItemImpactMax', item.impactMax || 0); }
+    else { setVal('riskItemImpactMin', item.impactMin || 0); setVal('riskItemImpactLikely', item.impactLikely || 0); setVal('riskItemImpactMax', item.impactMax || 0); }
+    setSelectValueSafe && setSelectValueSafe('riskItemEvidenceQuality', item.evidenceQuality || 'Medium');
+    setSelectValueSafe && setSelectValueSafe('riskItemStatus', item.status || 'Open');
+    setVal('riskItemDescription', item.description || '');
+    const btn = document.getElementById('addRiskItemBtn'); if (btn) btn.textContent = 'Update Risk Item';
+    const cancel = document.getElementById('cancelRiskItemEditBtn'); if (cancel) cancel.style.display = '';
+    const status = document.getElementById('riskItemEditStatus'); if (status) status.textContent = 'Editing risk item: ' + (item.name || item.issueId || 'Risk Item');
+    document.querySelectorAll('#complexItemsBody tr').forEach(tr => tr.classList.toggle('rt-editing-row', tr.dataset.issueId === String(issueId || '')));
+    formatAllCurrencyFields && formatAllCurrencyFields();
+    document.getElementById('riskItemName')?.focus();
+  }
+
+  renderComplexItems = function() {
+    ensureAllRowIds();
+    const tbody = document.getElementById('complexItemsBody');
+    if (!tbody) return;
+    if (!currentComplexItems.length) {
+      tbody.innerHTML = '<tr><td colspan="10">No risk items added yet.</td></tr>';
+    } else {
+      tbody.innerHTML = currentComplexItems.map(item => {
+        const prob = safeNumber(item.probMin,0) + '% / ' + safeNumber(item.probLikely,0) + '% / ' + safeNumber(item.probMax,0) + '%';
+        const impact = currency(item.impactMin) + ' / ' + currency(item.impactLikely) + ' / ' + currency(item.impactMax);
+        const costCount = (complexCostLosses || []).filter(c => String(c.riskItemId || '') === String(item.issueId || '')).length;
+        const actions = '<button class="btn btn-secondary small-btn" type="button" data-edit-risk-item="' + escapeHtml(item.issueId || '') + '">Edit</button> <button class="btn btn-danger small-btn" type="button" data-delete-risk-item="' + escapeHtml(item.issueId || '') + '">Delete</button>';
+        return '<tr data-issue-id="' + escapeHtml(item.issueId || '') + '"><td><button class="scenario-link" data-issue-open="' + escapeHtml(item.issueId || '') + '">' + escapeHtml(item.name) + '</button></td><td>' + escapeHtml(item.domain) + '</td><td>' + escapeHtml(item.product) + '</td><td>' + escapeHtml(item.regulation) + '</td><td>' + prob + '</td><td>' + impact + '</td><td>' + escapeHtml(item.evidenceQuality || 'Medium') + '</td><td>' + costCount + '</td><td>' + escapeHtml(item.status || 'Open') + '</td><td>' + actions + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('[data-issue-open]').forEach(btn => btn.addEventListener('click', () => highlightIssueRow(btn.dataset.issueOpen)));
+      tbody.querySelectorAll('[data-edit-risk-item]').forEach(btn => btn.addEventListener('click', () => editRiskItem(btn.dataset.editRiskItem)));
+    }
+    decorateHeaders();
+    renderCostLossRiskItemOptions && renderCostLossRiskItemOptions();
+    refreshComplexProductSectionSelects && refreshComplexProductSectionSelects();
+    updateInherentScores && updateInherentScores();
+    renderComplexProductSections && renderComplexProductSections();
+  };
+
+  addRiskItem = function() {
+    if (!complexProductSections.length) { alert('Add an Area / Product Family first.'); return; }
+    const editId = window.rtEditingRiskItemId;
+    const impactLikely = parseCurrencyValue(document.getElementById('riskItemImpactLikely')?.value || 0);
+    const record = { issueId: editId || ('ISS-' + Date.now() + '-' + Math.floor(Math.random() * 1000)), parentScenarioMode: 'complex', name: document.getElementById('riskItemName')?.value || 'Unnamed Risk Item', domain: document.getElementById('riskItemDomain')?.value || '', product: document.getElementById('riskItemProduct')?.value || '', regulation: document.getElementById('riskItemReg')?.value || '', description: document.getElementById('riskItemDescription')?.value || '', probMin: safeNumber(document.getElementById('riskItemProbMin')?.value || 0, 0), probLikely: safeNumber(document.getElementById('riskItemProbLikely')?.value || 0, 0), probMax: safeNumber(document.getElementById('riskItemProbMax')?.value || 0, 0), impactMin: parseCurrencyValue(document.getElementById('riskItemImpactMin')?.value || 0), impactLikely, impactMax: parseCurrencyValue(document.getElementById('riskItemImpactMax')?.value || impactLikely), evidenceQuality: document.getElementById('riskItemEvidenceQuality')?.value || 'Medium', status: document.getElementById('riskItemStatus')?.value || 'Open', score: 0, weight: 1 };
+    const idx = currentComplexItems.findIndex(x => String(x.issueId || '') === String(record.issueId || ''));
+    if (idx >= 0) currentComplexItems[idx] = record; else currentComplexItems.push(record);
+    clearRiskItemForm();
+    renderComplexItems();
+    formatAllCurrencyFields && formatAllCurrencyFields();
+  };
+
+  const priorRenderInsurance = renderInsuranceTable;
+  renderInsuranceTable = function(targetId, items){ ensureIds('insurance', items); priorRenderInsurance(targetId, items); decorateHeaders(); };
+  const priorRenderHardFacts = renderHardFactsTable;
+  renderHardFactsTable = function(targetId, items){ ensureIds('hardFact', items); priorRenderHardFacts(targetId, items); decorateHeaders(); };
+  const priorRenderMitigation = renderMitigationTable;
+  renderMitigationTable = function(targetId, items){ ensureIds('mitigation', items); priorRenderMitigation(targetId, items); decorateHeaders(); };
+  const priorRenderAccepted = renderAcceptedRiskTable;
+  renderAcceptedRiskTable = function(targetId, items, mode){ ensureIds('acceptedRisk', items); priorRenderAccepted(targetId, items, mode); decorateHeaders(); };
+  const priorRenderCostLoss = renderCostLossTable;
+  renderCostLossTable = function(targetId, items){ ensureIds('costLoss', items); priorRenderCostLoss(targetId, items); decorateHeaders(); };
+
+  document.addEventListener('click', function(e){
+    const source = e.target.closest('[data-column-source]');
+    if (source) { e.preventDefault(); showSource(source.dataset.columnSource); return; }
+    const editRisk = e.target.closest('[data-edit-risk-item]');
+    if (editRisk) { e.preventDefault(); editRiskItem(editRisk.dataset.editRiskItem); return; }
+  });
+  document.addEventListener('DOMContentLoaded', function(){
+    ensureAllRowIds(); ensureRiskEditControls(); decorateHeaders();
+    setTimeout(function(){ ensureAllRowIds(); ensureRiskEditControls(); decorateHeaders(); try { renderComplexItems(); } catch(e) {} }, 300);
+  });
+})();
+/* ===== END PHASE 23.0.53-R ===== */

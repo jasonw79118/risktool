@@ -1,0 +1,62 @@
+RISKTOOL HANDOFF — PHASE 23.0.53-R COLUMN SOURCES + FULL ROW EDITING
+Date: 04.30.2026
+Baseline: 23.0.52-R Cost/Loss table patch
+Target Version: 23.0.53-R
+
+PURPOSE
+This patch continues the Complex Scenario Builder cleanup after the subjective risk-score fields were removed. It improves user understanding of where table values come from and adds edit/update capability for risk item rows.
+
+CHANGES INCLUDED
+1. Version bump
+- Updated frontend version to 23.0.53-R.
+- index.html now references app_23_0_53.js?v=23.0.53.
+- app.js and app_23_0_53.js contain the same active logic.
+
+2. Column Input Source links
+- Added underlined “(source)” links to Complex Scenario Builder table headers.
+- Clicking a source link opens a Column Input Source modal explaining where that column pulls data from.
+- Covered tables include:
+  - Risk Item Table
+  - Cost/Loss Table
+  - Hard Facts / Evidence Table
+  - Mitigation / Controls Table
+  - Insurance / Risk Transfer Table
+  - Accepted Risk Table
+
+3. Risk Item row editing
+- Added Edit button to Risk Item Table rows.
+- Edit loads the selected row back into the Risk Item Entry form.
+- Add Risk Item changes to Update Risk Item while editing.
+- Update Risk Item saves changes to the existing row instead of creating a duplicate.
+- Cancel Edit clears edit mode and returns the form to Add Risk Item mode.
+
+4. Row ID stability
+- Added guards to ensure rows in the editable tables have stable IDs when rendered.
+- This improves edit/delete reliability for legacy rows that may not have had an ID.
+
+5. Cost/loss and hard facts remain part of risk logic
+- Cost/Loss table entries remain exposure anchors.
+- Hard Facts / Evidence loss-cost amounts remain evidence anchors for risk calculations and reports.
+
+DELIVERY CONTENTS
+- index.html
+- app.js
+- app_23_0_53.js
+- risktool_handoff_23_0_53_COLUMN_SOURCES_EDITING.txt
+
+TESTING CHECKLIST
+- Confirm version shows 23.0.53-R.
+- Confirm Risk Item Table has Edit and Delete actions.
+- Add a risk item, edit it, update it, and confirm no duplicate row appears.
+- Confirm Cancel Edit returns button text to Add Risk Item.
+- Confirm source links appear under table headers and open source descriptions.
+- Confirm Cost/Loss rows still edit/delete.
+- Confirm Hard Facts, Mitigation, Insurance, and Accepted Risk rows still edit/delete.
+- Confirm rollups still refresh after edits.
+
+NEXT SUGGESTED PHASE
+23.0.54-R should focus on tightening table columns and calculations across the Complex Builder:
+- Add row-level source links to Component Summary / Product Rollup tables.
+- Add clearer calculated exposure explanations in the right-side/help panel.
+- Add stronger validation messages for missing probability/impact/cost entries.
+- Confirm portfolio report rankings use cost/loss + hard facts + probability/impact together.
