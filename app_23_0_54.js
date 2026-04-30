@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.45";
+const APP_VERSION = "23.0.54";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -173,6 +173,7 @@ let singleInsurance = [];
 let complexInsurance = [];
 let singleHardFacts = [];
 let complexHardFacts = [];
+let complexCostLosses = [];
 let betaInsurance = [];
 let betaHardFacts = [];
 let singleMitigations = [];
@@ -1010,6 +1011,7 @@ function deleteComplexProductSection(sectionId) {
   complexProductSections = complexProductSections.filter(x => String(x.sectionId || "") !== String(sectionId || ""));
   renderComplexProductSections();
   renderComplexItems();
+  renderCostLossTable("complexCostLossBody", complexCostLosses);
 }
 
 function renderInsuranceTable(targetId, items) {
@@ -1075,13 +1077,14 @@ function getCurrentComplexComponentSnapshot() {
     identifiedDate: document.getElementById("complexIdentifiedDate")?.value || "",
     description: document.getElementById("complexScenarioDescription")?.value || "",
     control: Number(document.getElementById("complexControlEffectiveness")?.value || 0),
-    hardCostMin: parseCurrencyValue(document.getElementById("complexHardCostMin")?.value || 0),
-    hardCostLikely: parseCurrencyValue(document.getElementById("complexHardCostLikely")?.value || 0),
-    hardCostMax: parseCurrencyValue(document.getElementById("complexHardCostMax")?.value || 0),
-    softCostMin: Number(document.getElementById("complexSoftCostMin")?.value || 0),
-    softCostLikely: Number(document.getElementById("complexSoftCostLikely")?.value || 0),
-    softCostMax: Number(document.getElementById("complexSoftCostMax")?.value || 0),
-    mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost")?.value || 0),
+    costLosses: complexCostLosses.map(item => ({ ...item })),
+    hardCostMin: getComplexCostLossSummary().hardMin,
+    hardCostLikely: getComplexCostLossSummary().hardLikely,
+    hardCostMax: getComplexCostLossSummary().hardMax,
+    softCostMin: getComplexCostLossSummary().softMin,
+    softCostLikely: getComplexCostLossSummary().softLikely,
+    softCostMax: getComplexCostLossSummary().softMax,
+    mitigationCost: getComplexCostLossSummary().mitigationLikely,
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount")?.value || 1000),
     productSections: complexProductSections.map(section => ({ ...section })),
     items: currentComplexItems.map(item => ({ ...item })),
@@ -1110,13 +1113,7 @@ function applyComplexComponentSnapshot(component) {
   document.getElementById("complexIdentifiedDate").value = component.identifiedDate || "";
   document.getElementById("complexScenarioDescription").value = component.description || "";
   document.getElementById("complexControlEffectiveness").value = component.control || 0;
-  setCurrencyFieldValue("complexHardCostMin", component.hardCostMin || 0);
-  setCurrencyFieldValue("complexHardCostLikely", component.hardCostLikely || 0);
-  setCurrencyFieldValue("complexHardCostMax", component.hardCostMax || 0);
-  document.getElementById("complexSoftCostMin").value = component.softCostMin || 0;
-  document.getElementById("complexSoftCostLikely").value = component.softCostLikely || 0;
-  document.getElementById("complexSoftCostMax").value = component.softCostMax || 0;
-  setCurrencyFieldValue("complexMitigationCost", component.mitigationCost || 0);
+  complexCostLosses = Array.isArray(component.costLosses) ? component.costLosses.map(item => ({ ...item })) : migrateLegacyComponentCosts(component);
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = String(component.randomScenarioCount || 1000);
   complexProductSections = Array.isArray(component.productSections) ? component.productSections.map(section => ({ ...section })) : [];
@@ -1128,10 +1125,12 @@ function applyComplexComponentSnapshot(component) {
   currentComplexItems = Array.isArray(component.items) ? component.items.map(item => ({ ...item })) : [];
   complexInsurance = Array.isArray(component.insurance) ? component.insurance.map(item => ({ ...item })) : [];
   complexHardFacts = Array.isArray(component.hardFacts) ? component.hardFacts.map(item => ({ ...item })) : [];
+  if (!Array.isArray(component.costLosses)) complexCostLosses = migrateLegacyComponentCosts(component);
   complexMitigations = Array.isArray(component.mitigations) ? component.mitigations.map(item => ({ ...item })) : [];
   renderComplexItems();
   renderInsuranceTable("complexInsuranceBody", complexInsurance);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+  renderCostLossTable("complexCostLossBody", complexCostLosses);
   renderMitigationTable("complexMitigationBody", complexMitigations);
   document.getElementById("complexAcceptedRiskFlag").checked = !!component.acceptedRisk?.isAccepted;
   document.getElementById("complexAcceptanceAuthority").value = component.acceptedRisk?.authority || acceptanceAuthorities[0] || "";
@@ -1194,12 +1193,14 @@ function deleteComplexScenarioComponent(componentId) {
     currentComplexItems = [];
     complexInsurance = [];
     complexHardFacts = [];
+    complexCostLosses = [];
     complexMitigations = [];
     window.complexAcceptedRisks = [];
     syncComplexComponentIdField(true);
     renderComplexItems();
     renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+    renderCostLossTable("complexCostLossBody", complexCostLosses);
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderAcceptedRiskTable("complexAcceptedRiskBody", window.complexAcceptedRisks, "complex");
   }
@@ -1552,13 +1553,14 @@ function getComplexPayload() {
     impact: 0,
     inherent: avgInherent,
     control: Number(document.getElementById("complexControlEffectiveness").value || 0),
-    hardCostMin: parseCurrencyValue(document.getElementById("complexHardCostMin").value || 0),
-    hardCostLikely: parseCurrencyValue(document.getElementById("complexHardCostLikely").value || 0),
-    hardCostMax: parseCurrencyValue(document.getElementById("complexHardCostMax").value || 0),
-    softCostMin: Number(document.getElementById("complexSoftCostMin").value || 0),
-    softCostLikely: Number(document.getElementById("complexSoftCostLikely").value || 0),
-    softCostMax: Number(document.getElementById("complexSoftCostMax").value || 0),
-    mitigationCost: parseCurrencyValue(document.getElementById("complexMitigationCost").value || 0),
+    hardCostMin: getComplexCostLossSummary().hardMin,
+    hardCostLikely: getComplexCostLossSummary().hardLikely,
+    hardCostMax: getComplexCostLossSummary().hardMax,
+    softCostMin: getComplexCostLossSummary().softMin,
+    softCostLikely: getComplexCostLossSummary().softLikely,
+    softCostMax: getComplexCostLossSummary().softMax,
+    mitigationCost: getComplexCostLossSummary().mitigationLikely,
+    costLosses: complexCostLosses.map(item => ({ ...item })),
     randomScenarioCount: Number(document.getElementById("complexRandomScenarioCount").value || 1000),
     productSections: complexProductSections.map(section => ({ ...section })),
     items: allItems,
@@ -2261,13 +2263,7 @@ function openScenario(id) {
     document.getElementById("complexIdentifiedDate").value = s.identifiedDate || "";
     document.getElementById("complexScenarioDescription").value = s.description || "";
     document.getElementById("complexControlEffectiveness").value = s.control || 0;
-    setCurrencyFieldValue("complexHardCostMin", s.hardCostMin || 0);
-    setCurrencyFieldValue("complexHardCostLikely", s.hardCostLikely || 0);
-    setCurrencyFieldValue("complexHardCostMax", s.hardCostMax || 0);
-    document.getElementById("complexSoftCostMin").value = s.softCostMin || 0;
-    document.getElementById("complexSoftCostLikely").value = s.softCostLikely || 0;
-    document.getElementById("complexSoftCostMax").value = s.softCostMax || 0;
-    setCurrencyFieldValue("complexMitigationCost", s.mitigationCost || 0);
+    complexCostLosses = Array.isArray(s.costLosses) ? s.costLosses.slice() : migrateLegacyComponentCosts(s);
     const complexRandom = document.getElementById("complexRandomScenarioCount");
     if (complexRandom) complexRandom.value = String(s.randomScenarioCount || 1000);
     currentComplexItems = (firstComponent && Array.isArray(firstComponent.items) ? firstComponent.items : Array.isArray(s.items) ? s.items : []).slice().map(item => ({
@@ -2281,12 +2277,14 @@ function openScenario(id) {
     if (groupEl) groupEl.value = firstComponent?.groupId || s.complexGroupId || ensureComplexGroupId();
     complexInsurance = firstComponent && Array.isArray(firstComponent.insurance) ? firstComponent.insurance.slice() : Array.isArray(s.insurance) ? s.insurance.slice() : [];
     complexHardFacts = firstComponent && Array.isArray(firstComponent.hardFacts) ? firstComponent.hardFacts.slice() : Array.isArray(s.hardFacts) ? s.hardFacts.slice() : [];
+    complexCostLosses = firstComponent && Array.isArray(firstComponent.costLosses) ? firstComponent.costLosses.slice() : (Array.isArray(s.costLosses) ? s.costLosses.slice() : migrateLegacyComponentCosts(s));
     complexMitigations = firstComponent && Array.isArray(firstComponent.mitigations) ? firstComponent.mitigations.slice() : Array.isArray(s.mitigations) ? s.mitigations.slice() : [];
     activeComplexComponentId = firstComponent?.componentId || "";
     syncComplexComponentIdField(!activeComplexComponentId);
     window.complexAcceptedRisks = Array.isArray(s.acceptedRiskEntries) && s.acceptedRiskEntries.length ? s.acceptedRiskEntries.slice() : (s.acceptedRisk ? [s.acceptedRisk] : []);
     renderInsuranceTable("complexInsuranceBody", complexInsurance);
     renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+    renderCostLossTable("complexCostLossBody", complexCostLosses);
     renderMitigationTable("complexMitigationBody", complexMitigations);
     renderAcceptedRiskTable("complexAcceptedRiskBody", window.complexAcceptedRisks, "complex");
     renderComplexScenarioComponents();
@@ -2450,13 +2448,12 @@ function loadComplexTestScenario() {
   setInputValueSafe("complexScenarioOwner", "Enterprise Risk");
   document.getElementById("complexIdentifiedDate").value = todayIso();
   document.getElementById("complexControlEffectiveness").value = 28;
-  setCurrencyFieldValue("complexHardCostMin", 125000);
-  setCurrencyFieldValue("complexHardCostLikely", 475000);
-  setCurrencyFieldValue("complexHardCostMax", 1200000);
-  document.getElementById("complexSoftCostMin").value = 0.20;
-  document.getElementById("complexSoftCostLikely").value = 0.45;
-  document.getElementById("complexSoftCostMax").value = 0.90;
-  setCurrencyFieldValue("complexMitigationCost", 210000);
+  complexCostLosses = [
+    { costLossId: nextRecordId('COST'), costType: 'Hard Loss', appliesTo: 'Component', riskItemId: '', amountMin: 125000, amountLikely: 475000, amountMax: 1200000, datePeriod: todayIso(), sourceType: 'Internal', notes: 'Direct hard-cost exposure for deposit modernization component.', sourceLink: '' },
+    { costLossId: nextRecordId('COST'), costType: 'Soft Cost', appliesTo: 'Component', riskItemId: '', amountMin: 25000, amountLikely: 95000, amountMax: 250000, datePeriod: todayIso(), sourceType: 'Internal', notes: 'Secondary operational/customer-impact cost estimate.', sourceLink: '' },
+    { costLossId: nextRecordId('COST'), costType: 'Remediation', appliesTo: 'Component', riskItemId: '', amountMin: 90000, amountLikely: 210000, amountMax: 400000, datePeriod: todayIso(), sourceType: 'Internal', notes: 'Control redesign and remediation cost.', sourceLink: '' }
+  ];
+  renderCostLossTable("complexCostLossBody", complexCostLosses);
   const complexRandom = document.getElementById("complexRandomScenarioCount");
   if (complexRandom) complexRandom.value = "1000";
   document.getElementById("complexScenarioDescription").value = "This scenario covers a cross-functional modernization effort touching deposit operations, dispute servicing, disclosures, and third-party integrations.";
@@ -3141,6 +3138,7 @@ function getModeCollection(kind, mode) {
   const map = {
     insurance: { single: singleInsurance, complex: complexInsurance, beta: betaInsurance },
     hardFact: { single: singleHardFacts, complex: complexHardFacts, beta: betaHardFacts },
+    costLoss: { complex: complexCostLosses },
     mitigation: { single: singleMitigations, complex: complexMitigations },
     acceptedRisk: { single: window.singleAcceptedRisks, complex: window.complexAcceptedRisks }
   };
@@ -3290,7 +3288,7 @@ function addAcceptedRisk(mode) {
 }
 function editRecord(kind, mode, id) {
   const list = getModeCollection(kind, mode);
-  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId' };
+  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId', costLoss: 'costLossId' };
   const item = list.find(x => String(x[keyMap[kind]]) === String(id));
   if (!item) return;
   setEditState(kind, mode, id);
@@ -3337,7 +3335,7 @@ function editRecord(kind, mode, id) {
 }
 function deleteRecord(kind, mode, id) {
   const list = getModeCollection(kind, mode);
-  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId' };
+  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId', costLoss: 'costLossId' };
   const next = list.filter(x => String(x[keyMap[kind]]) !== String(id));
   if (kind === 'insurance') { if (mode === 'single') singleInsurance = next; else if (mode === 'complex') complexInsurance = next; else betaInsurance = next; renderInsuranceTable(`${mode}InsuranceBody`, next); resetInsuranceForm(mode); }
   if (kind === 'hardFact') { if (mode === 'single') singleHardFacts = next; else if (mode === 'complex') complexHardFacts = next; else betaHardFacts = next; renderHardFactsTable(`${mode}HardFactsBody`, next); resetHardFactForm(mode); }
@@ -3345,13 +3343,14 @@ function deleteRecord(kind, mode, id) {
   if (kind === 'acceptedRisk') { if (mode === 'single') window.singleAcceptedRisks = next; else window.complexAcceptedRisks = next; renderAcceptedRiskTable(`${mode}AcceptedRiskBody`, next, mode); resetAcceptedRiskForm(mode); }
 }
 function wireRecordMaintenanceEnhancements() {
-  [['single','Insurance'],['complex','Insurance'],['beta','Insurance'],['single','HardFact'],['complex','HardFact'],['beta','HardFact'],['single','Mitigation'],['complex','Mitigation'],['single','AcceptedRisk'],['complex','AcceptedRisk']].forEach(([mode,kind]) => {
+  [['single','Insurance'],['complex','Insurance'],['beta','Insurance'],['single','HardFact'],['complex','HardFact'],['beta','HardFact'],['complex','CostLoss'],['single','Mitigation'],['complex','Mitigation'],['single','AcceptedRisk'],['complex','AcceptedRisk']].forEach(([mode,kind]) => {
     const btn = document.getElementById(`cancel${mode[0].toUpperCase()+mode.slice(1)}${kind}EditBtn`);
     if (btn && !btn.dataset.wired) {
       btn.dataset.wired = 'true';
       btn.addEventListener('click', () => {
         if (kind === 'Insurance') resetInsuranceForm(mode);
         if (kind === 'HardFact') resetHardFactForm(mode);
+        if (kind === 'CostLoss') resetCostLossForm(mode);
         if (kind === 'Mitigation') resetMitigationForm(mode);
         if (kind === 'AcceptedRisk') resetAcceptedRiskForm(mode);
       });
@@ -3368,6 +3367,204 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
+/* ===== PHASE 23.0.54 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+function migrateLegacyComponentCosts(component) {
+  const records = [];
+  if (!component) return records;
+  const hardMin = safeNumber(component.hardCostMin || 0, 0);
+  const hardLikely = safeNumber(component.hardCostLikely || 0, 0);
+  const hardMax = safeNumber(component.hardCostMax || 0, 0);
+  if (hardMin || hardLikely || hardMax) records.push({ costLossId: nextRecordId('COST'), costType: 'Hard Loss', appliesTo: 'Component', riskItemId: '', amountMin: hardMin, amountLikely: hardLikely || hardMin, amountMax: hardMax || hardLikely || hardMin, datePeriod: component.identifiedDate || '', sourceType: 'Legacy Component', notes: 'Migrated from prior component-level hard cost fields.', sourceLink: '' });
+  const softMin = safeNumber(component.softCostMin || 0, 0);
+  const softLikely = safeNumber(component.softCostLikely || 0, 0);
+  const softMax = safeNumber(component.softCostMax || 0, 0);
+  const softBase = Math.max(hardLikely, 1);
+  if (softMin || softLikely || softMax) records.push({ costLossId: nextRecordId('COST'), costType: 'Soft Cost', appliesTo: 'Component', riskItemId: '', amountMin: Math.round(softBase * softMin), amountLikely: Math.round(softBase * softLikely), amountMax: Math.round(softBase * softMax), datePeriod: component.identifiedDate || '', sourceType: 'Legacy Component', notes: 'Migrated from prior component-level soft-cost multiplier fields.', sourceLink: '' });
+  const mitigation = safeNumber(component.mitigationCost || 0, 0);
+  if (mitigation) records.push({ costLossId: nextRecordId('COST'), costType: 'Remediation', appliesTo: 'Component', riskItemId: '', amountMin: mitigation, amountLikely: mitigation, amountMax: mitigation, datePeriod: component.identifiedDate || '', sourceType: 'Legacy Component', notes: 'Migrated from prior component-level mitigation cost field.', sourceLink: '' });
+  return records;
+}
+function getComplexCostLossSummary(records) {
+  const list = Array.isArray(records) ? records : (Array.isArray(complexCostLosses) ? complexCostLosses : []);
+  const hardTypes = new Set(['Hard Loss','Legal','Customer Restitution','Vendor','Staff Time','Other']);
+  const softTypes = new Set(['Soft Cost']);
+  const mitigationTypes = new Set(['Remediation','Control Cost']);
+  const sum = (field, predicate) => list.filter(predicate).reduce((total, item) => total + safeNumber(item[field] || 0, 0), 0);
+  const isHard = x => hardTypes.has(x.costType || 'Hard Loss');
+  const isSoft = x => softTypes.has(x.costType || '');
+  const isMit = x => mitigationTypes.has(x.costType || '');
+  const hardMin = sum('amountMin', isHard), hardLikely = sum('amountLikely', isHard), hardMax = sum('amountMax', isHard);
+  const softMinDollars = sum('amountMin', isSoft), softLikelyDollars = sum('amountLikely', isSoft), softMaxDollars = sum('amountMax', isSoft);
+  const base = Math.max(hardLikely, 1);
+  return { hardMin, hardLikely, hardMax, softMin: softMinDollars / base, softLikely: softLikelyDollars / base, softMax: softMaxDollars / base, softMinDollars, softLikelyDollars, softMaxDollars, mitigationMin: sum('amountMin', isMit), mitigationLikely: sum('amountLikely', isMit), mitigationMax: sum('amountMax', isMit), totalLikely: hardLikely + softLikelyDollars + sum('amountLikely', isMit) };
+}
+function resetCostLossForm(mode) {
+  if (mode !== 'complex') return;
+  setSelectValueSafe('complexCostLossType', 'Hard Loss');
+  setSelectValueSafe('complexCostLossAppliesTo', 'Component');
+  setSelectValueSafe('complexCostLossRiskItemId', '');
+  setSelectValueSafe('complexCostLossSourceType', 'Internal');
+  ['AmountMin','AmountLikely','AmountMax','DatePeriod','Notes','SourceLink'].forEach(s => { const el = document.getElementById('complexCostLoss' + s); if (el) el.value = ''; });
+  setButtonLabel('addComplexCostLossBtn', 'Add Cost / Loss');
+  setStatusText('complexCostLossEditStatus', 'No cost/loss entry selected for editing.');
+  setEditState('costLoss', 'complex', null);
+  formatAllCurrencyFields();
+}
+function renderCostLossRiskItemOptions() {
+  const select = document.getElementById('complexCostLossRiskItemId');
+  if (!select) return;
+  const current = select.value;
+  const rows = ['<option value="">Component-level / not tied to one risk item</option>'];
+  (currentComplexItems || []).forEach(item => rows.push('<option value="' + escapeHtml(item.issueId || '') + '">' + escapeHtml(item.name || item.issueId || 'Risk Item') + '</option>'));
+  select.innerHTML = rows.join('');
+  if ([...select.options].some(o => o.value === current)) select.value = current;
+}
+function renderCostLossTable(targetId, items) {
+  const tbody = document.getElementById(targetId);
+  if (!tbody) return;
+  renderCostLossRiskItemOptions();
+  if (!items || !items.length) { tbody.innerHTML = '<tr><td colspan="10">No cost/loss entries added yet. Add known losses, legal costs, remediation costs, staff time, vendor costs, or other exposure items for this component.</td></tr>'; return; }
+  const riskName = (id) => (currentComplexItems || []).find(x => String(x.issueId || '') === String(id || ''))?.name || (id ? id : 'Component');
+  tbody.innerHTML = items.map(x => '<tr><td>' + escapeHtml(x.costType || '') + '</td><td>' + escapeHtml(x.appliesTo || '') + '</td><td>' + escapeHtml(riskName(x.riskItemId || '')) + '</td><td>' + currency(x.amountMin) + '</td><td>' + currency(x.amountLikely) + '</td><td>' + currency(x.amountMax) + '</td><td>' + escapeHtml(x.datePeriod || '') + '</td><td>' + escapeHtml(x.sourceType || '') + '</td><td>' + escapeHtml(x.notes || '') + '</td><td>' + renderActionButtons('costLoss', 'complex', escapeHtml(x.costLossId || '')) + '</td></tr>').join('');
+}
+function addCostLoss(mode) {
+  if (mode !== 'complex') return;
+  const editId = getEditState('costLoss', 'complex');
+  const record = {
+    costLossId: editId || nextRecordId('COST'),
+    costType: document.getElementById('complexCostLossType')?.value || 'Hard Loss',
+    appliesTo: document.getElementById('complexCostLossAppliesTo')?.value || 'Component',
+    riskItemId: document.getElementById('complexCostLossRiskItemId')?.value || '',
+    amountMin: parseCurrencyValue(document.getElementById('complexCostLossAmountMin')?.value || 0),
+    amountLikely: parseCurrencyValue(document.getElementById('complexCostLossAmountLikely')?.value || 0),
+    amountMax: parseCurrencyValue(document.getElementById('complexCostLossAmountMax')?.value || 0),
+    datePeriod: document.getElementById('complexCostLossDatePeriod')?.value || '',
+    sourceType: document.getElementById('complexCostLossSourceType')?.value || 'Internal',
+    notes: document.getElementById('complexCostLossNotes')?.value || '',
+    sourceLink: document.getElementById('complexCostLossSourceLink')?.value || ''
+  };
+  if (!record.amountLikely && (record.amountMin || record.amountMax)) record.amountLikely = Math.round((record.amountMin + record.amountMax) / 2);
+  if (!record.amountMax) record.amountMax = record.amountLikely || record.amountMin || 0;
+  if (!record.amountMin) record.amountMin = Math.min(record.amountLikely || 0, record.amountMax || record.amountLikely || 0);
+  const idx = complexCostLosses.findIndex(x => String(x.costLossId || '') === String(record.costLossId || ''));
+  if (idx >= 0) complexCostLosses[idx] = record; else complexCostLosses.push(record);
+  renderCostLossTable('complexCostLossBody', complexCostLosses);
+  renderComplexProductSections();
+  resetCostLossForm('complex');
+}
+const __rt52_priorEditRecord = typeof editRecord === 'function' ? editRecord : null;
+editRecord = function(kind, mode, id) {
+  if (kind === 'costLoss' && mode === 'complex') {
+    const item = (complexCostLosses || []).find(x => String(x.costLossId || '') === String(id || ''));
+    if (!item) return;
+    setEditState('costLoss', 'complex', id);
+    setSelectValueSafe('complexCostLossType', item.costType || 'Hard Loss');
+    setSelectValueSafe('complexCostLossAppliesTo', item.appliesTo || 'Component');
+    renderCostLossRiskItemOptions();
+    setSelectValueSafe('complexCostLossRiskItemId', item.riskItemId || '');
+    setCurrencyFieldValue('complexCostLossAmountMin', item.amountMin || 0);
+    setCurrencyFieldValue('complexCostLossAmountLikely', item.amountLikely || 0);
+    setCurrencyFieldValue('complexCostLossAmountMax', item.amountMax || 0);
+    const dateEl = document.getElementById('complexCostLossDatePeriod'); if (dateEl) dateEl.value = item.datePeriod || '';
+    setSelectValueSafe('complexCostLossSourceType', item.sourceType || 'Internal');
+    const notesEl = document.getElementById('complexCostLossNotes'); if (notesEl) notesEl.value = item.notes || '';
+    const linkEl = document.getElementById('complexCostLossSourceLink'); if (linkEl) linkEl.value = item.sourceLink || '';
+    setButtonLabel('addComplexCostLossBtn', 'Update Cost / Loss');
+    setStatusText('complexCostLossEditStatus', 'Editing cost/loss: ' + (item.costType || 'Cost/Loss') + ' ' + currency(item.amountLikely || 0));
+    formatAllCurrencyFields();
+    return;
+  }
+  return __rt52_priorEditRecord ? __rt52_priorEditRecord(kind, mode, id) : undefined;
+};
+const __rt52_priorDeleteRecord = typeof deleteRecord === 'function' ? deleteRecord : null;
+deleteRecord = function(kind, mode, id) {
+  if (kind === 'costLoss' && mode === 'complex') {
+    const item = (complexCostLosses || []).find(x => String(x.costLossId || '') === String(id || ''));
+    if (item && !window.confirm('Delete cost/loss entry "' + (item.costType || 'Cost/Loss') + '" for ' + currency(item.amountLikely || 0) + '?')) return;
+    complexCostLosses = (complexCostLosses || []).filter(x => String(x.costLossId || '') !== String(id || ''));
+    renderCostLossTable('complexCostLossBody', complexCostLosses);
+    renderComplexProductSections();
+    resetCostLossForm('complex');
+    return;
+  }
+  return __rt52_priorDeleteRecord ? __rt52_priorDeleteRecord(kind, mode, id) : undefined;
+};
+renderComplexItems = function() {
+  const tbody = document.getElementById('riskItemsTableBody');
+  if (!tbody) return;
+  if (!currentComplexItems.length) {
+    tbody.innerHTML = '<tr><td colspan="10">No risk items added yet.</td></tr>';
+  } else {
+    tbody.innerHTML = currentComplexItems.map(item => {
+      const prob = safeNumber(item.probMin,0) + '% / ' + safeNumber(item.probLikely,0) + '% / ' + safeNumber(item.probMax,0) + '%';
+      const impact = currency(item.impactMin) + ' / ' + currency(item.impactLikely) + ' / ' + currency(item.impactMax);
+      const costCount = (complexCostLosses || []).filter(c => String(c.riskItemId || '') === String(item.issueId || '')).length;
+      return '<tr data-issue-id="' + escapeHtml(item.issueId || '') + '"><td><button class="scenario-link" data-issue-open="' + escapeHtml(item.issueId || '') + '">' + escapeHtml(item.name) + '</button></td><td>' + escapeHtml(item.domain) + '</td><td>' + escapeHtml(item.product) + '</td><td>' + escapeHtml(item.regulation) + '</td><td>' + prob + '</td><td>' + impact + '</td><td>' + escapeHtml(item.evidenceQuality || 'Medium') + '</td><td>' + costCount + '</td><td>' + escapeHtml(item.status || 'Open') + '</td><td><button class="btn btn-secondary" type="button" data-delete-risk-item="' + escapeHtml(item.issueId || '') + '">Delete</button></td></tr>';
+    }).join('');
+    tbody.querySelectorAll('[data-issue-open]').forEach(btn => btn.addEventListener('click', () => highlightIssueRow(btn.dataset.issueOpen)));
+  }
+  renderCostLossRiskItemOptions();
+  refreshComplexProductSectionSelects();
+  updateInherentScores();
+  renderComplexProductSections();
+};
+calculateComplexInherent = function() {
+  if (!currentComplexItems.length) return 0;
+  const scores = currentComplexItems.map(item => {
+    if (item.probLikely !== undefined || item.impactLikely !== undefined) {
+      const probScore = Math.max(0, Math.min(100, safeNumber(item.probLikely || 0, 0)));
+      const impactScore = Math.min(100, Math.round(Math.log10(Math.max(1, safeNumber(item.impactLikely || 0, 0))) * 16));
+      return Math.round((probScore * 0.45) + (impactScore * 0.55));
+    }
+    return safeNumber(item.score || 0, 0);
+  });
+  return Math.round(scores.reduce((a,b) => a + b, 0) / Math.max(scores.length, 1));
+};
+addRiskItem = function() {
+  if (!complexProductSections.length) { alert('Add an Area / Product Family first.'); return; }
+  const impactLikely = parseCurrencyValue(document.getElementById('riskItemImpactLikely')?.value || 0);
+  currentComplexItems.push({ issueId: 'ISS-' + Date.now() + '-' + Math.floor(Math.random() * 1000), parentScenarioMode: 'complex', name: document.getElementById('riskItemName')?.value || 'Unnamed Risk Item', domain: document.getElementById('riskItemDomain')?.value || '', product: document.getElementById('riskItemProduct')?.value || '', regulation: document.getElementById('riskItemReg')?.value || '', description: document.getElementById('riskItemDescription')?.value || '', probMin: safeNumber(document.getElementById('riskItemProbMin')?.value || 0, 0), probLikely: safeNumber(document.getElementById('riskItemProbLikely')?.value || 0, 0), probMax: safeNumber(document.getElementById('riskItemProbMax')?.value || 0, 0), impactMin: parseCurrencyValue(document.getElementById('riskItemImpactMin')?.value || 0), impactLikely, impactMax: parseCurrencyValue(document.getElementById('riskItemImpactMax')?.value || impactLikely), evidenceQuality: document.getElementById('riskItemEvidenceQuality')?.value || 'Medium', status: document.getElementById('riskItemStatus')?.value || 'Open', score: 0, weight: 1 });
+  ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  renderComplexItems();
+  formatAllCurrencyFields();
+};
+deleteComplexRiskItem = function(issueId) {
+  const item = currentComplexItems.find(x => String(x.issueId || '') === String(issueId || ''));
+  if (!item) return;
+  const linkedCosts = (complexCostLosses || []).filter(x => String(x.riskItemId || '') === String(issueId || '')).length;
+  const confirmed = window.confirm('Delete risk item "' + (item.name || 'Unnamed Risk Item') + '"?' + (linkedCosts ? ' This will also unlink ' + linkedCosts + ' cost/loss entry from this risk item.' : ''));
+  if (!confirmed) return;
+  currentComplexItems = currentComplexItems.filter(x => String(x.issueId || '') !== String(issueId || ''));
+  complexCostLosses = (complexCostLosses || []).map(x => String(x.riskItemId || '') === String(issueId || '') ? { ...x, appliesTo: 'Component', riskItemId: '' } : x);
+  renderComplexItems();
+  renderCostLossTable('complexCostLossBody', complexCostLosses);
+};
+const __rt52_priorCalculateComplexComponentRollup = typeof calculateComplexComponentRollup === 'function' ? calculateComplexComponentRollup : null;
+calculateComplexComponentRollup = function(component) {
+  const base = __rt52_priorCalculateComplexComponentRollup ? __rt52_priorCalculateComplexComponentRollup(component) : { inherent:0,residual:0,delta:0,insuranceImpact:'None',highestDriver:'No component data',exposure:0 };
+  const costs = Array.isArray(component?.costLosses) ? component.costLosses : migrateLegacyComponentCosts(component);
+  const summary = getComplexCostLossSummary(costs);
+  const evidenceLoss = Array.isArray(component?.hardFacts) ? component.hardFacts.reduce((t,x)=>t + safeNumber(x.amount || 0,0),0) : 0;
+  const costExposure = Math.max(summary.hardLikely + summary.softLikelyDollars, evidenceLoss, 1);
+  const itemExpected = (Array.isArray(component?.items) ? component.items : []).reduce((t,item)=> t + ((safeNumber(item.probLikely || 0,0)/100) * safeNumber(item.impactLikely || 0,0)), 0);
+  const expectedExposure = Math.max(itemExpected, costExposure * Math.max(0.01, safeNumber(base.inherent || 0,0)/100));
+  const controlCredit = Math.max(0, Math.min(0.85, safeNumber(component?.control || 0,0) / 100));
+  const coverage = (Array.isArray(component?.insurance) ? component.insurance : []).reduce((t,x)=> t + Math.max(0, safeNumber(x.coverageAmount||0,0) - safeNumber(x.deductible||0,0)), 0);
+  const residualDollars = Math.max(0, expectedExposure * (1-controlCredit) - Math.min(coverage, expectedExposure));
+  const residualScore = Math.max(0, Math.min(100, Math.round((residualDollars / Math.max(costExposure, 1)) * 100)));
+  return { ...base, exposure: Math.round(costExposure), residualExposure: Math.round(residualDollars), residual: residualScore, delta: Math.max(0, Math.round((base.inherent || residualScore) - residualScore)), highestDriver: (summary.totalLikely ? 'Cost/Loss table exposure' : (evidenceLoss ? 'Hard facts evidence anchor' : base.highestDriver)) };
+};
+function wireCostLossButtons() {
+  const addBtn = document.getElementById('addComplexCostLossBtn');
+  if (addBtn && !addBtn.dataset.wired) { addBtn.dataset.wired='true'; addBtn.addEventListener('click', () => addCostLoss('complex')); }
+  const cancelBtn = document.getElementById('cancelComplexCostLossEditBtn');
+  if (cancelBtn && !cancelBtn.dataset.wired) { cancelBtn.dataset.wired='true'; cancelBtn.addEventListener('click', () => resetCostLossForm('complex')); }
+  renderCostLossRiskItemOptions();
+}
+const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
+wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
+/* ===== END PHASE 23.0.54 ===== */
+
 function init() {
   loadStoredMonteCarloConfig();
   wireInputs();
@@ -3379,6 +3576,7 @@ function init() {
   renderInsuranceTable("betaInsuranceBody", betaInsurance);
   renderHardFactsTable("singleHardFactsBody", singleHardFacts);
   renderHardFactsTable("complexHardFactsBody", complexHardFacts);
+  renderCostLossTable("complexCostLossBody", complexCostLosses);
   renderHardFactsTable("betaHardFactsBody", betaHardFacts);
   renderMitigationTable("singleMitigationBody", singleMitigations);
   renderMitigationTable("complexMitigationBody", complexMitigations);
@@ -7100,3 +7298,578 @@ document.addEventListener('DOMContentLoaded', () => {
   function syncVersion(){ document.querySelectorAll('[data-version], .version, #appVersion, #versionLabel, #dashboardVersion').forEach(el=>{ if(el) el.textContent = PHASE; }); } document.addEventListener('DOMContentLoaded', syncVersion); setTimeout(syncVersion,500);
 })();
 /* ===== END PHASE 23.0.45 ===== */
+
+/* ===== PHASE 23.0.50 PORTFOLIO REPORT MODE REWRITE ===== */
+(function(){
+  const PHASE = "23.0.54";
+  const ITERATION_OPTIONS = [100, 1000, 10000, 100000];
+  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
+
+  function num(v, fallback = 0){
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    const n = Number(String(v ?? "").replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(n) ? n : fallback;
+  }
+  function esc(v){
+    if (typeof escapeHtml === "function") return escapeHtml(v);
+    return String(v ?? "").replace(/[&<>\"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+  }
+  function fmt(v){
+    try { return new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }).format(num(v)); }
+    catch(e){ return "$" + Math.round(num(v)).toLocaleString(); }
+  }
+  function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0; }
+  function percentile(sorted, p){
+    if (!sorted.length) return 0;
+    const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p/100) * sorted.length) - 1));
+    return sorted[idx];
+  }
+  function triangular(min, mode, max){
+    min = Math.max(0, num(min)); mode = Math.max(min, num(mode, min)); max = Math.max(mode, num(max, mode));
+    if (max <= min) return min;
+    const u = Math.random();
+    const c = (mode - min) / (max - min || 1);
+    return u < c ? min + Math.sqrt(u * (max-min) * (mode-min)) : max - Math.sqrt((1-u) * (max-min) * (max-mode));
+  }
+  function scenarioLabel(s){ return s?.name || s?.scenarioName || s?.primaryProduct || s?.id || "Unnamed Scenario"; }
+  function scenarioArea(s){
+    const fromSection = Array.isArray(s?.productSections) && s.productSections[0] ? (s.productSections[0].productServiceArea || s.productSections[0].productName || s.productSections[0].areaName) : "";
+    return fromSection || s?.primaryProduct || s?.productGroup || s?.riskDomain || "Unmapped Area";
+  }
+  function statusFromRisk(v){ return v >= 500000 ? "High" : v >= 100000 ? "Elevated" : v >= 25000 ? "Moderate" : "Lower"; }
+  function componentLabel(c, idx){ return c?.scenarioName || c?.componentName || c?.name || c?.primaryProduct || `Component ${idx+1}`; }
+  function evidenceAmounts51(records){
+    return (Array.isArray(records) ? records : [])
+      .map(item => num(item?.amount ?? item?.lossAmount ?? item?.costAmount ?? item?.documentedLoss ?? 0))
+      .filter(v => Number.isFinite(v) && v > 0);
+  }
+  function evidenceAnchor51(c, parent){
+    const amounts = evidenceAmounts51(c?.hardFacts)
+      .concat(evidenceAmounts51(c?.evidence))
+      .concat(evidenceAmounts51(parent?.hardFacts))
+      .concat(evidenceAmounts51(parent?.evidence));
+    if (!amounts.length) return null;
+    const sorted = amounts.slice().sort((a,b)=>a-b);
+    const total = amounts.reduce((a,b)=>a+b,0);
+    const mean = total / amounts.length;
+    const median = sorted[Math.floor(sorted.length / 2)] || mean;
+    const p90 = sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.90) - 1)] || sorted[sorted.length - 1] || mean;
+    return { count: amounts.length, total, mean, median, p90, max: sorted[sorted.length - 1] || mean };
+  }
+  function componentInputs(c, parent){
+    const evidence = evidenceAnchor51(c, parent);
+    const baseLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
+    const hardLikely = evidence ? Math.max(baseLikely, evidence.median || evidence.mean || 0) : baseLikely;
+    const hardMin = evidence ? Math.max(num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000)), Math.min(evidence.median || hardLikely, evidence.mean || hardLikely)) : num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
+    const hardMax = evidence ? Math.max(num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000)), evidence.p90 || evidence.max || hardLikely, evidence.total || 0) : num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
+    const softLikely = num(c?.softCostLikely, num(parent?.softCostLikely, 0.25));
+    const softMin = num(c?.softCostMin, num(parent?.softCostMin, 0.05));
+    const softMax = num(c?.softCostMax, num(parent?.softCostMax, Math.max(softLikely, 0.75)));
+    const control = Math.max(0, Math.min(100, num(c?.control, num(parent?.control, 0)))) / 100;
+    const mitigationCost = num(c?.mitigationCost, 0);
+    const rollup = (typeof window.calculateComplexComponentRollup === "function" && parent?.mode === "complex") ? window.calculateComplexComponentRollup(c) : null;
+    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup, evidence };
+  }
+  function getScenarioComponents(s){
+    if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) return s.components;
+    return [s || {}];
+  }
+  function runScenarioMonteCarlo50(s, iterations){
+    iterations = ITERATION_OPTIONS.includes(Number(iterations)) ? Number(iterations) : 1000;
+    const comps = getScenarioComponents(s);
+    const compInputs = comps.map(c => componentInputs(c, s));
+    const outcomes = [];
+    for (let i = 0; i < iterations; i++) {
+      let inherent = 0, residual = 0;
+      compInputs.forEach(input => {
+        const hard = triangular(input.hardMin, input.hardLikely, input.hardMax);
+        const softMultiplier = triangular(input.softMin, input.softLikely, input.softMax);
+        const gross = hard + (hard * softMultiplier);
+        const afterControl = Math.max(0, gross * (1 - input.control));
+        inherent += gross;
+        residual += Math.max(0, afterControl + input.mitigationCost);
+      });
+      outcomes.push({ scenarioNumber: i + 1, inherentLoss: Math.round(inherent), residualLoss: Math.round(residual) });
+    }
+    const residualSorted = outcomes.map(x => x.residualLoss).sort((a,b)=>a-b);
+    const inherentSorted = outcomes.map(x => x.inherentLoss).sort((a,b)=>a-b);
+    const componentRisks = compInputs.map(input => {
+      if (input.rollup && num(input.rollup.residual) > 0) return num(input.rollup.residual);
+      const hard = input.hardLikely || avg([input.hardMin,input.hardMax]);
+      const gross = hard + (hard * input.softLikely);
+      return Math.max(0, gross * (1 - input.control) + input.mitigationCost);
+    });
+    const totalExposure = avg(residualSorted);
+    return {
+      iterations,
+      outcomes,
+      avgComponentRisk: Math.round(avg(componentRisks)),
+      totalExposure: Math.round(totalExposure),
+      expectedLoss: Math.round(avg(inherentSorted)),
+      residualExpectedLoss: Math.round(totalExposure),
+      p50: Math.round(percentile(residualSorted, 50)),
+      p90: Math.round(percentile(residualSorted, 90)),
+      p95: Math.round(percentile(residualSorted, 95)),
+      p99: Math.round(percentile(residualSorted, 99)),
+      volatility: Math.round(percentile(residualSorted, 95) - percentile(residualSorted, 50)),
+      riskReduction: Math.max(0, Math.round(avg(inherentSorted) - totalExposure)),
+      componentCount: comps.length,
+      componentRisks
+    };
+  }
+  function topDriverForScenario(s, metrics){
+    if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) {
+      let rows = s.components.map((c, idx) => ({ name: componentLabel(c, idx), metric: componentInputs(c, s).rollup }));
+      rows = rows.sort((a,b) => num(b.metric?.residual) - num(a.metric?.residual));
+      if (rows[0]?.metric?.highestDriver) return `${rows[0].name}: ${rows[0].metric.highestDriver}`;
+      return rows[0]?.name || "Largest component exposure";
+    }
+    const evidence = evidenceAnchor51(s, s);
+    if (evidence) return `Hard facts / evidence loss-cost anchor: ${fmt(evidence.total)} documented across ${evidence.count} item(s)`;
+    return s?.riskDomain || s?.primaryRegulation || s?.primaryProduct || "Scenario exposure assumptions";
+  }
+  function recommendationForScenario(s, m){
+    const name = scenarioLabel(s), area = scenarioArea(s), driver = topDriverForScenario(s, m);
+    const status = statusFromRisk(m.avgComponentRisk);
+    let action = "maintain existing controls and continue scheduled monitoring";
+    if (status === "High") action = "prioritize immediate management review, validate control design, and consider stronger mitigation or risk transfer";
+    else if (status === "Elevated") action = "assign a management owner, validate assumptions, strengthen controls, and track remediation timing";
+    else if (status === "Moderate") action = "monitor through normal governance and test key controls for continued effectiveness";
+    return `${name} in ${area} ranks ${status.toLowerCase()} based on average component residual risk of ${fmt(m.avgComponentRisk)} and total modeled exposure of ${fmt(m.totalExposure)}. The main concern is ${driver}. Monte Carlo results show P95 residual exposure of ${fmt(m.p95)} and P99 exposure of ${fmt(m.p99)}, so management should ${action}.`;
+  }
+  function getPortfolioRows50(){
+    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
+    const iterations = Number(document.getElementById("portfolioMonteCarloIterations50")?.value || 1000);
+    return saved.map(s => {
+      const metrics = runScenarioMonteCarlo50(s, iterations);
+      return { scenario: s, metrics, driver: topDriverForScenario(s, metrics), recommendation: recommendationForScenario(s, metrics) };
+    }).sort((a,b) => (b.metrics.avgComponentRisk - a.metrics.avgComponentRisk) || (b.metrics.totalExposure - a.metrics.totalExposure));
+  }
+  function drawBarChart50(canvasId, rows, metricName, label){
+    const canvas = document.getElementById(canvasId); if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d"); const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h); ctx.font = "12px Inter, Arial"; ctx.fillStyle = "#334155";
+    if (!rows.length) { ctx.fillText("No saved scenarios available.", 20, 40); return; }
+    const max = Math.max(...rows.map(r => num(r.metrics[metricName])), 1);
+    const pad = 42, barH = Math.max(16, Math.min(34, (h - pad - 20) / rows.length - 8));
+    rows.forEach((r, i) => {
+      const y = pad + i * (barH + 8);
+      const val = num(r.metrics[metricName]);
+      const barW = Math.max(2, (w - 260) * val / max);
+      ctx.fillStyle = "#e2e8f0"; ctx.fillRect(210, y, w - 250, barH);
+      ctx.fillStyle = "#64748b"; ctx.fillRect(210, y, barW, barH);
+      ctx.fillStyle = "#0f172a"; ctx.fillText(String(i+1)+". "+scenarioLabel(r.scenario).slice(0,24), 10, y + barH - 4);
+      ctx.fillText(fmt(val), 220 + barW, y + barH - 4);
+    });
+    ctx.fillStyle = "#0f172a"; ctx.font = "14px Inter, Arial"; ctx.fillText(label, 10, 20);
+  }
+  function drawDistribution50(canvasId, outcomes){
+    const canvas = document.getElementById(canvasId); if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h); ctx.font = "12px Inter, Arial"; ctx.fillStyle = "#334155";
+    if (!outcomes || !outcomes.length) { ctx.fillText("Select a scenario to preview Monte Carlo distribution.", 20, 40); return; }
+    const vals = outcomes.map(o => o.residualLoss); const min = Math.min(...vals), max = Math.max(...vals); const bins = 20; const counts = Array(bins).fill(0);
+    vals.forEach(v => { const idx = Math.min(bins-1, Math.max(0, Math.floor(((v-min)/(max-min || 1))*bins))); counts[idx]++; });
+    const maxCount = Math.max(...counts, 1), pad = 34, bw = (w - pad*2) / bins;
+    counts.forEach((c,i) => { const bh = (h - 70) * c / maxCount; ctx.fillStyle = "#64748b"; ctx.fillRect(pad + i*bw, h - pad - bh, Math.max(1,bw-2), bh); });
+    ctx.fillStyle = "#0f172a"; ctx.fillText(`Distribution: ${fmt(min)} to ${fmt(max)}`, 10, 20);
+  }
+  function renderPortfolioReport50(){
+    const host = document.getElementById("portfolioReportBody50"); if (!host) return;
+    const rows = getPortfolioRows50();
+    if (!rows.length) {
+      host.innerHTML = '<div class="note-box">No saved scenarios found. Save Single and Complex scenarios first, then run the Portfolio Report.</div>';
+      drawBarChart50("portfolioAvgRiskChart50", [], "avgComponentRisk", "Average Component Risk");
+      drawBarChart50("portfolioTotalRiskChart50", [], "totalExposure", "Total Exposure");
+      return;
+    }
+    host.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Scenario</th><th>Type</th><th>Area / Product Family</th><th>Avg Component Risk</th><th>Total Exposure</th><th>P95</th><th>P99</th><th>Components</th><th>Top Driver</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td><strong>${esc(scenarioLabel(r.scenario))}</strong><br><small>${esc(r.scenario.id || "")}</small></td><td>${esc(r.scenario.mode || "")}</td><td>${esc(scenarioArea(r.scenario))}</td><td><strong>${fmt(r.metrics.avgComponentRisk)}</strong></td><td>${fmt(r.metrics.totalExposure)}</td><td>${fmt(r.metrics.p95)}</td><td>${fmt(r.metrics.p99)}</td><td>${r.metrics.componentCount}</td><td>${esc(r.driver)}</td><td>${statusFromRisk(r.metrics.avgComponentRisk)}</td><td><button class="btn btn-secondary small-btn" data-pr-scenario="${esc(r.scenario.id || "")}">Review</button><button class="btn btn-secondary small-btn" data-outcomes50="${esc(r.scenario.id || "")}">View Outcomes</button><button class="btn btn-secondary small-btn" data-export50="${esc(r.scenario.id || "")}">Export CSV</button></td></tr><tr><td></td><td colspan="11"><strong>Management recommendation:</strong> ${esc(r.recommendation)}</td></tr>`).join("")}</tbody></table></div>`;
+    drawBarChart50("portfolioAvgRiskChart50", rows, "avgComponentRisk", "Portfolio Ranking by Average Component Risk");
+    drawBarChart50("portfolioTotalRiskChart50", rows, "totalExposure", "Portfolio Total Exposure by Scenario");
+    host.querySelectorAll("[data-pr-scenario]").forEach(btn => btn.addEventListener("click", () => renderScenarioReview50(btn.dataset.prScenario)));
+    host.querySelectorAll("[data-outcomes50]").forEach(btn => btn.addEventListener("click", () => previewOutcomes50(btn.dataset.outcomes50)));
+    host.querySelectorAll("[data-export50]").forEach(btn => btn.addEventListener("click", () => exportOutcomes50(btn.dataset.export50)));
+  }
+  function rowForId(id){ return getPortfolioRows50().find(r => String(r.scenario.id || "") === String(id)); }
+  function previewOutcomes50(id){
+    const row = rowForId(id); if (!row) return;
+    const box = document.getElementById("portfolioOutcomesPreview50"); if (!box) return;
+    const sample = row.metrics.outcomes.slice(0, 100);
+    box.innerHTML = `<h3>Monte Carlo Outcomes — ${esc(scenarioLabel(row.scenario))}</h3><p class="muted">Showing first ${sample.length} of ${row.metrics.iterations.toLocaleString()} random scenarios. Full CSV is available from Export CSV.</p><div class="table-wrap"><table><thead><tr><th>#</th><th>Inherent Loss</th><th>Residual Loss</th></tr></thead><tbody>${sample.map(o=>`<tr><td>${o.scenarioNumber}</td><td>${fmt(o.inherentLoss)}</td><td>${fmt(o.residualLoss)}</td></tr>`).join("")}</tbody></table></div>`;
+    drawDistribution50("portfolioDistributionChart50", row.metrics.outcomes);
+  }
+  function csvEscape(v){ return `"${String(v ?? "").replace(/"/g,'""')}"`; }
+  function exportOutcomes50(id){
+    const row = rowForId(id); if (!row) return;
+    const lines = [["scenario_id","scenario_name","iteration","inherent_loss","residual_loss"].join(",")].concat(row.metrics.outcomes.map(o => [row.scenario.id, scenarioLabel(row.scenario), o.scenarioNumber, o.inherentLoss, o.residualLoss].map(csvEscape).join(",")));
+    const blob = new Blob([lines.join("\n")], {type:"text/csv"}); const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `risktool-outcomes-${(row.scenario.id || "scenario")}-${Date.now()}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+  function renderScenarioReview50(id){
+    const select = document.getElementById("scenarioReviewSelect50");
+    if (select && id) select.value = id;
+    const row = id ? rowForId(id) : rowForId(select?.value);
+    const host = document.getElementById("scenarioReviewBody50"); if (!host) return;
+    if (!row) { host.innerHTML = '<div class="note-box">Select a scenario to review.</div>'; return; }
+    const s = row.scenario, m = row.metrics;
+    host.innerHTML = `<div class="card"><div class="card-header"><h3>${esc(scenarioLabel(s))}</h3><span>${esc(s.mode || "Scenario")}</span></div><div class="card-body"><p>${esc(row.recommendation)}</p><div class="table-wrap"><table><tbody><tr><th>Area / Product Family</th><td>${esc(scenarioArea(s))}</td></tr><tr><th>Average Component Risk</th><td>${fmt(m.avgComponentRisk)}</td></tr><tr><th>Total Exposure</th><td>${fmt(m.totalExposure)}</td></tr><tr><th>Expected Loss</th><td>${fmt(m.expectedLoss)}</td></tr><tr><th>P50 / P90 / P95 / P99</th><td>${fmt(m.p50)} / ${fmt(m.p90)} / ${fmt(m.p95)} / ${fmt(m.p99)}</td></tr><tr><th>Volatility</th><td>${fmt(m.volatility)}</td></tr><tr><th>Top Driver</th><td>${esc(row.driver)}</td></tr><tr><th>Management Status</th><td>${statusFromRisk(m.avgComponentRisk)}</td></tr></tbody></table></div><div class="builder-actions"><button class="btn btn-secondary" id="scenarioReviewOutcomes50">View Outcomes</button><button class="btn btn-secondary" id="scenarioReviewExport50">Export Outcomes CSV</button></div></div></div>`;
+    document.getElementById("scenarioReviewOutcomes50")?.addEventListener("click", () => previewOutcomes50(s.id));
+    document.getElementById("scenarioReviewExport50")?.addEventListener("click", () => exportOutcomes50(s.id));
+    try { if (typeof activateView === "function") activateView("scenario-review"); } catch(e) {}
+  }
+  function savePortfolioSnapshot50(){
+    const rows = getPortfolioRows50();
+    const body = `RiskTool Portfolio Report ${PHASE}\nGenerated: ${new Date().toLocaleString()}\nMonte Carlo Iterations: ${document.getElementById("portfolioMonteCarloIterations50")?.value || 1000}\n\n` + rows.map((r,i)=>`${i+1}. ${scenarioLabel(r.scenario)} | Area: ${scenarioArea(r.scenario)} | Avg Component Risk: ${fmt(r.metrics.avgComponentRisk)} | Total Exposure: ${fmt(r.metrics.totalExposure)} | P95: ${fmt(r.metrics.p95)} | Recommendation: ${r.recommendation}`).join("\n\n");
+    const blob = new Blob([body], {type:"text/plain"}); const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `risktool-portfolio-report-${Date.now()}.txt`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function installViews50(){
+    const nav = document.querySelector(".nav");
+    if (nav && !document.querySelector('[data-view="portfolio-report"]')) {
+      const savedBtn = nav.querySelector('[data-view="saved"]');
+      const portfolioBtn = document.createElement("button"); portfolioBtn.className = "nav-item"; portfolioBtn.dataset.view = "portfolio-report"; portfolioBtn.textContent = "Portfolio Report";
+      const reportBtn = nav.querySelector('[data-view="reports"]'); if (reportBtn) reportBtn.textContent = "Scenario Review";
+      if (reportBtn) nav.insertBefore(portfolioBtn, reportBtn); else if (savedBtn?.nextSibling) nav.insertBefore(portfolioBtn, savedBtn.nextSibling); else nav.appendChild(portfolioBtn);
+      portfolioBtn.addEventListener("click", () => { try { activateView("portfolio-report"); } catch(e){} renderPortfolioReport50(); });
+    }
+    const main = document.querySelector("main.main") || document.querySelector("main") || document.body;
+    if (!document.getElementById("view-portfolio-report")) {
+      const section = document.createElement("section"); section.className = "view"; section.id = "view-portfolio-report";
+      section.innerHTML = `<div class="section-header"><h2>Portfolio Report</h2><p>Runs every saved Single and Complex scenario, ranks by average component risk, and shows total exposure for management review.</p></div><div class="card"><div class="card-header"><h3>Portfolio Controls</h3><span>Monte Carlo</span></div><div class="builder-actions"><label>Random scenarios per saved scenario <select id="portfolioMonteCarloIterations50"><option value="100">100</option><option value="1000" selected>1,000</option><option value="10000">10,000</option><option value="100000">100,000</option></select></label><button class="btn btn-primary" id="runPortfolioReport50" type="button">Run Portfolio Report</button><button class="btn btn-secondary" id="savePortfolioSnapshot50" type="button">Save Report Snapshot</button></div><div class="note-box">Ranking uses average component residual risk so large and small scenarios can be compared consistently. Total exposure is shown beside it for dollar materiality.</div></div><div class="grid two"><div class="card"><div class="card-header"><h3>Average Risk Ranking</h3><span>Rank Metric</span></div><canvas id="portfolioAvgRiskChart50" width="760" height="300"></canvas></div><div class="card"><div class="card-header"><h3>Total Exposure</h3><span>Dollar Exposure</span></div><canvas id="portfolioTotalRiskChart50" width="760" height="300"></canvas></div></div><div class="card"><div class="card-header"><h3>Portfolio Ranking & Recommendations</h3><span>All saved scenarios</span></div><div id="portfolioReportBody50"><div class="note-box">Run the portfolio report to evaluate all saved scenarios.</div></div></div><div class="card"><div class="card-header"><h3>Selected Scenario Outcomes</h3><span>Auditor / Examiner Support</span></div><canvas id="portfolioDistributionChart50" width="760" height="260"></canvas><div id="portfolioOutcomesPreview50" class="note-box">Select View Outcomes to preview Monte Carlo rows for a scenario.</div></div>`;
+      main.appendChild(section);
+      section.querySelector("#runPortfolioReport50")?.addEventListener("click", renderPortfolioReport50);
+      section.querySelector("#portfolioMonteCarloIterations50")?.addEventListener("change", renderPortfolioReport50);
+      section.querySelector("#savePortfolioSnapshot50")?.addEventListener("click", savePortfolioSnapshot50);
+    }
+    if (!document.getElementById("view-scenario-review")) {
+      const section = document.createElement("section"); section.className = "view"; section.id = "view-scenario-review";
+      section.innerHTML = `<div class="section-header"><h2>Scenario Review</h2><p>Individual scenario review remains available separately from the portfolio-wide report.</p></div><div class="card"><div class="card-header"><h3>Select Scenario</h3><span>Single review</span></div><div class="builder-actions"><select id="scenarioReviewSelect50"></select><button class="btn btn-primary" id="runScenarioReview50" type="button">Review Scenario</button></div></div><div id="scenarioReviewBody50"><div class="note-box">Select one saved scenario to review.</div></div>`;
+      main.appendChild(section);
+      section.querySelector("#runScenarioReview50")?.addEventListener("click", () => renderScenarioReview50());
+    }
+    const reportBtn = document.querySelector('[data-view="reports"]');
+    if (reportBtn && !reportBtn.dataset.rt50Alias) {
+      reportBtn.dataset.rt50Alias = "true";
+      reportBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); populateScenarioReview50(); try { activateView("scenario-review"); } catch(e){} }, true);
+    }
+    populateScenarioReview50();
+  }
+  function populateScenarioReview50(){
+    const select = document.getElementById("scenarioReviewSelect50"); if (!select) return;
+    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
+    const current = select.value;
+    select.innerHTML = saved.length ? saved.map(s=>`<option value="${esc(s.id || "")}">${esc(scenarioLabel(s))} (${esc(s.mode || "")})</option>`).join("") : '<option value="">No saved scenarios</option>';
+    if (saved.some(s => String(s.id) === String(current))) select.value = current;
+  }
+  function syncVersion50(){
+    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
+    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    installViews50(); syncVersion50(); setTimeout(()=>{ installViews50(); syncVersion50(); }, 500);
+  });
+  window.renderPortfolioReport50 = renderPortfolioReport50;
+  window.renderScenarioReview50 = renderScenarioReview50;
+  window.renderPortfolioReport51 = renderPortfolioReport50;
+  window.renderScenarioReview51 = renderScenarioReview50;
+})();
+/* ===== END PHASE 23.0.50 ===== */
+
+
+/* ===== PHASE 23.0.54 RESET STABILIZATION GUARD ===== */
+(function(){
+  const PHASE = "23.0.54";
+  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
+  function syncVersion51(){
+    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
+    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
+    const note = document.getElementById("workspacePhaseNote");
+    if (note) note.textContent = "Current frontend phase: " + PHASE + ". Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.";
+  }
+  function hideSubjectiveRiskFields51(){
+    const ids = ["riskItemScore","riskItemWeight","singleInherentRisk","complexInherentRisk","betaInherentRisk","complexSectionWeight"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      const wrap = el?.closest("label,.form-row,.field,.input-group,.form-group,div");
+      if (wrap) wrap.style.display = "none";
+      else if (el) el.style.display = "none";
+    });
+    Array.from(document.querySelectorAll("label, th, h4, h3, p, span")).forEach(el => {
+      const t = (el.textContent || "").trim().toLowerCase();
+      if (t === "item risk score (0-100)" || t === "weight (1-5)" || t === "inherent risk score") {
+        const wrap = el.closest("label,.form-row,.field,.input-group,.form-group,div");
+        if (wrap) wrap.style.display = "none";
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    syncVersion51(); hideSubjectiveRiskFields51();
+    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 250);
+    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 1000);
+  });
+})();
+/* ===== END PHASE 23.0.54 ===== */
+
+/* ===== PHASE 23.0.54 COLUMN SOURCES + FULL ROW EDITING ===== */
+(function(){
+  const PHASE = "23.0.54";
+  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId', costLoss: 'costLossId' };
+  const prefixMap = { insurance: 'INS', hardFact: 'HF', mitigation: 'MIT', acceptedRisk: 'AR', costLoss: 'COST' };
+  window.rtEditingRiskItemId = window.rtEditingRiskItemId || null;
+
+  function rtId(prefix){
+    if (typeof nextRecordId === 'function') return nextRecordId(prefix);
+    return prefix + '-' + Date.now() + '-' + Math.floor(Math.random()*100000);
+  }
+  function ensureIds(kind, list){
+    const key = keyMap[kind];
+    const prefix = prefixMap[kind] || 'ROW';
+    if (!Array.isArray(list) || !key) return list || [];
+    list.forEach(row => { if (row && !row[key]) row[key] = rtId(prefix); });
+    return list;
+  }
+  function ensureAllRowIds(){
+    try {
+      ensureIds('insurance', window.singleInsurance || singleInsurance);
+      ensureIds('insurance', window.complexInsurance || complexInsurance);
+      ensureIds('insurance', window.betaInsurance || betaInsurance);
+      ensureIds('hardFact', window.singleHardFacts || singleHardFacts);
+      ensureIds('hardFact', window.complexHardFacts || complexHardFacts);
+      ensureIds('hardFact', window.betaHardFacts || betaHardFacts);
+      ensureIds('mitigation', window.singleMitigations || singleMitigations);
+      ensureIds('mitigation', window.complexMitigations || complexMitigations);
+      ensureIds('acceptedRisk', window.singleAcceptedRisks || []);
+      ensureIds('acceptedRisk', window.complexAcceptedRisks || []);
+      ensureIds('costLoss', window.complexCostLosses || complexCostLosses || []);
+      (window.currentComplexItems || currentComplexItems || []).forEach(item => { if (item && !item.issueId) item.issueId = rtId('ISS'); });
+    } catch(e) {}
+  }
+
+  const columnSources = {
+    'risk-item:item': 'Risk Item Table → Item comes from the Risk Item Name field in the Risk Item Entry form.',
+    'risk-item:domain': 'Risk Item Table → Domain comes from the Risk Domain dropdown in the Risk Item Entry form.',
+    'risk-item:product': 'Risk Item Table → Product comes from the Related Area / Product Family dropdown in the Risk Item Entry form.',
+    'risk-item:regulation': 'Risk Item Table → Regulation comes from the Related Regulation dropdown in the Risk Item Entry form.',
+    'risk-item:probability': 'Risk Item Table → Probability Min / Likely / Max comes from the three Probability fields in the Risk Item Entry form.',
+    'risk-item:impact': 'Risk Item Table → Impact Min / Likely / Max comes from the three Impact fields in the Risk Item Entry form. Cost/Loss entries and hard facts are separately used as exposure anchors in rollups.',
+    'risk-item:evidence': 'Risk Item Table → Evidence Quality comes from the Evidence Quality dropdown in the Risk Item Entry form.',
+    'risk-item:costs': 'Risk Item Table → Linked Costs is calculated from the Cost/Loss table rows tied to this risk item.',
+    'risk-item:status': 'Risk Item Table → Status comes from the Risk Item Status dropdown in the Risk Item Entry form.',
+    'cost-loss:type': 'Cost/Loss Table → Cost Type comes from the Cost Type dropdown.',
+    'cost-loss:applies': 'Cost/Loss Table → Applies To comes from the Applies To dropdown.',
+    'cost-loss:risk': 'Cost/Loss Table → Related Risk Item comes from the Related Risk Item dropdown; blank means component-level exposure.',
+    'cost-loss:min': 'Cost/Loss Table → Amount Min comes from Amount Min ($).',
+    'cost-loss:likely': 'Cost/Loss Table → Amount Likely comes from Amount Likely ($), and is used as a primary exposure anchor.',
+    'cost-loss:max': 'Cost/Loss Table → Amount Max comes from Amount Max ($).',
+    'cost-loss:date': 'Cost/Loss Table → Date/Period comes from Date / Period.',
+    'cost-loss:source': 'Cost/Loss Table → Source Type comes from Source Type.',
+    'cost-loss:notes': 'Cost/Loss Table → Notes comes from Notes.',
+    'hard-fact:source': 'Hard Facts / Evidence Table → Source Type comes from the Hard Fact Source Type dropdown.',
+    'hard-fact:amount': 'Hard Facts / Evidence Table → Amount comes from the Hard Fact Amount field and feeds risk as an actual loss/cost evidence anchor.',
+    'hard-fact:date': 'Hard Facts / Evidence Table → Date comes from the Hard Fact Date field.',
+    'hard-fact:description': 'Hard Facts / Evidence Table → Description comes from the Hard Fact Description field.',
+    'hard-fact:link': 'Hard Facts / Evidence Table → Source Link comes from Source Link / Document Location.',
+    'mitigation:title': 'Mitigation Table → Title comes from the Mitigation Title field.',
+    'mitigation:owner': 'Mitigation Table → Owner comes from the Mitigation Owner field.',
+    'mitigation:status': 'Mitigation Table → Status comes from the Mitigation Status field.',
+    'mitigation:attachment': 'Mitigation Table → Attachment comes from the attachment/source field.',
+    'insurance:policy': 'Insurance Table → Policy Name comes from Policy Name.',
+    'insurance:number': 'Insurance Table → Policy Number comes from Policy Number.',
+    'insurance:carrier': 'Insurance Table → Carrier comes from Carrier.',
+    'insurance:type': 'Insurance Table → Coverage Type comes from Coverage Type.',
+    'insurance:premium': 'Insurance Table → Premium comes from Premium.',
+    'insurance:deductible': 'Insurance Table → Deductible comes from Deductible and reduces net insurance offset.',
+    'insurance:coverage': 'Insurance Table → Coverage Amount comes from Coverage Amount and is used as the gross risk-transfer value.',
+    'insurance:dates': 'Insurance Table → Coverage Dates comes from Coverage Dates.',
+    'insurance:notes': 'Insurance Table → Notes comes from Notes / Exclusions / Comments.',
+    'accepted:flag': 'Accepted Risk Table → Accepted comes from the Risk Accepted checkbox.',
+    'accepted:authority': 'Accepted Risk Table → Authority comes from the Acceptance Authority dropdown.',
+    'accepted:by': 'Accepted Risk Table → Accepted By comes from the Accepted By field.',
+    'accepted:date': 'Accepted Risk Table → Acceptance Date comes from Acceptance Date.',
+    'accepted:review': 'Accepted Risk Table → Review Date comes from Review Date.',
+    'accepted:logic': 'Accepted Risk Table → Decision Logic comes from Decision Logic.'
+  };
+  function src(key){ return '<br><button type="button" class="column-source-link" data-column-source="' + key + '">(source)</button>'; }
+  function showSource(key){
+    const msg = columnSources[key] || 'This column is populated from the matching input field or a calculated related table value.';
+    let box = document.getElementById('rtColumnSourceModal');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'rtColumnSourceModal';
+      box.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.38);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;';
+      box.innerHTML = '<div style="max-width:620px;width:100%;background:#fff;border-radius:16px;box-shadow:0 20px 70px rgba(15,23,42,.28);border:1px solid #dbe6f4;"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid #e7edf7;"><strong>Column Input Source</strong><button type="button" class="btn btn-secondary small-btn" id="rtColumnSourceClose">Close</button></div><div id="rtColumnSourceText" style="padding:18px;line-height:1.55;color:#0f2544;"></div></div>';
+      document.body.appendChild(box);
+      box.addEventListener('click', function(e){ if (e.target === box || e.target.id === 'rtColumnSourceClose') box.style.display='none'; });
+    }
+    const text = document.getElementById('rtColumnSourceText');
+    if (text) text.textContent = msg;
+    box.style.display = 'flex';
+  }
+  function decorateHeaders(){
+    const maps = [
+      ['complexItemsBody', ['risk-item:item','risk-item:domain','risk-item:product','risk-item:regulation','risk-item:probability','risk-item:impact','risk-item:evidence','risk-item:costs','risk-item:status',null]],
+      ['complexCostLossBody', ['cost-loss:type','cost-loss:applies','cost-loss:risk','cost-loss:min','cost-loss:likely','cost-loss:max','cost-loss:date','cost-loss:source','cost-loss:notes',null]],
+      ['complexHardFactsBody', ['hard-fact:source','hard-fact:amount','hard-fact:date','hard-fact:description','hard-fact:link',null]],
+      ['complexMitigationBody', ['mitigation:title','mitigation:owner','mitigation:status','mitigation:attachment',null]],
+      ['complexInsuranceBody', ['insurance:policy','insurance:number','insurance:carrier','insurance:type','insurance:premium','insurance:deductible','insurance:coverage','insurance:dates','insurance:notes',null,null]],
+      ['complexAcceptedRiskBody', ['accepted:flag','accepted:authority','accepted:by','accepted:date','accepted:review','accepted:logic',null]]
+    ];
+    maps.forEach(([tbodyId, keys]) => {
+      const tbody = document.getElementById(tbodyId);
+      const table = tbody?.closest('table');
+      if (!table) return;
+      table.querySelectorAll('thead th').forEach((th, i) => {
+        if (!keys[i] || th.querySelector('.column-source-link')) return;
+        th.insertAdjacentHTML('beforeend', src(keys[i]));
+      });
+    });
+    if (!document.getElementById('rtColumnSourceStyles')) {
+      const style = document.createElement('style');
+      style.id = 'rtColumnSourceStyles';
+      style.textContent = '.column-source-link{border:0;background:transparent;color:#0b5bd3;text-decoration:underline;cursor:pointer;font-size:11px;font-weight:600;padding:1px 0;margin:2px 0 0 0}.column-source-link:hover{color:#063b8c}.rt-editing-row{outline:2px solid #0b5bd3;outline-offset:-2px;background:#f0f6ff!important}';
+      document.head.appendChild(style);
+    }
+  }
+
+  function clearRiskItemForm(){
+    ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    try { setSelectValueSafe('riskItemEvidenceQuality', 'Medium'); setSelectValueSafe('riskItemStatus', 'Open'); } catch(e) {}
+    window.rtEditingRiskItemId = null;
+    const btn = document.getElementById('addRiskItemBtn'); if (btn) btn.textContent = 'Add Risk Item';
+    const status = document.getElementById('riskItemEditStatus'); if (status) status.textContent = 'No risk item selected for editing.';
+    const cancel = document.getElementById('cancelRiskItemEditBtn'); if (cancel) cancel.style.display = 'none';
+    formatAllCurrencyFields && formatAllCurrencyFields();
+  }
+  function ensureRiskEditControls(){
+    const addBtn = document.getElementById('addRiskItemBtn');
+    if (!addBtn) return;
+    let cancel = document.getElementById('cancelRiskItemEditBtn');
+    if (!cancel) {
+      cancel = document.createElement('button');
+      cancel.type = 'button'; cancel.id = 'cancelRiskItemEditBtn'; cancel.className = 'btn btn-secondary'; cancel.textContent = 'Cancel Edit'; cancel.style.display = 'none';
+      addBtn.insertAdjacentElement('afterend', cancel);
+      cancel.addEventListener('click', clearRiskItemForm);
+    }
+    let status = document.getElementById('riskItemEditStatus');
+    if (!status) {
+      status = document.createElement('div');
+      status.id = 'riskItemEditStatus'; status.className = 'note-box'; status.textContent = 'No risk item selected for editing.';
+      cancel.insertAdjacentElement('afterend', status);
+    }
+  }
+  function editRiskItem(issueId){
+    const list = window.currentComplexItems || currentComplexItems || [];
+    const item = list.find(x => String(x.issueId || '') === String(issueId || ''));
+    if (!item) return;
+    window.rtEditingRiskItemId = item.issueId;
+    const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+    setVal('riskItemName', item.name || '');
+    setSelectValueSafe && setSelectValueSafe('riskItemDomain', item.domain || '');
+    setSelectValueSafe && setSelectValueSafe('riskItemProduct', item.product || '');
+    setSelectValueSafe && setSelectValueSafe('riskItemReg', item.regulation || '');
+    setVal('riskItemProbMin', item.probMin ?? 0); setVal('riskItemProbLikely', item.probLikely ?? 0); setVal('riskItemProbMax', item.probMax ?? 0);
+    if (typeof setCurrencyFieldValue === 'function') { setCurrencyFieldValue('riskItemImpactMin', item.impactMin || 0); setCurrencyFieldValue('riskItemImpactLikely', item.impactLikely || 0); setCurrencyFieldValue('riskItemImpactMax', item.impactMax || 0); }
+    else { setVal('riskItemImpactMin', item.impactMin || 0); setVal('riskItemImpactLikely', item.impactLikely || 0); setVal('riskItemImpactMax', item.impactMax || 0); }
+    setSelectValueSafe && setSelectValueSafe('riskItemEvidenceQuality', item.evidenceQuality || 'Medium');
+    setSelectValueSafe && setSelectValueSafe('riskItemStatus', item.status || 'Open');
+    setVal('riskItemDescription', item.description || '');
+    const btn = document.getElementById('addRiskItemBtn'); if (btn) btn.textContent = 'Update Risk Item';
+    const cancel = document.getElementById('cancelRiskItemEditBtn'); if (cancel) cancel.style.display = '';
+    const status = document.getElementById('riskItemEditStatus'); if (status) status.textContent = 'Editing risk item: ' + (item.name || item.issueId || 'Risk Item');
+    document.querySelectorAll('#complexItemsBody tr').forEach(tr => tr.classList.toggle('rt-editing-row', tr.dataset.issueId === String(issueId || '')));
+    formatAllCurrencyFields && formatAllCurrencyFields();
+    document.getElementById('riskItemName')?.focus();
+  }
+
+  renderComplexItems = function() {
+    ensureAllRowIds();
+    const tbody = document.getElementById('complexItemsBody');
+    if (!tbody) return;
+    if (!currentComplexItems.length) {
+      tbody.innerHTML = '<tr><td colspan="10">No risk items added yet.</td></tr>';
+    } else {
+      tbody.innerHTML = currentComplexItems.map(item => {
+        const prob = safeNumber(item.probMin,0) + '% / ' + safeNumber(item.probLikely,0) + '% / ' + safeNumber(item.probMax,0) + '%';
+        const impact = currency(item.impactMin) + ' / ' + currency(item.impactLikely) + ' / ' + currency(item.impactMax);
+        const costCount = (complexCostLosses || []).filter(c => String(c.riskItemId || '') === String(item.issueId || '')).length;
+        const actions = '<button class="btn btn-secondary small-btn" type="button" data-edit-risk-item="' + escapeHtml(item.issueId || '') + '">Edit</button> <button class="btn btn-danger small-btn" type="button" data-delete-risk-item="' + escapeHtml(item.issueId || '') + '">Delete</button>';
+        return '<tr data-issue-id="' + escapeHtml(item.issueId || '') + '"><td><button class="scenario-link" data-issue-open="' + escapeHtml(item.issueId || '') + '">' + escapeHtml(item.name) + '</button></td><td>' + escapeHtml(item.domain) + '</td><td>' + escapeHtml(item.product) + '</td><td>' + escapeHtml(item.regulation) + '</td><td>' + prob + '</td><td>' + impact + '</td><td>' + escapeHtml(item.evidenceQuality || 'Medium') + '</td><td>' + costCount + '</td><td>' + escapeHtml(item.status || 'Open') + '</td><td>' + actions + '</td></tr>';
+      }).join('');
+      tbody.querySelectorAll('[data-issue-open]').forEach(btn => btn.addEventListener('click', () => highlightIssueRow(btn.dataset.issueOpen)));
+      tbody.querySelectorAll('[data-edit-risk-item]').forEach(btn => btn.addEventListener('click', () => editRiskItem(btn.dataset.editRiskItem)));
+    }
+    decorateHeaders();
+    renderCostLossRiskItemOptions && renderCostLossRiskItemOptions();
+    refreshComplexProductSectionSelects && refreshComplexProductSectionSelects();
+    updateInherentScores && updateInherentScores();
+    renderComplexProductSections && renderComplexProductSections();
+  };
+
+  addRiskItem = function() {
+    if (!complexProductSections.length) { alert('Add an Area / Product Family first.'); return; }
+    const editId = window.rtEditingRiskItemId;
+    const impactLikely = parseCurrencyValue(document.getElementById('riskItemImpactLikely')?.value || 0);
+    const record = { issueId: editId || ('ISS-' + Date.now() + '-' + Math.floor(Math.random() * 1000)), parentScenarioMode: 'complex', name: document.getElementById('riskItemName')?.value || 'Unnamed Risk Item', domain: document.getElementById('riskItemDomain')?.value || '', product: document.getElementById('riskItemProduct')?.value || '', regulation: document.getElementById('riskItemReg')?.value || '', description: document.getElementById('riskItemDescription')?.value || '', probMin: safeNumber(document.getElementById('riskItemProbMin')?.value || 0, 0), probLikely: safeNumber(document.getElementById('riskItemProbLikely')?.value || 0, 0), probMax: safeNumber(document.getElementById('riskItemProbMax')?.value || 0, 0), impactMin: parseCurrencyValue(document.getElementById('riskItemImpactMin')?.value || 0), impactLikely, impactMax: parseCurrencyValue(document.getElementById('riskItemImpactMax')?.value || impactLikely), evidenceQuality: document.getElementById('riskItemEvidenceQuality')?.value || 'Medium', status: document.getElementById('riskItemStatus')?.value || 'Open', score: 0, weight: 1 };
+    const idx = currentComplexItems.findIndex(x => String(x.issueId || '') === String(record.issueId || ''));
+    if (idx >= 0) currentComplexItems[idx] = record; else currentComplexItems.push(record);
+    clearRiskItemForm();
+    renderComplexItems();
+    formatAllCurrencyFields && formatAllCurrencyFields();
+  };
+
+  const priorRenderInsurance = renderInsuranceTable;
+  renderInsuranceTable = function(targetId, items){ ensureIds('insurance', items); priorRenderInsurance(targetId, items); decorateHeaders(); };
+  const priorRenderHardFacts = renderHardFactsTable;
+  renderHardFactsTable = function(targetId, items){ ensureIds('hardFact', items); priorRenderHardFacts(targetId, items); decorateHeaders(); };
+  const priorRenderMitigation = renderMitigationTable;
+  renderMitigationTable = function(targetId, items){ ensureIds('mitigation', items); priorRenderMitigation(targetId, items); decorateHeaders(); };
+  const priorRenderAccepted = renderAcceptedRiskTable;
+  renderAcceptedRiskTable = function(targetId, items, mode){ ensureIds('acceptedRisk', items); priorRenderAccepted(targetId, items, mode); decorateHeaders(); };
+  const priorRenderCostLoss = renderCostLossTable;
+  renderCostLossTable = function(targetId, items){ ensureIds('costLoss', items); priorRenderCostLoss(targetId, items); decorateHeaders(); };
+
+  document.addEventListener('click', function(e){
+    const source = e.target.closest('[data-column-source]');
+    if (source) { e.preventDefault(); showSource(source.dataset.columnSource); return; }
+    const editRisk = e.target.closest('[data-edit-risk-item]');
+    if (editRisk) { e.preventDefault(); editRiskItem(editRisk.dataset.editRiskItem); return; }
+  });
+  document.addEventListener('DOMContentLoaded', function(){
+    ensureAllRowIds(); ensureRiskEditControls(); decorateHeaders();
+    setTimeout(function(){ ensureAllRowIds(); ensureRiskEditControls(); decorateHeaders(); try { renderComplexItems(); } catch(e) {} }, 300);
+  });
+})();
+/* ===== END PHASE 23.0.54 ===== */
+
+/* ===== PHASE 23.0.54 COMPLEX WORKSPACE UI ===== */
+(function(){
+  const PHASE = "23.0.54";
+  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
+  const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
+  const money=v=>{ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(num(v));}catch(e){return '$'+Math.round(num(v)).toLocaleString();} };
+  const tabs=[['risk','1. Risk Items','Manage risks for this component','!'],['cost','2. Costs / Losses','Manage all cost and loss entries','$'],['evidence','3. Hard Facts / Evidence','Manage evidence and data sources','D'],['mitigation','4. Mitigation / Controls','Manage mitigations and controls','✓'],['insurance','5. Insurance / Risk Transfer','Manage insurance and risk transfer','☂'],['accepted','6. Accepted Risk','Manage accepted risk decisions','✓']];
+  const map={risk:['Risk Item Entry for Selected Component','Risk Item Table'],cost:['Cost / Loss Entry','Cost / Loss Table'],evidence:['Hard Facts / Evidence Entry','Hard Facts / Evidence Table'],mitigation:['Mitigation Entry','Mitigation Table'],insurance:['Insurance Entry','Insurance Table'],accepted:['Accepted Risk','Accepted Risk Table']};
+  function addStyles(){ if(qs('#rt54Styles'))return; const st=document.createElement('style'); st.id='rt54Styles'; st.textContent=`#view-complex.rt54-workspace .section-header h2::after{content:' › Component Workspace';font-weight:800;color:#172033}.rt54-topbar{display:flex;justify-content:flex-end;gap:12px;margin:-6px 0 12px}.rt54-layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px}.rt54-main{min-width:0}.rt54-sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:14px}.rt54-summary,.rt54-card{background:#fff;border:1px solid #dbe4f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,.06);padding:14px;margin-bottom:14px}.rt54-summary h3,.rt54-card h3{margin:0 0 10px;color:#0f1f3d}.rt54-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}.rt54-label{font-size:11px;font-weight:800;color:#0b3b80}.rt54-value{font-size:14px;color:#172033;margin-top:4px}.rt54-tabs{display:flex;gap:18px;border-bottom:1px solid #dbe4f0;margin:0 0 12px;overflow:auto}.rt54-tab{border:0;background:transparent;padding:12px 0 10px;color:#25324b;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent}.rt54-tab.active{color:#0b5bd3;border-bottom-color:#0b5bd3}.rt54-side-row{width:100%;display:flex;gap:10px;align-items:center;border:1px solid #dbe4f0;background:#fff;border-radius:10px;padding:12px;margin:7px 0;text-align:left;cursor:pointer}.rt54-side-row.active{border-color:#0b5bd3;background:#f0f6ff}.rt54-icon{width:28px;height:28px;border:1px solid #b9cff0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#0b5bd3;font-weight:900}.rt54-side-title{font-weight:800}.rt54-side-sub{font-size:12px;color:#5b6475}.rt54-link,.rt54-src{border:0;background:transparent;color:#0b5bd3;text-decoration:underline;cursor:pointer;font-size:12px;font-weight:700;padding:0}.rt54-src{display:block;text-align:left;margin-top:2px}.rt54-field-source{display:inline;margin-left:6px}.rt54-hidden{display:none!important}.rt54-editing-row{outline:2px solid #0b5bd3;outline-offset:-2px;background:#f0f6ff!important}.rt54-workspace .btn-danger,.rt54-workspace .btn.btn-danger{border:1px solid #ef4444;color:#dc2626;background:#fff}.rt54-info-list{padding-left:18px;margin:8px 0}.rt54-info-list li{margin-bottom:8px;font-size:13px;line-height:1.35}@media(max-width:1100px){.rt54-layout{grid-template-columns:1fr}.rt54-sidebar{position:static}.rt54-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}`; document.head.appendChild(st); }
+  function card(title){return qsa('#view-complex .card').find(c=>(c.querySelector('.card-header h3')?.textContent||'').trim()===title)}
+  function version(){ qsa('#appVersion,.app-version,[data-version-label]').forEach(e=>e.textContent=PHASE); }
+  function summary(){ let c=qs('#rt54Summary'); const ref=card('Selected Component Workspace')||card('Risk Item Entry for Selected Component'); if(!c&&ref){ c=document.createElement('div'); c.id='rt54Summary'; c.className='rt54-summary'; ref.parentNode.insertBefore(c,ref); } if(!c)return; const items=window.currentComplexItems||currentComplexItems||[]; const costs=window.complexCostLosses||complexCostLosses||[]; const total=costs.reduce((t,x)=>t+num(x.amountLikely||x.amount||0),0); const rows=items.map(x=>({name:x.name||'Risk Item',el:(num(x.probLikely)/100)*num(x.impactLikely)})).sort((a,b)=>b.el-a.el); const avg=rows.length?rows.reduce((t,x)=>t+x.el,0)/rows.length:0; c.innerHTML=`<h3>Component Summary <button class="rt54-link" data-column-source="rollup:component-summary">(rollup)</button></h3><div class="rt54-grid"><div><div class="rt54-label">Component ID</div><div class="rt54-value">${esc(qs('#complexComponentId')?.value||'Generated on save')}</div></div><div><div class="rt54-label">Product / Service / Area</div><div class="rt54-value">${esc(qs('#complexPrimaryProduct')?.selectedOptions?.[0]?.textContent||'Not selected')}</div></div><div><div class="rt54-label">Regulation</div><div class="rt54-value">${esc(qs('#complexPrimaryRegulation')?.selectedOptions?.[0]?.textContent||'Not selected')}</div></div><div><div class="rt54-label">Status</div><div class="rt54-value">${esc(qs('#complexScenarioStatus')?.value||'Draft')}</div></div><div><div class="rt54-label">Risk Items</div><div class="rt54-value">${items.length}</div></div><div><div class="rt54-label">Total Cost / Loss Exposure</div><div class="rt54-value">${money(total)}</div></div><div><div class="rt54-label">Avg Residual Risk (EL)</div><div class="rt54-value">${money(avg)}<br><small>${esc(rows[0]?.name||'No risk items yet')}</small></div></div></div>`; }
+  function topbar(){ if(qs('#rt54Topbar'))return; const h=qs('#view-complex .section-header'); if(!h)return; const b=document.createElement('div'); b.id='rt54Topbar'; b.className='rt54-topbar'; b.innerHTML=`<button class="rt54-link" data-column-source="workspace:all">Column Input Sources</button><button class="btn btn-secondary" id="rt54RefreshRollups" type="button">Refresh Rollups</button><button class="btn btn-primary" id="rt54SaveAll" type="button">Save All Changes</button>`; h.after(b); qs('#rt54RefreshRollups')?.addEventListener('click',()=>{summary(); try{renderComplexProductSections();renderComplexItems();}catch(e){}}); qs('#rt54SaveAll')?.addEventListener('click',()=>qs('#addComplexScenarioBtn')?.click()); }
+  function layout(){ if(qs('#rt54Layout'))return; summary(); const s=qs('#rt54Summary'); if(!s)return; const lay=document.createElement('div'); lay.id='rt54Layout'; lay.className='rt54-layout'; const main=document.createElement('div'); main.id='rt54Main'; main.className='rt54-main'; const side=document.createElement('aside'); side.id='rt54Sidebar'; side.className='rt54-sidebar'; s.parentNode.insertBefore(lay,s); lay.append(main,side); let n=s; while(n){const next=n.nextElementSibling; main.appendChild(n); if(n.matches?.('.card')&&(n.querySelector('.card-header h3')?.textContent||'').trim()==='Accepted Risk Table')break; n=next;} side.innerHTML=`<div class="rt54-card"><h3>Component Workspace Tables <button class="rt54-link" data-column-source="workspace:choose">(choose table)</button></h3>${tabs.map(([k,t,sub,ic])=>`<button class="rt54-side-row" data-rt54-tab="${k}" type="button"><span class="rt54-icon">${ic}</span><span><div class="rt54-side-title">${t}</div><div class="rt54-side-sub">${sub}</div></span></button>`).join('')}</div><div class="rt54-card"><h3>How Rollups Are Calculated <button class="rt54-link" data-column-source="rollup:calculation">(information)</button></h3><ul class="rt54-info-list"><li>Risk Item EL = Probability Likely × Impact Likely.</li><li>Costs / Losses feed total exposure.</li><li>Hard facts can anchor impact/cost assumptions.</li><li>Mitigation reduces exposure; insurance offsets residual exposure.</li><li>Highest Driver = largest residual expected-loss contributor.</li></ul><button class="rt54-link" data-column-source="rollup:details">View Calculation Details</button></div>`; side.addEventListener('click',e=>{const b=e.target.closest('[data-rt54-tab]'); if(b) activate(b.dataset.rt54Tab)}); }
+  function tabbar(){ if(qs('#rt54Tabs'))return; const f=card('Risk Item Entry for Selected Component'); if(!f)return; const t=document.createElement('div'); t.id='rt54Tabs'; t.className='rt54-tabs'; t.innerHTML=tabs.map(([k,l])=>`<button class="rt54-tab" data-rt54-tab="${k}" type="button">${l}</button>`).join(''); f.parentNode.insertBefore(t,f); t.addEventListener('click',e=>{const b=e.target.closest('[data-rt54-tab]'); if(b)activate(b.dataset.rt54Tab)}); }
+  function activate(k='risk'){ window.rt54ActiveTab=k; Object.entries(map).forEach(([key,titles])=>titles.forEach(t=>card(t)?.classList.toggle('rt54-hidden',key!==k))); qsa('[data-rt54-tab]').forEach(b=>b.classList.toggle('active',b.dataset.rt54Tab===k)); }
+  function sources(){ const fields={riskItemName:'Risk Items',riskItemProbMin:'Risk Items',riskItemProbLikely:'Risk Items',riskItemProbMax:'Risk Items',riskItemImpactMin:'Risk Items',riskItemImpactLikely:'Risk Items',riskItemImpactMax:'Risk Items',complexCostLossType:'Costs',complexCostLossAmountLikely:'Costs',complexHardFactAmount:'Evidence',complexMitTitle:'Mitigation',complexInsurancePolicyName:'Insurance',complexAcceptedBy:'Accepted Risk'}; Object.entries(fields).forEach(([id,src])=>{const lab=qs('#'+id)?.closest('div')?.querySelector('label'); if(lab&&!lab.querySelector('.rt54-field-source'))lab.insertAdjacentHTML('beforeend',` <button class="rt54-link rt54-field-source" data-column-source="source:${src}" type="button">(source: ${src})</button>`)}); const tables=[['riskItemsTableBody',['Risk Items','Risk Items','Risk Items','Risk Items','Risk Items','Risk Items','Risk Items','Costs','Risk Items',null]],['complexCostLossBody',['Costs','Costs','Risk Items','Costs','Costs','Costs','Costs','Costs','Costs',null]],['complexHardFactsBody',['Evidence','Evidence','Evidence','Evidence','Evidence',null]],['complexMitigationBody',['Mitigation','Mitigation','Mitigation','Mitigation',null]],['complexInsuranceBody',['Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance',null]],['complexAcceptedRiskBody',['Accepted Risk','Accepted Risk','Accepted Risk','Accepted Risk','Accepted Risk','Accepted Risk',null]]]; tables.forEach(([body,arr])=>{const ths=qs('#'+body)?.closest('table')?.querySelectorAll('thead th')||[]; Array.from(ths).forEach((th,i)=>{if(arr[i]&&!th.querySelector('.rt54-src'))th.insertAdjacentHTML('beforeend',`<button class="rt54-src" data-column-source="source:${arr[i]}" type="button">(source)</button>`)});}); }
+  function sourceMsg(k){ const msgs={'rollup:component-summary':'Component Summary is calculated from selected component details, risk items, cost/loss rows, hard facts, mitigation, and insurance.','workspace:all':'Each underlined source link explains what form or child table feeds that field or table column.','workspace:choose':'These buttons switch between child tables scoped to the selected component.','rollup:calculation':'Rollups use evidence-driven probability, impact, hard fact, cost/loss, mitigation, and insurance inputs. No subjective risk score is used.','rollup:details':'Average residual risk is derived from expected loss; total exposure sums likely cost/loss rows; highest driver is the largest remaining contributor.'}; alert(msgs[k]||String(k).replace('source:','This value comes from the ')+' table or input group.'); }
+  function riskEditWire(){ const add=qs('#addRiskItemBtn'); if(!add||add.dataset.rt54)return; add.dataset.rt54='1'; let cancel=qs('#cancelRiskItemEditBtn'); if(!cancel){cancel=document.createElement('button');cancel.id='cancelRiskItemEditBtn';cancel.type='button';cancel.className='btn btn-secondary';cancel.textContent='Cancel';add.after(cancel)} let clear=qs('#clearRiskItemFormBtn'); if(!clear){clear=document.createElement('button');clear.id='clearRiskItemFormBtn';clear.type='button';clear.className='btn btn-danger';clear.textContent='Clear Form';cancel.after(clear)} let st=qs('#riskItemEditStatus'); if(!st){st=document.createElement('div');st.id='riskItemEditStatus';st.className='note-box';st.textContent='No risk item selected for editing.';clear.after(st)} cancel.onclick=clearRisk; clear.onclick=clearRisk; add.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();saveRisk();},true); }
+  function clearRisk(){ ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax'].forEach(id=>{const el=qs('#'+id); if(el)el.value=''}); window.rt54EditRisk=null; const b=qs('#addRiskItemBtn'); if(b)b.textContent='Add Risk Item'; const s=qs('#riskItemEditStatus'); if(s)s.textContent='No risk item selected for editing.'; qsa('#riskItemsTableBody tr').forEach(tr=>tr.classList.remove('rt54-editing-row')); }
+  function editRisk(id){ const list=window.currentComplexItems||currentComplexItems||[]; const x=list.find(r=>String(r.issueId||'')===String(id||'')); if(!x)return; window.rt54EditRisk=x.issueId; const set=(id,v)=>{const e=qs('#'+id); if(e)e.value=v??''}; set('riskItemName',x.name||''); set('riskItemDescription',x.description||''); try{setSelectValueSafe('riskItemDomain',x.domain||'');setSelectValueSafe('riskItemProduct',x.product||'');setSelectValueSafe('riskItemReg',x.regulation||'')}catch(e){} set('riskItemProbMin',x.probMin||0); set('riskItemProbLikely',x.probLikely||0); set('riskItemProbMax',x.probMax||0); try{setCurrencyFieldValue('riskItemImpactMin',x.impactMin||0);setCurrencyFieldValue('riskItemImpactLikely',x.impactLikely||0);setCurrencyFieldValue('riskItemImpactMax',x.impactMax||0)}catch(e){set('riskItemImpactMin',x.impactMin||0);set('riskItemImpactLikely',x.impactLikely||0);set('riskItemImpactMax',x.impactMax||0)} try{setSelectValueSafe('riskItemEvidenceQuality',x.evidenceQuality||'Medium');setSelectValueSafe('riskItemStatus',x.status||'Open')}catch(e){} const b=qs('#addRiskItemBtn'); if(b)b.textContent='Update Risk Item'; const s=qs('#riskItemEditStatus'); if(s)s.textContent='Editing risk item: '+(x.name||x.issueId); qsa('#riskItemsTableBody tr').forEach(tr=>tr.classList.toggle('rt54-editing-row',tr.dataset.issueId===String(id))); activate('risk'); qs('#riskItemName')?.focus(); }
+  function saveRisk(){ if(!complexProductSections.length){alert('Add an Area / Product Family first.');return} const id=window.rt54EditRisk||('ISS-'+Date.now()+'-'+Math.floor(Math.random()*1000)); const rec={issueId:id,parentScenarioMode:'complex',name:qs('#riskItemName')?.value||'Unnamed Risk Item',domain:qs('#riskItemDomain')?.value||'',product:qs('#riskItemProduct')?.value||'',regulation:qs('#riskItemReg')?.value||'',description:qs('#riskItemDescription')?.value||'',probMin:num(qs('#riskItemProbMin')?.value),probLikely:num(qs('#riskItemProbLikely')?.value),probMax:num(qs('#riskItemProbMax')?.value),impactMin:(typeof parseCurrencyValue==='function'?parseCurrencyValue(qs('#riskItemImpactMin')?.value||0):num(qs('#riskItemImpactMin')?.value)),impactLikely:(typeof parseCurrencyValue==='function'?parseCurrencyValue(qs('#riskItemImpactLikely')?.value||0):num(qs('#riskItemImpactLikely')?.value)),impactMax:(typeof parseCurrencyValue==='function'?parseCurrencyValue(qs('#riskItemImpactMax')?.value||0):num(qs('#riskItemImpactMax')?.value)),evidenceQuality:qs('#riskItemEvidenceQuality')?.value||'Medium',status:qs('#riskItemStatus')?.value||'Open',score:0,weight:1}; const i=currentComplexItems.findIndex(x=>String(x.issueId||'')===String(id)); if(i>=0)currentComplexItems[i]=rec; else currentComplexItems.push(rec); clearRisk(); renderComplexItems(); try{renderCostLossRiskItemOptions();renderComplexProductSections();formatAllCurrencyFields()}catch(e){} summary(); }
+  function renderRisk(){ const body=qs('#riskItemsTableBody'); if(!body)return; const list=window.currentComplexItems||currentComplexItems||[]; if(!list.length){body.innerHTML='<tr><td colspan="10">No risk items added yet.</td></tr>';return} body.innerHTML=list.map(x=>`<tr data-issue-id="${esc(x.issueId||'')}"><td><button class="scenario-link" data-edit-risk-item="${esc(x.issueId||'')}" type="button">${esc(x.name||'Risk Item')}</button></td><td>${esc(x.domain||'')}</td><td>${esc(x.product||'')}</td><td>${esc(x.regulation||'')}</td><td>${num(x.probMin)}% / ${num(x.probLikely)}% / ${num(x.probMax)}%</td><td>${money(x.impactMin)} / ${money(x.impactLikely)} / ${money(x.impactMax)}</td><td>${esc(x.evidenceQuality||'Medium')}</td><td>${(window.complexCostLosses||complexCostLosses||[]).filter(c=>String(c.riskItemId||'')===String(x.issueId||'')).length}</td><td>${esc(x.status||'Open')}</td><td><button class="btn btn-secondary small-btn" data-edit-risk-item="${esc(x.issueId||'')}" type="button">Edit</button> <button class="btn btn-danger small-btn" data-delete-risk-item="${esc(x.issueId||'')}" type="button">Delete</button></td></tr>`).join(''); sources(); summary(); }
+  try{ renderComplexItems=renderRisk; }catch(e){}
+  document.addEventListener('click',e=>{const src=e.target.closest('[data-column-source]'); if(src){e.preventDefault();sourceMsg(src.dataset.columnSource);return} const ed=e.target.closest('[data-edit-risk-item]'); if(ed){e.preventDefault();editRisk(ed.dataset.editRiskItem);return}},true);
+  function init54(){ const v=qs('#view-complex'); if(!v)return; v.classList.add('rt54-workspace'); addStyles(); version(); topbar(); summary(); tabbar(); layout(); sources(); riskEditWire(); try{renderComplexItems()}catch(e){} activate(window.rt54ActiveTab||'risk'); }
+  document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
+})();
+/* ===== END PHASE 23.0.54 COMPLEX WORKSPACE UI ===== */
