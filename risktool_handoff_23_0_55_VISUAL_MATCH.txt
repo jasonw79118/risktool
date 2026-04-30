@@ -1,0 +1,27 @@
+RiskTool 23.0.55 — Complex Workspace Visual Match Patch
+
+Purpose
+- Align the Complex Scenario Builder / Component Workspace with the approved mockup direction.
+- Preserve the RT54 workspace logic while improving the visual structure to match the screenshot style.
+
+Changes
+- Bumped app runtime/version labels to 23.0.55.
+- Updated index.html to load app_23_0_55.js?v=23.0.55.
+- Re-skinned left navigation to match the darker RiskTool sidebar style.
+- Added stronger Complex Scenario Builder > Component Workspace header styling.
+- Moved the Component Workspace layout higher on the screen so the Component Summary, workspace tabs, and right-side guidance panels lead the view.
+- Hid the older Area/Product setup and Area Rollup cards from the main workspace view to reduce clutter and better match the approved mockup.
+- Preserved the right-side Component Workspace Tables panel.
+- Preserved the How Rollups Are Calculated panel.
+- Preserved underlined source links for user reference.
+- Preserved edit/delete controls for Risk Items and the RT54 child-table framework.
+- Strengthened component summary rollup values for risk item count, total cost/loss exposure, average residual risk, and highest driver.
+
+Files included
+- index.html
+- app.js
+- app_23_0_55.js
+- risktool_handoff_23_0_55_VISUAL_MATCH.txt
+
+Delivery rule
+- Flat ZIP structure. Replacement files appear at the root of the ZIP.
