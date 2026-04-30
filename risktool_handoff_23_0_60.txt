@@ -1,0 +1,16 @@
+RISKTOOL HANDOFF — PHASE 23.0.60
+
+Changes included:
+- Dashboard graph hidden/removed from active dashboard display.
+- Generated Summary now identifies the highest-risk open scenario.
+- Scenario ID in Dashboard Open Scenario Table refreshes the generated summary for that selected scenario.
+- Dashboard action button now opens the originating builder screen for the selected scenario.
+- Single Scenario and Beta Scenario screens use Complex-style numbered workspace tabs with Scenario Entry shown first.
+
+Regression tests:
+1. Dashboard graph should not show.
+2. Dashboard summary should name the highest-risk open scenario.
+3. Clicking an ID should update the summary.
+4. Open Builder should navigate to the correct Single, Complex, or Beta screen.
+5. Single/Beta should show Scenario Entry first and other sections under tabs.
+6. Complex builder should remain stable from prior patch.
