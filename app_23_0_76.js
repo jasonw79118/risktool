@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.75";
+const APP_VERSION = "23.0.76";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -348,7 +348,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.75",
+    phase: "23.0.76",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 23.0.75 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 23.0.76 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 23.0.75 ===== */
+/* ===== END PHASE 23.0.76 ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -5731,7 +5731,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.75 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.76 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5870,16 +5870,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.75 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.76 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.75 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.76 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.75 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.76 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.75 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.76 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -6072,10 +6072,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.75 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.76 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.75 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.76 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6322,9 +6322,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.75 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.76 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.75 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.76 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6438,12 +6438,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.75 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.76 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.75 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.76 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.75";
+  const PHASE = "23.0.76";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6539,12 +6539,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.75 ===== */
+/* ===== END PHASE 23.0.76 ===== */
 
 
-/* ===== PHASE 23.0.75 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.76 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.75";
+  const PHASE = "23.0.76";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6677,13 +6677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.75 ===== */
+/* ===== END PHASE 23.0.76 ===== */
 
 
 
-/* ===== PHASE 23.0.75 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.76 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.75";
+  const PHASE = "23.0.76";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6717,7 +6717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.75 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.76 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6809,13 +6809,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.75 ===== */
+/* ===== END PHASE 23.0.76 ===== */
 
 
-/* ===== PHASE 23.0.75 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
+/* ===== PHASE 23.0.76 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
 (function(){
   'use strict';
-  var PHASE='23.0.75';
+  var PHASE='23.0.76';
   var SESSION_KEY='risk_manager_session_user_v2101';
   var VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
   function q(s,r){return (r||document).querySelector(s)}
@@ -6909,10 +6909,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',function(){setTimeout(function(){version();login();unlockFields();},20)},true);
   document.addEventListener('change',function(){setTimeout(function(){fixCategories();unlockFields();},20)},true);
 })();
-/* ===== END PHASE 23.0.75 RUNTIME REBASE ===== */
-/* ===== PHASE 23.0.75 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.76 RUNTIME REBASE ===== */
+/* ===== PHASE 23.0.76 COMPLEX WORKSPACE UI ===== */
 (function(){
-  const PHASE = "23.0.75";
+  const PHASE = "23.0.76";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -6941,11 +6941,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
 })();
-/* ===== END PHASE 23.0.75 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.76 COMPLEX WORKSPACE UI ===== */
 
-/* ===== PHASE 23.0.75 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== PHASE 23.0.76 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 (function(){
-  const PHASE = "23.0.75";
+  const PHASE = "23.0.76";
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -6966,11 +6966,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init55,80),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}); else {setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}
 })();
-/* ===== END PHASE 23.0.75 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== END PHASE 23.0.76 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 
-/* ===== PHASE 23.0.75 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== PHASE 23.0.76 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 (function(){
-  const PHASE = "23.0.75";
+  const PHASE = "23.0.76";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -6991,12 +6991,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init56,60),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}); else {setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}
 })();
-/* ===== END PHASE 23.0.75 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== END PHASE 23.0.76 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 
 
-/* ===== PHASE 23.0.75 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== PHASE 23.0.76 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 (function(){
-  const PHASE='23.0.75';
+  const PHASE='23.0.76';
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -7019,13 +7019,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',()=>setTimeout(init,80),true); document.addEventListener('change',()=>setTimeout(init,80),true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}); else {setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}
 })();
-/* ===== END PHASE 23.0.75 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== END PHASE 23.0.76 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 
 
-/* ===== PHASE 23.0.75 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== PHASE 23.0.76 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 (function(){
   'use strict';
-  const PHASE='23.0.75';
+  const PHASE='23.0.76';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   function setVersion(){
@@ -7098,12 +7098,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init,60),true);
   document.addEventListener('change',()=>setTimeout(init,80),true);
 })();
-/* ===== END PHASE 23.0.75 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== END PHASE 23.0.76 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 
 
-/* ===== PHASE 23.0.75 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== PHASE 23.0.76 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
 (function(){
-  const VERSION='23.0.75';
+  const VERSION='23.0.76';
   const qs=(s,r=document)=>r.querySelector(s);
   function setVersion(){
     const v=qs('#appVersion'); if(v) v.textContent=VERSION;
@@ -7206,19 +7206,19 @@ document.addEventListener('DOMContentLoaded', () => {
   else [50,300,900,1600,2600].forEach(t=>setTimeout(init,t));
   ['click','change','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
 })();
-/* ===== END PHASE 23.0.75 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== END PHASE 23.0.76 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
 
 
-/* ===== PHASE 23.0.75 STABILIZATION PATCH ===== */
+/* ===== PHASE 23.0.76 STABILIZATION PATCH ===== */
 (function(){
   'use strict';
-  const VERSION='23.0.75';
+  const VERSION='23.0.76';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const storeKey='risk_manager_saved_evaluations_v2';
   const money=n=>{try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(n)||0)}catch(e){return '$'+Math.round(Number(n)||0).toLocaleString()}};
   const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  function call(name,...args){try{if(typeof window[name]==='function')return window[name](...args)}catch(e){console.warn('RT 23.0.75',name,e)}}
+  function call(name,...args){try{if(typeof window[name]==='function')return window[name](...args)}catch(e){console.warn('RT 23.0.76',name,e)}}
   function saved(){try{if(typeof window.getSavedScenarios==='function')return window.getSavedScenarios()||[]}catch(e){} try{return JSON.parse(localStorage.getItem(storeKey)||'[]')||[]}catch(e){return []}}
   function setSaved(items){try{if(typeof window.setSavedScenarios==='function'){window.setSavedScenarios(items||[]);return}}catch(e){} try{localStorage.setItem(storeKey,JSON.stringify(items||[]))}catch(e){console.warn(e)}}
   function norm(payload){try{if(typeof window.normalizeScenario==='function')return window.normalizeScenario(payload)}catch(e){} return payload}
@@ -7237,15 +7237,122 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveSingle(e){if(e){e.preventDefault();e.stopImmediatePropagation()} if(loginBlocked())return false; try{const payload=window.getSinglePayload(); const id=savePayload(payload,'#singleScenarioId','Single scenario'); call('openScenario',id)}catch(err){console.error(err);alert('Single scenario could not be saved: '+(err.message||err))} return false}
   function saveBeta(e){if(e){e.preventDefault();e.stopImmediatePropagation()} if(loginBlocked())return false; try{const payload=window.getBetaPayload(); savePayload(payload,'#betaScenarioId','Beta scenario'); if(typeof window.setBetaOutputs==='function')window.setBetaOutputs({relativeMean:payload.betaRelativeMean,a:payload.betaShapeA,b:payload.betaShapeB,expectedValue:payload.betaExpectedValue,p10:payload.betaP10,p50:payload.betaP50,p90:payload.betaP90,iterations:payload.betaIterations,narrative:payload.generatedSummary}); call('activateView','beta')}catch(err){console.error(err);alert('Beta scenario could not be saved: '+(err.message||err))} return false}
   function saveComplex(e){if(e){e.preventDefault();e.stopImmediatePropagation()} if(loginBlocked())return false; try{if(typeof window.addComplexScenarioComponent==='function')window.addComplexScenarioComponent(); const payload=window.getComplexPayload(); savePayload(payload,'#complexScenarioId','Complex scenario/component'); call('activateView','complex')}catch(err){console.error(err);alert('Complex scenario could not be saved: '+(err.message||err))} return false}
-  function wireSaves(){const s=qs('#saveScenarioBtn');if(s){s.type='button';s.onclick=saveSingle;s.dataset.rt75Save='1'} const b=qs('#saveBetaScenarioBtn');if(b){b.type='button';b.onclick=saveBeta;b.dataset.rt75Save='1'} ['#addComplexScenarioBtn','#rt54SaveAll'].forEach(sel=>{const c=qs(sel);if(c){c.type='button';c.textContent=sel==='#addComplexScenarioBtn'?'Save Component':c.textContent;c.onclick=saveComplex;c.dataset.rt75Save='1'}})}
+  function wireSaves(){const s=qs('#saveScenarioBtn');if(s){s.type='button';s.onclick=saveSingle;s.dataset.rt76Save='1'} const b=qs('#saveBetaScenarioBtn');if(b){b.type='button';b.onclick=saveBeta;b.dataset.rt76Save='1'} ['#addComplexScenarioBtn','#rt54SaveAll'].forEach(sel=>{const c=qs(sel);if(c){c.type='button';c.textContent=sel==='#addComplexScenarioBtn'?'Save Component':c.textContent;c.onclick=saveComplex;c.dataset.rt76Save='1'}})}
   function mode(s){return String((s&&s.mode)||s?.scenarioType||'single').toLowerCase()}
   function summary(s){try{if(typeof window.summarizePayload==='function')return window.summarizePayload(s)}catch(e){} const exp=Number(s.expectedLoss||s.totalExposure||s.betaExpectedValue||s.inherent||0)||0; return {...s,expectedLoss:exp,residualExpectedLoss:Number(s.residualExpectedLoss||s.betaP90||s.residual||exp)||0}}
-  function renderPortfolio(){const view=qs('#view-reports'); if(!view)return; const rows=saved().map(raw=>({raw,mode:mode(raw),sum:summary(raw)})).sort((a,b)=>(Number(b.sum.residualExpectedLoss||b.sum.residual||0)-Number(a.sum.residualExpectedLoss||a.sum.residual||0))); const totals=rows.reduce((t,r)=>{t.exposure+=Number(r.sum.expectedLoss||r.sum.totalExposure||r.raw.betaExpectedValue||0)||0;t.residual+=Number(r.sum.residualExpectedLoss||r.sum.residual||r.raw.betaP90||0)||0;t.insurance+=(Array.isArray(r.raw.insurance)?r.raw.insurance.reduce((a,x)=>a+(Number(x.coverageAmount||0)||0),0):0);return t},{exposure:0,residual:0,insurance:0}); let host=qs('#rt75PortfolioHost'); if(!host){host=document.createElement('div');host.id='rt75PortfolioHost';host.className='card'; const header=qs('#view-reports .section-header'); if(header&&header.nextSibling)header.parentNode.insertBefore(host,header.nextSibling); else view.insertBefore(host,view.firstChild)} host.innerHTML='<div class="card-header"><h3>Portfolio Report</h3><span>Aggregates Complex, Single, and Beta scenarios</span></div><div class="form-grid" style="grid-template-columns:repeat(4,minmax(160px,1fr));"><label>Total Scenarios<input readonly value="'+rows.length+'"></label><label>Total Exposure<input readonly value="'+money(totals.exposure)+'"></label><label>Residual Risk<input readonly value="'+money(totals.residual)+'"></label><label>Insurance Impact<input readonly value="'+money(totals.insurance)+'"></label></div><div class="table-wrap"><table><thead><tr><th>Rank</th><th>ID</th><th>Type</th><th>Name</th><th>Status</th><th>Total Exposure</th><th>Residual Risk</th><th>Highest Driver</th><th>Action</th></tr></thead><tbody>'+(rows.length?rows.map((r,i)=>{const id=String(r.raw.id||r.sum.id||'');return '<tr><td>'+(i+1)+'</td><td>'+esc(id)+'</td><td>'+esc(r.mode)+'</td><td>'+esc(r.raw.name||r.sum.name||'Unnamed')+'</td><td>'+esc(r.raw.scenarioStatus||'')+'</td><td>'+money(r.sum.expectedLoss||r.sum.totalExposure||r.raw.betaExpectedValue||0)+'</td><td>'+money(r.sum.residualExpectedLoss||r.sum.residual||r.raw.betaP90||0)+'</td><td>'+esc(r.sum.highestDriver||r.raw.highestDriver||'Review scenario detail')+'</td><td><button class="btn btn-secondary small-btn" type="button" data-rt75-open="'+esc(id)+'">Open</button></td></tr>'}).join(''):'<tr><td colspan="9">No saved scenarios yet. Save a scenario to populate the portfolio report.</td></tr>')+'</tbody></table></div>'; host.querySelectorAll('[data-rt75-open]').forEach(btn=>btn.addEventListener('click',()=>call('openScenario',btn.dataset.rt75Open)))}
-  function restoreFix(){['#rtSkipWorkspace29','#rtDirectSkipWorkspace28','#rtSkipWorkspace','#restoreWorkspaceNotNowBtn'].forEach(sel=>{const b=qs(sel); if(b&&!b.dataset.rt75Skip){b.dataset.rt75Skip='1';b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const m=b.closest('.modal,.rt-modal,[role="dialog"]'); if(m)m.style.display='none'; call('activateView','dashboard')},true)}}); qsa('input[type="file"][id*="Workspace"],input[type="file"][id*="workspace"]').forEach(inp=>{if(!inp.dataset.rt75Restore){inp.dataset.rt75Restore='1';inp.addEventListener('change',()=>setTimeout(()=>{call('activateView','dashboard');refresh()},350),true)}})}
+  function renderPortfolio(){const view=qs('#view-reports'); if(!view)return; const rows=saved().map(raw=>({raw,mode:mode(raw),sum:summary(raw)})).sort((a,b)=>(Number(b.sum.residualExpectedLoss||b.sum.residual||0)-Number(a.sum.residualExpectedLoss||a.sum.residual||0))); const totals=rows.reduce((t,r)=>{t.exposure+=Number(r.sum.expectedLoss||r.sum.totalExposure||r.raw.betaExpectedValue||0)||0;t.residual+=Number(r.sum.residualExpectedLoss||r.sum.residual||r.raw.betaP90||0)||0;t.insurance+=(Array.isArray(r.raw.insurance)?r.raw.insurance.reduce((a,x)=>a+(Number(x.coverageAmount||0)||0),0):0);return t},{exposure:0,residual:0,insurance:0}); let host=qs('#rt76PortfolioHost'); if(!host){host=document.createElement('div');host.id='rt76PortfolioHost';host.className='card'; const header=qs('#view-reports .section-header'); if(header&&header.nextSibling)header.parentNode.insertBefore(host,header.nextSibling); else view.insertBefore(host,view.firstChild)} host.innerHTML='<div class="card-header"><h3>Portfolio Report</h3><span>Aggregates Complex, Single, and Beta scenarios</span></div><div class="form-grid" style="grid-template-columns:repeat(4,minmax(160px,1fr));"><label>Total Scenarios<input readonly value="'+rows.length+'"></label><label>Total Exposure<input readonly value="'+money(totals.exposure)+'"></label><label>Residual Risk<input readonly value="'+money(totals.residual)+'"></label><label>Insurance Impact<input readonly value="'+money(totals.insurance)+'"></label></div><div class="table-wrap"><table><thead><tr><th>Rank</th><th>ID</th><th>Type</th><th>Name</th><th>Status</th><th>Total Exposure</th><th>Residual Risk</th><th>Highest Driver</th><th>Action</th></tr></thead><tbody>'+(rows.length?rows.map((r,i)=>{const id=String(r.raw.id||r.sum.id||'');return '<tr><td>'+(i+1)+'</td><td>'+esc(id)+'</td><td>'+esc(r.mode)+'</td><td>'+esc(r.raw.name||r.sum.name||'Unnamed')+'</td><td>'+esc(r.raw.scenarioStatus||'')+'</td><td>'+money(r.sum.expectedLoss||r.sum.totalExposure||r.raw.betaExpectedValue||0)+'</td><td>'+money(r.sum.residualExpectedLoss||r.sum.residual||r.raw.betaP90||0)+'</td><td>'+esc(r.sum.highestDriver||r.raw.highestDriver||'Review scenario detail')+'</td><td><button class="btn btn-secondary small-btn" type="button" data-rt76-open="'+esc(id)+'">Open</button></td></tr>'}).join(''):'<tr><td colspan="9">No saved scenarios yet. Save a scenario to populate the portfolio report.</td></tr>')+'</tbody></table></div>'; host.querySelectorAll('[data-rt76-open]').forEach(btn=>btn.addEventListener('click',()=>call('openScenario',btn.dataset.rt76Open)))}
+  function restoreFix(){['#rtSkipWorkspace29','#rtDirectSkipWorkspace28','#rtSkipWorkspace','#restoreWorkspaceNotNowBtn'].forEach(sel=>{const b=qs(sel); if(b&&!b.dataset.rt76Skip){b.dataset.rt76Skip='1';b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const m=b.closest('.modal,.rt-modal,[role="dialog"]'); if(m)m.style.display='none'; call('activateView','dashboard')},true)}}); qsa('input[type="file"][id*="Workspace"],input[type="file"][id*="workspace"]').forEach(inp=>{if(!inp.dataset.rt76Restore){inp.dataset.rt76Restore='1';inp.addEventListener('change',()=>setTimeout(()=>{call('activateView','dashboard');refresh()},350),true)}})}
   function init(){version();wireSaves();restoreFix();if(!qs('#view-reports')?.classList.contains('hidden'))renderPortfolio()}
   const oldActivate=window.activateView; window.activateView=function(v){const r=typeof oldActivate==='function'?oldActivate.apply(this,arguments):undefined; setTimeout(()=>{init(); if(v==='reports'||v==='portfolio-report')renderPortfolio()},60); return r};
   document.addEventListener('click',e=>{if(e.target.closest('#saveScenarioBtn'))return saveSingle(e); if(e.target.closest('#saveBetaScenarioBtn'))return saveBeta(e); if(e.target.closest('#addComplexScenarioBtn,#rt54SaveAll'))return saveComplex(e); if(e.target.closest('.nav-item[data-view="reports"],.nav-item[data-view="portfolio-report"]'))setTimeout(renderPortfolio,120); setTimeout(init,80)},true);
   ['change','input','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[80,400,1200].forEach(t=>setTimeout(init,t))); else [80,400,1200].forEach(t=>setTimeout(init,t));
 })();
-/* ===== END PHASE 23.0.75 STABILIZATION PATCH ===== */
+/* ===== END PHASE 23.0.76 STABILIZATION PATCH ===== */
+
+
+/* ===== PHASE 23.0.76 TARGETED FIX: POST-LOGIN LOAD + PORTFOLIO RUNNER ===== */
+(function(){
+  'use strict';
+  const VERSION='23.0.76';
+  const SCENARIO_KEY='risk_manager_saved_evaluations_v2';
+  const qs=(s,r=document)=>r.querySelector(s);
+  const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const num=v=>{ if(typeof window.parseCurrencyValue==='function') { try{return Number(window.parseCurrencyValue(v)||0)}catch(e){} } return Number(String(v??0).replace(/[^0-9.-]/g,''))||0; };
+  const money=n=>{ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(n)||0)}catch(e){return '$'+Math.round(Number(n)||0).toLocaleString();} };
+  function setVersion(){ window.RISKTOOL_RUNTIME_VERSION=VERSION; qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=VERSION); qsa('.sidebar-note h4').forEach(el=>el.textContent='Phase '+VERSION); }
+  function call(name,...args){ try{ if(typeof window[name]==='function') return window[name](...args); }catch(e){ console.warn('RiskTool '+VERSION+' '+name,e); } }
+  function saved(){ try{ if(typeof window.getSavedScenarios==='function') return window.getSavedScenarios()||[]; }catch(e){} try{return JSON.parse(localStorage.getItem(SCENARIO_KEY)||'[]')||[]}catch(e){return []} }
+  function refresh(){ ['renderSavedScenarios','renderDashboardOpenTable','renderHeatMap','refreshLibraries','refreshWorkspaceDiagnostics','refreshWorkspaceFolderModeUi'].forEach(fn=>call(fn)); setVersion(); }
+  function closeWorkspaceModals(){ qsa('#postLoginWorkspaceReconnectModal,#rtReconnectWorkspace25,#rtDirectReconnect28,#rtWorkspaceReconnect29,#restoreSessionModal,#rt76PostLoginLoadModal,.rt-modal').forEach(m=>{ try{m.style.display='none'}catch(e){} }); }
+  async function afterWorkspaceConnected(){
+    try{ if(typeof window.loadWorkspaceScenarioCache==='function') await window.loadWorkspaceScenarioCache(); }catch(e){ console.warn(e); }
+    refresh();
+    try{ if(typeof window.maybePromptWorkspaceRestore==='function') { const shown=await window.maybePromptWorkspaceRestore('post-login-load-fixed'); if(shown) return; } }catch(e){ console.warn(e); }
+    closeWorkspaceModals();
+    call('activateView','dashboard');
+  }
+  async function chooseWorkspaceFolderFixed(statusEl){
+    try{
+      if(typeof window.setScenarioSaveEngine==='function') window.setScenarioSaveEngine('Chrome/Edge Workspace Folder');
+      if(typeof window.selectWorkspaceFolder==='function') await window.selectWorkspaceFolder();
+      else if(typeof window.showDirectoryPicker==='function') window.workspaceFolderHandle=await window.showDirectoryPicker({mode:'readwrite'});
+      else throw new Error('Chrome or Edge folder access is not available in this browser.');
+      if(statusEl) statusEl.textContent='Workspace folder connected. Loading saved scenarios and continuing to dashboard...';
+      await afterWorkspaceConnected();
+    }catch(err){ console.error(err); if(statusEl) statusEl.textContent='Workspace folder was not connected. Choose the approved RiskTool workspace folder again.'; }
+  }
+  function ensureFixedLoadModal(){
+    let modal=qs('#rt76PostLoginLoadModal');
+    if(modal) return modal;
+    modal=document.createElement('div');
+    modal.id='rt76PostLoginLoadModal';
+    modal.style.cssText='display:none;position:fixed;inset:0;background:rgba(12,18,34,.72);z-index:20000;align-items:center;justify-content:center;padding:24px;';
+    modal.innerHTML='<div class="card" style="width:min(680px,96vw);max-height:90vh;overflow:auto;"><div class="card-header"><h3>Load Scenario Workspace</h3><span>Post-login workspace restore</span></div><div class="card-body"><p style="margin-top:0;">Login is complete. Choose your approved RiskTool workspace folder to load saved scenarios and restore the last session. Choose Not Now to continue to the dashboard without loading a folder.</p><div class="note-box" id="rt76LoadStatus">Waiting for workspace folder selection.</div><div class="builder-actions"><button class="btn btn-primary" type="button" id="rt76ChooseWorkspace">Load Workspace Folder</button><button class="btn btn-secondary" type="button" id="rt76NotNow">Not Now</button></div></div></div>';
+    document.body.appendChild(modal);
+    qs('#rt76ChooseWorkspace',modal).addEventListener('click',()=>chooseWorkspaceFolderFixed(qs('#rt76LoadStatus',modal)),true);
+    qs('#rt76NotNow',modal).addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();closeWorkspaceModals();call('activateView','dashboard');refresh();},true);
+    return modal;
+  }
+  function showPostLoginLoadFixed(){
+    if(typeof window.isUserLoggedIn==='function' && !window.isUserLoggedIn()) return false;
+    closeWorkspaceModals();
+    const modal=ensureFixedLoadModal();
+    modal.style.display='flex';
+    return true;
+  }
+  function wireLoadScreenFix(){
+    window.showPostLoginRestoreScreen=showPostLoginLoadFixed;
+    qsa('#postLoginReconnectFolderBtn,#rtChooseWorkspace25,#rtDirectChooseWorkspace28,#rtChooseWorkspace29,#selectWorkspaceFolderBtn,#restorePreviousSessionBtn').forEach(btn=>{
+      if(btn.dataset.rt76LoadFix) return; btn.dataset.rt76LoadFix='1';
+      btn.addEventListener('click',(e)=>{ e.preventDefault(); e.stopImmediatePropagation(); chooseWorkspaceFolderFixed(document.getElementById('rt76LoadStatus')||document.getElementById('postLoginWorkspaceReconnectStatus')||document.getElementById('rtDirectReconnectStatus28')||document.getElementById('rtWorkspace29Status')); },true);
+    });
+    qsa('#postLoginSkipReconnectBtn,#rtSkipWorkspace25,#rtDirectSkipWorkspace28,#rtSkipWorkspace29,#restoreWorkspaceNotNowBtn,#restoreSessionNotNowBtn').forEach(btn=>{
+      if(btn.dataset.rt76SkipFix) return; btn.dataset.rt76SkipFix='1';
+      btn.addEventListener('click',(e)=>{ e.preventDefault(); e.stopImmediatePropagation(); closeWorkspaceModals(); call('activateView','dashboard'); refresh(); },true);
+    });
+  }
+  function scenarioType(s){ return String(s?.mode||s?.scenarioType||'single').toLowerCase(); }
+  function insuranceCoverage(s){ const arr=Array.isArray(s.insurance)?s.insurance:[]; return arr.reduce((a,x)=>a+num(x.coverageAmount||x.coverage||0),0); }
+  function highestDriver(s,summary){
+    const items=Array.isArray(s.items)?s.items:[];
+    if(items.length){
+      const best=items.slice().sort((a,b)=>(num(b.inherent||b.impact||0)-num(a.inherent||a.impact||0)))[0];
+      return best.riskName||best.itemName||best.description||best.controlName||'Risk item review';
+    }
+    if(Array.isArray(s.components)&&s.components.length){
+      const best=s.components.slice().sort((a,b)=>(num(b.inherent||0)-num(a.inherent||0)))[0];
+      return best.componentName||best.name||'Component review';
+    }
+    return summary?.tier ? ('Risk tier: '+summary.tier) : 'Scenario level inputs';
+  }
+  function runOneScenario(raw){
+    let summary=null;
+    try{ if(typeof window.summarizePayload==='function') summary=window.summarizePayload(raw); }catch(e){ console.warn('Portfolio scenario run failed', raw?.id, e); }
+    if(!summary) summary={...raw};
+    const exposure=num(summary.expectedLoss||summary.totalExposure||raw.expectedLoss||raw.totalExposure||raw.betaExpectedValue||raw.hardCostLikely||0);
+    const residual=num(summary.residualExpectedLoss||summary.residual||raw.residualExpectedLoss||raw.residual||raw.betaP90||exposure);
+    const p90=num(summary.rangeHigh||raw.rangeHigh||raw.betaP90||residual);
+    return { raw, summary, type:scenarioType(raw), exposure, residual, p90, insurance:insuranceCoverage(raw), driver:highestDriver(raw,summary) };
+  }
+  function renderPortfolioRunner(){
+    const view=qs('#view-reports'); if(!view) return;
+    let host=qs('#rt76PortfolioRunner');
+    if(!host){ host=document.createElement('div'); host.id='rt76PortfolioRunner'; host.className='card'; const header=qs('#view-reports .section-header'); if(header&&header.nextSibling) header.parentNode.insertBefore(host, header.nextSibling); else view.insertBefore(host, view.firstChild); }
+    const rows=saved().map(runOneScenario).sort((a,b)=>b.residual-a.residual);
+    const totals=rows.reduce((t,r)=>{t.exposure+=r.exposure;t.residual+=r.residual;t.insurance+=r.insurance;t.p90+=r.p90;return t;},{exposure:0,residual:0,insurance:0,p90:0});
+    const byType=rows.reduce((m,r)=>{m[r.type]=(m[r.type]||0)+1;return m;},{});
+    host.innerHTML='<div class="card-header"><h3>Portfolio Report</h3><span>Runs every saved Complex, Single, and Beta scenario</span></div><div class="builder-actions"><button class="btn btn-primary" type="button" id="rt76RunPortfolio">Run Portfolio Report</button><button class="btn btn-secondary" type="button" id="rt76RefreshPortfolio">Refresh Saved Scenario List</button></div><div class="form-grid" style="grid-template-columns:repeat(5,minmax(140px,1fr));"><label>Total Scenarios<input readonly value="'+rows.length+'"></label><label>Complex<input readonly value="'+(byType.complex||0)+'"></label><label>Single<input readonly value="'+(byType.single||0)+'"></label><label>Beta<input readonly value="'+(byType.beta||0)+'"></label><label>Insurance Impact<input readonly value="'+money(totals.insurance)+'"></label></div><div class="form-grid" style="grid-template-columns:repeat(3,minmax(180px,1fr));"><label>Total Exposure<input readonly value="'+money(totals.exposure)+'"></label><label>Residual Risk<input readonly value="'+money(totals.residual)+'"></label><label>P90 / High Estimate<input readonly value="'+money(totals.p90)+'"></label></div><div class="note-box">Portfolio runner recalculates Monte Carlo summaries from saved scenario inputs. Rankings are ordered by residual annual loss.</div><div class="table-wrap"><table><thead><tr><th>Rank</th><th>ID</th><th>Type</th><th>Scenario</th><th>Status</th><th>Exposure</th><th>Residual</th><th>P90</th><th>Highest Driver</th><th>Open</th></tr></thead><tbody>'+(rows.length?rows.map((r,i)=>{const id=String(r.raw.id||r.summary.id||'');return '<tr><td>'+(i+1)+'</td><td>'+esc(id)+'</td><td>'+esc(r.type)+'</td><td>'+esc(r.raw.name||r.summary.name||'Unnamed')+'</td><td>'+esc(r.raw.scenarioStatus||r.summary.scenarioStatus||'')+'</td><td>'+money(r.exposure)+'</td><td>'+money(r.residual)+'</td><td>'+money(r.p90)+'</td><td>'+esc(r.driver)+'</td><td><button class="btn btn-secondary small-btn" type="button" data-rt76-open="'+esc(id)+'">Open</button></td></tr>';}).join(''):'<tr><td colspan="10">No saved scenarios yet. Save at least one scenario, then run the portfolio report.</td></tr>')+'</tbody></table></div>';
+    qs('#rt76RunPortfolio',host)?.addEventListener('click',()=>{renderPortfolioRunner();},true);
+    qs('#rt76RefreshPortfolio',host)?.addEventListener('click',()=>{refresh();renderPortfolioRunner();},true);
+    qsa('[data-rt76-open]',host).forEach(btn=>btn.addEventListener('click',()=>call('openScenario',btn.dataset.rt76Open),true));
+  }
+  const oldActivate=window.activateView;
+  window.activateView=function(viewName){ const r=typeof oldActivate==='function'?oldActivate.apply(this,arguments):undefined; setTimeout(()=>{ setVersion(); wireLoadScreenFix(); if(viewName==='reports'||viewName==='portfolio-report') renderPortfolioRunner(); },50); return r; };
+  document.addEventListener('click',e=>{ if(e.target.closest('.nav-item[data-view="reports"],.nav-item[data-view="portfolio-report"],#rt76RunPortfolio,#rt76RefreshPortfolio')) setTimeout(renderPortfolioRunner,80); setTimeout(wireLoadScreenFix,80); },true);
+  ['change','hashchange','input'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>{wireLoadScreenFix(); if(qs('#view-reports')?.classList.contains('active')) renderPortfolioRunner();},80),true));
+  function init(){ setVersion(); wireLoadScreenFix(); if(qs('#view-reports')?.classList.contains('active')) renderPortfolioRunner(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>[50,250,750,1500].forEach(t=>setTimeout(init,t))); else [50,250,750,1500].forEach(t=>setTimeout(init,t));
+})();
+/* ===== END PHASE 23.0.76 TARGETED FIX ===== */
