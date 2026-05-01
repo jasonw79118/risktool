@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.66";
+const APP_VERSION = "23.0.68";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -348,7 +348,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.66",
+    phase: "23.0.68",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 23.0.66 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 23.0.68 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 23.0.66 ===== */
+/* ===== END PHASE 23.0.68 ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -5731,7 +5731,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.66 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.68 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5870,16 +5870,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.66 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.68 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.66 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.68 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.66 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.68 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.66 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.68 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -6072,10 +6072,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.66 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.68 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.66 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.68 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6322,9 +6322,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.66 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.68 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.66 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.68 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6438,12 +6438,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.66 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.68 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.66 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.68 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.66";
+  const PHASE = "23.0.68";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6539,12 +6539,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.66 ===== */
+/* ===== END PHASE 23.0.68 ===== */
 
 
-/* ===== PHASE 23.0.66 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.68 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.66";
+  const PHASE = "23.0.68";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6677,13 +6677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.66 ===== */
+/* ===== END PHASE 23.0.68 ===== */
 
 
 
-/* ===== PHASE 23.0.66 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.68 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.66";
+  const PHASE = "23.0.68";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6717,7 +6717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.66 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.68 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6809,1940 +6809,104 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.66 ===== */
+/* ===== END PHASE 23.0.68 ===== */
 
 
-/* ===== PHASE 23.0.66 SIMPLE POST-LOGIN RESTORE SCREEN ===== */
+/* ===== PHASE 23.0.68 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
 (function(){
-  const PHASE = "23.0.66";
-  function setVersion32(){
-    try { ["appVersion","versionDisplay","phaseBadge","phaseVersion","footerVersion"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=PHASE; }); } catch(e) {}
-    try { document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent=PHASE); } catch(e) {}
-    try { document.querySelectorAll('.sidebar-note h4').forEach(el=>{ if((el.textContent||'').indexOf('Phase 23.0.')>=0) el.textContent='Phase '+PHASE; }); } catch(e) {}
-  }
-  function supportsFolder32(){ return typeof window.showDirectoryPicker === 'function'; }
-  function hasFolder32(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
-  async function loadWorkspace32(){
-    try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
-    try { if (typeof loadWorkspaceScenarioCache === 'function') await loadWorkspaceScenarioCache(); } catch(e) { console.warn(e); }
-    try { if (typeof refreshWorkspaceFolderModeUi === 'function') refreshWorkspaceFolderModeUi(); } catch(e) {}
-    try { if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); } catch(e) {}
-    try { if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) {}
-    try { if (typeof refreshLibraries === 'function') refreshLibraries(); } catch(e) {}
-  }
-  async function readSession32(){
-    try {
-      if(!hasFolder32()) return null;
-      const cfg = await workspaceFolderHandle.getDirectoryHandle('config', { create: true });
-      const fh = await cfg.getFileHandle('session-state.json', { create: false });
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    } catch(e) { return null; }
-  }
-  function getSaved32(){
-    try { if (Array.isArray(workspaceScenarioCache)) return workspaceScenarioCache.slice(); } catch(e) {}
-    try { if (typeof getSavedScenarios === 'function') return getSavedScenarios(); } catch(e) {}
-    return [];
-  }
-  async function offerRestore32(){
-    await loadWorkspace32();
-    const session = await readSession32();
-    if(!session){ alert('Workspace folder connected. No previous session file was found yet.'); return false; }
-    const id = String(session.scenarioId || session.lastScenarioId || '');
-    if(!id){ alert('Workspace folder connected, but the previous session file did not include a scenario ID.'); return false; }
-    const saved = getSaved32();
-    const match = saved.find(s => String(s.id || '') === id);
-    const label = (match && match.name) || session.scenarioName || id;
-    const restore = confirm('Restore previous RiskTool session?\n\nScenario: ' + label + '\nLast saved: ' + (session.updatedAt || session.timestamp || 'Unknown'));
-    if(!restore) return true;
-    if(match && typeof openScenario === 'function') { openScenario(match.id); return true; }
-    alert('Previous session was found, but the matching scenario was not found in the connected workspace folder.');
-    return true;
-  }
-  function ensurePostLoginModal32(){
-    let modal = document.getElementById('rtPostLoginRestore32');
-    if(modal) return modal;
-    modal = document.createElement('div');
-    modal.id = 'rtPostLoginRestore32';
-    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:70000;background:rgba(15,23,42,.78);align-items:center;justify-content:center;padding:24px;';
-    modal.innerHTML = '<div class="card" style="width:min(760px,96vw);max-height:90vh;overflow:auto;"><div class="card-header"><h3>Reconnect Workspace Folder</h3><span>Restore previous session</span></div><div class="card-body"><p style="margin-top:0;">Login was successful. RiskTool does not keep work scenarios on the website. Reconnect the approved local or shared-drive workspace folder to load saved scenarios and restore your previous session.</p><div class="note-box" id="rtPostLoginRestore32Status">Choose the same workspace folder used for RiskTool files.</div><div class="builder-actions"><button type="button" class="btn btn-primary" id="rtPostLoginRestore32Choose">Reconnect Workspace Folder</button><button type="button" class="btn btn-secondary" id="rtPostLoginRestore32Skip">Continue Without Restore</button></div></div></div>';
-    document.body.appendChild(modal);
-    modal.querySelector('#rtPostLoginRestore32Skip')?.addEventListener('click',()=>{ modal.style.display='none'; });
-    modal.querySelector('#rtPostLoginRestore32Choose')?.addEventListener('click', async ()=>{
-      const status = document.getElementById('rtPostLoginRestore32Status');
-      try {
-        if(!supportsFolder32()) { if(status) status.textContent='Use Chrome or Edge. This browser does not support workspace folder access.'; return; }
-        if(status) status.textContent='Waiting for folder selection...';
-        const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
-        try { workspaceFolderHandle = handle; workspaceFolderName = handle?.name || 'Selected folder'; } catch(e) {}
-        try { window.workspaceFolderHandle = handle; window.workspaceFolderName = handle?.name || 'Selected folder'; } catch(e) {}
-        if(status) status.textContent='Workspace connected: ' + (handle?.name || 'Selected folder') + '. Checking previous session...';
-        modal.style.display='none';
-        await offerRestore32();
-      } catch(e) {
-        console.error(e);
-        if(status) status.textContent='Workspace folder was not connected. Choose the folder again to restore saved work.';
-      }
-    });
-    return modal;
-  }
-  window.showPostLoginRestoreScreen = function(){
-    setVersion32();
-    ensurePostLoginModal32().style.display='flex';
-  };
-  // Remove old stacked login listeners by replacing the button once, then bind directly to the original startUserSession.
-  document.addEventListener('DOMContentLoaded', function(){
-    setVersion32();
-    try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
-    const btn = document.getElementById('loginGateContinueBtn');
-    if(btn){
-      const clone = btn.cloneNode(true);
-      clone.removeAttribute('onclick');
-      clone.onclick = function(event){ event.preventDefault(); if(typeof startUserSession === 'function') startUserSession(); return false; };
-      btn.parentNode.replaceChild(clone, btn);
-    }
-    const pwd = document.getElementById('loginGatePassword');
-    if(pwd){
-      pwd.removeAttribute('onkeydown');
-      pwd.onkeydown = function(event){ if(event.key === 'Enter'){ event.preventDefault(); if(typeof startUserSession === 'function') startUserSession(); return false; } };
-    }
-  });
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-
-/* ===== PHASE 23.0.66 SAVED SCENARIO DELETE HARDENING ===== */
-(function(){
-  const PHASE = "23.0.66";
-
-  function rt33SetVersion(){
-    try {
-      const ids = ["appVersion","versionDisplay","footerVersion","phaseVersion"];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = PHASE;
-      });
-      document.querySelectorAll("[data-app-version]").forEach(el => { el.textContent = PHASE; });
-    } catch(e) {}
-  }
-
-  function rt33FolderConnected(){
-    try { return typeof workspaceFolderHandle !== "undefined" && !!workspaceFolderHandle; } catch(e) { return false; }
-  }
-
-  function rt33SafeScenarioFileName(id){
-    return String(id || "").replace(/[^a-zA-Z0-9_-]/g, "_") + ".json";
-  }
-
-  async function rt33RefreshLists(){
-    try { if (typeof loadWorkspaceScenarioCache === "function" && rt33FolderConnected()) await loadWorkspaceScenarioCache(); } catch(e) { console.warn("Reload after delete failed", e); }
-    try { if (typeof renderSavedScenarios === "function") renderSavedScenarios(); } catch(e) { console.warn(e); }
-    try { if (typeof renderDashboardOpenTable === "function") renderDashboardOpenTable(); } catch(e) { console.warn(e); }
-    try { if (typeof refreshLibraries === "function") refreshLibraries(); } catch(e) { console.warn(e); }
-    try { if (typeof refreshWorkspaceFolderModeUi === "function") refreshWorkspaceFolderModeUi(); } catch(e) { console.warn(e); }
-  }
-
-  window.deleteScenario = deleteScenario = async function(id){
-    id = String(id || "");
-    if (!id) {
-      alert("No scenario id was supplied for deletion.");
-      return;
-    }
-
-    if (!rt33FolderConnected()) {
-      alert("Connect the approved workspace folder before deleting saved scenario files.");
-      return;
-    }
-
-    let current = [];
-    try {
-      current = Array.isArray(workspaceScenarioCache) ? workspaceScenarioCache.slice() : [];
-      if (!current.length && typeof loadWorkspaceScenarioCache === "function") {
-        current = await loadWorkspaceScenarioCache();
-      }
-    } catch(e) {
-      console.warn("Could not read workspace scenario cache before delete", e);
-      current = [];
-    }
-
-    const match = current.find(x => String(x && x.id || "") === id);
-    const label = match && match.name ? `${match.name} (${id})` : id;
-
-    if (!confirm(`Delete saved scenario?\n\n${label}\n\nThis removes it from the connected workspace index and attempts to remove the matching JSON file.`)) {
-      return;
-    }
-
-    try {
-      workspaceScenarioCache = current.filter(x => String(x && x.id || "") !== id);
-    } catch(e) {
-      console.error("Could not update in-memory scenario list", e);
-      alert("Delete failed before the workspace list could be updated.");
-      return;
-    }
-
-    try {
-      const scenariosDir = await workspaceFolderHandle.getDirectoryHandle("scenarios", { create: true });
-      const fileName = rt33SafeScenarioFileName(id);
-      try {
-        await scenariosDir.removeEntry(fileName);
-      } catch(removeErr) {
-        // If the file was already missing, still continue and rewrite index.json.
-        console.warn("Scenario file removal skipped or failed; index will still be rewritten.", removeErr);
-      }
-    } catch(dirErr) {
-      console.warn("Could not access scenarios directory during delete; index rewrite will still be attempted.", dirErr);
-    }
-
-    try {
-      if (typeof flushWorkspaceFiles === "function") {
-        await flushWorkspaceFiles();
-      }
-    } catch(flushErr) {
-      console.error("Failed to rewrite workspace files after delete", flushErr);
-      alert("The scenario was removed from the screen cache, but RiskTool could not rewrite the workspace files. Reconnect the workspace folder and try again.");
-      await rt33RefreshLists();
-      return;
-    }
-
-    await rt33RefreshLists();
-    try { if (typeof workspaceStatus === "function") workspaceStatus(`Deleted scenario ${id} from the connected workspace folder.`); } catch(e) {}
-  };
-
-  function rt33HandleSavedScenarioClick(event){
-    const btn = event.target && event.target.closest ? event.target.closest("#savedEvaluationsBody button[data-action]") : null;
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-    const id = btn.dataset.id || "";
-
-    if (action === "delete") {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-      window.deleteScenario(id);
-      return false;
-    }
-
-    if (action === "open" && typeof openScenario === "function") {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-      openScenario(id);
-      return false;
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", function(){
-    rt33SetVersion();
-
-    const tbody = document.getElementById("savedEvaluationsBody");
-    if (tbody && !tbody.dataset.rt33DeleteHandler) {
-      tbody.dataset.rt33DeleteHandler = "true";
-      tbody.addEventListener("click", rt33HandleSavedScenarioClick, true);
-    }
-  });
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.66 AREA ROLLUP + ENTERPRISE RISK REPORT ===== */
-(function(){
-  const PHASE = "23.0.66";
-  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-
-  function rt44Num(value, fallback){ const n = Number(value); return Number.isFinite(n) ? n : (fallback || 0); }
-  function rt44RiskStatus(score){ return score >= 75 ? "High" : score >= 55 ? "Elevated" : score >= 35 ? "Moderate" : "Lower"; }
-  function rt44SafeText(value){ return String(value == null ? "" : value); }
-  function rt44ComponentName(component){ return component?.scenarioName || component?.primaryProduct || component?.name || component?.componentId || "Unnamed Component"; }
-  function rt44AreaName(){ return complexProductSections?.[0]?.productServiceArea || document.getElementById("complexSectionProduct")?.value || "Selected Area"; }
-  function rt44ComponentExposure(component){
-    return Math.max(1,
-      rt44Num(component?.hardCostLikely) +
-      (rt44Num(component?.softCostLikely) * 1000) +
-      rt44Num(component?.mitigationCost) +
-      ((Array.isArray(component?.items) ? component.items.length : 0) * 1000)
-    );
-  }
-  function calculateAreaRollupMetrics44(){
-    const components = Array.isArray(complexScenarioComponents) ? complexScenarioComponents : [];
-    const rows = components.map(component => {
-      const rollup = (typeof calculateComplexComponentRollup === "function") ? calculateComplexComponentRollup(component) : { inherent:0, residual:0, deltaRisk:0, insuranceImpact:0, highestDriver:"" };
-      const exposure = rt44ComponentExposure(component);
-      return { component, componentName: rt44ComponentName(component), rollup, exposure };
-    });
-    const exposureTotal = rows.reduce((sum, row) => sum + row.exposure, 0) || rows.length || 1;
-    const residual = rows.length ? Math.round(rows.reduce((sum, row) => sum + (rt44Num(row.rollup.residual) * row.exposure), 0) / exposureTotal) : 0;
-    const inherent = rows.length ? Math.round(rows.reduce((sum, row) => sum + (rt44Num(row.rollup.inherent) * row.exposure), 0) / exposureTotal) : 0;
-    const weight = rows.length ? Math.max(1, Math.min(5, Math.ceil(residual / 20))) : 0;
-    const highestRisk = rows.slice().sort((a,b) => rt44Num(b.rollup.residual) - rt44Num(a.rollup.residual))[0] || null;
-    const deltaRisk = Math.max(0, inherent - residual);
-    const insuranceImpact = rows.length ? Math.round(rows.reduce((sum, row) => sum + rt44Num(row.rollup.insuranceImpact), 0) / rows.length) : 0;
-    return { areaName: rt44AreaName(), rows, inherent, residual, weight, highestRisk, deltaRisk, insuranceImpact, status: rt44RiskStatus(residual) };
-  }
-  function updateAreaRollupWeightField44(metrics){
-    const field = document.getElementById("complexSectionWeight");
-    if (!field) return;
-    if (!complexProductSections?.length) field.value = "Define area first";
-    else if (!metrics.rows.length) field.value = "Calculated after components";
-    else field.value = `${metrics.weight}/5 | Residual ${metrics.residual} | ${metrics.rows.length} component${metrics.rows.length === 1 ? "" : "s"}`;
-  }
-  window.calculateAreaRollupMetrics44 = calculateAreaRollupMetrics44;
-
-  window.renderComplexProductSections = renderComplexProductSections = function(){
-    const tbody = document.getElementById("complexProductSectionsBody");
-    const status = document.getElementById("complexProductSectionStatus");
-    if (!tbody) return;
-    try { if (typeof recalculateComplexProductSectionWeights === "function") recalculateComplexProductSectionWeights(); } catch(e) { console.warn(e); }
-    const metrics = calculateAreaRollupMetrics44();
-    updateAreaRollupWeightField44(metrics);
-    if (!complexProductSections?.length) {
-      tbody.innerHTML = '<tr><td colspan="9">No area/product family added yet. Define the parent area first, then add components underneath it.</td></tr>';
-      if (status) { status.textContent = "Define the Area / Product Family before assigning component risk items."; status.classList.remove("hidden"); }
-      try { refreshComplexProductSectionSelects(); } catch(e) {}
-      return;
-    }
-    if (!metrics.rows.length) {
-      const section = complexProductSections[0];
-      tbody.innerHTML = '<tr><td colspan="9"><strong>' + escapeHtml(metrics.areaName) + '</strong><br><small>No saved components yet. Complete the Selected Component Workspace and click Save Area Component to build the rollup.</small><br><div class="rollup-actions"><button class="btn btn-secondary small-btn" type="button" data-delete-product-section="' + escapeHtml(section.sectionId || "") + '">Delete Area</button></div></td></tr>';
-      if (status) { status.textContent = "Area is ready. Add the first component below."; status.classList.remove("hidden"); }
-      try { refreshComplexProductSectionSelects(); } catch(e) {}
-      return;
-    }
-    tbody.innerHTML = metrics.rows.map(row => {
-      const statusText = row.component.scenarioStatus || rt44RiskStatus(row.rollup.residual);
-      return '<tr class="clickable-rollup-row" data-open-complex-component="' + escapeHtml(row.component.componentId || "") + '" title="Open component workspace">' +
-        '<td><strong>' + escapeHtml(row.componentName) + '</strong><br><small>' + escapeHtml(row.component.componentId || "") + '</small></td>' +
-        '<td>' + (Array.isArray(row.component.items) ? row.component.items.length : 0) + '</td>' +
-        '<td>' + rt44Num(row.rollup.inherent) + '</td>' +
-        '<td><strong>' + rt44Num(row.rollup.residual) + '</strong></td>' +
-        '<td>' + rt44Num(row.rollup.deltaRisk) + '</td>' +
-        '<td>' + rt44Num(row.rollup.insuranceImpact) + '</td>' +
-        '<td>' + escapeHtml(row.rollup.highestDriver || "No risk items yet") + '</td>' +
-        '<td>' + escapeHtml(statusText) + '</td>' +
-        '<td><div class="rollup-actions"><button class="btn btn-secondary small-btn" type="button" data-open-complex-component-button="' + escapeHtml(row.component.componentId || "") + '">Open</button><button class="btn btn-danger small-btn" type="button" data-delete-complex-component="' + escapeHtml(row.component.componentId || "") + '">Delete</button></div></td>' +
-      '</tr>';
-    }).join("");
-    tbody.querySelectorAll("tr[data-open-complex-component]").forEach(row => row.addEventListener("click", (event) => {
-      const tag = String(event.target?.tagName || "").toLowerCase();
-      if (["button","a","input","select","textarea"].includes(tag)) return;
-      openComplexScenarioComponent(row.dataset.openComplexComponent);
-    }));
-    tbody.querySelectorAll("[data-open-complex-component-button]").forEach(btn => btn.addEventListener("click", event => { event.stopPropagation(); openComplexScenarioComponent(btn.dataset.openComplexComponentButton); }));
-    if (status) { status.textContent = ""; status.classList.add("hidden"); }
-    try { refreshComplexProductSectionSelects(); } catch(e) {}
-  };
-
-  function getRankedScenarioRows44(){
-    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
-    return saved.map((s, idx) => {
-      const residual = rt44Num(s.residual);
-      const inherent = rt44Num(s.inherent);
-      const delta = Math.max(0, inherent - residual);
-      const expectedLoss = rt44Num(s.residualExpectedLoss || s.expectedLoss || 0);
-      const concern = residual >= 75 ? "Immediate management attention" : residual >= 55 ? "Elevated management monitoring" : residual >= 35 ? "Routine management monitoring" : "Maintain controls";
-      const driver = s.mode === "complex" && Array.isArray(s.components) && s.components.length
-        ? (s.components.slice().sort((a,b)=>rt44Num((calculateComplexComponentRollup(a)||{}).residual)-rt44Num((calculateComplexComponentRollup(b)||{}).residual)).pop()?.scenarioName || "Highest component")
-        : (s.riskDomain || s.primaryRegulation || s.primaryProduct || "Scenario risk drivers");
-      return { ...s, rankSourceIndex: idx, residual, inherent, delta, expectedLoss, concern, driver };
-    }).sort((a,b) => (b.residual - a.residual) || (b.inherent - a.inherent) || (b.expectedLoss - a.expectedLoss));
-  }
-  function buildOverallRiskReport44(){
-    const rows = getRankedScenarioRows44();
-    const generatedAt = new Date().toISOString();
-    const highest = rows[0] || null;
-    const highCount = rows.filter(r => r.residual >= 75).length;
-    const elevatedCount = rows.filter(r => r.residual >= 55 && r.residual < 75).length;
-    const reportRows = rows.map((r, idx) => ({
-      rank: idx + 1,
-      id: r.id || "",
-      name: r.name || "Unnamed Scenario",
-      builder: r.mode || "",
-      productGroup: r.productGroup || r.primaryProduct || "",
-      status: r.scenarioStatus || "",
-      inherent: r.inherent,
-      residual: r.residual,
-      riskReduction: r.delta,
-      expectedLoss: r.expectedLoss,
-      primaryDriver: r.driver,
-      managementConcern: r.concern,
-      reasoning: `Ranked #${idx + 1} because residual risk is ${r.residual} after controls, compared with inherent risk of ${r.inherent}. Management should focus on ${r.driver} because it is the clearest driver available in the saved scenario data.`
-    }));
-    const narrative = highest
-      ? `The highest ranked scenario is ${highest.name || highest.id} with residual risk ${highest.residual}. Management should be concerned because this scenario remains the largest post-control exposure in the saved scenario library. The ranking uses residual risk first, then inherent risk and expected loss where available, so the order emphasizes what remains after mitigation rather than just initial severity.`
-      : "No saved scenarios are available for ranking yet.";
-    return { generatedAt, scenarioCount: rows.length, highCount, elevatedCount, highestRiskScenario: highest ? (highest.name || highest.id || "") : "", narrative, rows: reportRows };
-  }
-  function reportToText44(report){
-    const lines = [];
-    lines.push("RiskTool Overall Saved Scenario Risk Ranking Report");
-    lines.push("Generated: " + report.generatedAt);
-    lines.push("Scenario Count: " + report.scenarioCount);
-    lines.push("High: " + report.highCount + " | Elevated: " + report.elevatedCount);
-    lines.push("");
-    lines.push("Management Summary");
-    lines.push(report.narrative);
-    lines.push("");
-    lines.push("Ranked Scenarios");
-    (report.rows || []).forEach(row => {
-      lines.push(`${row.rank}. ${row.name} (${row.id})`);
-      lines.push(`   Residual: ${row.residual} | Inherent: ${row.inherent} | Reduction: ${row.riskReduction} | Status: ${row.status}`);
-      lines.push(`   Driver: ${row.primaryDriver}`);
-      lines.push(`   Concern: ${row.managementConcern}`);
-      lines.push(`   Reasoning: ${row.reasoning}`);
-    });
-    return lines.join("\n");
-  }
-  function renderOverallRiskReport44(){
-    const tbody = document.getElementById("overallRiskReportBody");
-    const summary = document.getElementById("overallRiskReportSummary");
-    if (!tbody) return;
-    const report = buildOverallRiskReport44();
-    window.__rt44LastOverallRiskReport = report;
-    if (summary) summary.textContent = report.narrative;
-    if (!report.rows.length) {
-      tbody.innerHTML = '<tr><td colspan="10">No saved scenarios available. Save scenarios first, then generate the ranked report.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = report.rows.map(row => '<tr>' +
-      '<td>' + row.rank + '</td>' +
-      '<td>' + escapeHtml(row.name) + '<br><small>' + escapeHtml(row.id) + '</small></td>' +
-      '<td>' + escapeHtml(row.builder) + '</td>' +
-      '<td>' + escapeHtml(row.productGroup) + '</td>' +
-      '<td>' + escapeHtml(row.status) + '</td>' +
-      '<td>' + row.inherent + '</td>' +
-      '<td><strong>' + row.residual + '</strong></td>' +
-      '<td>' + row.riskReduction + '</td>' +
-      '<td>' + escapeHtml(row.primaryDriver) + '</td>' +
-      '<td>' + escapeHtml(row.managementConcern) + '</td>' +
-    '</tr>').join("");
-  }
-  function ensureOverallRiskReportUi44(){
-    const reportsView = document.getElementById("view-reports");
-    if (!reportsView || document.getElementById("overallRiskReportCard")) return;
-    const card = document.createElement("div");
-    card.className = "card";
-    card.id = "overallRiskReportCard";
-    card.innerHTML = '<div class="card-header"><h3>Overall Saved Scenario Risk Ranking</h3><span>Highest to lowest residual risk</span></div>' +
-      '<p class="muted">Ranks all saved scenarios by residual risk, then inherent risk and expected loss where available. Use this for management concern, prioritization, and board/examiner preparation.</p>' +
-      '<div class="builder-actions"><button class="btn btn-secondary" id="generateOverallRiskReportBtn" type="button">Generate / Refresh Ranking</button><button class="btn btn-secondary" id="downloadOverallRiskReportBtn" type="button">Download TXT Report</button><button class="btn btn-secondary" id="saveOverallRiskReportWorkspaceBtn" type="button">Save to Workspace Folder</button></div>' +
-      '<div class="note-box" id="overallRiskReportSummary">Generate the report after saving scenarios.</div>' +
-      '<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Scenario</th><th>Builder</th><th>Product/Area</th><th>Status</th><th>Inherent</th><th>Residual</th><th>Risk Reduction</th><th>Primary Driver</th><th>Management Concern</th></tr></thead><tbody id="overallRiskReportBody"><tr><td colspan="10">Generate report to rank saved scenarios.</td></tr></tbody></table></div>';
-    const firstReportCard = reportsView.querySelector(".card");
-    if (firstReportCard && firstReportCard.nextSibling) reportsView.insertBefore(card, firstReportCard.nextSibling); else reportsView.appendChild(card);
-    document.getElementById("generateOverallRiskReportBtn")?.addEventListener("click", renderOverallRiskReport44);
-    document.getElementById("downloadOverallRiskReportBtn")?.addEventListener("click", () => {
-      const report = buildOverallRiskReport44();
-      triggerDownload(`risktool_overall_risk_ranking_${currentDateStamp ? currentDateStamp() : Date.now()}.txt`, new Blob([reportToText44(report)], { type: "text/plain" }));
-    });
-    document.getElementById("saveOverallRiskReportWorkspaceBtn")?.addEventListener("click", async () => {
-      const report = buildOverallRiskReport44();
-      const stamp = new Date().toISOString().replace(/[:.]/g,"-");
-      try {
-        if (typeof workspaceFolderModeEnabled === "function" && workspaceFolderModeEnabled() && workspaceFolderHandle) {
-          const reportsDir = await getOrCreateDirectory(workspaceFolderHandle, "reports");
-          await writeJsonFile(reportsDir, `overall-risk-ranking-${stamp}.json`, report);
-          const txtHandle = await reportsDir.getFileHandle(`overall-risk-ranking-${stamp}.txt`, { create: true });
-          const writable = await txtHandle.createWritable();
-          await writable.write(reportToText44(report));
-          await writable.close();
-          if (typeof workspaceStatus === "function") workspaceStatus("Saved overall risk ranking report to workspace reports folder.");
-          alert("Saved overall risk ranking report to the workspace reports folder.");
-        } else {
-          triggerDownload(`risktool_overall_risk_ranking_${Date.now()}.txt`, new Blob([reportToText44(report)], { type: "text/plain" }));
-          alert("Workspace folder is not connected. Downloaded the report instead.");
-        }
-      } catch(e) { console.error(e); alert(e.message || "Unable to save report to workspace folder."); }
-    });
-    renderOverallRiskReport44();
-  }
-  window.renderOverallRiskReport44 = renderOverallRiskReport44;
-  window.buildOverallRiskReport44 = buildOverallRiskReport44;
-
-  const priorRenderSaved44 = typeof renderSavedScenarios === "function" ? renderSavedScenarios : null;
-  if (priorRenderSaved44) {
-    window.renderSavedScenarios = renderSavedScenarios = function(){
-      const result = priorRenderSaved44.apply(this, arguments);
-      try { renderOverallRiskReport44(); } catch(e) {}
-      return result;
-    };
-  }
-  document.addEventListener("DOMContentLoaded", () => {
-    try { ensureOverallRiskReportUi44(); } catch(e) { console.error(e); }
-    try { renderComplexProductSections(); } catch(e) {}
-    try { document.querySelectorAll('.sidebar-note h4').forEach(el => { if ((el.textContent || '').includes('Phase 23.0.')) el.textContent = 'Phase ' + PHASE; }); } catch(e) {}
-    try { const appVer = document.getElementById('appVersion'); if (appVer) appVer.textContent = PHASE; } catch(e) {}
-  });
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.66 HUBBARD EXPECTED LOSS + PORTFOLIO AREA RANKING ===== */
-(function(){
-  const PHASE = "23.0.66";
-  const impactMap = { low:10000, moderate:50000, medium:50000, high:250000, severe:1000000, critical:1000000 };
-  function n(v){ const x = Number(String(v ?? '').replace(/[^0-9.-]/g,'')); return Number.isFinite(x) ? x : 0; }
-  function pct(v, fallback){ let x=n(v); if(!x && fallback!==undefined) x=fallback; if(x>1) x=x/100; return Math.max(0, Math.min(1, x)); }
-  function money(v){ try { return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n(v)); } catch(e){ return '$' + Math.round(n(v)).toLocaleString(); } }
-  function esc(v){ return (typeof escapeHtml==='function') ? escapeHtml(v) : String(v ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-  function severityImpact(item){ const direct = n(item?.impactAmount || item?.financialImpact || item?.estimatedImpact || item?.lossExposure || item?.impactDollars); if(direct>0) return direct; const sev = String(item?.severity || item?.impactLevel || item?.riskLevel || item?.impactRating || '').toLowerCase(); return impactMap[sev] || impactMap.moderate; }
-  function itemProbability(item){ const direct = pct(item?.probability ?? item?.likelihood ?? item?.eventProbability ?? item?.frequencyProbability, NaN); if(Number.isFinite(direct) && direct>0) return direct; const likelihood = String(item?.likelihoodRating || item?.likelihoodLevel || item?.likelihood || '').toLowerCase(); if(likelihood.includes('rare') || likelihood.includes('low')) return 0.10; if(likelihood.includes('moderate') || likelihood.includes('medium')) return 0.30; if(likelihood.includes('high') || likelihood.includes('likely')) return 0.60; if(likelihood.includes('severe') || likelihood.includes('critical') || likelihood.includes('certain')) return 0.80; return 0.25; }
-  function linked(component, listName){ const id = component?.componentId || component?.scenarioId || component?.id; const arr = Array.isArray(window[listName]) ? window[listName] : []; return arr.filter(x => String(x.componentId||x.scenarioComponentId||x.scenarioId||x.parentComponentId||'') === String(id)); }
-  function riskItems(component){ let items=[]; ['complexRiskItems','scenarioRiskItems','riskItems'].forEach(name => { items = items.concat(linked(component,name)); }); if(Array.isArray(component?.riskItems)) items = items.concat(component.riskItems); const seen = new Set(); return items.filter(x => { const k=String(x.issueId||x.riskId||x.id||JSON.stringify(x)); if(seen.has(k)) return false; seen.add(k); return true; }); }
-  function mitigationEffect(component){ let list=[]; ['complexMitigations','mitigations','scenarioMitigations'].forEach(name => { list=list.concat(linked(component,name)); }); if(Array.isArray(component?.mitigations)) list=list.concat(component.mitigations); if(!list.length) return 0; const vals=list.map(m => pct(m.effectiveness ?? m.controlEffectiveness ?? m.mitigationEffectiveness ?? m.reductionPercent, 0.15)); return Math.min(0.85, vals.reduce((a,b)=>a+b,0)/Math.max(1,vals.length)); }
-  function insuranceOffset(component, residual){ let list=[]; ['complexInsurance','insuranceCoverages','scenarioInsurance','insuranceItems'].forEach(name => { list=list.concat(linked(component,name)); }); if(Array.isArray(component?.insurance)) list=list.concat(component.insurance); const coverage = list.reduce((sum,i)=>sum+n(i.coverageAmount||i.coverage||i.limit||i.policyLimit),0); const deductible = list.reduce((sum,i)=>sum+n(i.deductible||i.retention),0); const premium = list.reduce((sum,i)=>sum+n(i.premium||i.annualPremium),0); return Math.max(0, Math.min(residual, Math.max(0, coverage - deductible - premium))); }
-  function topDriver(items){ if(!items.length) return 'No risk items saved'; let top=items[0], val=-1; items.forEach(it=>{ const v=itemProbability(it)*severityImpact(it); if(v>val){val=v; top=it;} }); return top.title || top.riskTitle || top.name || top.issue || top.description || 'Highest expected-loss risk item'; }
-  function rollup(component){ const items=riskItems(component); const inherent=items.reduce((sum,it)=>sum+itemProbability(it)*severityImpact(it),0); const effect=mitigationEffect(component); const residualBeforeInsurance=inherent*(1-effect); const insuranceImpact=insuranceOffset(component,residualBeforeInsurance); const residual=Math.max(0,residualBeforeInsurance-insuranceImpact); return { inherent, residual, expectedLoss:inherent, residualExpectedLoss:residual, deltaRisk:Math.max(0,inherent-residual), insuranceImpact, mitigationEffect:effect, riskItemCount:items.length, highestDriver:topDriver(items), status: residual>=500000?'High':residual>=100000?'Elevated':residual>=25000?'Moderate':'Low' }; }
-  window.calculateComplexComponentRollup = rollup; window.calculateHubbardComponentRollup45 = rollup;
-  function areas(){ const comps=Array.isArray(window.complexScenarioComponents)?window.complexScenarioComponents:[]; const sections=Array.isArray(window.complexProductSections)?window.complexProductSections:[]; const map=new Map(); sections.forEach(s=>{ const id=String(s.sectionId||s.areaId||s.id||s.productName||s.areaName||'Area'); map.set(id,{id,name:s.productName||s.areaName||s.name||'Area / Product Family',components:[]}); }); comps.forEach(c=>{ const id=String(c.sectionId||c.areaId||c.productSectionId||c.parentSectionId||c.productName||c.areaName||'Unassigned Area'); if(!map.has(id)) map.set(id,{id,name:c.productName||c.areaName||c.area||'Unassigned Area',components:[]}); map.get(id).components.push(c); }); return Array.from(map.values()).map(a=>{ const rolls=a.components.map(c=>({component:c, rollup:rollup(c)})); const total=rolls.reduce((s,r)=>s+r.rollup.residual,0); const inherent=rolls.reduce((s,r)=>s+r.rollup.inherent,0); const high=rolls.slice().sort((x,y)=>y.rollup.residual-x.rollup.residual)[0]; return {...a,rolls,total,inherent,highestComponent: high?.component?.scenarioName||high?.component?.componentName||high?.component?.name||'None',driver: high?.rollup?.highestDriver||'No components saved'}; }).sort((a,b)=>b.total-a.total); }
-  window.generatePortfolioRiskRanking45=function(){ const list=areas(); const rows=list.length?list.map((a,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(a.name)+'</td><td>'+money(a.total)+'</td><td>'+money(a.inherent)+'</td><td>'+a.components.length+'</td><td>'+esc(a.highestComponent)+'</td><td>'+esc(a.driver)+'</td><td>'+(a.total>=500000?'High':a.total>=100000?'Elevated':a.total>=25000?'Moderate':'Low')+'</td><td>'+esc(a.name)+' should be prioritized based on residual expected loss of '+money(a.total)+'. Management should review '+esc(a.highestComponent)+' and validate probability, impact, mitigation, and insurance assumptions.</td></tr>').join(''):'<tr><td colspan="9">No Area/Product Family data available. Build and save complex components first.</td></tr>'; const html='<div class="card"><div class="card-header"><h3>Portfolio Risk Ranking</h3><span>Area / Product Family hot spots</span></div><div class="card-body"><p class="muted">Ranks Area/Product Families by Hubbard-style residual expected loss: probability × dollar impact, reduced for mitigation effectiveness and insurance transfer.</p><div class="table-wrap"><table><thead><tr><th>Rank</th><th>Area / Product Family</th><th>Total Residual Expected Loss</th><th>Inherent Expected Loss</th><th>Components</th><th>Highest Component</th><th>Top Driver</th><th>Status</th><th>Management Concern</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="builder-actions"><button class="btn btn-primary" type="button" id="savePortfolioRiskReport45">Save Portfolio Report Snapshot</button></div></div></div>'; const host=document.getElementById('overallRiskReportHost')||document.getElementById('reportsGeneratedContent')||document.getElementById('view-reports'); if(host) host.insertAdjacentHTML('afterbegin',html); return list; };
-  async function saveSnapshot(){ const list=areas(); const body='RiskTool Portfolio Risk Ranking - '+new Date().toLocaleString()+'\n\n'+list.map((a,i)=>(i+1)+'. '+a.name+' - Residual Expected Loss: '+money(a.total)+'; Highest Component: '+a.highestComponent+'; Top Driver: '+a.driver).join('\n'); if(window.rtWorkspaceWriteText){ await window.rtWorkspaceWriteText('reports/portfolio-risk-ranking-'+Date.now()+'.txt', body); alert('Portfolio report snapshot saved to workspace reports folder.'); } else { const blob=new Blob([body],{type:'text/plain'}); const url=URL.createObjectURL(blob); const link=document.createElement('a'); link.href=url; link.download='portfolio-risk-ranking-'+Date.now()+'.txt'; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); } }
-  document.addEventListener('click', function(e){ if(e.target&&e.target.id==='savePortfolioRiskReport45') saveSnapshot(); if(e.target&&(e.target.id==='generateOverallRiskReport'||e.target.id==='generatePortfolioRiskReport')) setTimeout(window.generatePortfolioRiskRanking45,0); });
-  function syncVersion(){ document.querySelectorAll('[data-version], .version, #appVersion, #versionLabel, #dashboardVersion').forEach(el=>{ if(el) el.textContent = PHASE; }); } document.addEventListener('DOMContentLoaded', syncVersion); setTimeout(syncVersion,500);
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.50 PORTFOLIO REPORT MODE REWRITE ===== */
-(function(){
-  const PHASE = "23.0.66";
-  const ITERATION_OPTIONS = [100, 1000, 10000, 100000];
-  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-
-  function num(v, fallback = 0){
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-    const n = Number(String(v ?? "").replace(/[^0-9.-]/g, ""));
-    return Number.isFinite(n) ? n : fallback;
-  }
-  function esc(v){
-    if (typeof escapeHtml === "function") return escapeHtml(v);
-    return String(v ?? "").replace(/[&<>\"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
-  }
-  function fmt(v){
-    try { return new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }).format(num(v)); }
-    catch(e){ return "$" + Math.round(num(v)).toLocaleString(); }
-  }
-  function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0; }
-  function percentile(sorted, p){
-    if (!sorted.length) return 0;
-    const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p/100) * sorted.length) - 1));
-    return sorted[idx];
-  }
-  function triangular(min, mode, max){
-    min = Math.max(0, num(min)); mode = Math.max(min, num(mode, min)); max = Math.max(mode, num(max, mode));
-    if (max <= min) return min;
-    const u = Math.random();
-    const c = (mode - min) / (max - min || 1);
-    return u < c ? min + Math.sqrt(u * (max-min) * (mode-min)) : max - Math.sqrt((1-u) * (max-min) * (max-mode));
-  }
-  function scenarioLabel(s){ return s?.name || s?.scenarioName || s?.primaryProduct || s?.id || "Unnamed Scenario"; }
-  function scenarioArea(s){
-    const fromSection = Array.isArray(s?.productSections) && s.productSections[0] ? (s.productSections[0].productServiceArea || s.productSections[0].productName || s.productSections[0].areaName) : "";
-    return fromSection || s?.primaryProduct || s?.productGroup || s?.riskDomain || "Unmapped Area";
-  }
-  function statusFromRisk(v){ return v >= 500000 ? "High" : v >= 100000 ? "Elevated" : v >= 25000 ? "Moderate" : "Lower"; }
-  function componentLabel(c, idx){ return c?.scenarioName || c?.componentName || c?.name || c?.primaryProduct || `Component ${idx+1}`; }
-  function evidenceAmounts51(records){
-    return (Array.isArray(records) ? records : [])
-      .map(item => num(item?.amount ?? item?.lossAmount ?? item?.costAmount ?? item?.documentedLoss ?? 0))
-      .filter(v => Number.isFinite(v) && v > 0);
-  }
-  function evidenceAnchor51(c, parent){
-    const amounts = evidenceAmounts51(c?.hardFacts)
-      .concat(evidenceAmounts51(c?.evidence))
-      .concat(evidenceAmounts51(parent?.hardFacts))
-      .concat(evidenceAmounts51(parent?.evidence));
-    if (!amounts.length) return null;
-    const sorted = amounts.slice().sort((a,b)=>a-b);
-    const total = amounts.reduce((a,b)=>a+b,0);
-    const mean = total / amounts.length;
-    const median = sorted[Math.floor(sorted.length / 2)] || mean;
-    const p90 = sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.90) - 1)] || sorted[sorted.length - 1] || mean;
-    return { count: amounts.length, total, mean, median, p90, max: sorted[sorted.length - 1] || mean };
-  }
-  function componentInputs(c, parent){
-    const evidence = evidenceAnchor51(c, parent);
-    const baseLikely = num(c?.hardCostLikely, num(parent?.hardCostLikely, num(c?.residualExpectedLoss, num(c?.expectedLoss, 50000))));
-    const hardLikely = evidence ? Math.max(baseLikely, evidence.median || evidence.mean || 0) : baseLikely;
-    const hardMin = evidence ? Math.max(num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000)), Math.min(evidence.median || hardLikely, evidence.mean || hardLikely)) : num(c?.hardCostMin, hardLikely ? hardLikely * 0.50 : num(parent?.hardCostMin, 10000));
-    const hardMax = evidence ? Math.max(num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000)), evidence.p90 || evidence.max || hardLikely, evidence.total || 0) : num(c?.hardCostMax, hardLikely ? hardLikely * 2.00 : num(parent?.hardCostMax, 250000));
-    const softLikely = num(c?.softCostLikely, num(parent?.softCostLikely, 0.25));
-    const softMin = num(c?.softCostMin, num(parent?.softCostMin, 0.05));
-    const softMax = num(c?.softCostMax, num(parent?.softCostMax, Math.max(softLikely, 0.75)));
-    const control = Math.max(0, Math.min(100, num(c?.control, num(parent?.control, 0)))) / 100;
-    const mitigationCost = num(c?.mitigationCost, 0);
-    const rollup = (typeof window.calculateComplexComponentRollup === "function" && parent?.mode === "complex") ? window.calculateComplexComponentRollup(c) : null;
-    return { hardMin, hardLikely, hardMax, softMin, softLikely, softMax, control, mitigationCost, rollup, evidence };
-  }
-  function getScenarioComponents(s){
-    if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) return s.components;
-    return [s || {}];
-  }
-  function runScenarioMonteCarlo50(s, iterations){
-    iterations = ITERATION_OPTIONS.includes(Number(iterations)) ? Number(iterations) : 1000;
-    const comps = getScenarioComponents(s);
-    const compInputs = comps.map(c => componentInputs(c, s));
-    const outcomes = [];
-    for (let i = 0; i < iterations; i++) {
-      let inherent = 0, residual = 0;
-      compInputs.forEach(input => {
-        const hard = triangular(input.hardMin, input.hardLikely, input.hardMax);
-        const softMultiplier = triangular(input.softMin, input.softLikely, input.softMax);
-        const gross = hard + (hard * softMultiplier);
-        const afterControl = Math.max(0, gross * (1 - input.control));
-        inherent += gross;
-        residual += Math.max(0, afterControl + input.mitigationCost);
-      });
-      outcomes.push({ scenarioNumber: i + 1, inherentLoss: Math.round(inherent), residualLoss: Math.round(residual) });
-    }
-    const residualSorted = outcomes.map(x => x.residualLoss).sort((a,b)=>a-b);
-    const inherentSorted = outcomes.map(x => x.inherentLoss).sort((a,b)=>a-b);
-    const componentRisks = compInputs.map(input => {
-      if (input.rollup && num(input.rollup.residual) > 0) return num(input.rollup.residual);
-      const hard = input.hardLikely || avg([input.hardMin,input.hardMax]);
-      const gross = hard + (hard * input.softLikely);
-      return Math.max(0, gross * (1 - input.control) + input.mitigationCost);
-    });
-    const totalExposure = avg(residualSorted);
-    return {
-      iterations,
-      outcomes,
-      avgComponentRisk: Math.round(avg(componentRisks)),
-      totalExposure: Math.round(totalExposure),
-      expectedLoss: Math.round(avg(inherentSorted)),
-      residualExpectedLoss: Math.round(totalExposure),
-      p50: Math.round(percentile(residualSorted, 50)),
-      p90: Math.round(percentile(residualSorted, 90)),
-      p95: Math.round(percentile(residualSorted, 95)),
-      p99: Math.round(percentile(residualSorted, 99)),
-      volatility: Math.round(percentile(residualSorted, 95) - percentile(residualSorted, 50)),
-      riskReduction: Math.max(0, Math.round(avg(inherentSorted) - totalExposure)),
-      componentCount: comps.length,
-      componentRisks
-    };
-  }
-  function topDriverForScenario(s, metrics){
-    if (s?.mode === "complex" && Array.isArray(s.components) && s.components.length) {
-      let rows = s.components.map((c, idx) => ({ name: componentLabel(c, idx), metric: componentInputs(c, s).rollup }));
-      rows = rows.sort((a,b) => num(b.metric?.residual) - num(a.metric?.residual));
-      if (rows[0]?.metric?.highestDriver) return `${rows[0].name}: ${rows[0].metric.highestDriver}`;
-      return rows[0]?.name || "Largest component exposure";
-    }
-    const evidence = evidenceAnchor51(s, s);
-    if (evidence) return `Hard facts / evidence loss-cost anchor: ${fmt(evidence.total)} documented across ${evidence.count} item(s)`;
-    return s?.riskDomain || s?.primaryRegulation || s?.primaryProduct || "Scenario exposure assumptions";
-  }
-  function recommendationForScenario(s, m){
-    const name = scenarioLabel(s), area = scenarioArea(s), driver = topDriverForScenario(s, m);
-    const status = statusFromRisk(m.avgComponentRisk);
-    let action = "maintain existing controls and continue scheduled monitoring";
-    if (status === "High") action = "prioritize immediate management review, validate control design, and consider stronger mitigation or risk transfer";
-    else if (status === "Elevated") action = "assign a management owner, validate assumptions, strengthen controls, and track remediation timing";
-    else if (status === "Moderate") action = "monitor through normal governance and test key controls for continued effectiveness";
-    return `${name} in ${area} ranks ${status.toLowerCase()} based on average component residual risk of ${fmt(m.avgComponentRisk)} and total modeled exposure of ${fmt(m.totalExposure)}. The main concern is ${driver}. Monte Carlo results show P95 residual exposure of ${fmt(m.p95)} and P99 exposure of ${fmt(m.p99)}, so management should ${action}.`;
-  }
-  function getPortfolioRows50(){
-    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
-    const iterations = Number(document.getElementById("portfolioMonteCarloIterations50")?.value || 1000);
-    return saved.map(s => {
-      const metrics = runScenarioMonteCarlo50(s, iterations);
-      return { scenario: s, metrics, driver: topDriverForScenario(s, metrics), recommendation: recommendationForScenario(s, metrics) };
-    }).sort((a,b) => (b.metrics.avgComponentRisk - a.metrics.avgComponentRisk) || (b.metrics.totalExposure - a.metrics.totalExposure));
-  }
-  function drawBarChart50(canvasId, rows, metricName, label){
-    const canvas = document.getElementById(canvasId); if (!canvas || !canvas.getContext) return;
-    const ctx = canvas.getContext("2d"); const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0,0,w,h); ctx.font = "12px Inter, Arial"; ctx.fillStyle = "#334155";
-    if (!rows.length) { ctx.fillText("No saved scenarios available.", 20, 40); return; }
-    const max = Math.max(...rows.map(r => num(r.metrics[metricName])), 1);
-    const pad = 42, barH = Math.max(16, Math.min(34, (h - pad - 20) / rows.length - 8));
-    rows.forEach((r, i) => {
-      const y = pad + i * (barH + 8);
-      const val = num(r.metrics[metricName]);
-      const barW = Math.max(2, (w - 260) * val / max);
-      ctx.fillStyle = "#e2e8f0"; ctx.fillRect(210, y, w - 250, barH);
-      ctx.fillStyle = "#64748b"; ctx.fillRect(210, y, barW, barH);
-      ctx.fillStyle = "#0f172a"; ctx.fillText(String(i+1)+". "+scenarioLabel(r.scenario).slice(0,24), 10, y + barH - 4);
-      ctx.fillText(fmt(val), 220 + barW, y + barH - 4);
-    });
-    ctx.fillStyle = "#0f172a"; ctx.font = "14px Inter, Arial"; ctx.fillText(label, 10, 20);
-  }
-  function drawDistribution50(canvasId, outcomes){
-    const canvas = document.getElementById(canvasId); if (!canvas || !canvas.getContext) return;
-    const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
-    ctx.clearRect(0,0,w,h); ctx.font = "12px Inter, Arial"; ctx.fillStyle = "#334155";
-    if (!outcomes || !outcomes.length) { ctx.fillText("Select a scenario to preview Monte Carlo distribution.", 20, 40); return; }
-    const vals = outcomes.map(o => o.residualLoss); const min = Math.min(...vals), max = Math.max(...vals); const bins = 20; const counts = Array(bins).fill(0);
-    vals.forEach(v => { const idx = Math.min(bins-1, Math.max(0, Math.floor(((v-min)/(max-min || 1))*bins))); counts[idx]++; });
-    const maxCount = Math.max(...counts, 1), pad = 34, bw = (w - pad*2) / bins;
-    counts.forEach((c,i) => { const bh = (h - 70) * c / maxCount; ctx.fillStyle = "#64748b"; ctx.fillRect(pad + i*bw, h - pad - bh, Math.max(1,bw-2), bh); });
-    ctx.fillStyle = "#0f172a"; ctx.fillText(`Distribution: ${fmt(min)} to ${fmt(max)}`, 10, 20);
-  }
-  function renderPortfolioReport50(){
-    const host = document.getElementById("portfolioReportBody50"); if (!host) return;
-    const rows = getPortfolioRows50();
-    if (!rows.length) {
-      host.innerHTML = '<div class="note-box">No saved scenarios found. Save Single and Complex scenarios first, then run the Portfolio Report.</div>';
-      drawBarChart50("portfolioAvgRiskChart50", [], "avgComponentRisk", "Average Component Risk");
-      drawBarChart50("portfolioTotalRiskChart50", [], "totalExposure", "Total Exposure");
-      return;
-    }
-    host.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Scenario</th><th>Type</th><th>Area / Product Family</th><th>Avg Component Risk</th><th>Total Exposure</th><th>P95</th><th>P99</th><th>Components</th><th>Top Driver</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td><strong>${esc(scenarioLabel(r.scenario))}</strong><br><small>${esc(r.scenario.id || "")}</small></td><td>${esc(r.scenario.mode || "")}</td><td>${esc(scenarioArea(r.scenario))}</td><td><strong>${fmt(r.metrics.avgComponentRisk)}</strong></td><td>${fmt(r.metrics.totalExposure)}</td><td>${fmt(r.metrics.p95)}</td><td>${fmt(r.metrics.p99)}</td><td>${r.metrics.componentCount}</td><td>${esc(r.driver)}</td><td>${statusFromRisk(r.metrics.avgComponentRisk)}</td><td><button class="btn btn-secondary small-btn" data-pr-scenario="${esc(r.scenario.id || "")}">Review</button><button class="btn btn-secondary small-btn" data-outcomes50="${esc(r.scenario.id || "")}">View Outcomes</button><button class="btn btn-secondary small-btn" data-export50="${esc(r.scenario.id || "")}">Export CSV</button></td></tr><tr><td></td><td colspan="11"><strong>Management recommendation:</strong> ${esc(r.recommendation)}</td></tr>`).join("")}</tbody></table></div>`;
-    drawBarChart50("portfolioAvgRiskChart50", rows, "avgComponentRisk", "Portfolio Ranking by Average Component Risk");
-    drawBarChart50("portfolioTotalRiskChart50", rows, "totalExposure", "Portfolio Total Exposure by Scenario");
-    host.querySelectorAll("[data-pr-scenario]").forEach(btn => btn.addEventListener("click", () => renderScenarioReview50(btn.dataset.prScenario)));
-    host.querySelectorAll("[data-outcomes50]").forEach(btn => btn.addEventListener("click", () => previewOutcomes50(btn.dataset.outcomes50)));
-    host.querySelectorAll("[data-export50]").forEach(btn => btn.addEventListener("click", () => exportOutcomes50(btn.dataset.export50)));
-  }
-  function rowForId(id){ return getPortfolioRows50().find(r => String(r.scenario.id || "") === String(id)); }
-  function previewOutcomes50(id){
-    const row = rowForId(id); if (!row) return;
-    const box = document.getElementById("portfolioOutcomesPreview50"); if (!box) return;
-    const sample = row.metrics.outcomes.slice(0, 100);
-    box.innerHTML = `<h3>Monte Carlo Outcomes — ${esc(scenarioLabel(row.scenario))}</h3><p class="muted">Showing first ${sample.length} of ${row.metrics.iterations.toLocaleString()} random scenarios. Full CSV is available from Export CSV.</p><div class="table-wrap"><table><thead><tr><th>#</th><th>Inherent Loss</th><th>Residual Loss</th></tr></thead><tbody>${sample.map(o=>`<tr><td>${o.scenarioNumber}</td><td>${fmt(o.inherentLoss)}</td><td>${fmt(o.residualLoss)}</td></tr>`).join("")}</tbody></table></div>`;
-    drawDistribution50("portfolioDistributionChart50", row.metrics.outcomes);
-  }
-  function csvEscape(v){ return `"${String(v ?? "").replace(/"/g,'""')}"`; }
-  function exportOutcomes50(id){
-    const row = rowForId(id); if (!row) return;
-    const lines = [["scenario_id","scenario_name","iteration","inherent_loss","residual_loss"].join(",")].concat(row.metrics.outcomes.map(o => [row.scenario.id, scenarioLabel(row.scenario), o.scenarioNumber, o.inherentLoss, o.residualLoss].map(csvEscape).join(",")));
-    const blob = new Blob([lines.join("\n")], {type:"text/csv"}); const url = URL.createObjectURL(blob); const a = document.createElement("a");
-    a.href = url; a.download = `risktool-outcomes-${(row.scenario.id || "scenario")}-${Date.now()}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
-  }
-  function renderScenarioReview50(id){
-    const select = document.getElementById("scenarioReviewSelect50");
-    if (select && id) select.value = id;
-    const row = id ? rowForId(id) : rowForId(select?.value);
-    const host = document.getElementById("scenarioReviewBody50"); if (!host) return;
-    if (!row) { host.innerHTML = '<div class="note-box">Select a scenario to review.</div>'; return; }
-    const s = row.scenario, m = row.metrics;
-    host.innerHTML = `<div class="card"><div class="card-header"><h3>${esc(scenarioLabel(s))}</h3><span>${esc(s.mode || "Scenario")}</span></div><div class="card-body"><p>${esc(row.recommendation)}</p><div class="table-wrap"><table><tbody><tr><th>Area / Product Family</th><td>${esc(scenarioArea(s))}</td></tr><tr><th>Average Component Risk</th><td>${fmt(m.avgComponentRisk)}</td></tr><tr><th>Total Exposure</th><td>${fmt(m.totalExposure)}</td></tr><tr><th>Expected Loss</th><td>${fmt(m.expectedLoss)}</td></tr><tr><th>P50 / P90 / P95 / P99</th><td>${fmt(m.p50)} / ${fmt(m.p90)} / ${fmt(m.p95)} / ${fmt(m.p99)}</td></tr><tr><th>Volatility</th><td>${fmt(m.volatility)}</td></tr><tr><th>Top Driver</th><td>${esc(row.driver)}</td></tr><tr><th>Management Status</th><td>${statusFromRisk(m.avgComponentRisk)}</td></tr></tbody></table></div><div class="builder-actions"><button class="btn btn-secondary" id="scenarioReviewOutcomes50">View Outcomes</button><button class="btn btn-secondary" id="scenarioReviewExport50">Export Outcomes CSV</button></div></div></div>`;
-    document.getElementById("scenarioReviewOutcomes50")?.addEventListener("click", () => previewOutcomes50(s.id));
-    document.getElementById("scenarioReviewExport50")?.addEventListener("click", () => exportOutcomes50(s.id));
-    try { if (typeof activateView === "function") activateView("scenario-review"); } catch(e) {}
-  }
-  function savePortfolioSnapshot50(){
-    const rows = getPortfolioRows50();
-    const body = `RiskTool Portfolio Report ${PHASE}\nGenerated: ${new Date().toLocaleString()}\nMonte Carlo Iterations: ${document.getElementById("portfolioMonteCarloIterations50")?.value || 1000}\n\n` + rows.map((r,i)=>`${i+1}. ${scenarioLabel(r.scenario)} | Area: ${scenarioArea(r.scenario)} | Avg Component Risk: ${fmt(r.metrics.avgComponentRisk)} | Total Exposure: ${fmt(r.metrics.totalExposure)} | P95: ${fmt(r.metrics.p95)} | Recommendation: ${r.recommendation}`).join("\n\n");
-    const blob = new Blob([body], {type:"text/plain"}); const url = URL.createObjectURL(blob); const a = document.createElement("a");
-    a.href = url; a.download = `risktool-portfolio-report-${Date.now()}.txt`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }
-  function installViews50(){
-    const nav = document.querySelector(".nav");
-    if (nav && !document.querySelector('[data-view="portfolio-report"]')) {
-      const savedBtn = nav.querySelector('[data-view="saved"]');
-      const portfolioBtn = document.createElement("button"); portfolioBtn.className = "nav-item"; portfolioBtn.dataset.view = "portfolio-report"; portfolioBtn.textContent = "Portfolio Report";
-      const reportBtn = nav.querySelector('[data-view="reports"]'); if (reportBtn) reportBtn.textContent = "Scenario Review";
-      if (reportBtn) nav.insertBefore(portfolioBtn, reportBtn); else if (savedBtn?.nextSibling) nav.insertBefore(portfolioBtn, savedBtn.nextSibling); else nav.appendChild(portfolioBtn);
-      portfolioBtn.addEventListener("click", () => { try { activateView("portfolio-report"); } catch(e){} renderPortfolioReport50(); });
-    }
-    const main = document.querySelector("main.main") || document.querySelector("main") || document.body;
-    if (!document.getElementById("view-portfolio-report")) {
-      const section = document.createElement("section"); section.className = "view"; section.id = "view-portfolio-report";
-      section.innerHTML = `<div class="section-header"><h2>Portfolio Report</h2><p>Runs every saved Single and Complex scenario, ranks by average component risk, and shows total exposure for management review.</p></div><div class="card"><div class="card-header"><h3>Portfolio Controls</h3><span>Monte Carlo</span></div><div class="builder-actions"><label>Random scenarios per saved scenario <select id="portfolioMonteCarloIterations50"><option value="100">100</option><option value="1000" selected>1,000</option><option value="10000">10,000</option><option value="100000">100,000</option></select></label><button class="btn btn-primary" id="runPortfolioReport50" type="button">Run Portfolio Report</button><button class="btn btn-secondary" id="savePortfolioSnapshot50" type="button">Save Report Snapshot</button></div><div class="note-box">Ranking uses average component residual risk so large and small scenarios can be compared consistently. Total exposure is shown beside it for dollar materiality.</div></div><div class="grid two"><div class="card"><div class="card-header"><h3>Average Risk Ranking</h3><span>Rank Metric</span></div><canvas id="portfolioAvgRiskChart50" width="760" height="300"></canvas></div><div class="card"><div class="card-header"><h3>Total Exposure</h3><span>Dollar Exposure</span></div><canvas id="portfolioTotalRiskChart50" width="760" height="300"></canvas></div></div><div class="card"><div class="card-header"><h3>Portfolio Ranking & Recommendations</h3><span>All saved scenarios</span></div><div id="portfolioReportBody50"><div class="note-box">Run the portfolio report to evaluate all saved scenarios.</div></div></div><div class="card"><div class="card-header"><h3>Selected Scenario Outcomes</h3><span>Auditor / Examiner Support</span></div><canvas id="portfolioDistributionChart50" width="760" height="260"></canvas><div id="portfolioOutcomesPreview50" class="note-box">Select View Outcomes to preview Monte Carlo rows for a scenario.</div></div>`;
-      main.appendChild(section);
-      section.querySelector("#runPortfolioReport50")?.addEventListener("click", renderPortfolioReport50);
-      section.querySelector("#portfolioMonteCarloIterations50")?.addEventListener("change", renderPortfolioReport50);
-      section.querySelector("#savePortfolioSnapshot50")?.addEventListener("click", savePortfolioSnapshot50);
-    }
-    if (!document.getElementById("view-scenario-review")) {
-      const section = document.createElement("section"); section.className = "view"; section.id = "view-scenario-review";
-      section.innerHTML = `<div class="section-header"><h2>Scenario Review</h2><p>Individual scenario review remains available separately from the portfolio-wide report.</p></div><div class="card"><div class="card-header"><h3>Select Scenario</h3><span>Single review</span></div><div class="builder-actions"><select id="scenarioReviewSelect50"></select><button class="btn btn-primary" id="runScenarioReview50" type="button">Review Scenario</button></div></div><div id="scenarioReviewBody50"><div class="note-box">Select one saved scenario to review.</div></div>`;
-      main.appendChild(section);
-      section.querySelector("#runScenarioReview50")?.addEventListener("click", () => renderScenarioReview50());
-    }
-    const reportBtn = document.querySelector('[data-view="reports"]');
-    if (reportBtn && !reportBtn.dataset.rt50Alias) {
-      reportBtn.dataset.rt50Alias = "true";
-      reportBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); populateScenarioReview50(); try { activateView("scenario-review"); } catch(e){} }, true);
-    }
-    populateScenarioReview50();
-  }
-  function populateScenarioReview50(){
-    const select = document.getElementById("scenarioReviewSelect50"); if (!select) return;
-    const saved = (typeof getSavedScenarios === "function" ? getSavedScenarios() : []) || [];
-    const current = select.value;
-    select.innerHTML = saved.length ? saved.map(s=>`<option value="${esc(s.id || "")}">${esc(scenarioLabel(s))} (${esc(s.mode || "")})</option>`).join("") : '<option value="">No saved scenarios</option>';
-    if (saved.some(s => String(s.id) === String(current))) select.value = current;
-  }
-  function syncVersion50(){
-    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
-    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
-  }
-  document.addEventListener("DOMContentLoaded", function(){
-    installViews50(); syncVersion50(); setTimeout(()=>{ installViews50(); syncVersion50(); }, 500);
-  });
-  window.renderPortfolioReport50 = renderPortfolioReport50;
-  window.renderScenarioReview50 = renderScenarioReview50;
-  window.renderPortfolioReport51 = renderPortfolioReport50;
-  window.renderScenarioReview51 = renderScenarioReview50;
-})();
-/* ===== END PHASE 23.0.50 ===== */
-
-
-/* ===== PHASE 23.0.66 RESET STABILIZATION GUARD ===== */
-(function(){
-  const PHASE = "23.0.66";
-  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-  function syncVersion51(){
-    document.querySelectorAll(".sidebar-note h4").forEach(el => el.textContent = "Phase " + PHASE);
-    document.querySelectorAll("#appVersion,#versionLabel,#dashboardVersion,[data-version],.version").forEach(el => { if (el) el.textContent = PHASE; });
-    const note = document.getElementById("workspacePhaseNote");
-    if (note) note.textContent = "Current frontend phase: " + PHASE + ". Chrome and Edge workspace-folder mode is active. Live work files should be written to a selected workspace folder, not kept in site storage. If no folder is selected, the app falls back to browser storage only as a temporary backup mode.";
-  }
-  function hideSubjectiveRiskFields51(){
-    const ids = ["riskItemScore","riskItemWeight","singleInherentRisk","complexInherentRisk","betaInherentRisk","complexSectionWeight"];
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      const wrap = el?.closest("label,.form-row,.field,.input-group,.form-group,div");
-      if (wrap) wrap.style.display = "none";
-      else if (el) el.style.display = "none";
-    });
-    Array.from(document.querySelectorAll("label, th, h4, h3, p, span")).forEach(el => {
-      const t = (el.textContent || "").trim().toLowerCase();
-      if (t === "item risk score (0-100)" || t === "weight (1-5)" || t === "inherent risk score") {
-        const wrap = el.closest("label,.form-row,.field,.input-group,.form-group,div");
-        if (wrap) wrap.style.display = "none";
-      }
-    });
-  }
-  document.addEventListener("DOMContentLoaded", function(){
-    syncVersion51(); hideSubjectiveRiskFields51();
-    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 250);
-    setTimeout(()=>{ syncVersion51(); hideSubjectiveRiskFields51(); }, 1000);
-  });
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.66 COLUMN SOURCES + FULL ROW EDITING ===== */
-(function(){
-  const PHASE = "23.0.66";
-  const keyMap = { insurance: 'insuranceId', hardFact: 'hardFactId', mitigation: 'mitigationId', acceptedRisk: 'acceptedRiskId', costLoss: 'costLossId' };
-  const prefixMap = { insurance: 'INS', hardFact: 'HF', mitigation: 'MIT', acceptedRisk: 'AR', costLoss: 'COST' };
-  window.rtEditingRiskItemId = window.rtEditingRiskItemId || null;
-
-  function rtId(prefix){
-    if (typeof nextRecordId === 'function') return nextRecordId(prefix);
-    return prefix + '-' + Date.now() + '-' + Math.floor(Math.random()*100000);
-  }
-  function ensureIds(kind, list){
-    const key = keyMap[kind];
-    const prefix = prefixMap[kind] || 'ROW';
-    if (!Array.isArray(list) || !key) return list || [];
-    list.forEach(row => { if (row && !row[key]) row[key] = rtId(prefix); });
-    return list;
-  }
-  function ensureAllRowIds(){
-    try {
-      ensureIds('insurance', window.singleInsurance || singleInsurance);
-      ensureIds('insurance', window.complexInsurance || complexInsurance);
-      ensureIds('insurance', window.betaInsurance || betaInsurance);
-      ensureIds('hardFact', window.singleHardFacts || singleHardFacts);
-      ensureIds('hardFact', window.complexHardFacts || complexHardFacts);
-      ensureIds('hardFact', window.betaHardFacts || betaHardFacts);
-      ensureIds('mitigation', window.singleMitigations || singleMitigations);
-      ensureIds('mitigation', window.complexMitigations || complexMitigations);
-      ensureIds('acceptedRisk', window.singleAcceptedRisks || []);
-      ensureIds('acceptedRisk', window.complexAcceptedRisks || []);
-      ensureIds('costLoss', window.complexCostLosses || complexCostLosses || []);
-      (window.currentComplexItems || currentComplexItems || []).forEach(item => { if (item && !item.issueId) item.issueId = rtId('ISS'); });
-    } catch(e) {}
-  }
-
-  const columnSources = {
-    'risk-item:item': 'Risk Item Table → Item comes from the Risk Item Name field in the Risk Item Entry form.',
-    'risk-item:domain': 'Risk Item Table → Domain comes from the Risk Domain dropdown in the Risk Item Entry form.',
-    'risk-item:product': 'Risk Item Table → Product comes from the Related Area / Product Family dropdown in the Risk Item Entry form.',
-    'risk-item:regulation': 'Risk Item Table → Regulation comes from the Related Regulation dropdown in the Risk Item Entry form.',
-    'risk-item:probability': 'Risk Item Table → Probability Min / Likely / Max comes from the three Probability fields in the Risk Item Entry form.',
-    'risk-item:impact': 'Risk Item Table → Impact Min / Likely / Max comes from the three Impact fields in the Risk Item Entry form. Cost/Loss entries and hard facts are separately used as exposure anchors in rollups.',
-    'risk-item:evidence': 'Risk Item Table → Evidence Quality comes from the Evidence Quality dropdown in the Risk Item Entry form.',
-    'risk-item:costs': 'Risk Item Table → Linked Costs is calculated from the Cost/Loss table rows tied to this risk item.',
-    'risk-item:status': 'Risk Item Table → Status comes from the Risk Item Status dropdown in the Risk Item Entry form.',
-    'cost-loss:type': 'Cost/Loss Table → Cost Type comes from the Cost Type dropdown.',
-    'cost-loss:applies': 'Cost/Loss Table → Applies To comes from the Applies To dropdown.',
-    'cost-loss:risk': 'Cost/Loss Table → Related Risk Item comes from the Related Risk Item dropdown; blank means component-level exposure.',
-    'cost-loss:min': 'Cost/Loss Table → Amount Min comes from Amount Min ($).',
-    'cost-loss:likely': 'Cost/Loss Table → Amount Likely comes from Amount Likely ($), and is used as a primary exposure anchor.',
-    'cost-loss:max': 'Cost/Loss Table → Amount Max comes from Amount Max ($).',
-    'cost-loss:date': 'Cost/Loss Table → Date/Period comes from Date / Period.',
-    'cost-loss:source': 'Cost/Loss Table → Source Type comes from Source Type.',
-    'cost-loss:notes': 'Cost/Loss Table → Notes comes from Notes.',
-    'hard-fact:source': 'Hard Facts / Evidence Table → Source Type comes from the Hard Fact Source Type dropdown.',
-    'hard-fact:amount': 'Hard Facts / Evidence Table → Amount comes from the Hard Fact Amount field and feeds risk as an actual loss/cost evidence anchor.',
-    'hard-fact:date': 'Hard Facts / Evidence Table → Date comes from the Hard Fact Date field.',
-    'hard-fact:description': 'Hard Facts / Evidence Table → Description comes from the Hard Fact Description field.',
-    'hard-fact:link': 'Hard Facts / Evidence Table → Source Link comes from Source Link / Document Location.',
-    'mitigation:title': 'Mitigation Table → Title comes from the Mitigation Title field.',
-    'mitigation:owner': 'Mitigation Table → Owner comes from the Mitigation Owner field.',
-    'mitigation:status': 'Mitigation Table → Status comes from the Mitigation Status field.',
-    'mitigation:attachment': 'Mitigation Table → Attachment comes from the attachment/source field.',
-    'insurance:policy': 'Insurance Table → Policy Name comes from Policy Name.',
-    'insurance:number': 'Insurance Table → Policy Number comes from Policy Number.',
-    'insurance:carrier': 'Insurance Table → Carrier comes from Carrier.',
-    'insurance:type': 'Insurance Table → Coverage Type comes from Coverage Type.',
-    'insurance:premium': 'Insurance Table → Premium comes from Premium.',
-    'insurance:deductible': 'Insurance Table → Deductible comes from Deductible and reduces net insurance offset.',
-    'insurance:coverage': 'Insurance Table → Coverage Amount comes from Coverage Amount and is used as the gross risk-transfer value.',
-    'insurance:dates': 'Insurance Table → Coverage Dates comes from Coverage Dates.',
-    'insurance:notes': 'Insurance Table → Notes comes from Notes / Exclusions / Comments.',
-    'accepted:flag': 'Accepted Risk Table → Accepted comes from the Risk Accepted checkbox.',
-    'accepted:authority': 'Accepted Risk Table → Authority comes from the Acceptance Authority dropdown.',
-    'accepted:by': 'Accepted Risk Table → Accepted By comes from the Accepted By field.',
-    'accepted:date': 'Accepted Risk Table → Acceptance Date comes from Acceptance Date.',
-    'accepted:review': 'Accepted Risk Table → Review Date comes from Review Date.',
-    'accepted:logic': 'Accepted Risk Table → Decision Logic comes from Decision Logic.'
-  };
-  function src(key){ return '<br><button type="button" class="column-source-link" data-column-source="' + key + '">(source)</button>'; }
-  function showSource(key){
-    const msg = columnSources[key] || 'This column is populated from the matching input field or a calculated related table value.';
-    let box = document.getElementById('rtColumnSourceModal');
-    if (!box) {
-      box = document.createElement('div');
-      box.id = 'rtColumnSourceModal';
-      box.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.38);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;';
-      box.innerHTML = '<div style="max-width:620px;width:100%;background:#fff;border-radius:16px;box-shadow:0 20px 70px rgba(15,23,42,.28);border:1px solid #dbe6f4;"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid #e7edf7;"><strong>Column Input Source</strong><button type="button" class="btn btn-secondary small-btn" id="rtColumnSourceClose">Close</button></div><div id="rtColumnSourceText" style="padding:18px;line-height:1.55;color:#0f2544;"></div></div>';
-      document.body.appendChild(box);
-      box.addEventListener('click', function(e){ if (e.target === box || e.target.id === 'rtColumnSourceClose') box.style.display='none'; });
-    }
-    const text = document.getElementById('rtColumnSourceText');
-    if (text) text.textContent = msg;
-    box.style.display = 'flex';
-  }
-  function decorateHeaders(){
-    const maps = [
-      ['complexItemsBody', ['risk-item:item','risk-item:domain','risk-item:product','risk-item:regulation','risk-item:probability','risk-item:impact','risk-item:evidence','risk-item:costs','risk-item:status',null]],
-      ['complexCostLossBody', ['cost-loss:type','cost-loss:applies','cost-loss:risk','cost-loss:min','cost-loss:likely','cost-loss:max','cost-loss:date','cost-loss:source','cost-loss:notes',null]],
-      ['complexHardFactsBody', ['hard-fact:source','hard-fact:amount','hard-fact:date','hard-fact:description','hard-fact:link',null]],
-      ['complexMitigationBody', ['mitigation:title','mitigation:owner','mitigation:status','mitigation:attachment',null]],
-      ['complexInsuranceBody', ['insurance:policy','insurance:number','insurance:carrier','insurance:type','insurance:premium','insurance:deductible','insurance:coverage','insurance:dates','insurance:notes',null,null]],
-      ['complexAcceptedRiskBody', ['accepted:flag','accepted:authority','accepted:by','accepted:date','accepted:review','accepted:logic',null]]
-    ];
-    maps.forEach(([tbodyId, keys]) => {
-      const tbody = document.getElementById(tbodyId);
-      const table = tbody?.closest('table');
-      if (!table) return;
-      table.querySelectorAll('thead th').forEach((th, i) => {
-        if (!keys[i] || th.querySelector('.column-source-link')) return;
-        th.insertAdjacentHTML('beforeend', src(keys[i]));
-      });
-    });
-    if (!document.getElementById('rtColumnSourceStyles')) {
-      const style = document.createElement('style');
-      style.id = 'rtColumnSourceStyles';
-      style.textContent = '.column-source-link{border:0;background:transparent;color:#0b5bd3;text-decoration:underline;cursor:pointer;font-size:11px;font-weight:600;padding:1px 0;margin:2px 0 0 0}.column-source-link:hover{color:#063b8c}.rt-editing-row{outline:2px solid #0b5bd3;outline-offset:-2px;background:#f0f6ff!important}';
-      document.head.appendChild(style);
-    }
-  }
-
-  function clearRiskItemForm(){
-    ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-    try { setSelectValueSafe('riskItemEvidenceQuality', 'Medium'); setSelectValueSafe('riskItemStatus', 'Open'); } catch(e) {}
-    window.rtEditingRiskItemId = null;
-    const btn = document.getElementById('addRiskItemBtn'); if (btn) btn.textContent = 'Add Risk Item';
-    const status = document.getElementById('riskItemEditStatus'); if (status) status.textContent = 'No risk item selected for editing.';
-    const cancel = document.getElementById('cancelRiskItemEditBtn'); if (cancel) cancel.style.display = 'none';
-    formatAllCurrencyFields && formatAllCurrencyFields();
-  }
-  function ensureRiskEditControls(){
-    const addBtn = document.getElementById('addRiskItemBtn');
-    if (!addBtn) return;
-    let cancel = document.getElementById('cancelRiskItemEditBtn');
-    if (!cancel) {
-      cancel = document.createElement('button');
-      cancel.type = 'button'; cancel.id = 'cancelRiskItemEditBtn'; cancel.className = 'btn btn-secondary'; cancel.textContent = 'Cancel Edit'; cancel.style.display = 'none';
-      addBtn.insertAdjacentElement('afterend', cancel);
-      cancel.addEventListener('click', clearRiskItemForm);
-    }
-    let status = document.getElementById('riskItemEditStatus');
-    if (!status) {
-      status = document.createElement('div');
-      status.id = 'riskItemEditStatus'; status.className = 'note-box'; status.textContent = 'No risk item selected for editing.';
-      cancel.insertAdjacentElement('afterend', status);
-    }
-  }
-  function editRiskItem(issueId){
-    const list = window.currentComplexItems || currentComplexItems || [];
-    const item = list.find(x => String(x.issueId || '') === String(issueId || ''));
-    if (!item) return;
-    window.rtEditingRiskItemId = item.issueId;
-    const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
-    setVal('riskItemName', item.name || '');
-    setSelectValueSafe && setSelectValueSafe('riskItemDomain', item.domain || '');
-    setSelectValueSafe && setSelectValueSafe('riskItemProduct', item.product || '');
-    setSelectValueSafe && setSelectValueSafe('riskItemReg', item.regulation || '');
-    setVal('riskItemProbMin', item.probMin ?? 0); setVal('riskItemProbLikely', item.probLikely ?? 0); setVal('riskItemProbMax', item.probMax ?? 0);
-    if (typeof setCurrencyFieldValue === 'function') { setCurrencyFieldValue('riskItemImpactMin', item.impactMin || 0); setCurrencyFieldValue('riskItemImpactLikely', item.impactLikely || 0); setCurrencyFieldValue('riskItemImpactMax', item.impactMax || 0); }
-    else { setVal('riskItemImpactMin', item.impactMin || 0); setVal('riskItemImpactLikely', item.impactLikely || 0); setVal('riskItemImpactMax', item.impactMax || 0); }
-    setSelectValueSafe && setSelectValueSafe('riskItemEvidenceQuality', item.evidenceQuality || 'Medium');
-    setSelectValueSafe && setSelectValueSafe('riskItemStatus', item.status || 'Open');
-    setVal('riskItemDescription', item.description || '');
-    const btn = document.getElementById('addRiskItemBtn'); if (btn) btn.textContent = 'Update Risk Item';
-    const cancel = document.getElementById('cancelRiskItemEditBtn'); if (cancel) cancel.style.display = '';
-    const status = document.getElementById('riskItemEditStatus'); if (status) status.textContent = 'Editing risk item: ' + (item.name || item.issueId || 'Risk Item');
-    document.querySelectorAll('#complexItemsBody tr').forEach(tr => tr.classList.toggle('rt-editing-row', tr.dataset.issueId === String(issueId || '')));
-    formatAllCurrencyFields && formatAllCurrencyFields();
-    document.getElementById('riskItemName')?.focus();
-  }
-
-  renderComplexItems = function() {
-    ensureAllRowIds();
-    const tbody = document.getElementById('complexItemsBody');
-    if (!tbody) return;
-    if (!currentComplexItems.length) {
-      tbody.innerHTML = '<tr><td colspan="10">No risk items added yet.</td></tr>';
-    } else {
-      tbody.innerHTML = currentComplexItems.map(item => {
-        const prob = safeNumber(item.probMin,0) + '% / ' + safeNumber(item.probLikely,0) + '% / ' + safeNumber(item.probMax,0) + '%';
-        const impact = currency(item.impactMin) + ' / ' + currency(item.impactLikely) + ' / ' + currency(item.impactMax);
-        const costCount = (complexCostLosses || []).filter(c => String(c.riskItemId || '') === String(item.issueId || '')).length;
-        const actions = '<button class="btn btn-secondary small-btn" type="button" data-edit-risk-item="' + escapeHtml(item.issueId || '') + '">Edit</button> <button class="btn btn-danger small-btn" type="button" data-delete-risk-item="' + escapeHtml(item.issueId || '') + '">Delete</button>';
-        return '<tr data-issue-id="' + escapeHtml(item.issueId || '') + '"><td><button class="scenario-link" data-issue-open="' + escapeHtml(item.issueId || '') + '">' + escapeHtml(item.name) + '</button></td><td>' + escapeHtml(item.domain) + '</td><td>' + escapeHtml(item.product) + '</td><td>' + escapeHtml(item.regulation) + '</td><td>' + prob + '</td><td>' + impact + '</td><td>' + escapeHtml(item.evidenceQuality || 'Medium') + '</td><td>' + costCount + '</td><td>' + escapeHtml(item.status || 'Open') + '</td><td>' + actions + '</td></tr>';
-      }).join('');
-      tbody.querySelectorAll('[data-issue-open]').forEach(btn => btn.addEventListener('click', () => highlightIssueRow(btn.dataset.issueOpen)));
-      tbody.querySelectorAll('[data-edit-risk-item]').forEach(btn => btn.addEventListener('click', () => editRiskItem(btn.dataset.editRiskItem)));
-    }
-    decorateHeaders();
-    renderCostLossRiskItemOptions && renderCostLossRiskItemOptions();
-    refreshComplexProductSectionSelects && refreshComplexProductSectionSelects();
-    updateInherentScores && updateInherentScores();
-    renderComplexProductSections && renderComplexProductSections();
-  };
-
-  addRiskItem = function() {
-    if (!complexProductSections.length) { alert('Add an Area / Product Family first.'); return; }
-    const editId = window.rtEditingRiskItemId;
-    const impactLikely = parseCurrencyValue(document.getElementById('riskItemImpactLikely')?.value || 0);
-    const record = { issueId: editId || ('ISS-' + Date.now() + '-' + Math.floor(Math.random() * 1000)), parentScenarioMode: 'complex', name: document.getElementById('riskItemName')?.value || 'Unnamed Risk Item', domain: document.getElementById('riskItemDomain')?.value || '', product: document.getElementById('riskItemProduct')?.value || '', regulation: document.getElementById('riskItemReg')?.value || '', description: document.getElementById('riskItemDescription')?.value || '', probMin: safeNumber(document.getElementById('riskItemProbMin')?.value || 0, 0), probLikely: safeNumber(document.getElementById('riskItemProbLikely')?.value || 0, 0), probMax: safeNumber(document.getElementById('riskItemProbMax')?.value || 0, 0), impactMin: parseCurrencyValue(document.getElementById('riskItemImpactMin')?.value || 0), impactLikely, impactMax: parseCurrencyValue(document.getElementById('riskItemImpactMax')?.value || impactLikely), evidenceQuality: document.getElementById('riskItemEvidenceQuality')?.value || 'Medium', status: document.getElementById('riskItemStatus')?.value || 'Open', score: 0, weight: 1 };
-    const idx = currentComplexItems.findIndex(x => String(x.issueId || '') === String(record.issueId || ''));
-    if (idx >= 0) currentComplexItems[idx] = record; else currentComplexItems.push(record);
-    clearRiskItemForm();
-    renderComplexItems();
-    formatAllCurrencyFields && formatAllCurrencyFields();
-  };
-
-  const priorRenderInsurance = renderInsuranceTable;
-  renderInsuranceTable = function(targetId, items){ ensureIds('insurance', items); priorRenderInsurance(targetId, items); decorateHeaders(); };
-  const priorRenderHardFacts = renderHardFactsTable;
-  renderHardFactsTable = function(targetId, items){ ensureIds('hardFact', items); priorRenderHardFacts(targetId, items); decorateHeaders(); };
-  const priorRenderMitigation = renderMitigationTable;
-  renderMitigationTable = function(targetId, items){ ensureIds('mitigation', items); priorRenderMitigation(targetId, items); decorateHeaders(); };
-  const priorRenderAccepted = renderAcceptedRiskTable;
-  renderAcceptedRiskTable = function(targetId, items, mode){ ensureIds('acceptedRisk', items); priorRenderAccepted(targetId, items, mode); decorateHeaders(); };
-  const priorRenderCostLoss = renderCostLossTable;
-  renderCostLossTable = function(targetId, items){ ensureIds('costLoss', items); priorRenderCostLoss(targetId, items); decorateHeaders(); };
-
-  document.addEventListener('click', function(e){
-    const source = e.target.closest('[data-column-source]');
-    if (source) { e.preventDefault(); showSource(source.dataset.columnSource); return; }
-    const editRisk = e.target.closest('[data-edit-risk-item]');
-    if (editRisk) { e.preventDefault(); editRiskItem(editRisk.dataset.editRiskItem); return; }
-  });
-  document.addEventListener('DOMContentLoaded', function(){
-    ensureAllRowIds(); ensureRiskEditControls(); decorateHeaders();
-    setTimeout(function(){ ensureAllRowIds(); ensureRiskEditControls(); decorateHeaders(); try { renderComplexItems(); } catch(e) {} }, 300);
-  });
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.66 COMPLEX WORKSPACE UI ===== */
-(function(){
-  const PHASE = "23.0.66";
-  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-  const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
-  const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
-  const money=v=>{ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(num(v));}catch(e){return '$'+Math.round(num(v)).toLocaleString();} };
-  const tabs=[['risk','1. Risk Items','Manage risks for this component','!'],['cost','2. Costs / Losses','Manage all cost and loss entries','$'],['evidence','3. Hard Facts / Evidence','Manage evidence and data sources','D'],['mitigation','4. Mitigation / Controls','Manage mitigations and controls','✓'],['insurance','5. Insurance / Risk Transfer','Manage insurance and risk transfer','☂'],['accepted','6. Accepted Risk','Manage accepted risk decisions','✓']];
-  const map={risk:['Risk Item Entry for Selected Component','Risk Item Table'],cost:['Cost / Loss Entry','Cost / Loss Table'],evidence:['Hard Facts / Evidence Entry','Hard Facts / Evidence Table'],mitigation:['Mitigation Entry','Mitigation Table'],insurance:['Insurance Entry','Insurance Table'],accepted:['Accepted Risk','Accepted Risk Table']};
-  function addStyles(){ if(qs('#rt54Styles'))return; const st=document.createElement('style'); st.id='rt54Styles'; st.textContent=`#view-complex.rt54-workspace .section-header h2::after{content:' › Component Workspace';font-weight:800;color:#172033}.rt54-topbar{display:flex;justify-content:flex-end;gap:12px;margin:-6px 0 12px}.rt54-layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px}.rt54-main{min-width:0}.rt54-sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:14px}.rt54-summary,.rt54-card{background:#fff;border:1px solid #dbe4f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,.06);padding:14px;margin-bottom:14px}.rt54-summary h3,.rt54-card h3{margin:0 0 10px;color:#0f1f3d}.rt54-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}.rt54-label{font-size:11px;font-weight:800;color:#0b3b80}.rt54-value{font-size:14px;color:#172033;margin-top:4px}.rt54-tabs{display:flex;gap:18px;border-bottom:1px solid #dbe4f0;margin:0 0 12px;overflow:auto}.rt54-tab{border:0;background:transparent;padding:12px 0 10px;color:#25324b;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent}.rt54-tab.active{color:#0b5bd3;border-bottom-color:#0b5bd3}.rt54-side-row{width:100%;display:flex;gap:10px;align-items:center;border:1px solid #dbe4f0;background:#fff;border-radius:10px;padding:12px;margin:7px 0;text-align:left;cursor:pointer}.rt54-side-row.active{border-color:#0b5bd3;background:#f0f6ff}.rt54-icon{width:28px;height:28px;border:1px solid #b9cff0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#0b5bd3;font-weight:900}.rt54-side-title{font-weight:800}.rt54-side-sub{font-size:12px;color:#5b6475}.rt54-link,.rt54-src{border:0;background:transparent;color:#0b5bd3;text-decoration:underline;cursor:pointer;font-size:12px;font-weight:700;padding:0}.rt54-src{display:block;text-align:left;margin-top:2px}.rt54-field-source{display:inline;margin-left:6px}.rt54-hidden{display:none!important}.rt54-editing-row{outline:2px solid #0b5bd3;outline-offset:-2px;background:#f0f6ff!important}.rt54-workspace .btn-danger,.rt54-workspace .btn.btn-danger{border:1px solid #ef4444;color:#dc2626;background:#fff}.rt54-info-list{padding-left:18px;margin:8px 0}.rt54-info-list li{margin-bottom:8px;font-size:13px;line-height:1.35}@media(max-width:1100px){.rt54-layout{grid-template-columns:1fr}.rt54-sidebar{position:static}.rt54-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}`; document.head.appendChild(st); }
-  function card(title){return qsa('#view-complex .card').find(c=>(c.querySelector('.card-header h3')?.textContent||'').trim()===title)}
-  function version(){ qsa('#appVersion,.app-version,[data-version-label]').forEach(e=>e.textContent=PHASE); }
-  function summary(){ let c=qs('#rt54Summary'); const ref=card('Selected Component Workspace')||card('Risk Item Entry for Selected Component'); if(!c&&ref){ c=document.createElement('div'); c.id='rt54Summary'; c.className='rt54-summary'; ref.parentNode.insertBefore(c,ref); } if(!c)return; const items=window.currentComplexItems||currentComplexItems||[]; const costs=window.complexCostLosses||complexCostLosses||[]; const total=costs.reduce((t,x)=>t+num(x.amountLikely||x.amount||0),0); const rows=items.map(x=>({name:x.name||'Risk Item',el:(num(x.probLikely)/100)*num(x.impactLikely)})).sort((a,b)=>b.el-a.el); const avg=rows.length?rows.reduce((t,x)=>t+x.el,0)/rows.length:0; c.innerHTML=`<h3>Component Summary <button class="rt54-link" data-column-source="rollup:component-summary">(rollup)</button></h3><div class="rt54-grid"><div><div class="rt54-label">Component ID</div><div class="rt54-value">${esc(qs('#complexComponentId')?.value||'Generated on save')}</div></div><div><div class="rt54-label">Product / Service / Area</div><div class="rt54-value">${esc(qs('#complexPrimaryProduct')?.selectedOptions?.[0]?.textContent||'Not selected')}</div></div><div><div class="rt54-label">Regulation</div><div class="rt54-value">${esc(qs('#complexPrimaryRegulation')?.selectedOptions?.[0]?.textContent||'Not selected')}</div></div><div><div class="rt54-label">Status</div><div class="rt54-value">${esc(qs('#complexScenarioStatus')?.value||'Draft')}</div></div><div><div class="rt54-label">Risk Items</div><div class="rt54-value">${items.length}</div></div><div><div class="rt54-label">Total Cost / Loss Exposure</div><div class="rt54-value">${money(total)}</div></div><div><div class="rt54-label">Avg Residual Risk (EL)</div><div class="rt54-value">${money(avg)}<br><small>${esc(rows[0]?.name||'No risk items yet')}</small></div></div></div>`; }
-  function topbar(){ if(qs('#rt54Topbar'))return; const h=qs('#view-complex .section-header'); if(!h)return; const b=document.createElement('div'); b.id='rt54Topbar'; b.className='rt54-topbar'; b.innerHTML=`<button class="rt54-link" data-column-source="workspace:all">Column Input Sources</button><button class="btn btn-secondary" id="rt54RefreshRollups" type="button">Refresh Rollups</button><button class="btn btn-primary" id="rt54SaveAll" type="button">Save All Changes</button>`; h.after(b); qs('#rt54RefreshRollups')?.addEventListener('click',()=>{summary(); try{renderComplexProductSections();renderComplexItems();}catch(e){}}); qs('#rt54SaveAll')?.addEventListener('click',()=>qs('#addComplexScenarioBtn')?.click()); }
-  function layout(){ if(qs('#rt54Layout'))return; summary(); const s=qs('#rt54Summary'); if(!s)return; const lay=document.createElement('div'); lay.id='rt54Layout'; lay.className='rt54-layout'; const main=document.createElement('div'); main.id='rt54Main'; main.className='rt54-main'; const side=document.createElement('aside'); side.id='rt54Sidebar'; side.className='rt54-sidebar'; s.parentNode.insertBefore(lay,s); lay.append(main,side); let n=s; while(n){const next=n.nextElementSibling; main.appendChild(n); if(n.matches?.('.card')&&(n.querySelector('.card-header h3')?.textContent||'').trim()==='Accepted Risk Table')break; n=next;} side.innerHTML=`<div class="rt54-card"><h3>Component Workspace Tables <button class="rt54-link" data-column-source="workspace:choose">(choose table)</button></h3>${tabs.map(([k,t,sub,ic])=>`<button class="rt54-side-row" data-rt54-tab="${k}" type="button"><span class="rt54-icon">${ic}</span><span><div class="rt54-side-title">${t}</div><div class="rt54-side-sub">${sub}</div></span></button>`).join('')}</div><div class="rt54-card"><h3>How Rollups Are Calculated <button class="rt54-link" data-column-source="rollup:calculation">(information)</button></h3><ul class="rt54-info-list"><li>Risk Item EL = Probability Likely × Impact Likely.</li><li>Costs / Losses feed total exposure.</li><li>Hard facts can anchor impact/cost assumptions.</li><li>Mitigation reduces exposure; insurance offsets residual exposure.</li><li>Highest Driver = largest residual expected-loss contributor.</li></ul><button class="rt54-link" data-column-source="rollup:details">View Calculation Details</button></div>`; side.addEventListener('click',e=>{const b=e.target.closest('[data-rt54-tab]'); if(b) activate(b.dataset.rt54Tab)}); }
-  function tabbar(){ if(qs('#rt54Tabs'))return; const f=card('Risk Item Entry for Selected Component'); if(!f)return; const t=document.createElement('div'); t.id='rt54Tabs'; t.className='rt54-tabs'; t.innerHTML=tabs.map(([k,l])=>`<button class="rt54-tab" data-rt54-tab="${k}" type="button">${l}</button>`).join(''); f.parentNode.insertBefore(t,f); t.addEventListener('click',e=>{const b=e.target.closest('[data-rt54-tab]'); if(b)activate(b.dataset.rt54Tab)}); }
-  function activate(k='risk'){ window.rt54ActiveTab=k; Object.entries(map).forEach(([key,titles])=>titles.forEach(t=>card(t)?.classList.toggle('rt54-hidden',key!==k))); qsa('[data-rt54-tab]').forEach(b=>b.classList.toggle('active',b.dataset.rt54Tab===k)); }
-  function sources(){ const fields={riskItemName:'Risk Items',riskItemProbMin:'Risk Items',riskItemProbLikely:'Risk Items',riskItemProbMax:'Risk Items',riskItemImpactMin:'Risk Items',riskItemImpactLikely:'Risk Items',riskItemImpactMax:'Risk Items',complexCostLossType:'Costs',complexCostLossAmountLikely:'Costs',complexHardFactAmount:'Evidence',complexMitTitle:'Mitigation',complexInsurancePolicyName:'Insurance',complexAcceptedBy:'Accepted Risk'}; Object.entries(fields).forEach(([id,src])=>{const lab=qs('#'+id)?.closest('div')?.querySelector('label'); if(lab&&!lab.querySelector('.rt54-field-source'))lab.insertAdjacentHTML('beforeend',` <button class="rt54-link rt54-field-source" data-column-source="source:${src}" type="button">(source: ${src})</button>`)}); const tables=[['riskItemsTableBody',['Risk Items','Risk Items','Risk Items','Risk Items','Risk Items','Risk Items','Risk Items','Costs','Risk Items',null]],['complexCostLossBody',['Costs','Costs','Risk Items','Costs','Costs','Costs','Costs','Costs','Costs',null]],['complexHardFactsBody',['Evidence','Evidence','Evidence','Evidence','Evidence',null]],['complexMitigationBody',['Mitigation','Mitigation','Mitigation','Mitigation',null]],['complexInsuranceBody',['Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance','Insurance',null]],['complexAcceptedRiskBody',['Accepted Risk','Accepted Risk','Accepted Risk','Accepted Risk','Accepted Risk','Accepted Risk',null]]]; tables.forEach(([body,arr])=>{const ths=qs('#'+body)?.closest('table')?.querySelectorAll('thead th')||[]; Array.from(ths).forEach((th,i)=>{if(arr[i]&&!th.querySelector('.rt54-src'))th.insertAdjacentHTML('beforeend',`<button class="rt54-src" data-column-source="source:${arr[i]}" type="button">(source)</button>`)});}); }
-  function sourceMsg(k){ const msgs={'rollup:component-summary':'Component Summary is calculated from selected component details, risk items, cost/loss rows, hard facts, mitigation, and insurance.','workspace:all':'Each underlined source link explains what form or child table feeds that field or table column.','workspace:choose':'These buttons switch between child tables scoped to the selected component.','rollup:calculation':'Rollups use evidence-driven probability, impact, hard fact, cost/loss, mitigation, and insurance inputs. No subjective risk score is used.','rollup:details':'Average residual risk is derived from expected loss; total exposure sums likely cost/loss rows; highest driver is the largest remaining contributor.'}; alert(msgs[k]||String(k).replace('source:','This value comes from the ')+' table or input group.'); }
-  function riskEditWire(){ const add=qs('#addRiskItemBtn'); if(!add||add.dataset.rt54)return; add.dataset.rt54='1'; let cancel=qs('#cancelRiskItemEditBtn'); if(!cancel){cancel=document.createElement('button');cancel.id='cancelRiskItemEditBtn';cancel.type='button';cancel.className='btn btn-secondary';cancel.textContent='Cancel';add.after(cancel)} let clear=qs('#clearRiskItemFormBtn'); if(!clear){clear=document.createElement('button');clear.id='clearRiskItemFormBtn';clear.type='button';clear.className='btn btn-danger';clear.textContent='Clear Form';cancel.after(clear)} let st=qs('#riskItemEditStatus'); if(!st){st=document.createElement('div');st.id='riskItemEditStatus';st.className='note-box';st.textContent='No risk item selected for editing.';clear.after(st)} cancel.onclick=clearRisk; clear.onclick=clearRisk; add.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();saveRisk();},true); }
-  function clearRisk(){ ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax'].forEach(id=>{const el=qs('#'+id); if(el)el.value=''}); window.rt54EditRisk=null; const b=qs('#addRiskItemBtn'); if(b)b.textContent='Add Risk Item'; const s=qs('#riskItemEditStatus'); if(s)s.textContent='No risk item selected for editing.'; qsa('#riskItemsTableBody tr').forEach(tr=>tr.classList.remove('rt54-editing-row')); }
-  function editRisk(id){ const list=window.currentComplexItems||currentComplexItems||[]; const x=list.find(r=>String(r.issueId||'')===String(id||'')); if(!x)return; window.rt54EditRisk=x.issueId; const set=(id,v)=>{const e=qs('#'+id); if(e)e.value=v??''}; set('riskItemName',x.name||''); set('riskItemDescription',x.description||''); try{setSelectValueSafe('riskItemDomain',x.domain||'');setSelectValueSafe('riskItemProduct',x.product||'');setSelectValueSafe('riskItemReg',x.regulation||'')}catch(e){} set('riskItemProbMin',x.probMin||0); set('riskItemProbLikely',x.probLikely||0); set('riskItemProbMax',x.probMax||0); try{setCurrencyFieldValue('riskItemImpactMin',x.impactMin||0);setCurrencyFieldValue('riskItemImpactLikely',x.impactLikely||0);setCurrencyFieldValue('riskItemImpactMax',x.impactMax||0)}catch(e){set('riskItemImpactMin',x.impactMin||0);set('riskItemImpactLikely',x.impactLikely||0);set('riskItemImpactMax',x.impactMax||0)} try{setSelectValueSafe('riskItemEvidenceQuality',x.evidenceQuality||'Medium');setSelectValueSafe('riskItemStatus',x.status||'Open')}catch(e){} const b=qs('#addRiskItemBtn'); if(b)b.textContent='Update Risk Item'; const s=qs('#riskItemEditStatus'); if(s)s.textContent='Editing risk item: '+(x.name||x.issueId); qsa('#riskItemsTableBody tr').forEach(tr=>tr.classList.toggle('rt54-editing-row',tr.dataset.issueId===String(id))); activate('risk'); qs('#riskItemName')?.focus(); }
-  function saveRisk(){ if(!complexProductSections.length){alert('Add an Area / Product Family first.');return} const id=window.rt54EditRisk||('ISS-'+Date.now()+'-'+Math.floor(Math.random()*1000)); const rec={issueId:id,parentScenarioMode:'complex',name:qs('#riskItemName')?.value||'Unnamed Risk Item',domain:qs('#riskItemDomain')?.value||'',product:qs('#riskItemProduct')?.value||'',regulation:qs('#riskItemReg')?.value||'',description:qs('#riskItemDescription')?.value||'',probMin:num(qs('#riskItemProbMin')?.value),probLikely:num(qs('#riskItemProbLikely')?.value),probMax:num(qs('#riskItemProbMax')?.value),impactMin:(typeof parseCurrencyValue==='function'?parseCurrencyValue(qs('#riskItemImpactMin')?.value||0):num(qs('#riskItemImpactMin')?.value)),impactLikely:(typeof parseCurrencyValue==='function'?parseCurrencyValue(qs('#riskItemImpactLikely')?.value||0):num(qs('#riskItemImpactLikely')?.value)),impactMax:(typeof parseCurrencyValue==='function'?parseCurrencyValue(qs('#riskItemImpactMax')?.value||0):num(qs('#riskItemImpactMax')?.value)),evidenceQuality:qs('#riskItemEvidenceQuality')?.value||'Medium',status:qs('#riskItemStatus')?.value||'Open',score:0,weight:1}; const i=currentComplexItems.findIndex(x=>String(x.issueId||'')===String(id)); if(i>=0)currentComplexItems[i]=rec; else currentComplexItems.push(rec); clearRisk(); renderComplexItems(); try{renderCostLossRiskItemOptions();renderComplexProductSections();formatAllCurrencyFields()}catch(e){} summary(); }
-  function renderRisk(){ const body=qs('#riskItemsTableBody'); if(!body)return; const list=window.currentComplexItems||currentComplexItems||[]; if(!list.length){body.innerHTML='<tr><td colspan="10">No risk items added yet.</td></tr>';return} body.innerHTML=list.map(x=>`<tr data-issue-id="${esc(x.issueId||'')}"><td><button class="scenario-link" data-edit-risk-item="${esc(x.issueId||'')}" type="button">${esc(x.name||'Risk Item')}</button></td><td>${esc(x.domain||'')}</td><td>${esc(x.product||'')}</td><td>${esc(x.regulation||'')}</td><td>${num(x.probMin)}% / ${num(x.probLikely)}% / ${num(x.probMax)}%</td><td>${money(x.impactMin)} / ${money(x.impactLikely)} / ${money(x.impactMax)}</td><td>${esc(x.evidenceQuality||'Medium')}</td><td>${(window.complexCostLosses||complexCostLosses||[]).filter(c=>String(c.riskItemId||'')===String(x.issueId||'')).length}</td><td>${esc(x.status||'Open')}</td><td><button class="btn btn-secondary small-btn" data-edit-risk-item="${esc(x.issueId||'')}" type="button">Edit</button> <button class="btn btn-danger small-btn" data-delete-risk-item="${esc(x.issueId||'')}" type="button">Delete</button></td></tr>`).join(''); sources(); summary(); }
-  try{ renderComplexItems=renderRisk; }catch(e){}
-  document.addEventListener('click',e=>{const src=e.target.closest('[data-column-source]'); if(src){e.preventDefault();sourceMsg(src.dataset.columnSource);return} const ed=e.target.closest('[data-edit-risk-item]'); if(ed){e.preventDefault();editRisk(ed.dataset.editRiskItem);return}},true);
-  function init54(){ const v=qs('#view-complex'); if(!v)return; v.classList.add('rt54-workspace'); addStyles(); version(); topbar(); summary(); tabbar(); layout(); sources(); riskEditWire(); try{renderComplexItems()}catch(e){} activate(window.rt54ActiveTab||'risk'); }
-  document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
-})();
-/* ===== END PHASE 23.0.66 COMPLEX WORKSPACE UI ===== */
-
-/* ===== PHASE 23.0.66 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
-(function(){
-  const PHASE = "23.0.66";
-  const qs=(s,r=document)=>r.querySelector(s);
-  const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
-  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
-  const money=v=>{ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(num(v));}catch(e){return '$'+Math.round(num(v)).toLocaleString();} };
-  const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  function injectStyle(){
-    if(qs('#rt55VisualStyle')) return;
-    const st=document.createElement('style'); st.id='rt55VisualStyle';
-    st.textContent=`:root{--rt55-navy:#082b61;--rt55-navy2:#071f49;--rt55-blue:#0b5bd3;--rt55-bg:#f4f7fb;--rt55-border:#dbe4f0;--rt55-text:#0f172a;--rt55-muted:#64748b}body{background:var(--rt55-bg)!important;color:var(--rt55-text)!important}.sidebar{background:linear-gradient(180deg,var(--rt55-navy),var(--rt55-navy2))!important;width:210px!important;box-shadow:none!important}.brand{padding:18px 12px 16px!important;gap:10px!important;align-items:center!important}.brand-mark{display:none!important}.brand-name{font-size:24px!important;font-weight:800!important;color:#fff!important;letter-spacing:-.02em!important;line-height:1!important}.brand-name::after{content:'  ${PHASE}';font-size:16px;font-weight:800;color:#fff;vertical-align:baseline}.brand-sub{display:none!important}.nav{padding:0 8px!important;gap:7px!important}.nav-item{background:transparent!important;color:#fff!important;border-radius:8px!important;border:0!important;padding:12px 14px!important;font-weight:700!important;text-align:left!important;box-shadow:none!important}.nav-item[data-view="complex"],.nav-item.active[data-view="complex"]{background:#0b6ff0!important;color:#fff!important}.nav-item.active:not([data-view="complex"]){background:rgba(255,255,255,.12)!important}.nav-item[data-view="reports"]{font-size:0!important}.nav-item[data-view="reports"]::after{content:'Portfolio Report';font-size:14px}.sidebar-note{display:none!important}.main{background:var(--rt55-bg)!important;padding:20px 22px 28px!important}.topbar{margin-bottom:18px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}.topbar h1,.topbar p{display:none!important}.topbar-actions{display:flex!important;gap:12px!important;justify-content:flex-end!important}.btn{border-radius:8px!important;font-weight:800!important;padding:10px 16px!important;box-shadow:none!important}.btn-primary{background:#0b5bd3!important;border-color:#0b5bd3!important;color:#fff!important}.btn-secondary{background:#fff!important;border:1px solid #d6dfec!important;color:#0f1f3d!important}.btn-danger{border:1px solid #ef4444!important;color:#dc2626!important;background:#fff!important}.card,.rt54-summary,.rt54-card{background:#fff!important;border:1px solid var(--rt55-border)!important;border-radius:12px!important;box-shadow:0 2px 8px rgba(15,23,42,.06)!important}.card{padding:0!important;margin-bottom:12px!important}.card-header{padding:14px 18px!important;border-bottom:0!important}.card-header h3{font-size:17px!important;font-weight:800!important;color:#0f172a!important;margin:0!important}.card-header span{color:#60708a!important;font-size:13px!important}.form-grid{padding:0 18px 18px!important;gap:12px 14px!important}label,.help-label{font-size:12px!important;font-weight:800!important;color:#053575!important;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}input,select,textarea{border:1px solid #d8e2ef!important;border-radius:8px!important;background:#fff!important;color:#0f172a!important;min-height:36px!important}textarea{min-height:82px!important}table{font-size:13px!important;border-collapse:collapse!important;width:100%!important}thead th{background:#f6f8fb!important;color:#082b61!important;font-size:12px!important;font-weight:800!important;padding:12px 12px!important;border-bottom:1px solid #dbe4f0!important;vertical-align:bottom!important}tbody td{padding:12px!important;border-bottom:1px solid #e8eef7!important;color:#24324a!important;vertical-align:middle!important}.table-wrap{padding:0 14px 14px!important}.scenario-link,.rt54-link,.rt54-src{color:#0b5bd3!important;text-decoration:underline!important;text-underline-offset:2px!important;background:transparent!important;border:0!important;cursor:pointer!important;font-weight:700!important}#appVersion{background:transparent!important;box-shadow:none!important;color:#cbd5e1!important;left:12px!important;bottom:8px!important;border-radius:0!important;padding:0!important;z-index:6000!important}#appVersion::before{content:'Version '}#view-complex>.section-header{margin-bottom:12px!important;display:grid!important;grid-template-columns:1fr auto!important;gap:10px 16px!important;align-items:start!important}#view-complex>.section-header h2{font-size:26px!important;line-height:1.1!important;font-weight:800!important;color:#0f172a!important;margin:0!important}#view-complex>.section-header h2::after{content:' > Component Workspace'!important;font-weight:800!important;color:#0f172a!important}#view-complex>.section-header p{grid-column:1/-1!important;margin:0!important;color:#64748b!important;max-width:1120px!important}#view-complex.rt55-mockup #rt54Topbar{margin:-8px 0 12px!important;display:flex!important;justify-content:flex-end!important;gap:12px!important}#view-complex.rt55-mockup #rt54Layout{grid-template-columns:minmax(0,1fr) 300px!important;gap:14px!important;align-items:start!important}#view-complex.rt55-mockup #rt54Sidebar{position:sticky!important;top:14px!important;gap:12px!important}#view-complex.rt55-mockup #rt54Main{min-width:0!important}#view-complex.rt55-mockup #rt54Summary{display:block!important;margin:0 0 12px!important}#view-complex.rt55-mockup .rt54-summary h3{font-size:16px!important;margin:0 0 12px!important}#view-complex.rt55-mockup .rt54-grid{display:grid!important;grid-template-columns:repeat(7,minmax(90px,1fr))!important;gap:14px!important}#view-complex.rt55-mockup .rt54-label{font-size:12px!important;color:#0b3b80!important;font-weight:800!important}#view-complex.rt55-mockup .rt54-value{font-size:14px!important;color:#0f172a!important}#view-complex.rt55-mockup #rt54Tabs{display:flex!important;gap:28px!important;border-bottom:1px solid #dbe4f0!important;margin:0 0 12px!important;padding:0 8px!important;overflow-x:auto!important;background:transparent!important}#view-complex.rt55-mockup .rt54-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;color:#25324b!important;font-weight:800!important;border-bottom:3px solid transparent!important;white-space:nowrap!important}#view-complex.rt55-mockup .rt54-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important}#view-complex.rt55-mockup .rt54-card{padding:14px!important}#view-complex.rt55-mockup .rt54-card h3{font-size:16px!important;line-height:1.25!important;margin:0 0 10px!important}#view-complex.rt55-mockup .rt54-side-row{border:1px solid #dbe4f0!important;background:#fff!important;border-radius:8px!important;padding:10px!important;margin:7px 0!important;width:100%!important}#view-complex.rt55-mockup .rt54-side-row.active{border-color:#0b5bd3!important;background:#f0f6ff!important}#view-complex.rt55-mockup .rt54-icon{width:30px!important;height:30px!important;border-radius:8px!important;border:1px solid #b9cff0!important;background:#fff!important}#view-complex.rt55-mockup .rt54-side-title{font-weight:800!important;color:#0f172a!important}#view-complex.rt55-mockup .rt54-side-sub{font-size:12px!important;color:#5b6475!important}#view-complex.rt55-mockup .rt54-info-list li{font-size:13px!important;line-height:1.38!important;margin-bottom:8px!important}#view-complex.rt55-mockup .rt54-field-source{display:inline!important;margin-left:8px!important;font-size:11px!important}#view-complex.rt55-mockup .rt54-src{display:block!important;font-size:11px!important;margin-top:2px!important;text-align:left!important}#view-complex.rt55-mockup table .btn{padding:7px 11px!important;font-size:12px!important;border-radius:7px!important}#view-complex.rt55-mockup .rt54-hidden{display:none!important}#view-complex.rt55-mockup .note-box{background:#f8fbff!important;border:1px solid #dbeafe!important;color:#334155!important;border-radius:10px!important}#view-complex.rt55-mockup .card[data-rt55-setup="true"],#view-complex.rt55-mockup .card[data-rt55-rollup="true"]{display:none!important}@media(max-width:1180px){#view-complex.rt55-mockup #rt54Layout{grid-template-columns:1fr!important}#view-complex.rt55-mockup #rt54Sidebar{position:static!important}.sidebar{width:190px!important}}`;
+  'use strict';
+  var PHASE='23.0.68';
+  var SESSION_KEY='risk_manager_session_user_v2101';
+  var VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function loggedIn(){try{return !!localStorage.getItem(SESSION_KEY)}catch(e){return false}}
+  function normalize(v){v=String(v||location.hash.replace(/^#/,'')||'dashboard').trim(); if(!v||v==='manual-faq'||v.indexOf('manual-')===0||VALID.indexOf(v)<0)v='dashboard'; return v;}
+  function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
+  function style(){
+    if(q('#rt68Styles')) return;
+    var st=document.createElement('style'); st.id='rt68Styles';
+    st.textContent=[
+      '#dashboardChartCard{display:none!important}',
+      '.view{display:none}',
+      '.view.active{display:block!important}',
+      '.nav-item.active{background:#1177f2!important;color:#fff!important}',
+      '.nav-item:not(.active){background:transparent!important}',
+      'body.rt68-unlocked #loginGate{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}',
+      'body.rt68-locked #loginGate{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}',
+      'body.rt68-unlocked .modal-overlay:not(#loginGate){display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}',
+      'body.rt68-unlocked .main,body.rt68-unlocked .sidebar,body.rt68-unlocked .card,body.rt68-unlocked .view.active{pointer-events:auto!important;opacity:1!important;filter:none!important}',
+      'body.rt68-unlocked input:not([readonly]),body.rt68-unlocked select,body.rt68-unlocked textarea,body.rt68-unlocked button{pointer-events:auto!important;opacity:1!important;user-select:auto!important;filter:none!important}',
+      'body.rt68-unlocked input:not([readonly]),body.rt68-unlocked select,body.rt68-unlocked textarea{background:#fff!important;color:#111827!important}',
+      '.rt68-hidden{display:none!important}'
+    ].join('');
     document.head.appendChild(st);
   }
-  function forceVersion(){ try{window.RISKTOOL_RUNTIME_VERSION=PHASE}catch(e){} qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE); qsa('.sidebar-note h4').forEach(el=>el.textContent='Phase '+PHASE); const title=qs('title'); if(title) title.textContent='RiskTool '+PHASE; }
-  function markComplexCards(){ qsa('#view-complex .card').forEach(card=>{ const h=(card.querySelector('.card-header h3')?.textContent||'').trim(); if(h==='Area / Product Family Setup') card.dataset.rt55Setup='true'; if(h==='Area Rollup Summary') card.dataset.rt55Rollup='true'; }); }
-  function moveWorkspaceToTop(){ const header=qs('#view-complex>.section-header'), topbar=qs('#rt54Topbar'), layout=qs('#rt54Layout'); if(topbar&&header&&topbar.previousElementSibling!==header) header.after(topbar); if(layout&&topbar&&layout.previousElementSibling!==topbar) topbar.after(layout); }
-  function strengthenSummary(){ const s=qs('#rt54Summary'); if(!s)return; const items=(typeof currentComplexItems!=='undefined'?currentComplexItems:window.currentComplexItems||[])||[]; const costs=(typeof complexCostLosses!=='undefined'?complexCostLosses:window.complexCostLosses||[])||[]; const total=costs.reduce((t,x)=>t+num(x.amountLikely||x.amount||x.costLikely||0),0); const rows=items.map(x=>({name:x.name||'Risk Item',el:(num(x.probLikely)/100)*num(x.impactLikely)})).sort((a,b)=>b.el-a.el); const avg=rows.length?rows.reduce((t,x)=>t+x.el,0)/rows.length:0; const product=qs('#complexSectionProduct')?.selectedOptions?.[0]?.textContent||qs('#complexPrimaryProduct')?.selectedOptions?.[0]?.textContent||'Not selected'; const regulation=qs('#complexPrimaryRegulation')?.selectedOptions?.[0]?.textContent||qs('#riskItemReg')?.selectedOptions?.[0]?.textContent||'Not selected'; const status=qs('#complexScenarioStatus')?.value||'Draft'; s.innerHTML=`<h3>Component Summary <button class="rt54-link" data-column-source="rollup:component-summary" type="button">(rollup)</button></h3><div class="rt54-grid"><div><div class="rt54-label">Component ID</div><div class="rt54-value">${esc(qs('#complexComponentId')?.value||'CMP-000001')}</div></div><div><div class="rt54-label">Product / Service / Area</div><div class="rt54-value">${esc(product)}</div></div><div><div class="rt54-label">Regulation</div><div class="rt54-value">${esc(regulation)}</div></div><div><div class="rt54-label">Status</div><div class="rt54-value">${esc(status)}</div></div><div><div class="rt54-label">Risk Items</div><div class="rt54-value">${items.length}</div></div><div><div class="rt54-label">Total Cost / Loss Exposure</div><div class="rt54-value">${money(total)}</div></div><div><div class="rt54-label">Avg Residual Risk (EL)</div><div class="rt54-value">${money(avg)}<br><small>${esc(rows[0]?.name||'No risk items yet')}</small></div></div></div>`; }
-  function renameComplexNav(){ qsa('.nav-item').forEach(b=>{ if(b.dataset.view==='complex')b.textContent='Complex Scenario Builder'; if(b.dataset.view==='single')b.textContent='Single Scenario Builder'; if(b.dataset.view==='saved')b.textContent='Saved Scenarios'; if(b.dataset.view==='reports')b.textContent='Portfolio Report'; }); }
-  function init55(){ injectStyle(); forceVersion(); renameComplexNav(); const view=qs('#view-complex'); if(view){view.classList.add('rt55-mockup'); markComplexCards(); moveWorkspaceToTop(); strengthenSummary();} }
-  document.addEventListener('click',()=>setTimeout(init55,80),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}); else {setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}
-})();
-/* ===== END PHASE 23.0.66 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
-
-/* ===== PHASE 23.0.66 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
-(function(){
-  const PHASE = "23.0.66";
-  try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-  const qs=(s,r=document)=>r.querySelector(s);
-  const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
-  const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
-  const money=v=>{ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(num(v));}catch(e){return '$'+Math.round(num(v)).toLocaleString();} };
-  const tabs=[['component','1. Component Entry','Define and update this component','▦'],['risk','2. Risk Items','Manage risks for this component','△'],['cost','3. Costs / Losses','Manage cost and loss entries','$'],['evidence','4. Hard Facts / Evidence','Manage evidence and data sources','▤'],['mitigation','5. Mitigation / Controls','Manage mitigations and controls','✓'],['insurance','6. Insurance / Risk Transfer','Manage insurance and risk transfer','☂'],['accepted','7. Accepted Risk','Manage accepted risk decisions','○']];
-  const cards={component:['Selected Component Workspace'],risk:['Risk Item Entry for Selected Component','Risk Item Table'],cost:['Cost / Loss Entry','Cost / Loss Table'],evidence:['Hard Facts / Evidence Entry','Hard Facts / Evidence Table'],mitigation:['Mitigation Entry','Mitigation Table'],insurance:['Insurance Entry','Insurance Table'],accepted:['Accepted Risk','Accepted Risk Table']};
-  function findCard(title){ return qsa('#view-complex .card').find(c=>(c.querySelector('.card-header h3')?.textContent||'').trim()===title); }
-  function inject56Style(){ if(qs('#rt56Styles')) return; const st=document.createElement('style'); st.id='rt56Styles'; st.textContent=`body{grid-template-columns:210px 1fr!important;background:#f4f7fb!important}.sidebar{width:auto!important;min-width:0!important;padding:24px 14px!important;gap:22px!important;background:linear-gradient(180deg,#062b63,#07275a)!important}.brand{align-items:flex-start!important;gap:10px!important;padding:0 4px 18px!important}.brand-mark{display:inline-flex!important;width:42px!important;height:42px!important;border-radius:12px!important;background:#ff8a2a!important;color:#fff!important;align-items:center!important;justify-content:center!important;font-weight:800!important;flex:none!important}.brand-name{font-size:22px!important;line-height:.95!important;color:#fff!important;font-weight:800!important;display:block!important}.brand-name::after{content:''!important}.brand-sub{display:block!important;color:#d9e6fb!important;font-size:12px!important;line-height:1.1!important}.nav{gap:8px!important;padding:0!important}.nav-item{display:flex!important;align-items:center!important;gap:12px!important;padding:11px 12px!important;border-radius:8px!important;color:#fff!important;background:transparent!important;font-weight:800!important;line-height:1.1!important;white-space:normal!important}.nav-item::before{display:inline-flex!important;width:20px!important;min-width:20px!important;height:20px!important;align-items:center!important;justify-content:center!important;font-size:16px!important;opacity:.95}.nav-item[data-view="dashboard"]::before{content:'⌂'}.nav-item[data-view="single"]::before{content:'▣'}.nav-item[data-view="complex"]::before{content:'⌘'}.nav-item[data-view="beta"]::before{content:'β'}.nav-item[data-view="categories"]::before{content:'⚙'}.nav-item[data-view="users"]::before{content:'♙'}.nav-item[data-view="saved"]::before{content:'▤'}.nav-item[data-view="portfolio-report"]::before{content:'☂'}.nav-item[data-view="reports"]::before{content:'☂'}.nav-item[data-view="information"]::before{content:'ⓘ'}.nav-item.active,.nav-item[data-view="complex"].active{background:#1177f2!important;color:#fff!important}.main{padding:20px 22px!important;margin:0!important;min-width:0!important}#view-complex.rt55-mockup #rt54Layout{grid-template-columns:minmax(0,1fr) 300px!important;gap:14px!important;margin-top:0!important}#view-complex.rt55-mockup #rt54Tabs{display:flex!important;gap:26px!important;border-bottom:1px solid #dbe4f0!important;margin:0 0 12px!important;padding:0 8px!important;overflow-x:auto!important;background:transparent!important;align-items:flex-end!important}#view-complex.rt55-mockup .rt54-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;color:#25324b!important;font-weight:800!important;border-bottom:3px solid transparent!important;white-space:nowrap!important}#view-complex.rt55-mockup .rt54-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important}#view-complex.rt55-mockup .rt54-side-row{display:flex!important;align-items:center!important;gap:10px!important}#view-complex.rt55-mockup .rt54-icon{font-size:16px!important;color:#0b5bd3!important}#view-complex.rt55-mockup .card[data-rt55-setup="true"],#view-complex.rt55-mockup .card[data-rt55-rollup="true"]{display:none!important}#appVersion{font-size:12px!important;color:#d9e6fb!important}@media(max-width:1180px){body{grid-template-columns:190px 1fr!important}#view-complex.rt55-mockup #rt54Layout{grid-template-columns:1fr!important}}`; document.head.appendChild(st); }
-  function forceVersion(){ qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE); qsa('.sidebar-note h4').forEach(el=>el.textContent='Phase '+PHASE); if(document.title) document.title='RiskTool '+PHASE; }
-  function markOldSections(){ qsa('#view-complex .card').forEach(card=>{ const h=(card.querySelector('.card-header h3')?.textContent||'').trim(); if(h==='Area / Product Family Setup') card.dataset.rt55Setup='true'; if(h==='Area Rollup Summary') card.dataset.rt55Rollup='true'; }); }
-  function rebuildTabs(){ const view=qs('#view-complex'); if(!view) return; let t=qs('#rt54Tabs'); if(!t){ t=document.createElement('div'); t.id='rt54Tabs'; t.className='rt54-tabs'; } t.innerHTML=tabs.map(([k,l])=>`<button class="rt54-tab" data-rt56-tab="${k}" data-rt54-tab="${k}" type="button">${l}</button>`).join(''); const componentCard=findCard('Selected Component Workspace'); const summary=qs('#rt54Summary'); if(componentCard){ componentCard.parentNode.insertBefore(t, componentCard); } else if(summary){ summary.after(t); } t.onclick=function(e){ const b=e.target.closest('[data-rt56-tab]'); if(b){ e.preventDefault(); activate56(b.dataset.rt56Tab); } }; }
-  function rebuildSidebar(){ const side=qs('#rt54Sidebar .rt54-card'); if(!side) return; side.innerHTML=`<h3>Component Workspace Tables <button class="rt54-link" data-column-source="workspace:choose" type="button">(choose table)</button></h3>` + tabs.map(([k,t,sub,ic])=>`<button class="rt54-side-row" data-rt56-tab="${k}" data-rt54-tab="${k}" type="button"><span class="rt54-icon">${ic}</span><span><div class="rt54-side-title">${t}</div><div class="rt54-side-sub">${sub}</div></span></button>`).join(''); side.onclick=function(e){ const b=e.target.closest('[data-rt56-tab]'); if(b){ e.preventDefault(); activate56(b.dataset.rt56Tab); } }; }
-  function activate56(which){ const key=which||window.rt56ActiveTab||'component'; window.rt56ActiveTab=key; Object.entries(cards).forEach(([k,names])=>names.forEach(name=>{ const c=findCard(name); if(c) c.classList.toggle('rt54-hidden', k!==key); })); qsa('[data-rt56-tab]').forEach(b=>b.classList.toggle('active', b.dataset.rt56Tab===key)); }
-  function strengthenSummary56(){ const s=qs('#rt54Summary'); if(!s)return; const items=(typeof currentComplexItems!=='undefined'?currentComplexItems:window.currentComplexItems||[])||[]; const costs=(typeof complexCostLosses!=='undefined'?complexCostLosses:window.complexCostLosses||[])||[]; const total=costs.reduce((t,x)=>t+num(x.amountLikely||x.amount||x.costLikely||0),0); const rows=items.map(x=>({name:x.name||'Risk Item',el:(num(x.probLikely)/100)*num(x.impactLikely)})).sort((a,b)=>b.el-a.el); const avg=rows.length?rows.reduce((t,x)=>t+x.el,0)/rows.length:0; const product=qs('#complexSectionProduct')?.selectedOptions?.[0]?.textContent||qs('#complexPrimaryProduct')?.selectedOptions?.[0]?.textContent||qs('#riskItemProduct')?.selectedOptions?.[0]?.textContent||'Not selected'; const regulation=qs('#complexPrimaryRegulation')?.selectedOptions?.[0]?.textContent||qs('#riskItemReg')?.selectedOptions?.[0]?.textContent||'Not selected'; const status=qs('#complexScenarioStatus')?.value||'Draft'; s.innerHTML=`<h3>Component Summary <button class="rt54-link" data-column-source="rollup:component-summary" type="button">(rollup)</button></h3><div class="rt54-grid"><div><div class="rt54-label">Component ID</div><div class="rt54-value">${esc(qs('#complexComponentId')?.value||'CMP-000001')}</div></div><div><div class="rt54-label">Product / Service / Area</div><div class="rt54-value">${esc(product)}</div></div><div><div class="rt54-label">Regulation</div><div class="rt54-value">${esc(regulation)}</div></div><div><div class="rt54-label">Status</div><div class="rt54-value">${esc(status)}</div></div><div><div class="rt54-label">Risk Items</div><div class="rt54-value">${items.length}</div></div><div><div class="rt54-label">Total Cost / Loss Exposure</div><div class="rt54-value">${money(total)}</div></div><div><div class="rt54-label">Avg Residual Risk (EL)</div><div class="rt54-value">${money(avg)}<br><small>${esc(rows[0]?.name||'No risk items yet')}</small></div></div></div>`; }
-  function init56(){ inject56Style(); forceVersion(); const view=qs('#view-complex'); if(!view) return; view.classList.add('rt55-mockup','rt56-corrected'); markOldSections(); strengthenSummary56(); rebuildTabs(); rebuildSidebar(); activate56(window.rt56ActiveTab||'component'); }
-  document.addEventListener('click',()=>setTimeout(init56,60),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}); else {setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}
-})();
-/* ===== END PHASE 23.0.66 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
-
-/* ===== PHASE 23.0.66 NEW COMPONENT CREATE + SIDEBAR CLEANUP ===== */
-(function(){
-  const PHASE = "23.0.66";
-  const qs = (s, r=document) => r.querySelector(s);
-  const qsa = (s, r=document) => Array.from(r.querySelectorAll(s));
-  function setVersion(){try{window.RISKTOOL_RUNTIME_VERSION=PHASE;}catch(e){} qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE); qsa('.sidebar-note h4').forEach(el=>el.textContent='Phase '+PHASE); if(document.title)document.title='RiskTool '+PHASE;}
-  function addStyles(){if(qs('#rt57Styles'))return; const st=document.createElement('style'); st.id='rt57Styles'; st.textContent=`#view-complex .rt57-create-row{display:flex;align-items:center;gap:12px;margin:8px 0 10px;padding:0}#view-complex .rt57-new-component{display:inline-flex;align-items:center;gap:8px;background:#0b5bd3!important;color:#fff!important;border:1px solid #0b5bd3!important;border-radius:9px!important;font-weight:800!important;padding:10px 14px!important;box-shadow:none!important;cursor:pointer}#view-complex .rt57-new-component svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none}#view-complex .rt57-mode-pill{font-size:12px;font-weight:800;color:#334155;background:#f8fbff;border:1px solid #dbeafe;border-radius:999px;padding:7px 10px}#view-complex #currentComplexEditingIndicator.rt57-create-mode{border-color:#bfdbfe!important;background:#eff6ff!important;color:#0f3f86!important;font-weight:700!important}#view-complex #currentComplexEditingIndicator.rt57-edit-mode{border-color:#dbe4f0!important;background:#f8fafc!important;color:#172033!important;font-weight:700!important}.nav-item svg.rt57-nav-icon{width:18px;height:18px;min-width:18px;stroke:currentColor;stroke-width:2;fill:none;display:inline-block}.nav-item .rt57-nav-label{display:inline-block;line-height:1.05}.nav-item::before{content:none!important;display:none!important}body{grid-template-columns:210px 1fr!important}.main{margin-left:0!important;padding-left:20px!important}`; document.head.appendChild(st);}
-  function ensureNewComponentButton(){const view=qs('#view-complex'); if(!view||qs('#rt57NewComponentBtn'))return; const summary=qs('#rt54Summary')||qsa('#view-complex .card').find(c=>(c.textContent||'').includes('Component Summary')); const header=qs('#view-complex .section-header'); const row=document.createElement('div'); row.className='rt57-create-row'; row.innerHTML=`<button id="rt57NewComponentBtn" class="rt57-new-component" type="button" title="Create a new component under the selected Area / Product Family"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span>New Component</span></button><span id="rt57ComponentModePill" class="rt57-mode-pill">Create or edit components here</span>`; if(summary&&summary.parentNode)summary.parentNode.insertBefore(row,summary); else if(header&&header.parentNode)header.after(row); qs('#rt57NewComponentBtn')?.addEventListener('click',startNewComponent);}
-  function clearVal(id,value=''){const el=qs('#'+id); if(!el)return; if(el.tagName==='SELECT'){if(value)el.value=value; else el.selectedIndex=el.options.length?0:-1;}else el.value=value; try{el.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}}
-  function genId(){try{if(typeof generateComponentId==='function')return generateComponentId();}catch(e){} return 'CMP-'+String(Date.now()).slice(-6);}
-  function startNewComponent(){const newId=genId(); try{activeComplexComponentId=newId;}catch(e){window.activeComplexComponentId=newId;} clearVal('complexScenarioName'); clearVal('complexComponentId',newId); clearVal('complexScenarioOwner'); clearVal('complexScenarioDescription'); clearVal('complexIdentifiedDate',new Date().toISOString().slice(0,10)); clearVal('complexControlEffectiveness','0'); ['complexProductGroup','complexRiskDomain','complexScenarioStatus','complexScenarioSource','complexPrimaryProduct','complexPrimaryRegulation'].forEach(id=>{const el=qs('#'+id); if(el&&el.options&&el.options.length){el.selectedIndex=0; try{el.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}}}); clearVal('complexRandomScenarioCount','1000'); try{currentComplexItems=[];}catch(e){window.currentComplexItems=[];} try{complexCostLosses=[];}catch(e){window.complexCostLosses=[];} try{complexHardFacts=[];}catch(e){window.complexHardFacts=[];} try{complexMitigations=[];}catch(e){window.complexMitigations=[];} try{complexInsurance=[];}catch(e){window.complexInsurance=[];} try{window.complexAcceptedRisks=[];}catch(e){} try{renderComplexItems();}catch(e){} try{renderCostLossTable('complexCostLossBody',complexCostLosses);}catch(e){} try{renderHardFactsTable('complexHardFactsBody',complexHardFacts);}catch(e){} try{renderMitigationTable('complexMitigationBody',complexMitigations);}catch(e){} try{renderInsuranceTable('complexInsuranceBody',complexInsurance);}catch(e){} try{renderAcceptedRiskTable('complexAcceptedRiskBody',window.complexAcceptedRisks||[],'complex');}catch(e){} try{qs('[data-rt56-tab="component"],[data-rt54-tab="component"]')?.click();}catch(e){} updateModeLabels(true); try{qs('#currentComplexEditingIndicator')?.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){} try{if(typeof strengthenSummary56==='function')strengthenSummary56();}catch(e){}}
-  function updateModeLabels(forceCreate=false){const ind=qs('#currentComplexEditingIndicator'); const cid=qs('#complexComponentId')?.value||''; const name=qs('#complexScenarioName')?.value||''; let saved=false; try{saved=Array.isArray(complexScenarioComponents)&&complexScenarioComponents.some(c=>String(c.componentId||'')===String(cid));}catch(e){} const create=forceCreate||!saved; if(ind){ind.classList.toggle('rt57-create-mode',create); ind.classList.toggle('rt57-edit-mode',!create); ind.textContent=create?`Creating New Component${cid?': '+cid:''}`:`Currently Editing Component: ${name||'Saved Component'}${cid?' ('+cid+')':''}`;} const pill=qs('#rt57ComponentModePill'); if(pill)pill.textContent=create?'Create Mode: enter component details, then Add Component':'Edit Mode: changes update the selected component'; const save=qs('#addComplexScenarioBtn'); if(save)save.textContent=create?'Add Component':'Update Component';}
-  const iconMap={dashboard:'<path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path>',single:'<path d="M6 3h9l5 5v13H6z"></path><path d="M15 3v6h6"></path><path d="M9 14h7"></path><path d="M9 18h5"></path>',complex:'<path d="M7 7h4v4H7z"></path><path d="M13 13h4v4h-4z"></path><path d="M13 3h4v4h-4z"></path><path d="M9 11v2h4"></path><path d="M15 7v6"></path>',beta:'<path d="M8 4h5a4 4 0 010 8H8"></path><path d="M8 12h6a4 4 0 010 8H8"></path><path d="M8 4v16"></path>',categories:'<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1-2 2-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V20h-3v-.2a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1-2-2 .1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.6-1H5v-3h.2a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1 2-2 .1.1a1.7 1.7 0 001.9.3 1.7 1.7 0 001-1.6V4h3v.2a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1 2 2-.1.1a1.7 1.7 0 00-.3 1.9 1.7 1.7 0 001.6 1h.2v3h-.2a1.7 1.7 0 00-1.6 1z"></path>',users:'<path d="M16 21v-2a4 4 0 00-8 0v2"></path><circle cx="12" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 00-3-3.87"></path><path d="M16 3.13a4 4 0 010 7.75"></path>',saved:'<path d="M5 3h14v18H5z"></path><path d="M8 7h8"></path><path d="M8 11h8"></path><path d="M8 15h5"></path>',reports:'<path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-5"></path><path d="M12 16V8"></path><path d="M16 16v-9"></path>','portfolio-report':'<path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-5"></path><path d="M12 16V8"></path><path d="M16 16v-9"></path>',information:'<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><path d="M12 7h.01"></path>'};
-  function rebuildNavIconsAndDuplicates(){const seen={count:0}; qsa('.nav-item').forEach(btn=>{const txt=(btn.textContent||'').trim(); const view=btn.dataset.view||''; if((view==='reports'||view==='portfolio-report'||txt==='Portfolio Report')&&++seen.count>1){btn.remove();return;} if(btn.querySelector('.rt57-nav-icon'))return; const label=txt||btn.getAttribute('aria-label')||view||'Menu'; const paths=iconMap[view]||iconMap.information; btn.innerHTML=`<svg class="rt57-nav-icon" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg><span class="rt57-nav-label">${label}</span>`;});}
-  function boot(){setVersion(); addStyles(); ensureNewComponentButton(); rebuildNavIconsAndDuplicates(); updateModeLabels(false);} document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,250);setTimeout(boot,900);}); document.addEventListener('click',e=>{setTimeout(()=>{ensureNewComponentButton(); rebuildNavIconsAndDuplicates(); updateModeLabels(false);},150);},true); document.addEventListener('input',e=>{if(e.target&&e.target.closest('#view-complex'))setTimeout(()=>updateModeLabels(false),60);}); window.RiskTool57NewComponent=startNewComponent; setTimeout(boot,1200);
-})();
-/* ===== END PHASE 23.0.66 NEW COMPONENT CREATE + SIDEBAR CLEANUP ===== */
-
-/* ===== PHASE 23.0.66 COMPONENT BUTTON PLACEMENT + SINGLE/BETA VISUAL ALIGNMENT ===== */
-(function(){
-  const PHASE = "23.0.66";
-  const qs = (s, r=document) => r.querySelector(s);
-  const qsa = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const esc = v => String(v ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
-
-  function setVersion58(){
-    try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-    qsa('#appVersion,.app-version,[data-version-label]').forEach(el => el.textContent = PHASE);
-    if (document.title) document.title = 'RiskTool ' + PHASE;
-  }
-
-  function inject58Styles(){
-    if (qs('#rt58Styles')) return;
-    const st = document.createElement('style');
-    st.id = 'rt58Styles';
-    st.textContent = `
-      #view-complex .rt57-create-row{margin:8px 0 12px!important;}
-      #view-complex > .section-header + .rt57-create-row{margin-top:8px!important;}
-      #view-complex .rt57-create-row.rt58-top-create{display:flex!important;align-items:center!important;gap:12px!important;}
-      #view-complex .rt57-new-component{background:#0b5bd3!important;color:#fff!important;border-color:#0b5bd3!important;}
-      #view-single.rt58-workspace,#view-beta.rt58-workspace{max-width:none!important;}
-      #view-single.rt58-workspace > .section-header,#view-beta.rt58-workspace > .section-header{margin-bottom:12px!important;display:grid!important;grid-template-columns:1fr auto!important;gap:8px 16px!important;align-items:start!important;}
-      #view-single.rt58-workspace > .section-header h2,#view-beta.rt58-workspace > .section-header h2{font-size:26px!important;line-height:1.1!important;font-weight:800!important;color:#0f172a!important;margin:0!important;}
-      #view-single.rt58-workspace > .section-header h2::after{content:' > Scenario Workspace';font-weight:800;color:#0f172a;}
-      #view-beta.rt58-workspace > .section-header h2::after{content:' > Planning Workspace';font-weight:800;color:#0f172a;}
-      #view-single.rt58-workspace > .section-header p,#view-beta.rt58-workspace > .section-header p{grid-column:1/-1!important;margin:0!important;color:#64748b!important;max-width:1120px!important;}
-      .rt58-summary{background:#fff!important;border:1px solid #dbe4f0!important;border-radius:12px!important;box-shadow:0 2px 8px rgba(15,23,42,.06)!important;margin:0 0 12px!important;padding:14px 18px!important;}
-      .rt58-summary h3{font-size:16px!important;margin:0 0 12px!important;color:#0f172a!important;}
-      .rt58-summary-grid{display:grid!important;grid-template-columns:repeat(6,minmax(120px,1fr))!important;gap:14px!important;}
-      .rt58-label{font-size:12px!important;color:#0b3b80!important;font-weight:800!important;}
-      .rt58-value{font-size:14px!important;color:#0f172a!important;}
-      .rt58-tabs{display:flex!important;gap:26px!important;border-bottom:1px solid #dbe4f0!important;margin:0 0 12px!important;padding:0 8px!important;overflow-x:auto!important;background:transparent!important;}
-      .rt58-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;color:#25324b!important;font-weight:800!important;border-bottom:3px solid transparent!important;white-space:nowrap!important;}
-      .rt58-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important;}
-      .rt58-src{color:#0b5bd3!important;text-decoration:underline!important;text-underline-offset:2px!important;background:transparent!important;border:0!important;cursor:pointer!important;font-weight:700!important;}
-      #view-single.rt58-workspace .card,#view-beta.rt58-workspace .card{background:#fff!important;border:1px solid #dbe4f0!important;border-radius:12px!important;box-shadow:0 2px 8px rgba(15,23,42,.06)!important;margin-bottom:12px!important;}
-      #view-single.rt58-workspace .builder-actions,#view-beta.rt58-workspace .builder-actions{display:flex!important;justify-content:flex-end!important;gap:10px!important;padding:14px 18px 0!important;}
-      @media(max-width:1180px){.rt58-summary-grid{grid-template-columns:repeat(2,minmax(120px,1fr))!important;}}
-    `;
-    document.head.appendChild(st);
-  }
-
-  function makeNewComponentRow(){
-    const row = document.createElement('div');
-    row.className = 'rt57-create-row rt58-top-create';
-    row.innerHTML = `<button id="rt57NewComponentBtn" class="rt57-new-component" type="button" title="Create a new component under the selected Area / Product Family"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span>New Component</span></button><span id="rt57ComponentModePill" class="rt57-mode-pill">Create or edit components here</span>`;
-    return row;
-  }
-
-  function moveNewComponentButtonToHeader(){
-    const view = qs('#view-complex');
-    const header = qs('#view-complex > .section-header');
-    if (!view || !header) return;
-    let row = qs('#view-complex .rt57-create-row');
-    if (!row) row = makeNewComponentRow();
-    row.classList.add('rt58-top-create');
-    if (header.nextElementSibling !== row) header.parentNode.insertBefore(row, header.nextElementSibling);
-    const btn = qs('#rt57NewComponentBtn');
-    if (btn && !btn.dataset.rt58Bound) {
-      btn.dataset.rt58Bound = '1';
-      btn.addEventListener('click', () => {
-        if (typeof window.RiskTool57NewComponent === 'function') window.RiskTool57NewComponent();
-      });
-    }
-  }
-
-  function updateSummary(viewId, type){
-    const view = qs('#' + viewId);
-    if (!view) return;
-    view.classList.add('rt58-workspace');
-    const header = qs('.section-header', view);
-    if (!header) return;
-    let summary = qs('.rt58-summary', view);
-    if (!summary) {
-      summary = document.createElement('div');
-      summary.className = 'rt58-summary';
-      header.parentNode.insertBefore(summary, header.nextElementSibling);
-    }
-    const prefix = type === 'single' ? 'single' : 'beta';
-    const name = qs('#' + prefix + 'ScenarioName')?.value || (type === 'single' ? 'New Single Scenario' : 'New Beta Scenario');
-    const id = qs('#' + prefix + 'ScenarioId')?.value || 'Generated on save';
-    const product = qs('#' + prefix + 'PrimaryProduct')?.selectedOptions?.[0]?.textContent || qs('#betaProjectOrProductName')?.value || 'Not selected';
-    const regulation = qs('#' + prefix + 'PrimaryRegulation')?.selectedOptions?.[0]?.textContent || 'Not selected';
-    const status = qs('#' + prefix + 'ScenarioStatus')?.value || 'Draft';
-    const owner = qs('#' + prefix + 'ScenarioOwner')?.value || 'Not assigned';
-    summary.innerHTML = `<h3>${type === 'single' ? 'Single Scenario Summary' : 'Beta Scenario Summary'} <button class="rt58-src" type="button" data-rt58-source="summary">(rollup)</button></h3><div class="rt58-summary-grid"><div><div class="rt58-label">Scenario ID</div><div class="rt58-value">${esc(id)}</div></div><div><div class="rt58-label">Scenario / Component</div><div class="rt58-value">${esc(name)}</div></div><div><div class="rt58-label">Product / Service</div><div class="rt58-value">${esc(product)}</div></div><div><div class="rt58-label">Regulation</div><div class="rt58-value">${esc(regulation)}</div></div><div><div class="rt58-label">Status</div><div class="rt58-value">${esc(status)}</div></div><div><div class="rt58-label">Owner</div><div class="rt58-value">${esc(owner)}</div></div></div>`;
-    ensureTabs(view, type, summary);
-  }
-
-  function ensureTabs(view, type, afterEl){
-    let tabs = qs('.rt58-tabs', view);
-    if (!tabs) {
-      tabs = document.createElement('div');
-      tabs.className = 'rt58-tabs';
-      afterEl.parentNode.insertBefore(tabs, afterEl.nextElementSibling);
-    }
-    const labels = type === 'single'
-      ? ['1. Scenario Entry','2. Evidence / Hard Facts','3. Costs / Losses','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Report']
-      : ['1. Scenario Entry','2. Assumptions','3. Costs / Losses','4. Evidence / Basis','5. Outcomes','6. Promote / Save'];
-    tabs.innerHTML = labels.map((label, i) => `<button class="rt58-tab ${i===0?'active':''}" type="button">${esc(label)}</button>`).join('');
-  }
-
-  function bindSourceLinks(){
-    qsa('[data-rt58-source]').forEach(btn => {
-      if (btn.dataset.rt58Bound) return;
-      btn.dataset.rt58Bound = '1';
-      btn.addEventListener('click', () => alert('This summary is populated from the scenario entry fields and calculated outputs on this screen. It is a reference panel so the single and beta screens visually match the complex workspace.'));
-    });
-  }
-
-  function boot58(){
-    setVersion58();
-    inject58Styles();
-    moveNewComponentButtonToHeader();
-    updateSummary('view-single', 'single');
-    updateSummary('view-beta', 'beta');
-    bindSourceLinks();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { setTimeout(boot58, 150); setTimeout(boot58, 800); });
-  else { setTimeout(boot58, 150); setTimeout(boot58, 800); }
-  document.addEventListener('click', () => setTimeout(boot58, 80), true);
-  document.addEventListener('input', e => { if (e.target?.closest?.('#view-single,#view-beta,#view-complex')) setTimeout(boot58, 60); }, true);
-  document.addEventListener('change', e => { if (e.target?.closest?.('#view-single,#view-beta,#view-complex')) setTimeout(boot58, 60); }, true);
-})();
-/* ===== END PHASE 23.0.66 COMPONENT BUTTON PLACEMENT + SINGLE/BETA VISUAL ALIGNMENT ===== */
-
-/* ===== PHASE 23.0.66 SINGLE/BETA FACT-BASED WORKSPACE ALIGNMENT ===== */
-(function(){
-  function el(id){ return document.getElementById(id); }
-  function num(id){ const x=el(id); if(!x) return 0; const raw=x.value || 0; return typeof parseCurrencyValue === 'function' ? parseCurrencyValue(raw) : Number(raw); }
-  function set(id,val){ const x=el(id); if(x) x.value = val; }
-  function text(id,val){ const x=el(id); if(x) x.textContent = val; }
-  function fmt(n){ return typeof currency === 'function' ? currency(Math.round(Number(n)||0)) : ('$' + Math.round(Number(n)||0)); }
-  function deriveSingleLegacyFacts(){
-    const pLikely = Math.max(0, Math.min(100, Number((el('singleProbabilityLikely')||{}).value || 0)));
-    const iLikely = num('singleImpactLikely') || num('singleHardCostLikely');
-    set('singleLikelihood', Math.max(1, Math.min(10, Math.round(pLikely / 10) || 1)));
-    const impactScale = iLikely >= 1000000 ? 10 : iLikely >= 750000 ? 9 : iLikely >= 500000 ? 8 : iLikely >= 250000 ? 7 : iLikely >= 150000 ? 6 : iLikely >= 75000 ? 5 : iLikely >= 25000 ? 4 : iLikely >= 10000 ? 3 : iLikely > 0 ? 2 : 1;
-    set('singleImpact', impactScale);
-    const expectedLoss = Math.round((pLikely/100) * iLikely);
-    set('singleInherentRiskScore', Math.max(0, Math.min(100, Math.round((pLikely/100) * impactScale * 10))));
-    text('singleSummaryId', (el('singleScenarioId')||{}).value || 'Generated on save');
-    text('singleSummaryProduct', (el('singlePrimaryProduct')||{}).value || 'Not selected');
-    text('singleSummaryRegulation', (el('singlePrimaryRegulation')||{}).value || 'Not selected');
-    text('singleSummaryLifecycle', (el('singleScenarioStatus')||{}).value || 'Open');
-    text('singleSummaryExpectedLoss', fmt(expectedLoss));
-    text('singleSummaryEvidenceCount', String((window.singleHardFacts || []).length));
-  }
-  function updateBetaSummary(){
-    text('betaSummaryId', (el('betaScenarioId')||{}).value || 'Generated on save');
-    text('betaSummaryProduct', (el('betaProjectOrProductName')||{}).value || 'Not entered');
-    text('betaSummaryLifecycle', (el('betaScenarioStatus')||{}).value || 'Draft');
-    text('betaSummaryExpectedValue', fmt(num('betaExpectedValue')));
-    text('betaSummaryP50', fmt(num('betaP50')));
-    text('betaSummaryP90', fmt(num('betaP90')));
-  }
-  const previousUpdate = typeof window.updateInherentScores === 'function' ? window.updateInherentScores : (typeof updateInherentScores === 'function' ? updateInherentScores : null);
-  window.updateInherentScores = function(){
-    try { deriveSingleLegacyFacts(); } catch(e) {}
-    try { if (previousUpdate) previousUpdate(); } catch(e) {}
-    try { deriveSingleLegacyFacts(); updateBetaSummary(); } catch(e) {}
-  };
-  const previousGetSinglePayload = typeof window.getSinglePayload === 'function' ? window.getSinglePayload : (typeof getSinglePayload === 'function' ? getSinglePayload : null);
-  window.getSinglePayload = function(){
-    deriveSingleLegacyFacts();
-    const payload = previousGetSinglePayload ? previousGetSinglePayload() : {};
-    payload.probabilityMin = Number((el('singleProbabilityMin')||{}).value || 0);
-    payload.probabilityLikely = Number((el('singleProbabilityLikely')||{}).value || 0);
-    payload.probabilityMax = Number((el('singleProbabilityMax')||{}).value || 0);
-    payload.impactMin = num('singleImpactMin');
-    payload.impactLikely = num('singleImpactLikely');
-    payload.impactMax = num('singleImpactMax');
-    payload.evidenceQuality = (el('singleEvidenceQuality')||{}).value || 'Medium';
-    payload.inherent = Number((el('singleInherentRiskScore')||{}).value || 0);
-    return payload;
-  };
-  function wireFactInputs(){
-    ['singleProbabilityMin','singleProbabilityLikely','singleProbabilityMax','singleImpactMin','singleImpactLikely','singleImpactMax','singleEvidenceQuality','singleScenarioId','singlePrimaryProduct','singlePrimaryRegulation','singleScenarioStatus','betaScenarioId','betaProjectOrProductName','betaScenarioStatus','betaExpectedValue','betaP50','betaP90'].forEach(id=>{
-      const x=el(id); if(x && !x.dataset.rt59wired){ x.addEventListener('input', window.updateInherentScores); x.addEventListener('change', window.updateInherentScores); x.dataset.rt59wired='1'; }
-    });
-    document.querySelectorAll('.source-link').forEach(a=>{
-      if(a.dataset.rt59wired) return;
-      a.dataset.rt59wired='1';
-      a.addEventListener('click', function(ev){
-        ev.preventDefault();
-        const msg = {
-          'single-probability':'Probability fields come from evidence-supported scenario assumptions. They replace the old 1-10 likelihood rating.',
-          'single-impact':'Impact fields come from evidence-supported dollar ranges and hard-fact/cost-loss entries. They replace the old 1-10 impact rating.',
-          'single-evidence-quality':'Evidence quality is a confidence indicator for the assumptions used in probability and impact ranges.',
-          'single-rollup':'Single Scenario rollup is calculated from probability x impact, hard facts/evidence, mitigation, insurance, and accepted-risk data.',
-          'beta-rollup':'Beta rollup is calculated from min/mode/max future-state ranges and simulation outputs.'
-        }[this.dataset.source || ''] || 'This value is populated from the related entry form or linked table.';
-        alert(msg);
-      });
-    });
-  }
-  document.addEventListener('DOMContentLoaded', function(){ wireFactInputs(); deriveSingleLegacyFacts(); updateBetaSummary(); });
-  setTimeout(function(){ wireFactInputs(); deriveSingleLegacyFacts(); updateBetaSummary(); }, 500);
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-
-
-/* === RT60 Dashboard + Single/Beta Workspace Alignment Patch === */
-(function(){
-  const RT60_VERSION='23.0.66';
-  function qs(s,r=document){return r.querySelector(s)}
-  function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
-  function riskValue(s){return Number((s&& (s.residual||s.averageResidualRisk||s.avgResidualRisk||s.inherent))||0)}
-  function saved(){try{return (typeof getSavedScenarios==='function'?getSavedScenarios():JSON.parse(localStorage.getItem('risktool.savedScenarios')||'[]'))||[]}catch(e){return[]}}
-  function label(s){return s&&s.mode==='complex'?'Complex Scenario':s&&s.mode==='beta'?'Beta Scenario':'Single Scenario'}
-  function view(s){return s&&s.mode==='complex'?'complex':s&&s.mode==='beta'?'beta':'single'}
-  function act(v){try{if(typeof activateView==='function')return activateView(v)}catch(e){} qsa('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v)); qsa('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===v));}
-  function esc(v){return String(v||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
-  function summary(s){if(!s)return 'No open scenarios are available yet. Save a single, beta, or complex scenario to generate dashboard insight.';return (s.name||'Unnamed scenario')+' is currently the highest-risk open scenario ('+label(s)+'). Current calculated risk indicator: '+riskValue(s)+'. Primary driver: '+(s.riskDomain||s.highestDriver||'not yet identified')+'. Product/service: '+(s.primaryProduct||s.productGroup||'not set')+'. Regulation: '+(s.primaryRegulation||'not set')+'. Use the scenario ID below to refresh this summary or use the action button to reopen the originating builder.'}
-  function updateSummary(id){const rows=saved().filter(s=>String(s.scenarioStatus||'').toLowerCase()!=='closed'); const s=id?rows.find(x=>String(x.id||'')===String(id)):rows.sort((a,b)=>riskValue(b)-riskValue(a))[0]; const box=qs('#aiSummaryBox'); if(box)box.textContent=summary(s)}
-  function openBuilder(id){const s=saved().find(x=>String(x.id||'')===String(id)); if(!s)return; try{if(typeof openScenario==='function')openScenario(id)}catch(e){} act(view(s)); updateSummary(id)}
-  window.renderDashboardOpenTable=function(){const tbody=qs('#dashboardOpenScenarioBody'); if(!tbody)return; const rows=saved().filter(s=>String(s.scenarioStatus||'').toLowerCase()!=='closed'); const count=qs('#savedCount'); if(count)count.textContent=String(saved().length); if(!rows.length){tbody.innerHTML='<tr><td colspan="11">No open scenarios available.</td></tr>'; updateSummary(); return;} tbody.innerHTML=rows.map(function(s){return '<tr><td><button class="scenario-link rt60-summary-link" data-summary-id="'+esc(s.id)+'">'+esc(s.id)+'</button></td><td>'+label(s)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.scenarioStatus)+'</td><td>'+riskValue(s)+'</td><td>'+esc(s.identifiedDate)+'</td><td>'+esc(s.productGroup)+'</td><td>'+esc(s.riskDomain||s.highestDriver)+'</td><td>'+esc(s.assignedOwnerName||s.owner)+'</td><td>'+esc(s.storageMode||'Local Browser Storage')+'</td><td><button class="btn btn-secondary small-btn rt60-open-builder" data-open-builder="'+esc(s.id)+'">Open Builder</button></td></tr>'}).join(''); qsa('[data-summary-id]',tbody).forEach(b=>b.addEventListener('click',()=>updateSummary(b.dataset.summaryId))); qsa('[data-open-builder]',tbody).forEach(b=>b.addEventListener('click',()=>openBuilder(b.dataset.openBuilder))); updateSummary()}
-  function buildWorkspace(viewId,title){const viewEl=qs('#view-'+viewId); if(!viewEl||viewEl.dataset.rt60Workspace==='1')return; viewEl.dataset.rt60Workspace='1'; const h=qs('.section-header h2',viewEl); if(h)h.textContent=title+' > Scenario Workspace'; const first=qs('.card',viewEl); if(!first)return; const tabs=document.createElement('div'); tabs.className='rt60-tabs'; tabs.innerHTML=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'].map((t,i)=>'<button type="button" class="rt60-tab '+(i===0?'active':'')+'" data-rt60-tab="'+i+'">'+t+'</button>').join(''); first.parentNode.insertBefore(tabs,first); const panels=[first].concat(qsa('.card',viewEl).slice(1)); panels.forEach((p,i)=>{p.classList.add('rt60-panel'); if(i>0)p.classList.add('rt60-hidden')}); qsa('.rt60-tab',tabs).forEach(btn=>btn.addEventListener('click',()=>{qsa('.rt60-tab',tabs).forEach(x=>x.classList.toggle('active',x===btn)); panels.forEach((p,i)=>p.classList.toggle('rt60-hidden',String(i)!==btn.dataset.rt60Tab))}))}
-  function styles(){if(qs('#rt60Styles'))return; const st=document.createElement('style'); st.id='rt60Styles'; st.textContent='#dashboardChartCard{display:none!important}.rt60-tabs{display:flex;gap:24px;border-bottom:1px solid #dbe4f0;margin:8px 0 12px;padding:0 6px;overflow-x:auto}.rt60-tab{border:0;background:transparent;padding:12px 0 10px;font-weight:800;color:#25324b;border-bottom:3px solid transparent;white-space:nowrap}.rt60-tab.active{color:#0b5bd3;border-bottom-color:#0b5bd3}.rt60-hidden{display:none!important}.rt60-summary-link{color:#0b5bd3;background:transparent;border:0;text-decoration:underline;font-weight:800;cursor:pointer}'; document.head.appendChild(st)}
-  document.addEventListener('DOMContentLoaded',function(){styles();buildWorkspace('single','Single Scenario Builder');buildWorkspace('beta','Beta Scenario Builder');try{renderDashboardOpenTable()}catch(e){} const v=qs('#appVersion'); if(v)v.textContent=RT60_VERSION});
-  setTimeout(function(){try{renderDashboardOpenTable()}catch(e){}},500);
-})();
-
-/* ===== PHASE 23.0.66 CATEGORY + TAB CLEANUP PATCH ===== */
-(function(){
-  const PHASE='23.0.66';
-  const TAB_LABELS=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'];
-  function qs(s,r=document){return r.querySelector(s)}
-  function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
-  function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
-  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function setVersion(){try{window.RISKTOOL_RUNTIME_VERSION=PHASE}catch(e){} qsa('#appVersion,.app-version,[data-version-label]').forEach(e=>e.textContent=PHASE)}
-  function injectStyles(){
-    if(qs('#rt61Styles')) return;
-    const st=document.createElement('style'); st.id='rt61Styles';
-    st.textContent=`#view-single .rt58-tabs,#view-beta .rt58-tabs{display:none!important}.rt61-tabs{display:flex!important;gap:24px!important;border-bottom:1px solid #dbe4f0!important;margin:8px 0 12px!important;padding:0 6px!important;overflow-x:auto!important;background:transparent!important}.rt61-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;font-weight:800!important;color:#25324b!important;border-bottom:3px solid transparent!important;white-space:nowrap!important;cursor:pointer!important}.rt61-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important}.rt61-hidden{display:none!important}#view-single .builder-actions,#view-beta .builder-actions{justify-content:flex-start!important}.rt61-action-row{display:flex!important;justify-content:flex-start!important;gap:10px!important;align-items:center!important;margin:10px 0 12px!important;padding:0!important}.rt61-action-row .btn{margin-left:0!important}.rt61-category-field{order:4!important}.rt61-info-pill{display:inline-flex;align-items:center;border:1px solid #bfdbfe;background:#eff6ff;color:#0f3d8a;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;margin-left:6px}`;
-    document.head.appendChild(st);
-  }
-  function renameDomText(){
-    if(!document.body) return;
-    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode(n){const p=n.parentElement;if(!p||['SCRIPT','STYLE'].includes(p.tagName))return NodeFilter.FILTER_REJECT;return /(Product Groups|Product Group|Primary Product\s*\/\s*Service)/.test(n.nodeValue||'')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
-    const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(n=>{n.nodeValue=(n.nodeValue||'').replace(/Primary Product\s*\/\s*Service/g,'Category').replace(/Product Groups/g,'Category').replace(/Product Group/g,'Category')});
-    qsa('input[placeholder]').forEach(el=>{el.placeholder=(el.placeholder||'').replace(/Primary Product\s*\/\s*Service|Product Groups|Product Group/g,'Category')});
-  }
-  function wrapperFor(id){const el=qs('#'+id); return el?el.closest('.form-grid > div, .form-stack > div, div'):null}
-  function markCategory(id){const w=wrapperFor(id); if(!w)return null; w.classList.add('rt61-category-field'); const lab=w.querySelector('label'); if(lab){Array.from(lab.childNodes).forEach(n=>{if(n.nodeType===3)n.nodeValue='Category'});} return w;}
-  function placeCategoryUnderArea(viewId,prefix){
-    const area=wrapperFor(prefix+'ScenarioId')||wrapperFor(prefix+'AreaReviewId')||wrapperFor(prefix+'AreaGroupId')||wrapperFor('complexAreaGroupId');
-    const cat=markCategory(prefix+'PrimaryProduct')||markCategory(prefix+'ProductGroup')||markCategory('complexPrimaryProduct')||markCategory('betaProjectOrProductName');
-    if(area&&cat&&area.parentNode===cat.parentNode&&area.nextElementSibling!==cat) area.parentNode.insertBefore(cat,area.nextElementSibling);
-  }
-  function removeDeadTabs(view){
-    qsa('.rt58-tabs,.rt60-tabs',view).forEach(bar=>{const t=txt(bar); if(/Assumptions|Promote\s*\/\s*Save|Outcomes|Evidence\s*\/\s*Basis|Report/.test(t)) bar.remove();});
-    qsa('div,nav',view).forEach(el=>{if(el.classList.contains('rt61-tabs'))return; const t=txt(el); if(t.startsWith('1. Scenario Entry')&&/Assumptions|Promote\s*\/\s*Save|Outcomes|Evidence\s*\/\s*Basis/.test(t)&&t.length<180) el.remove();});
-  }
-  function directCards(view){return qsa(':scope > .card',view).filter(c=>!c.classList.contains('rt58-summary'))}
-  function ensureTabs(viewId){
-    const view=qs('#'+viewId); if(!view)return;
-    removeDeadTabs(view);
-    let tabs=qs(':scope > .rt61-tabs',view);
-    const summary=qs(':scope > .rt58-summary, :scope > .rt54-summary',view);
-    const header=qs(':scope > .section-header',view);
-    if(!tabs){tabs=document.createElement('div'); tabs.className='rt61-tabs'; tabs.innerHTML=TAB_LABELS.map((l,i)=>`<button class="rt61-tab ${i===0?'active':''}" type="button" data-rt61-tab="${i}">${esc(l)}</button>`).join(''); (summary||header||view).parentNode.insertBefore(tabs,(summary||header||view).nextElementSibling);}
-    const cards=directCards(view);
-    const groups=[/Scenario|Selected Component Workspace|Component Entry/i,/Cost|Loss/i,/Hard Facts|Evidence/i,/Mitigation|Control/i,/Insurance|Risk Transfer/i,/Accepted Risk/i];
-    cards.forEach((c,idx)=>{const h=txt(c.querySelector('.card-header h3,h3')||c); let g=idx===0?0:groups.findIndex((rx,i)=>i>0&&rx.test(h)); if(g<0)g=0; c.dataset.rt61Group=String(g);});
-    function activate(n){qsa('.rt61-tab',tabs).forEach(b=>b.classList.toggle('active',b.dataset.rt61Tab===String(n))); cards.forEach(c=>c.classList.toggle('rt61-hidden',c.dataset.rt61Group!==String(n)));}
-    if(!tabs.dataset.rt61Bound){tabs.dataset.rt61Bound='1'; qsa('.rt61-tab',tabs).forEach(b=>b.addEventListener('click',()=>activate(Number(b.dataset.rt61Tab||0))));}
-    activate(Number(qs('.rt61-tab.active',tabs)?.dataset.rt61Tab||0));
-  }
-  function moveButtonsLeft(viewId){
-    const view=qs('#'+viewId); if(!view)return; const first=directCards(view)[0]; if(!first)return;
-    let row=qs(':scope > .rt61-action-row',view); if(!row){row=document.createElement('div');row.className='rt61-action-row';const tabs=qs(':scope > .rt61-tabs',view);(tabs||first).parentNode.insertBefore(row,(tabs||first).nextElementSibling);}
-    const ids=viewId==='view-beta'?['loadBetaTestBtn','runBetaScenarioBtn','saveBetaScenarioBtn','promoteBetaScenarioBtn']:['loadSingleTestBtn','runScenarioBtn','saveScenarioBtn','saveSingleScenarioBtn'];
-    ids.forEach(id=>{const b=qs('#'+id); if(b&&b.parentElement!==row)row.appendChild(b);});
-  }
-  function cleanCategoryAdmin(){
-    const input=qs('#newProductGroupName'); if(input)input.placeholder='Add Category';
-    const btn=qs('#addProductGroupBtn'); if(btn)btn.textContent='Add Category';
-    const cnt=qs('#productGroupCount'); const stat=cnt&&cnt.closest('.stat-card'); if(stat){const s=stat.querySelector('span'); if(s)s.textContent='Category'; stat.dataset.help='Number of category values currently available.';}
-  }
-  function boot(){setVersion();injectStyles();renameDomText();cleanCategoryAdmin();ensureTabs('view-single');ensureTabs('view-beta');moveButtonsLeft('view-single');moveButtonsLeft('view-beta');placeCategoryUnderArea('view-single','single');placeCategoryUnderArea('view-beta','beta');placeCategoryUnderArea('view-complex','complex');}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1200)});else{setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1200)}
-  document.addEventListener('click',()=>setTimeout(boot,80),true);
-  document.addEventListener('change',e=>{if(e.target&&e.target.closest&&e.target.closest('#view-single,#view-beta,#view-complex,#view-categories'))setTimeout(boot,80)},true);
-})();
-/* ===== END PHASE 23.0.66 CATEGORY + TAB CLEANUP PATCH ===== */
-
-/* ===== PHASE 23.0.66 REGRESSION FIX: NAV ACTIVE, CATEGORY SELECTS, SINGLE/BETA TAB PANELS ===== */
-(function(){
-  const PHASE='23.0.66';
-  const CATEGORY_DEFAULTS=['ACH Processing','Card Services','Consumer Compliance','Core Processing','Deposits','Digital Banking','Lending','Loan Origination','Loan Servicing','Mortgage Servicing','Payments','Third Party','Vendor Management'];
-  const TABS=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'];
-  function qs(s,r=document){return r.querySelector(s)}
-  function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
-  function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-  function text(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
-  function addStyle(){
-    if(qs('#rt62Styles')) return;
-    const st=document.createElement('style'); st.id='rt62Styles';
-    st.textContent=`
-      .nav-item[data-view="complex"]{background:transparent!important;color:#fff!important;}
-      .nav-item.active[data-view="complex"],.nav-item.active{background:#1177f2!important;color:#fff!important;}
-      #view-single .rt60-tabs,#view-beta .rt60-tabs,#view-single .rt61-tabs,#view-beta .rt61-tabs,#view-single .rt58-tabs,#view-beta .rt58-tabs{display:none!important;}
-      .rt62-tabs{display:flex!important;gap:24px!important;border-bottom:1px solid #dbe4f0!important;margin:8px 0 12px!important;padding:0 6px!important;overflow-x:auto!important;background:transparent!important;}
-      .rt62-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;font-weight:800!important;color:#25324b!important;border-bottom:3px solid transparent!important;white-space:nowrap!important;cursor:pointer!important;}
-      .rt62-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important;}
-      .rt62-hidden{display:none!important;}
-      .rt62-panel{display:block;margin-bottom:12px;}
-      .rt62-generated-card .card-header{border-bottom:0!important;}
-      .rt62-generated-note{padding:12px 16px;color:#52637a;font-size:13px;border-top:1px solid #e6edf7;}
-      .rt62-field-card .form-grid{padding:0 18px 18px!important;}
-      select[id$="PrimaryProduct"],#betaPrimaryProduct{pointer-events:auto!important;opacity:1!important;background:#fff!important;}
-    `;
-    document.head.appendChild(st);
-  }
-  function setVersion(){
+  function version(){
     try{window.RISKTOOL_RUNTIME_VERSION=PHASE}catch(e){}
-    qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE);
+    qa('#appVersion,.app-version,[data-version-label]').forEach(function(el){el.textContent=PHASE});
+    qa('.sidebar-note h4').forEach(function(el){if(/^Phase\s+/i.test(el.textContent||''))el.textContent='Phase '+PHASE});
+    var note=q('#workspacePhaseNote'); if(note) note.textContent=(note.textContent||'').replace(/23\.0\.\d+/g,PHASE);
   }
-  function getCats(){
-    let vals=[];
-    try{ if(Array.isArray(window.productGroups)) vals=window.productGroups; }catch(e){}
-    try{ vals=vals.concat(JSON.parse(localStorage.getItem('risk_manager_product_groups_v431')||'[]')||[]); }catch(e){}
-    vals=vals.concat(CATEGORY_DEFAULTS);
-    return Array.from(new Set(vals.filter(Boolean).map(String))).sort((a,b)=>a.localeCompare(b));
+  function view(v){
+    v=normalize(v);
+    qa('.view').forEach(function(el){var on=el.id==='view-'+v; el.classList.toggle('active',on); el.style.display=on?'block':'none';});
+    qa('.nav-item[data-view]').forEach(function(btn){btn.classList.toggle('active',btn.getAttribute('data-view')===v)});
+    if(location.hash!=='#'+v){try{history.replaceState(null,'',location.pathname+location.search+'#'+v)}catch(e){location.hash=v}}
+    try{window.activeMode=v}catch(e){}
   }
-  function populateSelectSafe(sel, vals, keep){
-    if(!sel) return;
-    const current=keep ?? sel.value;
-    const opts=vals.length?vals:CATEGORY_DEFAULTS;
-    sel.innerHTML=opts.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
-    if(current && opts.includes(current)) sel.value=current;
-    else if(!sel.value && opts.length) sel.value=opts[0];
-    sel.disabled=false; sel.removeAttribute('disabled');
-  }
-  function fixCategorySelects(){
-    const cats=getCats();
-    ['singlePrimaryProduct','complexPrimaryProduct','riskItemProduct','complexSectionProduct'].forEach(id=>populateSelectSafe(qs('#'+id),cats));
-    let betaCat=qs('#betaPrimaryProduct');
-    const betaId=qs('#betaScenarioId');
-    if(!betaCat && betaId){
-      const wrap=document.createElement('div');
-      wrap.className='rt62-beta-category-wrap';
-      wrap.innerHTML='<label class="help-label" data-help="Category values come from Category Admin.">Category</label><select id="betaPrimaryProduct"></select>';
-      const idWrap=betaId.closest('.form-grid > div, div');
-      if(idWrap && idWrap.parentNode) idWrap.parentNode.insertBefore(wrap,idWrap.nextElementSibling);
-      betaCat=qs('#betaPrimaryProduct');
-    }
-    populateSelectSafe(betaCat,cats);
-    ['singlePrimaryProduct','complexPrimaryProduct','betaPrimaryProduct'].forEach(id=>{const el=qs('#'+id); const lab=el&&el.closest('div')?.querySelector('label'); if(lab) lab.childNodes.forEach(n=>{if(n.nodeType===3)n.nodeValue='Category';});});
-  }
-  function fixNavActive(){
-    const activeView=qsa('.view').find(v=>v.classList.contains('active'));
-    const key=activeView?activeView.id.replace(/^view-/,''):null;
-    qsa('.nav-item').forEach(btn=>btn.classList.toggle('active',!!key && btn.dataset.view===key));
-  }
-  function firstCard(view){return qsa(':scope > .card',view).find(c=>!c.classList.contains('rt58-summary')&&!c.classList.contains('rt54-summary')&&!c.classList.contains('rt62-generated-card'))}
-  function makeCard(title,span){
-    const c=document.createElement('div'); c.className='card rt62-generated-card';
-    c.innerHTML=`<div class="card-header"><h3>${esc(title)}</h3><span>${esc(span||'Workspace')}</span></div>`;
-    return c;
-  }
-  function fieldWrap(id){const el=qs('#'+id); return el?el.closest('.form-grid > div, .full-span, div'):null}
-  function moveFields(title, span, ids){
-    const card=makeCard(title,span); card.classList.add('rt62-field-card');
-    const grid=document.createElement('div'); grid.className='form-grid';
-    ids.forEach(id=>{const w=fieldWrap(id); if(w) grid.appendChild(w);});
-    if(!grid.children.length){ const note=document.createElement('div'); note.className='rt62-generated-note'; note.textContent='No input fields are currently configured for this section.'; card.appendChild(note); }
-    else card.appendChild(grid);
-    return card;
-  }
-  function matchingCards(view, patterns){
-    return qsa(':scope > .card',view).filter(c=>patterns.some(rx=>rx.test(text(c.querySelector('.card-header h3,h3')||c))));
-  }
-  function clearOldWorkspace(view){
-    qsa(':scope > .rt62-tabs,:scope > .rt62-action-row,:scope > .rt62-panel',view).forEach(el=>el.remove());
-    qsa(':scope > .rt60-tabs,:scope > .rt61-tabs,:scope > .rt58-tabs',view).forEach(el=>el.style.display='none');
-    qsa(':scope > .card',view).forEach(c=>{c.classList.remove('rt60-hidden','rt61-hidden','rt62-hidden'); c.style.display='';});
-  }
-  function buildScenarioWorkspace(viewId,type){
-    const view=qs('#'+viewId); if(!view || view.dataset.rt62Done==='1') return;
-    view.dataset.rt62Done='1';
-    clearOldWorkspace(view);
-    const header=qs(':scope > .section-header',view);
-    const summary=qs(':scope > .rt58-summary, :scope > .rt54-summary',view);
-    const tabs=document.createElement('div'); tabs.className='rt62-tabs';
-    tabs.innerHTML=TABS.map((t,i)=>`<button type="button" class="rt62-tab ${i===0?'active':''}" data-tab="${i}">${esc(t)}</button>`).join('');
-    const anchor=summary||header; if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(tabs,anchor.nextSibling); else view.insertBefore(tabs,view.firstChild);
-    const panels=TABS.map((_,i)=>{const p=document.createElement('div'); p.className='rt62-panel '+(i?'rt62-hidden':''); p.dataset.panel=String(i); return p;});
-    panels.forEach(p=>tabs.parentNode.insertBefore(p,tabs.nextSibling));
-    const scenario=firstCard(view); if(scenario) panels[0].appendChild(scenario);
-    if(type==='single'){
-      panels[1].appendChild(moveFields('Costs / Losses Entry','Fact-based exposure inputs',['singleHardCostMin','singleHardCostLikely','singleHardCostMax','singleSoftCostMin','singleSoftCostLikely','singleSoftCostMax','singleRandomScenarioCount']));
-      matchingCards(view,[/Hard Facts|Evidence/i]).forEach(c=>panels[2].appendChild(c));
-      panels[3].appendChild(moveFields('Mitigation / Controls Assumptions','Control effect on exposure',['singleControlEffectiveness','singleMitigationCost']));
-      matchingCards(view,[/Mitigation/i]).forEach(c=>panels[3].appendChild(c));
-      matchingCards(view,[/Insurance/i]).forEach(c=>panels[4].appendChild(c));
-      matchingCards(view,[/Accepted Risk/i]).forEach(c=>panels[5].appendChild(c));
-    } else {
-      panels[1].appendChild(moveFields('Costs / Losses Entry','Beta min / likely / max cost assumptions',['betaMin','betaMode','betaMax','betaRandomScenarioCount','betaRelativeMean','betaShapeA','betaShapeB','betaExpectedValue','betaP10','betaP50','betaP90']));
-      matchingCards(view,[/Beta Scenario Output/i]).forEach(c=>panels[1].appendChild(c));
-      matchingCards(view,[/Hard Facts|Evidence/i]).forEach(c=>panels[2].appendChild(c));
-      panels[3].appendChild(makeCard('Mitigation / Controls','Planning controls'));
-      panels[3].lastElementChild.insertAdjacentHTML('beforeend','<div class="rt62-generated-note">Mitigation/control entries for beta planning will be documented here as the beta scenario is promoted or converted into active scenario testing.</div>');
-      matchingCards(view,[/Insurance/i]).forEach(c=>panels[4].appendChild(c));
-      panels[5].appendChild(makeCard('Accepted Risk','Governance'));
-      panels[5].lastElementChild.insertAdjacentHTML('beforeend','<div class="rt62-generated-note">Accepted-risk decisions should be documented after management review. This placeholder prevents the tab from showing unrelated fields.</div>');
-    }
-    panels.forEach((p,i)=>{ if(!p.children.length){ const c=makeCard(TABS[i].replace(/^\d+\.\s*/,''),'Workspace'); c.insertAdjacentHTML('beforeend','<div class="rt62-generated-note">No fields or table are currently configured for this section.</div>'); p.appendChild(c);} });
-    qsa('.rt62-tab',tabs).forEach(btn=>btn.addEventListener('click',()=>{qsa('.rt62-tab',tabs).forEach(b=>b.classList.toggle('active',b===btn)); panels.forEach(p=>p.classList.toggle('rt62-hidden',p.dataset.panel!==btn.dataset.tab));}));
-  }
-  function patchBetaPayload(){
-    if(window.__rt62BetaPayloadPatched) return; window.__rt62BetaPayloadPatched=true;
-    try{
-      const original=window.getBetaPayload;
-      if(typeof original==='function') window.getBetaPayload=function(){const p=original.apply(this,arguments)||{}; const cat=qs('#betaPrimaryProduct')?.value; if(cat){p.primaryProduct=cat; p.category=cat;} return p;};
-    }catch(e){}
-  }
-  function boot(){addStyle();setVersion();fixCategorySelects();buildScenarioWorkspace('view-single','single');buildScenarioWorkspace('view-beta','beta');patchBetaPayload();fixNavActive();}
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,100);setTimeout(boot,700);}); else {setTimeout(boot,100);setTimeout(boot,700);}
-  document.addEventListener('click',()=>setTimeout(()=>{fixNavActive();fixCategorySelects();},60),true);
-  document.addEventListener('change',e=>{if(e.target&&e.target.matches&&e.target.matches('select')) setTimeout(fixCategorySelects,20)},true);
-})();
-/* ===== END PHASE 23.0.66 REGRESSION FIX ===== */
-
-/* ===== PHASE 23.0.66 CATEGORY FIELD + WORKSPACE TAB FINALIZATION ===== */
-(function(){
-  const PHASE='23.0.66';
-  const TABS=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'];
-  const DEFAULT_CATEGORIES=['ACH Processing','Card Services','Consumer Compliance','Core Processing','Deposits','Digital Banking','Lending','Loan Origination','Loan Servicing','Mortgage Servicing','Payments','Third Party','Vendor Management'];
-  function qs(s,r=document){return r.querySelector(s)}
-  function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
-  function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
-  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function wrap(id){const el=qs('#'+id); return el?el.closest('.form-grid > div, .full-span, div'):null}
-  function addStyle(){
-    if(qs('#rt63Styles')) return;
-    const st=document.createElement('style'); st.id='rt63Styles';
-    st.textContent=`
-      #dashboardChartCard{display:none!important;}
-      #view-single .rt58-tabs,#view-single .rt60-tabs,#view-single .rt61-tabs,#view-single .rt62-tabs,
-      #view-beta .rt58-tabs,#view-beta .rt60-tabs,#view-beta .rt61-tabs,#view-beta .rt62-tabs{display:none!important;}
-      #view-single > .rt62-panel,#view-beta > .rt62-panel{display:none!important;}
-      .rt63-tabs{display:flex!important;gap:24px!important;border-bottom:1px solid #dbe4f0!important;margin:8px 0 12px!important;padding:0 6px!important;overflow-x:auto!important;background:transparent!important;}
-      .rt63-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;font-weight:800!important;color:#25324b!important;border-bottom:3px solid transparent!important;white-space:nowrap!important;cursor:pointer!important;}
-      .rt63-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important;}
-      .rt63-panel{display:block!important;margin-bottom:12px;}
-      .rt63-hidden{display:none!important;}
-      .rt63-hidden-field{display:none!important;}
-      .rt63-action-row{display:flex!important;justify-content:flex-start!important;gap:10px!important;align-items:center!important;margin:10px 0 12px!important;}
-      .nav .nav-item.active{background:#1177f2!important;color:#fff!important;}
-      .nav .nav-item:not(.active){background:transparent!important;}
-      select.rt63-category-select{pointer-events:auto!important;opacity:1!important;background:#fff!important;color:#111827!important;}
-    `;
-    document.head.appendChild(st);
-  }
-  function setVersion(){
-    try{window.RISKTOOL_RUNTIME_VERSION=PHASE}catch(e){}
-    qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE);
-    qsa('.sidebar-note h4').forEach(el=>{ if(/^Phase /.test(el.textContent||'')) el.textContent='Phase '+PHASE; });
-  }
-  function categoryList(){
-    let vals=[];
-    try{ if(Array.isArray(window.productGroups)) vals=vals.concat(window.productGroups); }catch(e){}
-    try{ vals=vals.concat(JSON.parse(localStorage.getItem('risk_manager_product_groups_v431')||'[]')||[]); }catch(e){}
-    try{ vals=vals.concat(JSON.parse(localStorage.getItem('risk_manager_product_groups')||'[]')||[]); }catch(e){}
-    vals=vals.concat(DEFAULT_CATEGORIES);
-    return Array.from(new Set(vals.filter(Boolean).map(String))).sort((a,b)=>a.localeCompare(b));
-  }
-  function populate(sel, vals, current){
-    if(!sel) return;
-    const keep=current ?? sel.value;
-    const list=(vals&&vals.length?vals:DEFAULT_CATEGORIES);
-    sel.innerHTML=list.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
-    if(keep && list.includes(keep)) sel.value=keep; else if(list.length) sel.value=list[0];
-    sel.disabled=false; sel.removeAttribute('disabled'); sel.classList.add('rt63-category-select');
-  }
-  function labelAsCategory(id){
-    const w=wrap(id); if(!w) return;
-    const lab=w.querySelector('label');
-    if(lab){
-      Array.from(lab.childNodes).forEach(n=>{ if(n.nodeType===3) n.nodeValue='Category'; });
-      lab.setAttribute('data-help','Category values come from Category Admin. This replaces the scenario-level Risk Domain field. Risk Domain is now used only for individual risk items.');
-    }
-  }
-  function hideDuplicateCategory(id){ const w=wrap(id); if(w) w.classList.add('rt63-hidden-field'); }
-  function placeAfter(fieldId, anchorId){
-    const f=wrap(fieldId), a=wrap(anchorId);
-    if(f&&a&&f.parentNode===a.parentNode&&a.nextSibling!==f) a.parentNode.insertBefore(f,a.nextSibling);
-  }
-  function syncPair(sourceId,targetId){
-    const s=qs('#'+sourceId), t=qs('#'+targetId); if(!s||!t) return;
-    t.value=s.value;
-  }
-  function fixCategoryFields(){
-    const cats=categoryList();
-    [['singleRiskDomain','singlePrimaryProduct','singleScenarioId'],['complexRiskDomain','complexPrimaryProduct','complexGroupId'],['betaRiskDomain','betaPrimaryProduct','betaScenarioId']].forEach(([visibleId,hiddenId,anchorId])=>{
-      const visible=qs('#'+visibleId);
-      let hidden=qs('#'+hiddenId);
-      const current=(visible&&visible.value)||(hidden&&hidden.value)||'';
-      populate(visible,cats,current);
-      labelAsCategory(visibleId);
-      placeAfter(visibleId,anchorId);
-      if(hidden){ populate(hidden,cats,visible&&visible.value); hideDuplicateCategory(hiddenId); syncPair(visibleId,hiddenId); }
-      if(visible&&!visible.dataset.rt63Sync){
-        visible.dataset.rt63Sync='1';
-        visible.addEventListener('change',()=>{syncPair(visibleId,hiddenId);});
-      }
-    });
-    qsa('#view-categories .card-header h3,.stat-card span').forEach(el=>{
-      if(/Product Groups?/i.test(el.textContent||'')) el.textContent='Category';
-    });
-  }
-  function fixNavActive(){
-    const active=qsa('.view').find(v=>v.classList.contains('active'));
-    const key=active?active.id.replace(/^view-/,''):null;
-    qsa('.nav-item').forEach(btn=>btn.classList.toggle('active',!!key && btn.dataset.view===key));
-  }
-  function getCardByContains(view, rx){
-    return qsa('.card',view).filter(c=>rx.test(txt(c.querySelector('.card-header h3,h3')||c)));
-  }
-  function moveIf(card,panel){ if(card&&panel&&!panel.contains(card)) panel.appendChild(card); }
-  function ensurePanelNote(panel,title,msg){
-    if(panel.children.length) return;
-    const c=document.createElement('div'); c.className='card';
-    c.innerHTML=`<div class="card-header"><h3>${esc(title)}</h3><span>Workspace</span></div><div class="note-box">${esc(msg)}</div>`;
-    panel.appendChild(c);
-  }
-  function buildWorkspace(viewId,type){
-    const view=qs('#'+viewId); if(!view) return;
-    let tabs=qs(':scope > .rt63-tabs',view);
-    if(!tabs){
-      tabs=document.createElement('div'); tabs.className='rt63-tabs';
-      tabs.innerHTML=TABS.map((t,i)=>`<button type="button" class="rt63-tab ${i===0?'active':''}" data-rt63-tab="${i}">${esc(t)}</button>`).join('');
-      const summary=qs(':scope > .rt58-summary,:scope > .rt54-summary',view);
-      const header=qs(':scope > .section-header',view);
-      const anchor=summary||header;
-      if(anchor&&anchor.parentNode) anchor.parentNode.insertBefore(tabs,anchor.nextSibling); else view.insertBefore(tabs,view.firstChild);
-    }
-    let panels=qsa(':scope > .rt63-panel',view).sort((a,b)=>Number(a.dataset.rt63Panel)-Number(b.dataset.rt63Panel));
-    if(panels.length!==TABS.length){
-      panels.forEach(p=>p.remove()); panels=[];
-      for(let i=0;i<TABS.length;i++){
-        const p=document.createElement('div'); p.className='rt63-panel '+(i?'rt63-hidden':''); p.dataset.rt63Panel=String(i);
-        if(tabs.nextSibling) tabs.parentNode.insertBefore(p,tabs.nextSibling); else tabs.parentNode.appendChild(p);
-      }
-      panels=qsa(':scope > .rt63-panel',view).sort((a,b)=>Number(a.dataset.rt63Panel)-Number(b.dataset.rt63Panel));
-    }
-    const scenarioCard=qs('#'+(type==='single'?'singleScenarioName':'betaScenarioName'))?.closest('.card');
-    moveIf(scenarioCard,panels[0]);
-    getCardByContains(view,/Hard Facts|Evidence/i).forEach(c=>moveIf(c,panels[2]));
-    getCardByContains(view,/Insurance/i).forEach(c=>moveIf(c,panels[4]));
-    getCardByContains(view,/Accepted Risk/i).forEach(c=>moveIf(c,panels[5]));
-    getCardByContains(view,/Mitigation|Control/i).forEach(c=>moveIf(c,panels[3]));
-    getCardByContains(view,/Cost|Loss|Beta Scenario Output/i).forEach(c=>{ if(!/Hard Facts|Evidence|Mitigation|Insurance|Accepted Risk/i.test(txt(c.querySelector('.card-header h3,h3')||c))) moveIf(c,panels[1]); });
-    ensurePanelNote(panels[1],'Costs / Losses','Use this section for cost/loss ranges and exposure assumptions.');
-    ensurePanelNote(panels[2],'Hard Facts / Evidence','Use this section for factual evidence, loss history, benchmarks, and source links.');
-    ensurePanelNote(panels[3],'Mitigation / Controls','Use this section for controls, mitigation actions, owners, statuses, and implementation costs.');
-    ensurePanelNote(panels[4],'Insurance / Risk Transfer','Use this section for coverage, premium, deductible, limits, exclusions, and net offset.');
-    ensurePanelNote(panels[5],'Accepted Risk','Use this section for governance decisions, acceptance authority, review dates, and decision logic.');
-    if(!tabs.dataset.rt63Bound){
-      tabs.dataset.rt63Bound='1';
-      qsa('.rt63-tab',tabs).forEach(btn=>btn.addEventListener('click',()=>{
-        qsa('.rt63-tab',tabs).forEach(b=>b.classList.toggle('active',b===btn));
-        panels.forEach(p=>p.classList.toggle('rt63-hidden',p.dataset.rt63Panel!==btn.dataset.rt63Tab));
-      }));
-    }
-  }
-  function patchPayloads(){
-    if(window.__rt63PayloadPatched) return; window.__rt63PayloadPatched=true;
-    [['getSinglePayload','singleRiskDomain','singlePrimaryProduct'],['getComplexPayload','complexRiskDomain','complexPrimaryProduct'],['getBetaPayload','betaRiskDomain','betaPrimaryProduct']].forEach(([fn,visibleId,hiddenId])=>{
-      const old=window[fn];
-      if(typeof old==='function'){
-        window[fn]=function(){
-          const p=old.apply(this,arguments)||{};
-          const cat=qs('#'+visibleId)?.value||qs('#'+hiddenId)?.value||p.category||p.primaryProduct||p.riskDomain||'';
-          p.category=cat; p.primaryProduct=cat; p.riskDomain=cat;
-          return p;
-        };
-      }
-    });
-  }
-  function patchDashboardLabels(){
-    qsa('th').forEach(th=>{ if(txt(th)==='Risk Domain' && th.closest('#view-dashboard,#view-saved')) th.textContent='Category'; });
-  }
-  function boot(){addStyle();setVersion();fixCategoryFields();buildWorkspace('view-single','single');buildWorkspace('view-beta','beta');patchPayloads();patchDashboardLabels();fixNavActive();}
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,120);setTimeout(boot,900);setTimeout(boot,1800);}); else {setTimeout(boot,120);setTimeout(boot,900);setTimeout(boot,1800);}
-  document.addEventListener('click',()=>setTimeout(()=>{fixNavActive();fixCategoryFields();},80),true);
-  document.addEventListener('change',e=>{if(e.target&&e.target.matches&&e.target.matches('select')) setTimeout(()=>{fixCategoryFields();patchPayloads();},30)},true);
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.66 ROUTING + EDITABILITY STABILIZATION PATCH ===== */
-(function(){
-  const PHASE='23.0.66';
-  const VALID=new Set(['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review']);
-  const DEFAULT_CATS=['ACH Processing','Card Services','Consumer Compliance','Core Processing','Deposits','Digital Banking','Lending','Loan Origination','Loan Servicing','Mortgage Servicing','Payments','Third Party','Vendor Management'];
-  const TABS=['1. Scenario Entry','2. Costs / Losses','3. Hard Facts / Evidence','4. Mitigation / Controls','5. Insurance / Risk Transfer','6. Accepted Risk'];
-  function qs(s,r=document){return r.querySelector(s)}
-  function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
-  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
-  function wrap(el){return el?el.closest('.form-grid > div, .full-span, div'):null}
-  function setLabel(label,value){if(!label)return;let done=false;Array.from(label.childNodes).forEach(n=>{if(n.nodeType===3&&!done){n.nodeValue=value;done=true}});if(!done)label.insertBefore(document.createTextNode(value),label.firstChild||null)}
-  function style(){if(qs('#rt64Styles'))return;const st=document.createElement('style');st.id='rt64Styles';st.textContent='#dashboardChartCard{display:none!important}#view-single .rt58-tabs,#view-single .rt60-tabs,#view-single .rt61-tabs,#view-single .rt62-tabs,#view-single .rt63-tabs,#view-beta .rt58-tabs,#view-beta .rt60-tabs,#view-beta .rt61-tabs,#view-beta .rt62-tabs,#view-beta .rt63-tabs{display:none!important}#view-single>.rt62-panel,#view-beta>.rt62-panel,#view-single>.rt63-panel,#view-beta>.rt63-panel{display:none!important}.rt64-tabs{display:flex!important;gap:24px!important;border-bottom:1px solid #dbe4f0!important;margin:8px 0 12px!important;padding:0 6px!important;overflow-x:auto!important;background:transparent!important}.rt64-tab{border:0!important;background:transparent!important;padding:12px 0 10px!important;font-weight:800!important;color:#25324b!important;border-bottom:3px solid transparent!important;white-space:nowrap!important;cursor:pointer!important;pointer-events:auto!important}.rt64-tab.active{color:#0b5bd3!important;border-bottom-color:#0b5bd3!important}.rt64-panel{display:block!important;margin-bottom:12px!important}.rt64-hidden{display:none!important}.rt64-hidden-field{display:none!important}.view.active input:not([readonly]),.view.active select,.view.active textarea,.view.active button{pointer-events:auto!important;opacity:1!important}.view.active input:not([readonly]),.view.active select,.view.active textarea{background:#fff!important;color:#111827!important}.nav .nav-item.active{background:#1177f2!important;color:#fff!important}.nav .nav-item:not(.active){background:transparent!important}select.rt64-category-select{pointer-events:auto!important;opacity:1!important;background:#fff!important;color:#111827!important}';document.head.appendChild(st)}
-  function version(){try{window.RISKTOOL_RUNTIME_VERSION=PHASE}catch(e){}qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE);qsa('.sidebar-note h4').forEach(el=>{if(/^Phase /.test(el.textContent||''))el.textContent='Phase '+PHASE})}
-  function normalize(){const raw=(window.location.hash||'').replace(/^#/,'').trim();if(!raw||raw==='manual-faq'||raw.indexOf('manual-')===0||!VALID.has(raw)){try{history.replaceState(null,'',window.location.pathname+window.location.search+'#dashboard')}catch(e){window.location.hash='dashboard'}return'dashboard'}return raw}
-  function show(v){v=VALID.has(v)?v:'dashboard';qsa('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));qsa('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===v));try{if(v==='single')window.activeMode='single';if(v==='complex')window.activeMode='complex';if(v==='beta')window.activeMode='beta'}catch(e){}if(v==='information'){try{if(typeof renderInformationPaneContent==='function')renderInformationPaneContent();else if(typeof renderManual==='function')renderManual()}catch(e){}}}
-  const prev=(typeof window.activateView==='function')?window.activateView:(typeof activateView==='function'?activateView:null);window.activateView=function(v){v=VALID.has(v)?v:'dashboard';try{history.replaceState(null,'',window.location.pathname+window.location.search+'#'+v)}catch(e){}try{if(prev)prev(v);else show(v)}catch(e){show(v)}setTimeout(()=>{version();activeNav();release()},20)};try{activateView=window.activateView}catch(e){}
-  function activeNav(){const a=qsa('.view').find(v=>v.classList.contains('active'));const key=a?a.id.replace(/^view-/,''):normalize();qsa('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===key))}
-  function release(){qsa('#view-single input,#view-single select,#view-single textarea,#view-single button,#view-complex input,#view-complex select,#view-complex textarea,#view-complex button,#view-beta input,#view-beta select,#view-beta textarea,#view-beta button').forEach(el=>{if(el.matches('[readonly]'))return;el.disabled=false;el.removeAttribute('disabled');el.style.pointerEvents='auto';el.style.opacity='1'});const gate=qs('#loginGate');if(gate&&gate.style.display==='none')gate.style.pointerEvents='none'}
-  function cats(){let vals=[];try{if(Array.isArray(window.productGroups))vals=vals.concat(window.productGroups)}catch(e){};['risk_manager_product_groups_v431','risk_manager_product_groups'].forEach(k=>{try{vals=vals.concat(JSON.parse(localStorage.getItem(k)||'[]')||[])}catch(e){}});vals=vals.concat(DEFAULT_CATS);return Array.from(new Set(vals.filter(Boolean).map(String))).sort((a,b)=>a.localeCompare(b))}
-  function pop(sel,current){if(!sel)return;const list=cats();const keep=current||sel.value||sel.dataset.rt64Value||'';sel.innerHTML=list.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(keep&&list.includes(keep))sel.value=keep;else if(list.length&&!sel.value)sel.value=list[0];sel.dataset.rt64Value=sel.value;sel.disabled=false;sel.removeAttribute('disabled');sel.classList.add('rt64-category-select')}
-  function scenarioCat(visibleId,dupId,anchorId){const vis=qs('#'+visibleId);if(!vis)return;const dup=qs('#'+dupId);pop(vis,vis.dataset.rt64Value||vis.value||(dup&&dup.value)||'');const vw=wrap(vis),aw=wrap(qs('#'+anchorId));if(vw&&aw&&vw.parentNode===aw.parentNode&&aw.nextSibling!==vw)aw.parentNode.insertBefore(vw,aw.nextSibling);const lab=vw&&vw.querySelector('label');setLabel(lab,'Category');if(lab)lab.setAttribute('data-help','Category values come from Category Admin. Risk Domain is reserved for individual risk items.');if(dup){pop(dup,vis.value);dup.value=vis.value;const dw=wrap(dup);if(dw)dw.classList.add('rt64-hidden-field')}if(!vis.dataset.rt64Bound){vis.dataset.rt64Bound='1';['change','input'].forEach(ev=>vis.addEventListener(ev,()=>{vis.dataset.rt64Value=vis.value;if(dup)dup.value=vis.value},true))}}
-  function fixCats(){scenarioCat('singleRiskDomain','singlePrimaryProduct','singleScenarioId');scenarioCat('complexRiskDomain','complexPrimaryProduct','complexGroupId');scenarioCat('betaRiskDomain','betaPrimaryProduct','betaScenarioId');['complexSectionProduct','riskItemProduct'].forEach(id=>pop(qs('#'+id)));qsa('#view-categories .card-header h3,.stat-card span').forEach(el=>{if(/Product Groups?/i.test(el.textContent||''))el.textContent='Category'});qsa('th').forEach(th=>{if(txt(th)==='Risk Domain'&&th.closest('#view-dashboard,#view-saved'))th.textContent='Category'})}
-  function scCard(view,type){const m=qs('#'+(type==='single'?'singleScenarioName':'betaScenarioName'),view);return m?m.closest('.card'):null}
-  function cardTitle(c){return txt(c&&(c.querySelector('.card-header h3')||c.querySelector('h3')))}
-  function tabs(viewId,type){const view=qs('#'+viewId);if(!view)return;let tb=qs(':scope>.rt64-tabs',view);if(!tb){tb=document.createElement('div');tb.className='rt64-tabs';tb.innerHTML=TABS.map((t,i)=>`<button type="button" class="rt64-tab ${i===0?'active':''}" data-rt64-tab="${i}">${esc(t)}</button>`).join('');const h=qs(':scope>.section-header',view);if(h&&h.parentNode)h.parentNode.insertBefore(tb,h.nextSibling);else view.insertBefore(tb,view.firstChild)}let panels=qsa(':scope>.rt64-panel',view);if(panels.length!==TABS.length){panels.forEach(p=>p.remove());for(let i=0;i<TABS.length;i++){const p=document.createElement('div');p.className='rt64-panel '+(i?'rt64-hidden':'');p.dataset.rt64Panel=String(i);tb.parentNode.insertBefore(p,tb.nextSibling)}panels=qsa(':scope>.rt64-panel',view).sort((a,b)=>Number(a.dataset.rt64Panel)-Number(b.dataset.rt64Panel))}const cards=qsa(':scope>.card',view).filter(c=>!c.classList.contains('rt58-summary')&&!c.classList.contains('rt54-summary'));const sc=scCard(view,type);if(sc)panels[0].appendChild(sc);cards.forEach(c=>{if(c===sc)return;const h=cardTitle(c);if(/Hard Facts|Evidence/i.test(h))panels[2].appendChild(c);else if(/Mitigation|Control/i.test(h))panels[3].appendChild(c);else if(/Insurance|Risk Transfer/i.test(h))panels[4].appendChild(c);else if(/Accepted Risk/i.test(h))panels[5].appendChild(c);else if(/Cost|Loss|Beta Scenario Output/i.test(h))panels[1].appendChild(c)});panels.forEach((p,i)=>{if(!p.children.length){const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="card-header"><h3>${esc(TABS[i].replace(/^\d+\.\s*/,''))}</h3><span>Workspace</span></div><div class="note-box">No entries are configured for this section yet.</div>`;p.appendChild(c)}});if(!tb.dataset.rt64Bound){tb.dataset.rt64Bound='1';qsa('.rt64-tab',tb).forEach(btn=>btn.addEventListener('click',()=>{qsa('.rt64-tab',tb).forEach(b=>b.classList.toggle('active',b===btn));panels.forEach(p=>p.classList.toggle('rt64-hidden',p.dataset.rt64Panel!==btn.dataset.rt64Tab));release()}))}}
-  function patchPayload(fn,vis,dup){const old=window[fn];if(typeof old!=='function'||old.__rt64Patched)return;const patched=function(){const p=old.apply(this,arguments)||{};const cat=(qs('#'+vis)||{}).value||(qs('#'+dup)||{}).value||p.category||p.primaryProduct||p.riskDomain||'';p.category=cat;p.primaryProduct=cat;p.riskDomain=cat;return p};patched.__rt64Patched=true;window[fn]=patched;try{eval(fn+'=window[fn]')}catch(e){}}
-  function boot(){style();version();show(normalize());fixCats();tabs('view-single','single');tabs('view-beta','beta');patchPayload('getSinglePayload','singleRiskDomain','singlePrimaryProduct');patchPayload('getComplexPayload','complexRiskDomain','complexPrimaryProduct');patchPayload('getBetaPayload','betaRiskDomain','betaPrimaryProduct');activeNav();release()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500)});else{setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500)}
-  window.addEventListener('hashchange',()=>{show(normalize());setTimeout(boot,40)});document.addEventListener('click',e=>{const nav=e.target&&e.target.closest&&e.target.closest('.nav-item[data-view]');if(nav){e.preventDefault();e.stopPropagation();window.activateView(nav.dataset.view)}setTimeout(()=>{version();activeNav();release()},60)},true);document.addEventListener('input',e=>{if(e.target&&e.target.matches&&e.target.matches('#singleRiskDomain,#complexRiskDomain,#betaRiskDomain'))e.target.dataset.rt64Value=e.target.value},true);document.addEventListener('change',e=>{if(e.target&&e.target.matches&&e.target.matches('#singleRiskDomain,#complexRiskDomain,#betaRiskDomain'))e.target.dataset.rt64Value=e.target.value;setTimeout(release,30)},true);
-})();
-/* ===== END PHASE 23.0.66 ===== */
-
-/* ===== PHASE 23.0.66 RUNTIME STABILITY FIX ===== */
-(function(){
-  const PHASE = '23.0.66';
-  const VALID = ['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
-  const DEFAULT_VIEW = 'dashboard';
-  function qs(s,r=document){ return r.querySelector(s); }
-  function qsa(s,r=document){ return Array.from(r.querySelectorAll(s)); }
-  function addStyle(){
-    if(qs('#rt65RuntimeStyles')) return;
-    const st=document.createElement('style');
-    st.id='rt65RuntimeStyles';
-    st.textContent = '#dashboardChartCard{display:none!important}.view{display:none}.view.active{display:block!important}.nav .nav-item.active{background:#1177f2!important;color:#fff!important}.nav .nav-item:not(.active){background:transparent!important;color:inherit}#loginGate{display:none!important;pointer-events:none!important;visibility:hidden!important;opacity:0!important}#view-single input:not([readonly]),#view-single select,#view-single textarea,#view-single button,#view-complex input:not([readonly]),#view-complex select,#view-complex textarea,#view-complex button,#view-beta input:not([readonly]),#view-beta select,#view-beta textarea,#view-beta button{pointer-events:auto!important;opacity:1!important;user-select:auto!important;filter:none!important}#view-single input:not([readonly]),#view-single select,#view-single textarea,#view-complex input:not([readonly]),#view-complex select,#view-complex textarea,#view-beta input:not([readonly]),#view-beta select,#view-beta textarea{background:#fff!important;color:#111827!important}#view-single .rt64-panel:not(.rt64-hidden),#view-beta .rt64-panel:not(.rt64-hidden){display:block!important}#view-single .rt64-hidden,#view-beta .rt64-hidden{display:none!important}#view-single .card,#view-complex .card,#view-beta .card{pointer-events:auto!important}.rt65-action-left{justify-content:flex-start!important;text-align:left!important}';
-    document.head.appendChild(st);
-  }
-  function setVersion(){
-    try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
-    qsa('#appVersion,.app-version,[data-version-label]').forEach(el => { el.textContent = PHASE; });
-    qsa('.sidebar-note h4').forEach(el => { if (/Phase\s+/.test(el.textContent||'')) el.textContent = 'Phase ' + PHASE; });
-  }
-  function currentHash(){
-    const raw = String(location.hash || '').replace(/^#/,'').trim();
-    if (!raw || raw === 'manual-faq' || raw.indexOf('manual-') === 0 || !VALID.includes(raw)) return DEFAULT_VIEW;
-    return raw;
-  }
-  function unlock(){
-    const gate = qs('#loginGate');
-    if (gate) { gate.style.display='none'; gate.style.pointerEvents='none'; gate.style.visibility='hidden'; gate.style.opacity='0'; }
-    qsa('#view-single input,#view-single select,#view-single textarea,#view-single button,#view-complex input,#view-complex select,#view-complex textarea,#view-complex button,#view-beta input,#view-beta select,#view-beta textarea,#view-beta button').forEach(el => {
-      if (el.hasAttribute('readonly')) return;
-      el.disabled = false;
-      el.removeAttribute('disabled');
-      el.style.pointerEvents = 'auto';
-      el.style.opacity = '1';
-    });
-  }
-  function showView(view){
-    if(!VALID.includes(view)) view = DEFAULT_VIEW;
-    qsa('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
-    qsa('.nav-item[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-    if (location.hash !== '#' + view) {
-      try { history.replaceState(null,'', location.pathname + location.search + '#' + view); } catch(e) { location.hash = view; }
-    }
-    try { if(view === 'single') window.activeMode = 'single'; if(view === 'complex') window.activeMode = 'complex'; if(view === 'beta') window.activeMode = 'beta'; } catch(e) {}
-    unlock();
-    setVersion();
-  }
-  function ensurePanelVisible(viewId){
-    const view = qs('#' + viewId);
-    if(!view) return;
-    const panels = qsa(':scope > .rt64-panel', view);
-    if(panels.length){
-      let active = panels.find(p => !p.classList.contains('rt64-hidden')) || panels[0];
-      panels.forEach(p => p.classList.toggle('rt64-hidden', p !== active));
-      qsa(':scope > .rt64-tabs .rt64-tab', view).forEach((b,i) => b.classList.toggle('active', String(i) === String(active.dataset.rt64Panel || '0')));
-    }
-  }
-  function wireNav(){
-    qsa('.nav-item[data-view]').forEach(btn => {
-      if(btn.dataset.rt65NavBound) return;
-      btn.dataset.rt65NavBound = '1';
-      btn.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); showView(btn.dataset.view || DEFAULT_VIEW); }, true);
-    });
-    const fn = function(view){ showView(view || DEFAULT_VIEW); };
-    fn.__rt65 = true;
-    window.activateView = fn;
-    try { activateView = fn; } catch(e) {}
-  }
-  function boot(){
-    addStyle(); wireNav(); setVersion(); unlock();
-    ensurePanelVisible('view-single'); ensurePanelVisible('view-beta');
-    showView(currentHash());
-    try { if(typeof refreshLibraries === 'function') refreshLibraries(); } catch(e) {}
-    try { if(typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) {}
-    try { if(typeof renderComplexItems === 'function') renderComplexItems(); } catch(e) {}
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot,25); setTimeout(boot,400); setTimeout(boot,1200); });
-  else { setTimeout(boot,25); setTimeout(boot,400); setTimeout(boot,1200); }
-  window.addEventListener('hashchange', function(){ setTimeout(function(){ showView(currentHash()); }, 10); });
-  document.addEventListener('change', function(){ setTimeout(unlock,10); }, true);
-  document.addEventListener('input', function(){ setTimeout(unlock,10); }, true);
-  setInterval(function(){ setVersion(); unlock(); }, 1500);
-})();
-/* ===== END PHASE 23.0.66 RUNTIME STABILITY FIX ===== */
-
-/* ===== PHASE 23.0.66 LOGIN + SINGLE RUNTIME GUARD ===== */
-(function(){
-  const PHASE='23.0.66';
-  const VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
-  const DEFAULT_VIEW='dashboard';
-  const qs=(s,r=document)=>r.querySelector(s);
-  const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
-  function setVersion66(){
-    try{window.RISKTOOL_RUNTIME_VERSION=PHASE;}catch(e){}
-    qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>{el.textContent=PHASE;});
-    qsa('.sidebar-note h4').forEach(el=>{ if(/^Phase\s+/i.test(el.textContent||'')) el.textContent='Phase '+PHASE; });
-    qsa('#workspacePhaseNote').forEach(el=>{ el.textContent=(el.textContent||'').replace(/23\.0\.\d+/g,PHASE); });
-  }
-  function normalizeHash(){
-    const raw=String(location.hash||'').replace(/^#/,'').trim();
-    if(!raw || raw==='manual-faq' || raw.indexOf('manual-')===0 || !VALID.includes(raw)) return DEFAULT_VIEW;
-    return raw;
-  }
-  function showView66(view){
-    if(!VALID.includes(view)) view=DEFAULT_VIEW;
-    qsa('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
-    qsa('.nav-item[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
-    if(location.hash !== '#'+view){ try{history.replaceState(null,'',location.pathname+location.search+'#'+view);}catch(e){location.hash=view;} }
-    try{ if(view==='single') window.activeMode='single'; if(view==='complex') window.activeMode='complex'; if(view==='beta') window.activeMode='beta'; }catch(e){}
-    setVersion66();
-  }
-  function isLoggedIn66(){
-    try{ if(typeof isUserLoggedIn==='function') return !!isUserLoggedIn(); }catch(e){}
-    try{return !!localStorage.getItem('risk_manager_session_user_v2101');}catch(e){return false;}
-  }
-  function applyLogin66(){
-    const gate=qs('#loginGate');
-    if(!gate) return;
-    if(isLoggedIn66()){
-      gate.classList.remove('rt66-login-open');
-      gate.style.display='none';
-      gate.style.pointerEvents='none';
-    }else{
-      gate.classList.add('rt66-login-open');
-      gate.style.display='flex';
-      gate.style.visibility='visible';
-      gate.style.opacity='1';
-      gate.style.pointerEvents='auto';
-      const input=qs('#loginGateUserText'); if(input && !input.value) setTimeout(()=>input.focus(),50);
-    }
-  }
-  function enableFields66(){
-    qsa('#view-single input,#view-single select,#view-single textarea,#view-single button,#view-complex input,#view-complex select,#view-complex textarea,#view-complex button,#view-beta input,#view-beta select,#view-beta textarea,#view-beta button').forEach(el=>{
+  function unlockFields(){
+    qa('input,select,textarea,button').forEach(function(el){
       if(el.hasAttribute('readonly')) return;
-      el.disabled=false; el.removeAttribute('disabled'); el.style.pointerEvents='auto'; el.style.opacity='1';
+      el.disabled=false; el.removeAttribute('disabled'); el.style.pointerEvents='auto'; el.style.opacity='1'; el.style.filter='none';
+      if(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)){el.style.backgroundColor='#fff'; el.style.color='#111827';}
     });
+    qa('.main,.sidebar,.card,.form-grid,.table-wrap,.view.active').forEach(function(el){el.style.pointerEvents='auto'; el.style.opacity='1'; el.style.filter='none'});
   }
-  function wireNav66(){
-    qsa('.nav-item[data-view]').forEach(btn=>{
-      if(btn.dataset.rt66NavBound) return;
-      btn.dataset.rt66NavBound='1';
-      btn.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); showView66(btn.dataset.view||DEFAULT_VIEW); applyLogin66(); },true);
-    });
-    window.activateView=function(v){showView66(v||DEFAULT_VIEW); applyLogin66();};
+  function login(){
+    var gate=q('#loginGate');
+    if(loggedIn()){
+      document.body.classList.add('rt68-unlocked'); document.body.classList.remove('rt68-locked');
+      if(gate){gate.style.display='none'; gate.style.visibility='hidden'; gate.style.opacity='0'; gate.style.pointerEvents='none';}
+      qa('.modal-overlay').forEach(function(m){if(m.id!=='loginGate'){m.style.display='none';m.style.visibility='hidden';m.style.opacity='0';m.style.pointerEvents='none';}});
+      unlockFields();
+    } else {
+      document.body.classList.add('rt68-locked'); document.body.classList.remove('rt68-unlocked');
+      if(gate){gate.style.display='flex'; gate.style.visibility='visible'; gate.style.opacity='1'; gate.style.pointerEvents='auto';}
+    }
   }
-  function removeSecondRuntimes66(){
-    qsa('script[src*="beta_scenario_engine"],script[src*="app.js"]').forEach(s=>{ try{s.remove();}catch(e){} });
+  function categories(){
+    var vals=[]; try{ if(Array.isArray(window.productGroups)) vals=vals.concat(window.productGroups); }catch(e){}
+    ['risk_manager_product_groups_v431','risk_manager_product_groups'].forEach(function(k){try{var x=JSON.parse(localStorage.getItem(k)||'[]'); if(Array.isArray(x)) vals=vals.concat(x)}catch(e){}});
+    if(!vals.length) vals=['ACH','Card Services','Commercial Loans','Deposits','Digital Banking','Loan Servicing','Mortgage','Payments','Vendor Management'];
+    return Array.from(new Set(vals.map(String).filter(Boolean))).sort(function(a,b){return a.localeCompare(b)});
   }
-  function addStyle66(){
-    if(qs('#rt66Styles')) return;
-    const st=document.createElement('style'); st.id='rt66Styles';
-    st.textContent=`#dashboardChartCard{display:none!important}.view{display:none}.view.active{display:block!important}.nav-item.active{background:#1177f2!important;color:#fff!important}#loginGate.rt66-login-open{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}#loginGate:not(.rt66-login-open){display:none!important;pointer-events:none!important}.modal-overlay.rt66-login-open{align-items:center!important;justify-content:center!important}#view-single input:not([readonly]),#view-single select,#view-single textarea,#view-single button,#view-complex input:not([readonly]),#view-complex select,#view-complex textarea,#view-complex button,#view-beta input:not([readonly]),#view-beta select,#view-beta textarea,#view-beta button{pointer-events:auto!important;opacity:1!important;user-select:auto!important;filter:none!important}#view-single input:not([readonly]),#view-single select,#view-single textarea,#view-complex input:not([readonly]),#view-complex select,#view-complex textarea,#view-beta input:not([readonly]),#view-beta select,#view-beta textarea{background:#fff!important;color:#111827!important}`;
-    document.head.appendChild(st);
+  function fill(sel, keep){
+    if(!sel) return;
+    var list=categories(); var current=keep||sel.value||sel.dataset.rt68Value||'';
+    if(!list.length) return;
+    sel.innerHTML=list.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}).join('');
+    if(current && list.indexOf(current)>=0) sel.value=current; else if(!sel.value) sel.value=list[0];
+    sel.dataset.rt68Value=sel.value; sel.disabled=false; sel.removeAttribute('disabled');
   }
-  function boot66(){
-    removeSecondRuntimes66(); addStyle66(); setVersion66(); wireNav66(); enableFields66(); showView66(normalizeHash()); applyLogin66();
-    try{if(typeof refreshLibraries==='function') refreshLibraries();}catch(e){}
-    try{if(typeof renderDashboardOpenTable==='function') renderDashboardOpenTable();}catch(e){}
+  function labelFor(sel,text){var wrap=sel&&sel.closest('div'); var lab=wrap&&wrap.querySelector('label'); if(lab){Array.from(lab.childNodes).forEach(function(n){if(n.nodeType===3)n.textContent=''}); lab.insertBefore(document.createTextNode(text), lab.firstChild);}}
+  function scenarioCategory(id, dup, after){
+    var sel=q('#'+id); if(!sel) return;
+    var old=q('#'+dup); fill(sel, sel.dataset.rt68Value || sel.value || (old&&old.value) || ''); labelFor(sel,'Category');
+    var sw=sel.closest('div'), aw=q('#'+after)&&q('#'+after).closest('div'); if(sw&&aw&&aw.parentNode===sw.parentNode&&aw.nextSibling!==sw) aw.parentNode.insertBefore(sw, aw.nextSibling);
+    if(old){fill(old, sel.value); old.value=sel.value; var ow=old.closest('div'); if(ow) ow.classList.add('rt68-hidden');}
+    if(!sel.dataset.rt68Bound){sel.dataset.rt68Bound='1'; ['change','input'].forEach(function(ev){sel.addEventListener(ev,function(){sel.dataset.rt68Value=sel.value;if(old)old.value=sel.value;},true)});}
   }
-  const oldStart=window.startUserSession;
-  window.startUserSession=function(){
-    let result;
-    try{ result = typeof oldStart==='function' ? oldStart.apply(this,arguments) : undefined; }catch(e){ console.error(e); }
-    setTimeout(function(){ setVersion66(); enableFields66(); applyLogin66(); showView66(normalizeHash()); },100);
-    return result;
-  };
-  window.addEventListener('hashchange',()=>setTimeout(()=>{showView66(normalizeHash()); applyLogin66();},20));
-  document.addEventListener('click',()=>setTimeout(()=>{setVersion66(); enableFields66(); applyLogin66();},60),true);
-  document.addEventListener('input',()=>setTimeout(enableFields66,20),true);
-  document.addEventListener('change',()=>setTimeout(enableFields66,20),true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(boot66,50);setTimeout(boot66,500);setTimeout(boot66,1500);}); else {setTimeout(boot66,50);setTimeout(boot66,500);setTimeout(boot66,1500);}
-  setInterval(()=>{setVersion66(); enableFields66(); applyLogin66();},2500);
+  function fixCategories(){scenarioCategory('singleRiskDomain','singlePrimaryProduct','singleScenarioId');scenarioCategory('complexRiskDomain','complexPrimaryProduct','complexGroupId');scenarioCategory('betaRiskDomain','betaPrimaryProduct','betaScenarioId');fill(q('#complexSectionProduct'));fill(q('#riskItemProduct'));}
+  function nav(){qa('.nav-item[data-view]').forEach(function(btn){ if(btn.dataset.rt68Nav)return; btn.dataset.rt68Nav='1'; btn.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();view(btn.getAttribute('data-view'));login();},true); });window.activateView=function(v){view(v);login();}; try{activateView=window.activateView}catch(e){}}
+  var originalStart=window.startUserSession;
+  window.showPostLoginRestoreScreen=function(){};
+  window.startUserSession=function(){var result; try{ if(typeof originalStart==='function') result=originalStart.apply(this,arguments); }catch(e){console.error(e)} setTimeout(function(){version();style();view(normalize());login();fixCategories();unlockFields();},80); setTimeout(function(){login();unlockFields();},350); return result;};
+  function boot(){style();version();nav();view(normalize());fixCategories();login();unlockFields(); try{if(typeof refreshLibraries==='function')refreshLibraries()}catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,50);setTimeout(boot,400);setTimeout(boot,1200);}); else {setTimeout(boot,50);setTimeout(boot,400);setTimeout(boot,1200);}
+  window.addEventListener('hashchange',function(){setTimeout(function(){view(normalize());login();unlockFields();},20)});
+  document.addEventListener('focusin',function(){setTimeout(unlockFields,5)},true);
+  document.addEventListener('click',function(){setTimeout(function(){version();login();unlockFields();},20)},true);
+  document.addEventListener('change',function(){setTimeout(function(){fixCategories();unlockFields();},20)},true);
 })();
-/* ===== END PHASE 23.0.66 LOGIN + SINGLE RUNTIME GUARD ===== */
+/* ===== END PHASE 23.0.68 RUNTIME REBASE ===== */
