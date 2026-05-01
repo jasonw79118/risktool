@@ -7466,3 +7466,256 @@ document.addEventListener('click',e=>{if(e.target.closest('#loginGateContinueBtn
 function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contains('active'))renderPortfolio()} if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[50,250,800,1600].forEach(t=>setTimeout(boot,t))); else [50,250,800,1600].forEach(t=>setTimeout(boot,t));
 })();
 /* ===== END PHASE 23.0.78 ===== */
+
+
+/* ===== PHASE 23.0.79 POST-LOGIN WORKSPACE LOAD RESTORE ONLY =====
+   Targeted scope:
+   - Restore the Load Scenario Workspace screen immediately after successful login.
+   - Make Choose Workspace Folder load the selected Chrome/Edge workspace folder, refresh scenario lists, and continue to the dashboard.
+   - Keep Portfolio Report module untouched.
+   - Keep save-button fixes untouched.
+===== */
+(function(){
+  'use strict';
+  const VERSION = '23.0.79';
+  const MODAL_ID = 'rt79WorkspaceLoadModal';
+  const STATUS_ID = 'rt79WorkspaceLoadStatus';
+  const PICK_BTN_ID = 'rt79ChooseWorkspaceFolder';
+  const SKIP_BTN_ID = 'rt79SkipWorkspaceFolder';
+  const CONTINUE_BTN_ID = 'rt79ContinueDashboard';
+
+  function $(sel, root){ return (root || document).querySelector(sel); }
+  function $all(sel, root){ return Array.from((root || document).querySelectorAll(sel)); }
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function setVersionDisplay(){
+    try { const el = document.getElementById('appVersion'); if (el) el.textContent = VERSION; } catch(e) {}
+    try {
+      const note = document.getElementById('workspacePhaseNote');
+      if (note) note.textContent = String(note.textContent || '').replace(/23\.0\.\d+/g, VERSION);
+    } catch(e) {}
+  }
+
+  function closeKnownWorkspaceModals(){
+    [
+      '#restoreSessionModal', '#postLoginWorkspaceReconnectModal', '#rtReconnectWorkspace25',
+      '#rtDirectReconnect28', '#rtWorkspaceReconnect29', '#rt76PostLoginLoadModal',
+      '#rt77PostLoginLoadModal', '#rt78WorkspaceModal', '.rt-modal'
+    ].forEach(function(sel){
+      $all(sel).forEach(function(node){
+        if (node && node.id !== MODAL_ID) {
+          try { node.style.display = 'none'; } catch(e) {}
+        }
+      });
+    });
+  }
+
+  function status(msg){
+    const el = document.getElementById(STATUS_ID);
+    if (el) el.textContent = msg;
+    try { if (typeof workspaceStatus === 'function') workspaceStatus(msg); } catch(e) {}
+  }
+
+  function userIsLoggedIn(){
+    try { return typeof isUserLoggedIn === 'function' ? !!isUserLoggedIn() : !!(typeof getSessionUserId === 'function' && getSessionUserId()); }
+    catch(e) { return false; }
+  }
+
+  function showDashboard(){
+    closeKnownWorkspaceModals();
+    const modal = document.getElementById(MODAL_ID);
+    if (modal) modal.style.display = 'none';
+    try { if (typeof unlockAppShell === 'function') unlockAppShell(); } catch(e) {}
+    try { if (typeof hideLoginGate === 'function') hideLoginGate(); } catch(e) {}
+    try { if (typeof activateView === 'function') activateView('dashboard'); } catch(e) { console.error(e); }
+    try { if (typeof refreshLibraries === 'function') refreshLibraries(); } catch(e) { console.error(e); }
+    try { if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); } catch(e) { console.error(e); }
+    try { if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) { console.error(e); }
+    setVersionDisplay();
+  }
+
+  async function readJsonFromHandle(dirHandle, fileName){
+    try {
+      const fh = await dirHandle.getFileHandle(fileName, { create: false });
+      const file = await fh.getFile();
+      return JSON.parse(await file.text());
+    } catch(e) { return null; }
+  }
+
+  async function hydrateWorkspaceFromFolder(){
+    if (!workspaceFolderHandle) return [];
+    try {
+      if (typeof loadWorkspaceScenarioCache === 'function') {
+        const loaded = await loadWorkspaceScenarioCache();
+        if (Array.isArray(loaded)) return loaded;
+      }
+    } catch(e) { console.warn('23.0.79 loadWorkspaceScenarioCache failed; falling back to direct folder read.', e); }
+
+    const out = [];
+    try {
+      const scenariosDir = await workspaceFolderHandle.getDirectoryHandle('scenarios', { create: true });
+      const index = await readJsonFromHandle(scenariosDir, 'index.json');
+      if (Array.isArray(index)) {
+        for (const item of index) {
+          const id = String(item && item.id ? item.id : '').trim();
+          if (!id) continue;
+          const fileName = id.replace(/[^a-zA-Z0-9_-]/g, '_') + '.json';
+          const payload = await readJsonFromHandle(scenariosDir, fileName);
+          out.push(payload || item);
+        }
+      }
+    } catch(e) { console.warn('23.0.79 direct scenario folder read failed.', e); }
+
+    try { workspaceScenarioCache = out; } catch(e) {}
+    return out;
+  }
+
+  async function getSessionState(){
+    if (!workspaceFolderHandle) return null;
+    try {
+      const configDir = await workspaceFolderHandle.getDirectoryHandle('config', { create: true });
+      return await readJsonFromHandle(configDir, 'session-state.json');
+    } catch(e) { return null; }
+  }
+
+  async function promptForPreviousSession(){
+    const session = await getSessionState();
+    const scenarioId = String((session && (session.scenarioId || session.lastScenarioId)) || '').trim();
+    if (!scenarioId) return false;
+    let saved = [];
+    try { saved = typeof getSavedScenarios === 'function' ? (getSavedScenarios() || []) : []; } catch(e) {}
+    const found = saved.find(function(s){ return String(s && s.id ? s.id : '') === scenarioId; });
+    const label = (found && found.name) || (session && session.scenarioName) || scenarioId;
+    const stamp = (session && (session.updatedAt || session.timestamp)) || 'Unknown';
+    const restore = window.confirm('Restore previous RiskTool session?\n\nScenario: ' + label + '\nLast saved: ' + stamp);
+    if (!restore) return true;
+    if (found && typeof openScenario === 'function') {
+      try { openScenario(found.id); return true; } catch(e) { console.error(e); }
+    }
+    window.alert('A previous session was found, but that scenario file was not found in the connected workspace folder. Continuing to dashboard.');
+    showDashboard();
+    return true;
+  }
+
+  async function chooseWorkspaceFolder(){
+    status('Opening Chrome/Edge folder picker...');
+    try {
+      if (typeof window.showDirectoryPicker !== 'function') {
+        status('Workspace-folder mode requires current Chrome or Edge.');
+        window.alert('Use Chrome or Edge for workspace folder access.');
+        return;
+      }
+
+      try { if (typeof setScenarioSaveEngine === 'function') setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {}
+      try { if (typeof setSessionStorageMode === 'function') setSessionStorageMode('Local Workspace'); } catch(e) {}
+
+      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      workspaceFolderHandle = handle;
+      workspaceFolderName = (handle && handle.name) || 'Selected folder';
+      try { if (typeof setWorkspaceLocalPath === 'function') setWorkspaceLocalPath(workspaceFolderName); } catch(e) {}
+
+      status('Workspace folder selected: ' + workspaceFolderName + '. Loading scenario files...');
+      const loaded = await hydrateWorkspaceFromFolder();
+      try { if (typeof refreshWorkspaceDiagnostics === 'function') refreshWorkspaceDiagnostics(); } catch(e) {}
+      try { if (typeof refreshWorkspaceFolderModeUi === 'function') refreshWorkspaceFolderModeUi(); } catch(e) {}
+      try { if (typeof renderSavedScenarios === 'function') renderSavedScenarios(); } catch(e) { console.error(e); }
+      try { if (typeof renderDashboardOpenTable === 'function') renderDashboardOpenTable(); } catch(e) { console.error(e); }
+
+      status('Workspace loaded: ' + loaded.length + ' scenario file(s). Continuing...');
+      const restored = await promptForPreviousSession();
+      if (!restored) showDashboard();
+    } catch(e) {
+      console.error('23.0.79 workspace folder load failed/cancelled.', e);
+      status('Workspace folder selection was cancelled or failed. Choose Load Scenario Workspace again or choose Not Now to continue to dashboard.');
+    }
+  }
+
+  function ensureModal(){
+    let modal = document.getElementById(MODAL_ID);
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = MODAL_ID;
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:30000;background:rgba(12,18,34,.74);align-items:center;justify-content:center;padding:24px;';
+    modal.innerHTML =
+      '<div class="card" style="width:min(760px,96vw);max-height:90vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.35);">' +
+        '<div class="card-header"><h3>Load Scenario Workspace</h3><span>Post-login shared workspace connection</span></div>' +
+        '<div class="card-body">' +
+          '<p style="margin-top:0;">Login is complete. Connect the approved local or shared-drive RiskTool workspace folder so saved scenarios load from <strong>scenarios/index.json</strong> and the app can continue using file-based storage.</p>' +
+          '<div class="note-box" id="' + STATUS_ID + '">Waiting for workspace folder selection.</div>' +
+          '<div class="builder-actions" style="gap:10px;flex-wrap:wrap;">' +
+            '<button class="btn btn-primary" type="button" id="' + PICK_BTN_ID + '">Load Scenario Workspace</button>' +
+            '<button class="btn btn-secondary" type="button" id="' + CONTINUE_BTN_ID + '">Continue to Dashboard</button>' +
+            '<button class="btn btn-secondary" type="button" id="' + SKIP_BTN_ID + '">Not Now</button>' +
+          '</div>' +
+          '<p class="muted" style="margin-bottom:0;">Regression note: this screen only reconnects the workspace folder after login. Portfolio Report logic is intentionally untouched in 23.0.79.</p>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+
+    document.getElementById(PICK_BTN_ID)?.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); chooseWorkspaceFolder(); }, true);
+    document.getElementById(SKIP_BTN_ID)?.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); showDashboard(); }, true);
+    document.getElementById(CONTINUE_BTN_ID)?.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); showDashboard(); }, true);
+    return modal;
+  }
+
+  function showPostLoginWorkspaceLoader(){
+    if (!userIsLoggedIn()) return false;
+    closeKnownWorkspaceModals();
+    try { if (typeof hideLoginGate === 'function') hideLoginGate(); } catch(e) {}
+    try { if (typeof unlockAppShell === 'function') unlockAppShell(); } catch(e) {}
+    const modal = ensureModal();
+    const st = document.getElementById(STATUS_ID);
+    if (st) st.textContent = 'Waiting for workspace folder selection.';
+    modal.style.display = 'flex';
+    setVersionDisplay();
+    return true;
+  }
+
+  // Replace the old hook target used by the original login function.
+  window.showPostLoginRestoreScreen = showPostLoginWorkspaceLoader;
+  window.rt79ShowPostLoginWorkspaceLoader = showPostLoginWorkspaceLoader;
+
+  // Final wrapper wins after older 23.0.77/23.0.78 login wrappers.
+  const previousStartUserSession = (typeof startUserSession === 'function') ? startUserSession : null;
+  if (previousStartUserSession) {
+    startUserSession = function(){
+      const result = previousStartUserSession.apply(this, arguments);
+      setTimeout(showPostLoginWorkspaceLoader, 250);
+      setTimeout(showPostLoginWorkspaceLoader, 900);
+      return result;
+    };
+    try { window.startUserSession = startUserSession; } catch(e) {}
+  }
+
+  // Capture login click as a fallback in case another wrapper consumes startUserSession.
+  document.addEventListener('click', function(e){
+    const btn = e.target && e.target.closest ? e.target.closest('#loginGateContinueBtn') : null;
+    if (btn) {
+      setTimeout(showPostLoginWorkspaceLoader, 450);
+      setTimeout(showPostLoginWorkspaceLoader, 1100);
+    }
+  }, true);
+
+  // Force our modal button behavior if older modals reappear.
+  document.addEventListener('DOMContentLoaded', function(){
+    setVersionDisplay();
+    ensureModal();
+    // Delayed version/display correction after older patch boot timers finish.
+    [300, 1200, 2200, 3600].forEach(function(t){ setTimeout(setVersionDisplay, t); });
+  });
+
+  // Keep our version display after navigation. Do not alter Portfolio Report behavior.
+  const priorActivateView79 = (typeof activateView === 'function') ? activateView : null;
+  if (priorActivateView79) {
+    activateView = function(viewName){
+      const result = priorActivateView79.apply(this, arguments);
+      setTimeout(setVersionDisplay, 40);
+      return result;
+    };
+    try { window.activateView = activateView; } catch(e) {}
+  }
+})();
+/* ===== END PHASE 23.0.79 POST-LOGIN WORKSPACE LOAD RESTORE ONLY ===== */
