@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.71";
+const APP_VERSION = "23.0.72";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -348,7 +348,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.71",
+    phase: "23.0.72",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 23.0.71 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 23.0.72 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 23.0.71 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -5731,7 +5731,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.71 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.72 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5870,16 +5870,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.71 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.72 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.71 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.72 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.71 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.72 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.71 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.72 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -6072,10 +6072,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.71 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.72 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.71 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.72 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6322,9 +6322,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.71 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.72 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.71 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.72 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6438,12 +6438,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.71 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.72 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.71 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.72 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.71";
+  const PHASE = "23.0.72";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6539,12 +6539,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.71 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 
-/* ===== PHASE 23.0.71 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.72 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.71";
+  const PHASE = "23.0.72";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6677,13 +6677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.71 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 
 
-/* ===== PHASE 23.0.71 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.72 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.71";
+  const PHASE = "23.0.72";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6717,7 +6717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.71 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.72 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6809,13 +6809,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.71 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 
-/* ===== PHASE 23.0.71 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
+/* ===== PHASE 23.0.72 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
 (function(){
   'use strict';
-  var PHASE='23.0.71';
+  var PHASE='23.0.72';
   var SESSION_KEY='risk_manager_session_user_v2101';
   var VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
   function q(s,r){return (r||document).querySelector(s)}
@@ -6909,10 +6909,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',function(){setTimeout(function(){version();login();unlockFields();},20)},true);
   document.addEventListener('change',function(){setTimeout(function(){fixCategories();unlockFields();},20)},true);
 })();
-/* ===== END PHASE 23.0.71 RUNTIME REBASE ===== */
-/* ===== PHASE 23.0.71 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.72 RUNTIME REBASE ===== */
+/* ===== PHASE 23.0.72 COMPLEX WORKSPACE UI ===== */
 (function(){
-  const PHASE = "23.0.71";
+  const PHASE = "23.0.72";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -6941,11 +6941,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
 })();
-/* ===== END PHASE 23.0.71 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.72 COMPLEX WORKSPACE UI ===== */
 
-/* ===== PHASE 23.0.71 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== PHASE 23.0.72 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 (function(){
-  const PHASE = "23.0.71";
+  const PHASE = "23.0.72";
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -6966,11 +6966,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init55,80),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}); else {setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}
 })();
-/* ===== END PHASE 23.0.71 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== END PHASE 23.0.72 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 
-/* ===== PHASE 23.0.71 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== PHASE 23.0.72 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 (function(){
-  const PHASE = "23.0.71";
+  const PHASE = "23.0.72";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -6991,12 +6991,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init56,60),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}); else {setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}
 })();
-/* ===== END PHASE 23.0.71 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== END PHASE 23.0.72 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 
 
-/* ===== PHASE 23.0.71 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== PHASE 23.0.72 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 (function(){
-  const PHASE='23.0.71';
+  const PHASE='23.0.72';
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -7019,13 +7019,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',()=>setTimeout(init,80),true); document.addEventListener('change',()=>setTimeout(init,80),true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}); else {setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}
 })();
-/* ===== END PHASE 23.0.71 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== END PHASE 23.0.72 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 
 
-/* ===== PHASE 23.0.71 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== PHASE 23.0.72 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 (function(){
   'use strict';
-  const PHASE='23.0.71';
+  const PHASE='23.0.72';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   function setVersion(){
@@ -7098,4 +7098,112 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init,60),true);
   document.addEventListener('change',()=>setTimeout(init,80),true);
 })();
-/* ===== END PHASE 23.0.71 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== END PHASE 23.0.72 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+
+
+/* ===== PHASE 23.0.72 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+(function(){
+  const VERSION='23.0.72';
+  const qs=(s,r=document)=>r.querySelector(s);
+  function setVersion(){
+    const v=qs('#appVersion'); if(v) v.textContent=VERSION;
+    const h=qs('.sidebar-note h4'); if(h) h.textContent='Phase '+VERSION;
+    document.querySelectorAll('[id*="Version"], .version, [data-version]').forEach(el=>{ try{ if(String(el.textContent||'').match(/23\.0\.\d+/)) el.textContent=String(el.textContent).replace(/23\.0\.\d+/g,VERSION); }catch(e){} });
+  }
+  function createActions(){
+    let row=qs('#rt71ComplexActions') || qs('#rt72ComplexActions');
+    if(!row){
+      row=document.createElement('div');
+      row.id='rt71ComplexActions';
+      row.className='rt71-complex-actions rt72-complex-actions';
+      row.innerHTML='<button class="btn btn-secondary" id="rt71LoadComplexTestBtn" type="button">Load Test Scenario</button><button class="btn btn-primary" id="rt71NewComponentBtn" type="button">+ New Component</button><span class="rt71-mode-pill" id="rt71ModePill">Component workspace actions</span>';
+    }
+    row.classList.add('rt72-complex-actions');
+    return row;
+  }
+  function placeComplexActions(){
+    const view=qs('#view-complex'); if(!view) return;
+    const row=createActions();
+    const target=qs('#rt54Tabs') || qs('#view-complex [data-rt56-tab]')?.closest('.rt54-tabs') || qs('#view-complex .rt54-tabs');
+    const summary=qs('#rt54Summary');
+    const componentCard=Array.from(document.querySelectorAll('#view-complex .card')).find(c=>(c.querySelector('.card-header h3')?.textContent||'').trim()==='Selected Component Workspace');
+    if(target && target.parentNode){ target.parentNode.insertBefore(row,target); }
+    else if(summary && summary.parentNode){ summary.parentNode.insertBefore(row, summary.nextSibling); }
+    else if(componentCard && componentCard.parentNode){ componentCard.parentNode.insertBefore(row, componentCard); }
+    else { view.insertBefore(row, view.firstElementChild?.nextSibling || view.firstChild); }
+    const load=qs('#rt71LoadComplexTestBtn');
+    if(load && !load.dataset.rt72){
+      load.dataset.rt72='1';
+      load.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation();
+        const original=qs('#loadComplexTestBtn');
+        if(original && original !== load){ original.click(); return; }
+        try{ if(typeof window.loadComplexTestScenario==='function'){ window.loadComplexTestScenario(); return; } }catch(err){ console.warn(err); }
+        alert('Load Test Scenario function was not found in this build.');
+      },true);
+    }
+    const nw=qs('#rt71NewComponentBtn');
+    if(nw && !nw.dataset.rt72){
+      nw.dataset.rt72='1';
+      nw.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation();
+        try{
+          const ids=['complexScenarioName','complexScenarioId','complexComponentId','complexScenarioOwner','complexIdentifiedDate','complexInherentRiskScore','complexScenarioDescription'];
+          ids.forEach(id=>{const el=qs('#'+id); if(el) el.value='';});
+          ['complexScenarioStatus','complexScenarioSource','complexProductGroup','complexRiskDomain','complexPrimaryProduct','complexPrimaryRegulation'].forEach(id=>{const el=qs('#'+id); if(el&&el.options.length) el.selectedIndex=0;});
+          const sid=qs('#complexScenarioId'); if(sid) sid.value='Generated on save';
+          const cid=qs('#complexComponentId'); if(cid) cid.value='Generated on save';
+          const ind=qs('#currentComplexEditingIndicator'); if(ind) ind.textContent='Creating New Component: complete Component Entry, then save it to the Area Rollup.';
+          const btn=qs('#addComplexScenarioBtn'); if(btn) btn.textContent='Save Component';
+          try{ window.editingComplexScenarioId=null; window.editingComponentId=null; }catch(err){}
+          const tab=qs('[data-rt56-tab="component"],[data-rt54-tab="component"]'); if(tab) tab.click();
+          setTimeout(()=>qs('#complexScenarioName')?.focus(),80);
+        }catch(err){ console.warn(err); }
+      },true);
+    }
+  }
+  function restoreWorkspacePrompt(){
+    window.showPostLoginRestoreScreen=function(){
+      try{
+        if(typeof window.rtShowReconnectWorkspaceModal==='function'){
+          setTimeout(()=>window.rtShowReconnectWorkspaceModal('post-login'),250);
+          return;
+        }
+      }catch(e){ console.warn(e); }
+      const btn=qs('#restorePreviousSessionBtn') || qs('#selectWorkspaceFolderBtn');
+      if(btn) setTimeout(()=>btn.click(),250);
+    };
+    if(!window.__rt72StartWrapped){
+      const base=window.rtStartSessionAndReconnect || window.startUserSession;
+      window.rtStartSessionAndReconnect=function(){
+        let result;
+        try{ if(typeof base==='function') result=base.apply(this,arguments); }
+        catch(e){ console.error(e); }
+        setTimeout(()=>{ try{ window.showPostLoginRestoreScreen(); }catch(err){ console.warn(err); } },450);
+        return result;
+      };
+      window.__rt72StartWrapped=true;
+    }
+    const btn=qs('#loginGateContinueBtn');
+    if(btn && !btn.dataset.rt72Login){
+      btn.dataset.rt72Login='1';
+      btn.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); window.rtStartSessionAndReconnect(); return false; },true);
+    }
+    const pwd=qs('#loginGatePassword');
+    if(pwd && !pwd.dataset.rt72Login){
+      pwd.dataset.rt72Login='1';
+      pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); window.rtStartSessionAndReconnect(); return false; } },true);
+    }
+  }
+  function addStyles(){
+    if(qs('#rt72Styles')) return;
+    const st=document.createElement('style'); st.id='rt72Styles';
+    st.textContent='.rt72-complex-actions{display:flex!important;gap:10px!important;align-items:center!important;justify-content:flex-start!important;margin:8px 0 8px!important;padding:0 4px!important}.rt72-complex-actions .btn{white-space:nowrap!important}#view-complex #rt71ComplexActions + #rt54Tabs{margin-top:0!important}';
+    document.head.appendChild(st);
+  }
+  function init(){ addStyles(); setVersion(); restoreWorkspacePrompt(); placeComplexActions(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{[50,300,900,1600,2600].forEach(t=>setTimeout(init,t));});
+  else [50,300,900,1600,2600].forEach(t=>setTimeout(init,t));
+  ['click','change','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
+})();
+/* ===== END PHASE 23.0.72 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
