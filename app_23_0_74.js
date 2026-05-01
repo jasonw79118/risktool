@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.73";
+const APP_VERSION = "23.0.74";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -348,7 +348,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.73",
+    phase: "23.0.74",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 23.0.73 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 23.0.74 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 23.0.73 ===== */
+/* ===== END PHASE 23.0.74 ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -5731,7 +5731,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.73 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.74 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5870,16 +5870,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.73 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.74 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.73 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.74 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.73 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.74 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.73 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.74 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -6072,10 +6072,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.73 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.74 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.73 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.74 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6322,9 +6322,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.73 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.74 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.73 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.74 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6438,12 +6438,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.73 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.74 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.73 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.74 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.73";
+  const PHASE = "23.0.74";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6539,12 +6539,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.73 ===== */
+/* ===== END PHASE 23.0.74 ===== */
 
 
-/* ===== PHASE 23.0.73 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.74 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.73";
+  const PHASE = "23.0.74";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6677,13 +6677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.73 ===== */
+/* ===== END PHASE 23.0.74 ===== */
 
 
 
-/* ===== PHASE 23.0.73 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.74 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.73";
+  const PHASE = "23.0.74";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6717,7 +6717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.73 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.74 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6809,13 +6809,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.73 ===== */
+/* ===== END PHASE 23.0.74 ===== */
 
 
-/* ===== PHASE 23.0.73 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
+/* ===== PHASE 23.0.74 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
 (function(){
   'use strict';
-  var PHASE='23.0.73';
+  var PHASE='23.0.74';
   var SESSION_KEY='risk_manager_session_user_v2101';
   var VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
   function q(s,r){return (r||document).querySelector(s)}
@@ -6909,10 +6909,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',function(){setTimeout(function(){version();login();unlockFields();},20)},true);
   document.addEventListener('change',function(){setTimeout(function(){fixCategories();unlockFields();},20)},true);
 })();
-/* ===== END PHASE 23.0.73 RUNTIME REBASE ===== */
-/* ===== PHASE 23.0.73 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.74 RUNTIME REBASE ===== */
+/* ===== PHASE 23.0.74 COMPLEX WORKSPACE UI ===== */
 (function(){
-  const PHASE = "23.0.73";
+  const PHASE = "23.0.74";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -6941,11 +6941,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
 })();
-/* ===== END PHASE 23.0.73 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.74 COMPLEX WORKSPACE UI ===== */
 
-/* ===== PHASE 23.0.73 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== PHASE 23.0.74 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 (function(){
-  const PHASE = "23.0.73";
+  const PHASE = "23.0.74";
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -6966,11 +6966,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init55,80),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}); else {setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}
 })();
-/* ===== END PHASE 23.0.73 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== END PHASE 23.0.74 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 
-/* ===== PHASE 23.0.73 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== PHASE 23.0.74 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 (function(){
-  const PHASE = "23.0.73";
+  const PHASE = "23.0.74";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -6991,12 +6991,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init56,60),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}); else {setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}
 })();
-/* ===== END PHASE 23.0.73 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== END PHASE 23.0.74 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 
 
-/* ===== PHASE 23.0.73 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== PHASE 23.0.74 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 (function(){
-  const PHASE='23.0.73';
+  const PHASE='23.0.74';
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -7019,13 +7019,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',()=>setTimeout(init,80),true); document.addEventListener('change',()=>setTimeout(init,80),true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}); else {setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}
 })();
-/* ===== END PHASE 23.0.73 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== END PHASE 23.0.74 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 
 
-/* ===== PHASE 23.0.73 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== PHASE 23.0.74 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 (function(){
   'use strict';
-  const PHASE='23.0.73';
+  const PHASE='23.0.74';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   function setVersion(){
@@ -7098,12 +7098,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init,60),true);
   document.addEventListener('change',()=>setTimeout(init,80),true);
 })();
-/* ===== END PHASE 23.0.73 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== END PHASE 23.0.74 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 
 
-/* ===== PHASE 23.0.73 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== PHASE 23.0.74 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
 (function(){
-  const VERSION='23.0.73';
+  const VERSION='23.0.74';
   const qs=(s,r=document)=>r.querySelector(s);
   function setVersion(){
     const v=qs('#appVersion'); if(v) v.textContent=VERSION;
@@ -7206,11 +7206,11 @@ document.addEventListener('DOMContentLoaded', () => {
   else [50,300,900,1600,2600].forEach(t=>setTimeout(init,t));
   ['click','change','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
 })();
-/* ===== END PHASE 23.0.73 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== END PHASE 23.0.74 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
 
-/* ===== PHASE 23.0.73 PORTFOLIO REPORT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== PHASE 23.0.74 PORTFOLIO REPORT + POST-LOGIN WORKSPACE RESTORE ===== */
 (function(){
-  const PHASE='23.0.73';
+  const PHASE='23.0.74';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const money=(n)=>{n=Number(n||0);return n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});};
@@ -7335,4 +7335,138 @@ document.addEventListener('DOMContentLoaded', () => {
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{[50,300,800,1600].forEach(t=>setTimeout(init,t));}); else [50,300,800,1600].forEach(t=>setTimeout(init,t));
   window.addEventListener('hashchange',()=>setTimeout(init,50));
 })();
-/* ===== END PHASE 23.0.73 PORTFOLIO REPORT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== END PHASE 23.0.74 PORTFOLIO REPORT + POST-LOGIN WORKSPACE RESTORE ===== */
+
+
+/* ===== PHASE 23.0.74 POST-LOGIN RESTORE FLOW RECOVERY ===== */
+(function(){
+  'use strict';
+  var PHASE='23.0.74';
+  var SESSION_KEY='risk_manager_session_user_v2101';
+  var prompted=false;
+  function q(s,r){return (r||document).querySelector(s);}
+  function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+  function loggedIn(){try{return !!localStorage.getItem(SESSION_KEY);}catch(e){return false;}}
+  function hide(el){if(!el)return; try{el.style.setProperty('display','none','important');el.style.setProperty('visibility','hidden','important');el.style.setProperty('opacity','0','important');el.style.setProperty('pointer-events','none','important');}catch(e){el.style.display='none';}}
+  function show(el){if(!el)return; try{el.style.setProperty('display','flex','important');el.style.setProperty('visibility','visible','important');el.style.setProperty('opacity','1','important');el.style.setProperty('pointer-events','auto','important');}catch(e){el.style.display='flex';}}
+  function route(view){view=view||localStorage.getItem('risktool_last_view')||'dashboard'; if(view==='manual-faq'||view.indexOf('manual-')===0)view='dashboard'; try{ if(typeof window.activateView==='function') window.activateView(view); }catch(e){} try{history.replaceState(null,'',location.pathname+location.search+'#'+view);}catch(e){location.hash=view;} }
+  function unlock(view){
+    try{document.body.classList.add('rt68-unlocked');document.body.classList.remove('rt68-locked');}catch(e){}
+    hide(q('#loginGate'));
+    ['#restoreSessionModal','#postLoginWorkspaceReconnectModal','#rtReconnectWorkspace25','#rtDirectReconnectModal28','#rtReconnectWorkspace29','#rt73WorkspaceReconnect','#rt74WorkspaceRestoreModal'].forEach(function(id){hide(q(id));});
+    qa('.modal-overlay').forEach(function(m){ if(m.id!=='loginGate') hide(m); });
+    qa('input,select,textarea,button').forEach(function(el){ if(!el.hasAttribute('readonly')){el.disabled=false;el.removeAttribute('disabled');el.style.pointerEvents='auto';el.style.opacity='1';} });
+    route(view||'dashboard');
+    try{ if(typeof renderSavedScenarios==='function') renderSavedScenarios(); }catch(e){}
+    try{ if(typeof renderDashboardOpenTable==='function') renderDashboardOpenTable(); }catch(e){}
+    try{ if(typeof refreshWorkspaceDiagnostics==='function') refreshWorkspaceDiagnostics(); }catch(e){}
+  }
+  function status(msg){var s=q('#rt74WorkspaceRestoreStatus'); if(s)s.textContent=msg;}
+  function ensureModal(){
+    var modal=q('#rt74WorkspaceRestoreModal');
+    if(modal) return modal;
+    modal=document.createElement('div');
+    modal.id='rt74WorkspaceRestoreModal';
+    modal.style.cssText='display:none;position:fixed;inset:0;z-index:30000;background:rgba(12,18,34,.72);align-items:center;justify-content:center;padding:24px;';
+    modal.innerHTML='<div class="card" style="width:min(720px,96vw);max-height:90vh;overflow:auto;"><div class="card-header"><h3>Restore Workspace</h3><span>After login</span></div><div class="card-body"><p style="margin-top:0;">Login is complete. Reconnect the workspace folder to restore saved scenarios, or continue into Risk Manager without restoring right now.</p><div class="note-box" id="rt74WorkspaceRestoreStatus">Choose the same workspace folder used for RiskTool files, or continue without restore.</div><div class="builder-actions"><button class="btn btn-primary" id="rt74ChooseWorkspace" type="button">Reconnect Workspace Folder</button><button class="btn btn-secondary" id="rt74RestorePrevious" type="button">Restore Previous Session</button><button class="btn btn-secondary" id="rt74ContinueNoRestore" type="button">Not Now / Continue</button></div></div></div>';
+    document.body.appendChild(modal);
+    q('#rt74ContinueNoRestore')?.addEventListener('click',function(e){e.preventDefault(); prompted=true; unlock('dashboard');},true);
+    q('#rt74ChooseWorkspace')?.addEventListener('click',async function(e){
+      e.preventDefault(); e.stopPropagation();
+      status('Opening workspace folder picker...');
+      try{
+        if(typeof window.selectWorkspaceFolder==='function'){
+          await window.selectWorkspaceFolder();
+        } else if(typeof selectWorkspaceFolder==='function'){
+          await selectWorkspaceFolder();
+        } else if(window.showDirectoryPicker){
+          window.workspaceFolderHandle=await window.showDirectoryPicker({mode:'readwrite'});
+          window.workspaceFolderName=window.workspaceFolderHandle?.name||'Selected folder';
+        }
+        status('Workspace connected. Entering Risk Manager...');
+        setTimeout(function(){unlock('dashboard');},150);
+        setTimeout(function(){try{ if(typeof maybePromptWorkspaceRestore==='function') maybePromptWorkspaceRestore('rt74-folder-connect'); }catch(err){}},450);
+        setTimeout(finalizeOldRestoreButtons,650);
+      }catch(err){
+        status('Workspace folder was not connected. You can continue without restore.');
+        setTimeout(function(){unlock('dashboard');},450);
+      }
+    },true);
+    q('#rt74RestorePrevious')?.addEventListener('click',async function(e){
+      e.preventDefault(); e.stopPropagation();
+      status('Attempting to restore previous session...');
+      try{
+        var ok=false;
+        if(typeof window.restoreWorkspaceSessionFromFile==='function') ok=await window.restoreWorkspaceSessionFromFile();
+        else if(typeof restoreWorkspaceSessionFromFile==='function') ok=await restoreWorkspaceSessionFromFile();
+        status(ok?'Previous session restored. Entering Risk Manager...':'No previous session was restored. Entering Risk Manager...');
+      }catch(err){status('Restore could not complete. Entering Risk Manager without restore.');}
+      setTimeout(function(){unlock('dashboard');},250);
+    },true);
+    return modal;
+  }
+  function showPrompt(){
+    if(!loggedIn()) return false;
+    ensureModal();
+    show(q('#rt74WorkspaceRestoreModal'));
+    hide(q('#loginGate'));
+    return true;
+  }
+  function finalizeOldRestoreButtons(){
+    ['restoreSessionNotNowBtn','postLoginSkipReconnectBtn','rtSkipWorkspace25','rtDirectSkipWorkspace28','rtSkipWorkspace29','rt73SkipWorkspace'].forEach(function(id){
+      var b=q('#'+id); if(b&&!b.dataset.rt74){b.dataset.rt74='1'; b.addEventListener('click',function(e){e.preventDefault(); e.stopPropagation(); prompted=true; unlock('dashboard'); return false;},true);}
+    });
+    ['restoreSessionConfirmBtn','rt73RestoreSession'].forEach(function(id){
+      var b=q('#'+id); if(b&&!b.dataset.rt74){b.dataset.rt74='1'; b.addEventListener('click',function(){setTimeout(function(){unlock('dashboard');},650);},true);}
+    });
+    ['selectWorkspaceFolderBtn','postLoginReconnectFolderBtn','rtChooseWorkspace25','rtDirectChooseWorkspace28','rtChooseWorkspace29','rt73ChooseWorkspace'].forEach(function(id){
+      var b=q('#'+id); if(b&&!b.dataset.rt74){b.dataset.rt74='1'; b.addEventListener('click',function(){setTimeout(function(){unlock('dashboard');},1200);},true);}
+    });
+    var file=q('#loadWorkspacePackageFile');
+    if(file&&!file.dataset.rt74){file.dataset.rt74='1'; file.addEventListener('change',function(){setTimeout(function(){unlock('dashboard');},900);},true);}
+  }
+  var oldShow=window.showPostLoginRestoreScreen;
+  window.showPostLoginRestoreScreen=function(){
+    if(!loggedIn()) return;
+    setTimeout(function(){showPrompt(); finalizeOldRestoreButtons();},120);
+  };
+  var oldStart=window.startUserSession;
+  window.startUserSession=function(){
+    var result;
+    try{ if(typeof oldStart==='function') result=oldStart.apply(this,arguments); }catch(e){console.error(e);}
+    setTimeout(function(){ if(loggedIn()) window.showPostLoginRestoreScreen(); },300);
+    setTimeout(function(){ finalizeOldRestoreButtons(); },700);
+    return result;
+  };
+  try{ window.rtStartSessionAndReconnect=window.startUserSession; }catch(e){}
+  try{
+    if(typeof selectWorkspaceFolder==='function' && !selectWorkspaceFolder.__rt74){
+      var prevSelect=selectWorkspaceFolder;
+      selectWorkspaceFolder=async function(){ var r=await prevSelect.apply(this,arguments); setTimeout(function(){unlock('dashboard');},150); return r; };
+      selectWorkspaceFolder.__rt74=true;
+      window.selectWorkspaceFolder=selectWorkspaceFolder;
+    }
+  }catch(e){}
+  try{
+    if(typeof restoreWorkspaceSessionFromFile==='function' && !restoreWorkspaceSessionFromFile.__rt74){
+      var prevRestore=restoreWorkspaceSessionFromFile;
+      restoreWorkspaceSessionFromFile=async function(){ var r=await prevRestore.apply(this,arguments); setTimeout(function(){unlock('dashboard');},150); return r; };
+      restoreWorkspaceSessionFromFile.__rt74=true;
+      window.restoreWorkspaceSessionFromFile=restoreWorkspaceSessionFromFile;
+    }
+  }catch(e){}
+  function boot(){
+    qa('#appVersion,.app-version,[data-version-label]').forEach(function(el){el.textContent=PHASE;});
+    qa('.sidebar-note h4').forEach(function(el){el.textContent='Phase '+PHASE;});
+    finalizeOldRestoreButtons();
+    var btn=q('#loginGateContinueBtn'); if(btn&&!btn.dataset.rt74Login){btn.dataset.rt74Login='1'; btn.onclick=function(e){e.preventDefault(); window.startUserSession(); return false;};}
+    var pwd=q('#loginGatePassword'); if(pwd&&!pwd.dataset.rt74Login){pwd.dataset.rt74Login='1'; pwd.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();window.startUserSession();return false;}};}
+    if(loggedIn() && !prompted && !q('#rt74WorkspaceRestoreModal')?.style.display==='flex') { /* no-op */ }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){[50,250,900,1800].forEach(function(t){setTimeout(boot,t);});}); else [50,250,900,1800].forEach(function(t){setTimeout(boot,t);});
+  document.addEventListener('click',function(e){
+    var id=e.target&&e.target.id;
+    if(['restoreSessionNotNowBtn','postLoginSkipReconnectBtn','rtSkipWorkspace25','rtDirectSkipWorkspace28','rtSkipWorkspace29','rt73SkipWorkspace'].indexOf(id)>=0){e.preventDefault();e.stopPropagation();prompted=true;unlock('dashboard');}
+  },true);
+})();
+/* ===== END PHASE 23.0.74 POST-LOGIN RESTORE FLOW RECOVERY ===== */
