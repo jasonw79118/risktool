@@ -1,4 +1,4 @@
-const APP_VERSION = "23.0.69";
+const APP_VERSION = "23.0.72";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -348,7 +348,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "23.0.69",
+    phase: "23.0.72",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 23.0.69 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 23.0.72 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 23.0.69 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -5731,7 +5731,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 23.0.69 SAVE OVERRIDE ===== */
+/* ===== PHASE 23.0.72 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5870,16 +5870,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 23.0.69 SAVE OVERRIDE ===== */
+/* ===== END PHASE 23.0.72 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 23.0.69 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 23.0.72 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.69 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 23.0.72 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 23.0.69 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 23.0.72 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -6072,10 +6072,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 23.0.69 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 23.0.72 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 23.0.69 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 23.0.72 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6322,9 +6322,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 23.0.69 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 23.0.72 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 23.0.69 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 23.0.72 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6438,12 +6438,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 23.0.69 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 23.0.72 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 23.0.69 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 23.0.72 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "23.0.69";
+  const PHASE = "23.0.72";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6539,12 +6539,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 23.0.69 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 
-/* ===== PHASE 23.0.69 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 23.0.72 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "23.0.69";
+  const PHASE = "23.0.72";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6677,13 +6677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 23.0.69 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 
 
-/* ===== PHASE 23.0.69 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 23.0.72 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "23.0.69";
+  const PHASE = "23.0.72";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6717,7 +6717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 23.0.69 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 23.0.72 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6809,13 +6809,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 23.0.69 ===== */
+/* ===== END PHASE 23.0.72 ===== */
 
 
-/* ===== PHASE 23.0.69 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
+/* ===== PHASE 23.0.72 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
 (function(){
   'use strict';
-  var PHASE='23.0.69';
+  var PHASE='23.0.72';
   var SESSION_KEY='risk_manager_session_user_v2101';
   var VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
   function q(s,r){return (r||document).querySelector(s)}
@@ -6909,10 +6909,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',function(){setTimeout(function(){version();login();unlockFields();},20)},true);
   document.addEventListener('change',function(){setTimeout(function(){fixCategories();unlockFields();},20)},true);
 })();
-/* ===== END PHASE 23.0.69 RUNTIME REBASE ===== */
-/* ===== PHASE 23.0.69 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.72 RUNTIME REBASE ===== */
+/* ===== PHASE 23.0.72 COMPLEX WORKSPACE UI ===== */
 (function(){
-  const PHASE = "23.0.69";
+  const PHASE = "23.0.72";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -6941,11 +6941,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
 })();
-/* ===== END PHASE 23.0.69 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 23.0.72 COMPLEX WORKSPACE UI ===== */
 
-/* ===== PHASE 23.0.69 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== PHASE 23.0.72 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 (function(){
-  const PHASE = "23.0.69";
+  const PHASE = "23.0.72";
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -6966,11 +6966,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init55,80),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}); else {setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}
 })();
-/* ===== END PHASE 23.0.69 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== END PHASE 23.0.72 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 
-/* ===== PHASE 23.0.69 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== PHASE 23.0.72 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 (function(){
-  const PHASE = "23.0.69";
+  const PHASE = "23.0.72";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -6991,4 +6991,219 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init56,60),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}); else {setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}
 })();
-/* ===== END PHASE 23.0.69 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== END PHASE 23.0.72 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+
+
+/* ===== PHASE 23.0.72 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+(function(){
+  const PHASE='23.0.72';
+  const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
+  const money=v=>{ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(num(v));}catch(e){return '$'+Math.round(num(v)).toLocaleString();} };
+  const tabs=[['entry','1. Scenario Entry'],['cost','2. Costs / Losses'],['evidence','3. Hard Facts / Evidence'],['mitigation','4. Mitigation / Controls'],['insurance','5. Insurance / Risk Transfer'],['accepted','6. Accepted Risk']];
+  function addStyles(){ if(qs('#rt70WorkspaceStyles')) return; const st=document.createElement('style'); st.id='rt70WorkspaceStyles'; st.textContent=`#view-single.rt70-workspace .section-header h2::after{content:' > Scenario Workspace';}#view-beta.rt70-workspace .section-header h2::after{content:' > Scenario Workspace > Planning Workspace';}.rt70-summary{background:#fff;border:1px solid #dbe4f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,.06);padding:14px;margin:0 0 14px}.rt70-summary h3{margin:0 0 10px;color:#0f1f3d}.rt70-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.rt70-label{font-size:11px;font-weight:800;color:#0b3b80}.rt70-value{font-size:14px;color:#172033;margin-top:4px}.rt70-tabs{display:flex;gap:24px;border-bottom:1px solid #dbe4f0;margin:0 0 12px;padding:0 8px;overflow:auto}.rt70-tab{border:0;background:transparent;padding:12px 0 10px;color:#25324b;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent}.rt70-tab.active{color:#0b5bd3;border-bottom-color:#0b5bd3}.rt70-hidden{display:none!important}.rt70-actions{display:flex;gap:10px;align-items:center;margin:0 0 12px;justify-content:flex-start}.rt70-placeholder{background:#fff;border:1px solid #dbe4f0;border-radius:12px;padding:16px;margin-bottom:14px}.rt70-workspace .card{margin-bottom:14px}@media(max-width:1100px){.rt70-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rt70-tabs{gap:14px}}`; document.head.appendChild(st); }
+  function version(){ qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE); qsa('.sidebar-note h4').forEach(el=>el.textContent='Phase '+PHASE); }
+  function cards(viewId){ return qsa(`#${viewId} > .card`); }
+  function cardTitle(card){ return (card.querySelector('.card-header h3')?.textContent||'').trim(); }
+  function makeSummary(viewId,kind){ const sec=qs('#'+viewId); if(!sec) return; let box=qs(`#${viewId} .rt70-summary`); const header=qs(`#${viewId} .section-header`); if(!box&&header){ box=document.createElement('div'); box.className='rt70-summary'; header.after(box); } if(!box) return; const pre=kind==='single'?'single':'beta'; const name=qs(`#${pre}ScenarioName`)?.value||qs(`#${pre}ProjectOrProductName`)?.value||(kind==='single'?'New Single Scenario':'New Beta Scenario'); const id=qs(`#${pre}ScenarioId`)?.value||'Generated on save'; const cat=qs(`#${pre}RiskDomain`)?.selectedOptions?.[0]?.textContent||qs(`#${pre}PrimaryProduct`)?.selectedOptions?.[0]?.textContent||'Not selected'; const status=qs(`#${pre}ScenarioStatus`)?.value||'Draft'; const owner=qs(`#${pre}ScenarioOwner`)?.value||'Not assigned'; let exposure=0; if(kind==='single'){ exposure=num(qs('#singleHardCostLikely')?.value||qs('#singleImpactLikely')?.value); } else { exposure=num(qs('#betaMode')?.value); } box.innerHTML=`<h3>${kind==='single'?'Single Scenario Summary':'Beta Scenario Summary'} <button type="button" class="rt54-link" data-column-source="${kind}:summary">(rollup)</button></h3><div class="rt70-grid"><div><div class="rt70-label">Scenario ID</div><div class="rt70-value">${esc(id)}</div></div><div><div class="rt70-label">Scenario / Component</div><div class="rt70-value">${esc(name)}</div></div><div><div class="rt70-label">Category</div><div class="rt70-value">${esc(cat)}</div></div><div><div class="rt70-label">Status</div><div class="rt70-value">${esc(status)}</div></div><div><div class="rt70-label">Owner</div><div class="rt70-value">${esc(owner)}</div></div><div><div class="rt70-label">Likely Exposure</div><div class="rt70-value">${money(exposure)}</div></div></div>`; }
+  function makeTabs(viewId){ let bar=qs(`#${viewId} .rt70-tabs`); const summary=qs(`#${viewId} .rt70-summary`); if(!bar&&summary){ bar=document.createElement('div'); bar.className='rt70-tabs'; summary.after(bar); } if(!bar)return; bar.innerHTML=tabs.map(([k,l])=>`<button type="button" class="rt70-tab" data-rt70-view="${viewId}" data-rt70-tab="${k}">${l}</button>`).join(''); }
+  function moveFieldsToCostCard(viewId,kind){ let cost=qs(`#${viewId} .rt70-cost-card`); if(!cost){ cost=document.createElement('div'); cost.className='card rt70-cost-card'; cost.innerHTML=`<div class="card-header"><h3>Costs / Losses</h3><span>Fact-based exposure inputs</span></div><div class="form-grid" data-rt70-cost-grid></div><div class="note-box">Cost and loss amounts feed the scenario exposure and summary rollup.</div>`; const first=cards(viewId)[0]; if(first) first.after(cost); } const grid=cost.querySelector('[data-rt70-cost-grid]'); const ids=kind==='single'?['singleHardCostMin','singleHardCostLikely','singleHardCostMax','singleSoftCostMin','singleSoftCostLikely','singleSoftCostMax','singleMitigationCost']:['betaMin','betaMode','betaMax']; ids.forEach(id=>{ const el=qs('#'+id); const wrap=el?.closest('div'); if(wrap&&!grid.contains(wrap)) grid.appendChild(wrap); }); }
+  function ensurePlaceholder(viewId,key,title){ if(qs(`#${viewId} .rt70-${key}-placeholder`)) return; const sec=qs('#'+viewId); if(!sec)return; const div=document.createElement('div'); div.className=`card rt70-${key}-placeholder`; div.dataset.rt70Tab=key; div.innerHTML=`<div class="card-header"><h3>${title}</h3><span>Workspace tab</span></div><div class="note-box">This workspace tab is reserved for ${title.toLowerCase()} records for this scenario.</div>`; sec.appendChild(div); }
+  function classify(viewId,kind){ cards(viewId).forEach((c,i)=>{ const h=cardTitle(c); let tab='entry'; if(c.classList.contains('rt70-cost-card')||/Cost|Loss/.test(h)) tab='cost'; else if(/Hard Facts|Evidence/.test(h)) tab='evidence'; else if(/Mitigation/.test(h)) tab='mitigation'; else if(/Insurance/.test(h)) tab='insurance'; else if(/Accepted Risk/.test(h)) tab='accepted'; else if(i===0) tab='entry'; c.dataset.rt70Tab=tab; }); if(kind==='beta'){ ensurePlaceholder(viewId,'mitigation','Mitigation / Controls'); ensurePlaceholder(viewId,'accepted','Accepted Risk'); } }
+  function moveActions(viewId,kind){ let actions=qs(`#${viewId} .rt70-actions`); const tabsBar=qs(`#${viewId} .rt70-tabs`); if(!actions&&tabsBar){ actions=document.createElement('div'); actions.className='rt70-actions'; tabsBar.after(actions); } if(!actions)return; const ids=kind==='single'?['loadSingleTestBtn','runScenarioBtn','saveScenarioBtn']:['loadBetaTestBtn','runBetaScenarioBtn','saveBetaScenarioBtn','promoteBetaScenarioBtn']; ids.forEach(id=>{ const b=qs('#'+id); if(b&&!actions.contains(b)) actions.appendChild(b); }); }
+  function activate(viewId,key){ const sec=qs('#'+viewId); if(!sec)return; sec.dataset.rt70Active=key; qsa(`#${viewId} .rt70-tab`).forEach(b=>b.classList.toggle('active',b.dataset.rt70Tab===key)); qsa(`#${viewId} > .card`).forEach(c=>{ const tab=c.dataset.rt70Tab||'entry'; c.classList.toggle('rt70-hidden',tab!==key); }); }
+  function initOne(viewId,kind){ const sec=qs('#'+viewId); if(!sec)return; sec.classList.add('rt70-workspace'); addStyles(); version(); makeSummary(viewId,kind); makeTabs(viewId); moveFieldsToCostCard(viewId,kind); classify(viewId,kind); moveActions(viewId,kind); activate(viewId,sec.dataset.rt70Active||'entry'); }
+  function init(){ initOne('view-single','single'); initOne('view-beta','beta'); }
+  document.addEventListener('click',function(e){ const b=e.target.closest('.rt70-tab'); if(b){ e.preventDefault(); activate(b.dataset.rt70View,b.dataset.rt70Tab); } setTimeout(init,50); },true);
+  document.addEventListener('input',()=>setTimeout(init,80),true); document.addEventListener('change',()=>setTimeout(init,80),true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}); else {setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}
+})();
+/* ===== END PHASE 23.0.72 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+
+
+/* ===== PHASE 23.0.72 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+(function(){
+  'use strict';
+  const PHASE='23.0.72';
+  const qs=(s,r=document)=>r.querySelector(s);
+  const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  function setVersion(){
+    try{window.RISKTOOL_RUNTIME_VERSION=PHASE;}catch(e){}
+    qsa('#appVersion,.app-version,[data-version-label]').forEach(el=>el.textContent=PHASE);
+    qsa('.sidebar-note h4').forEach(el=>el.textContent='Phase '+PHASE);
+    const note=qs('#workspacePhaseNote'); if(note) note.textContent=(note.textContent||'').replace(/23\.0\.\d+/g,PHASE);
+  }
+  function addStyles(){
+    if(qs('#rt71ComplexActionStyles')) return;
+    const st=document.createElement('style'); st.id='rt71ComplexActionStyles';
+    st.textContent=`.rt71-complex-actions{display:flex;gap:10px;align-items:center;justify-content:flex-start;margin:10px 0 14px}.rt71-complex-actions .btn{white-space:nowrap}.rt71-mode-pill{border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700}.rt71-new-mode #currentComplexEditingIndicator{border-color:#bfdbfe!important;background:#eff6ff!important;color:#1e3a8a!important}`;
+    document.head.appendChild(st);
+  }
+  function clearValue(id){ const el=qs('#'+id); if(!el) return; if(el.tagName==='SELECT'){ if(el.options.length) el.selectedIndex=0; } else { el.value=''; } }
+  function clearCurrency(id){ const el=qs('#'+id); if(!el) return; el.value=''; }
+  function safeCall(name){ try{ if(typeof window[name]==='function') window[name](); }catch(e){ console.warn(name,e); } }
+  function clearComponentWorkspace(){
+    const ids=['complexScenarioName','complexScenarioId','complexComponentId','complexScenarioOwner','complexIdentifiedDate','complexInherentRiskScore','complexControlEffectiveness','complexScenarioDescription'];
+    ids.forEach(clearValue);
+    ['complexScenarioStatus','complexScenarioSource','complexProductGroup','complexRiskDomain','complexPrimaryProduct','complexPrimaryRegulation'].forEach(id=>{ const el=qs('#'+id); if(el && el.options.length) el.selectedIndex=0; });
+    const componentId=qs('#complexComponentId'); if(componentId) componentId.value='Generated on save';
+    const scenarioId=qs('#complexScenarioId'); if(scenarioId) scenarioId.value='Generated on save';
+    const score=qs('#complexInherentRiskScore'); if(score) score.value='';
+    try{ window.editingComplexScenarioId=null; }catch(e){}
+    try{ window.editingComponentId=null; }catch(e){}
+    try{ window.currentComplexItems=[]; }catch(e){}
+    try{ currentComplexItems=[]; }catch(e){}
+    try{ window.complexCostLosses=[]; }catch(e){}
+    try{ complexCostLosses=[]; }catch(e){}
+    try{ window.complexInsuranceItems=[]; }catch(e){}
+    try{ complexInsuranceItems=[]; }catch(e){}
+    try{ window.complexHardFacts=[]; }catch(e){}
+    try{ complexHardFacts=[]; }catch(e){}
+    try{ window.complexMitigations=[]; }catch(e){}
+    try{ complexMitigations=[]; }catch(e){}
+    try{ window.complexAcceptedRisks=[]; }catch(e){}
+    try{ complexAcceptedRisks=[]; }catch(e){}
+    ['riskItemName','riskItemDescription','riskItemProbMin','riskItemProbLikely','riskItemProbMax','riskItemImpactMin','riskItemImpactLikely','riskItemImpactMax','complexCostLossAmountMin','complexCostLossAmountLikely','complexCostLossAmountMax','complexCostLossDatePeriod','complexCostLossNotes','complexCostLossSourceLink','complexInsurancePolicyName','complexInsurancePolicyNumber','complexInsuranceCarrier','complexInsuranceCoverageType','complexInsurancePremium','complexInsuranceDeductible','complexInsuranceCoverageAmount','complexInsuranceCoverageDates','complexInsuranceNotes','complexInsuranceSourceLink','complexHardFactAmount','complexHardFactDate','complexHardFactDescription','complexHardFactSourceLink','complexMitTitle','complexMitOwner','complexMitStatus','complexMitAttachment','complexAcceptedBy','complexAcceptanceDate','complexReviewDate','complexDecisionLogic'].forEach(clearCurrency);
+    ['riskItemsTableBody','complexCostLossBody','complexInsuranceBody','complexHardFactsBody','complexMitigationBody','complexAcceptedRiskBody'].forEach(id=>{ const b=qs('#'+id); if(b) b.innerHTML=''; });
+    const add=qs('#addComplexScenarioBtn'); if(add) add.textContent='Save Component';
+    const ind=qs('#currentComplexEditingIndicator'); if(ind) ind.textContent='Creating New Component: complete Component Entry, then save it to the Area Rollup.';
+    qs('#view-complex')?.classList.add('rt71-new-mode');
+    safeCall('renderComplexItems'); safeCall('renderComplexCostLosses'); safeCall('renderComplexInsurance'); safeCall('renderComplexHardFacts'); safeCall('renderComplexMitigations'); safeCall('renderComplexAcceptedRisks');
+    try{ if(typeof activate56==='function') activate56('component'); }catch(e){}
+    try{ const tab=qs('[data-rt56-tab="component"],[data-rt54-tab="component"]'); if(tab) tab.click(); }catch(e){}
+    setTimeout(()=>{ qs('#complexScenarioName')?.focus(); },80);
+  }
+  function loadTestScenario(){
+    const existing=qs('#loadComplexTestBtn');
+    if(existing){ existing.click(); return; }
+    try{ if(typeof window.loadComplexTestScenario==='function'){ window.loadComplexTestScenario(); return; } }catch(e){}
+    try{ if(typeof loadComplexTestScenario==='function'){ loadComplexTestScenario(); return; } }catch(e){}
+    alert('Load Test Scenario function was not found in this build.');
+  }
+  function insertActions(){
+    const view=qs('#view-complex'); if(!view) return;
+    let row=qs('#rt71ComplexActions');
+    const header=qs('#view-complex .section-header');
+    if(!row){
+      row=document.createElement('div'); row.id='rt71ComplexActions'; row.className='rt71-complex-actions';
+      row.innerHTML='<button class="btn btn-secondary" id="rt71LoadComplexTestBtn" type="button">Load Test Scenario</button><button class="btn btn-primary" id="rt71NewComponentBtn" type="button">+ New Component</button><span class="rt71-mode-pill" id="rt71ModePill">Component workspace actions</span>';
+      if(header) header.after(row); else view.insertBefore(row, view.firstChild);
+    }
+    const load=qs('#rt71LoadComplexTestBtn'); if(load&&!load.dataset.rt71){ load.dataset.rt71='1'; load.addEventListener('click',function(e){e.preventDefault(); loadTestScenario(); setTimeout(setVersion,80);},true); }
+    const nw=qs('#rt71NewComponentBtn'); if(nw&&!nw.dataset.rt71){ nw.dataset.rt71='1'; nw.addEventListener('click',function(e){e.preventDefault(); clearComponentWorkspace();},true); }
+  }
+  function init(){ addStyles(); setVersion(); insertActions(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,100);setTimeout(init,700);setTimeout(init,1500);}); else {setTimeout(init,100);setTimeout(init,700);setTimeout(init,1500);}
+  document.addEventListener('click',()=>setTimeout(init,60),true);
+  document.addEventListener('change',()=>setTimeout(init,80),true);
+})();
+/* ===== END PHASE 23.0.72 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+
+
+/* ===== PHASE 23.0.72 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+(function(){
+  const VERSION='23.0.72';
+  const qs=(s,r=document)=>r.querySelector(s);
+  function setVersion(){
+    const v=qs('#appVersion'); if(v) v.textContent=VERSION;
+    const h=qs('.sidebar-note h4'); if(h) h.textContent='Phase '+VERSION;
+    document.querySelectorAll('[id*="Version"], .version, [data-version]').forEach(el=>{ try{ if(String(el.textContent||'').match(/23\.0\.\d+/)) el.textContent=String(el.textContent).replace(/23\.0\.\d+/g,VERSION); }catch(e){} });
+  }
+  function createActions(){
+    let row=qs('#rt71ComplexActions') || qs('#rt72ComplexActions');
+    if(!row){
+      row=document.createElement('div');
+      row.id='rt71ComplexActions';
+      row.className='rt71-complex-actions rt72-complex-actions';
+      row.innerHTML='<button class="btn btn-secondary" id="rt71LoadComplexTestBtn" type="button">Load Test Scenario</button><button class="btn btn-primary" id="rt71NewComponentBtn" type="button">+ New Component</button><span class="rt71-mode-pill" id="rt71ModePill">Component workspace actions</span>';
+    }
+    row.classList.add('rt72-complex-actions');
+    return row;
+  }
+  function placeComplexActions(){
+    const view=qs('#view-complex'); if(!view) return;
+    const row=createActions();
+    const target=qs('#rt54Tabs') || qs('#view-complex [data-rt56-tab]')?.closest('.rt54-tabs') || qs('#view-complex .rt54-tabs');
+    const summary=qs('#rt54Summary');
+    const componentCard=Array.from(document.querySelectorAll('#view-complex .card')).find(c=>(c.querySelector('.card-header h3')?.textContent||'').trim()==='Selected Component Workspace');
+    if(target && target.parentNode){ target.parentNode.insertBefore(row,target); }
+    else if(summary && summary.parentNode){ summary.parentNode.insertBefore(row, summary.nextSibling); }
+    else if(componentCard && componentCard.parentNode){ componentCard.parentNode.insertBefore(row, componentCard); }
+    else { view.insertBefore(row, view.firstElementChild?.nextSibling || view.firstChild); }
+    const load=qs('#rt71LoadComplexTestBtn');
+    if(load && !load.dataset.rt72){
+      load.dataset.rt72='1';
+      load.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation();
+        const original=qs('#loadComplexTestBtn');
+        if(original && original !== load){ original.click(); return; }
+        try{ if(typeof window.loadComplexTestScenario==='function'){ window.loadComplexTestScenario(); return; } }catch(err){ console.warn(err); }
+        alert('Load Test Scenario function was not found in this build.');
+      },true);
+    }
+    const nw=qs('#rt71NewComponentBtn');
+    if(nw && !nw.dataset.rt72){
+      nw.dataset.rt72='1';
+      nw.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation();
+        try{
+          const ids=['complexScenarioName','complexScenarioId','complexComponentId','complexScenarioOwner','complexIdentifiedDate','complexInherentRiskScore','complexScenarioDescription'];
+          ids.forEach(id=>{const el=qs('#'+id); if(el) el.value='';});
+          ['complexScenarioStatus','complexScenarioSource','complexProductGroup','complexRiskDomain','complexPrimaryProduct','complexPrimaryRegulation'].forEach(id=>{const el=qs('#'+id); if(el&&el.options.length) el.selectedIndex=0;});
+          const sid=qs('#complexScenarioId'); if(sid) sid.value='Generated on save';
+          const cid=qs('#complexComponentId'); if(cid) cid.value='Generated on save';
+          const ind=qs('#currentComplexEditingIndicator'); if(ind) ind.textContent='Creating New Component: complete Component Entry, then save it to the Area Rollup.';
+          const btn=qs('#addComplexScenarioBtn'); if(btn) btn.textContent='Save Component';
+          try{ window.editingComplexScenarioId=null; window.editingComponentId=null; }catch(err){}
+          const tab=qs('[data-rt56-tab="component"],[data-rt54-tab="component"]'); if(tab) tab.click();
+          setTimeout(()=>qs('#complexScenarioName')?.focus(),80);
+        }catch(err){ console.warn(err); }
+      },true);
+    }
+  }
+  function restoreWorkspacePrompt(){
+    window.showPostLoginRestoreScreen=function(){
+      try{
+        if(typeof window.rtShowReconnectWorkspaceModal==='function'){
+          setTimeout(()=>window.rtShowReconnectWorkspaceModal('post-login'),250);
+          return;
+        }
+      }catch(e){ console.warn(e); }
+      const btn=qs('#restorePreviousSessionBtn') || qs('#selectWorkspaceFolderBtn');
+      if(btn) setTimeout(()=>btn.click(),250);
+    };
+    if(!window.__rt72StartWrapped){
+      const base=window.rtStartSessionAndReconnect || window.startUserSession;
+      window.rtStartSessionAndReconnect=function(){
+        let result;
+        try{ if(typeof base==='function') result=base.apply(this,arguments); }
+        catch(e){ console.error(e); }
+        setTimeout(()=>{ try{ window.showPostLoginRestoreScreen(); }catch(err){ console.warn(err); } },450);
+        return result;
+      };
+      window.__rt72StartWrapped=true;
+    }
+    const btn=qs('#loginGateContinueBtn');
+    if(btn && !btn.dataset.rt72Login){
+      btn.dataset.rt72Login='1';
+      btn.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); window.rtStartSessionAndReconnect(); return false; },true);
+    }
+    const pwd=qs('#loginGatePassword');
+    if(pwd && !pwd.dataset.rt72Login){
+      pwd.dataset.rt72Login='1';
+      pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); window.rtStartSessionAndReconnect(); return false; } },true);
+    }
+  }
+  function addStyles(){
+    if(qs('#rt72Styles')) return;
+    const st=document.createElement('style'); st.id='rt72Styles';
+    st.textContent='.rt72-complex-actions{display:flex!important;gap:10px!important;align-items:center!important;justify-content:flex-start!important;margin:8px 0 8px!important;padding:0 4px!important}.rt72-complex-actions .btn{white-space:nowrap!important}#view-complex #rt71ComplexActions + #rt54Tabs{margin-top:0!important}';
+    document.head.appendChild(st);
+  }
+  function init(){ addStyles(); setVersion(); restoreWorkspacePrompt(); placeComplexActions(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{[50,300,900,1600,2600].forEach(t=>setTimeout(init,t));});
+  else [50,300,900,1600,2600].forEach(t=>setTimeout(init,t));
+  ['click','change','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
+})();
+/* ===== END PHASE 23.0.72 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
