@@ -1,4 +1,4 @@
-const APP_VERSION = "24.0.01";
+const APP_VERSION = "24.0.02";
 
 function setSelectValueSafe(id, value) {
   const el = document.getElementById(id);
@@ -348,7 +348,7 @@ function refreshWorkspaceDiagnostics() {
 function buildWorkspacePackagePayload() {
   return {
     exportedAt: new Date().toISOString(),
-    phase: "24.0.01",
+    phase: "24.0.02",
     workspaceSetup: {
       sessionUserId: getSessionUserId(),
       sessionStorageMode: getSessionStorageMode(),
@@ -3367,7 +3367,7 @@ function wireRecordMaintenanceEnhancements() {
   }
 }
 
-/* ===== PHASE 24.0.01 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
+/* ===== PHASE 24.0.02 COMPLEX COST/LOSS TABLE + EVIDENCE-DRIVEN RISK ITEMS ===== */
 function migrateLegacyComponentCosts(component) {
   const records = [];
   if (!component) return records;
@@ -3563,7 +3563,7 @@ function wireCostLossButtons() {
 }
 const __rt52_priorWireRecordMaintenanceEnhancements = typeof wireRecordMaintenanceEnhancements === 'function' ? wireRecordMaintenanceEnhancements : null;
 wireRecordMaintenanceEnhancements = function() { if (__rt52_priorWireRecordMaintenanceEnhancements) __rt52_priorWireRecordMaintenanceEnhancements(); wireCostLossButtons(); };
-/* ===== END PHASE 24.0.01 ===== */
+/* ===== END PHASE 24.0.02 ===== */
 
 function init() {
   loadStoredMonteCarloConfig();
@@ -5731,7 +5731,7 @@ function handleScenarioJsonUpload(event) {
 }
 
 
-/* ===== PHASE 24.0.01 SAVE OVERRIDE ===== */
+/* ===== PHASE 24.0.02 SAVE OVERRIDE ===== */
 function rtSafeSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
 }
@@ -5870,16 +5870,16 @@ document.addEventListener("DOMContentLoaded", () => {
   try { renderSavedScenarios(); } catch(e) {}
   try { renderDashboardOpenTable(); } catch(e) {}
 });
-/* ===== END PHASE 24.0.01 SAVE OVERRIDE ===== */
+/* ===== END PHASE 24.0.02 SAVE OVERRIDE ===== */
 
 
-/* ===== PHASE 24.0.01 WORKSPACE BRIDGE ===== */
+/* ===== PHASE 24.0.02 WORKSPACE BRIDGE ===== */
 document.addEventListener("DOMContentLoaded", () => {
   try { refreshWorkspaceDiagnostics(); } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 24.0.01 WORKSPACE BRIDGE ===== */
+/* ===== END PHASE 24.0.02 WORKSPACE BRIDGE ===== */
 
-/* ===== PHASE 24.0.01 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== PHASE 24.0.02 CHROME EDGE WORKSPACE MODE ===== */
 const WORKSPACE_LAST_FILE_WRITE_KEY = "risk_manager_workspace_last_file_write_v23016";
 let workspaceFolderHandle = null;
 let workspaceFolderName = "Not connected";
@@ -6072,10 +6072,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 const __rtOriginalRefreshWorkspaceDiagnostics = refreshWorkspaceDiagnostics;
 refreshWorkspaceDiagnostics = function() { __rtOriginalRefreshWorkspaceDiagnostics(); try { refreshWorkspaceFolderModeUi(); } catch (e) { console.error(e); } };
-/* ===== END PHASE 24.0.01 CHROME EDGE WORKSPACE MODE ===== */
+/* ===== END PHASE 24.0.02 CHROME EDGE WORKSPACE MODE ===== */
 
 
-/* ===== PHASE 24.0.01 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== PHASE 24.0.02 SESSION RESTORE AFTER LOGIN ===== */
 const WORKSPACE_SESSION_STATE_FILE = "session-state.json";
 let workspaceRestorePromptOpen = false;
 let lastWorkspaceSessionSnapshot = null;
@@ -6322,9 +6322,9 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAppVersionDisplay();
   } catch (e) { console.error(e); }
 });
-/* ===== END PHASE 24.0.01 SESSION RESTORE AFTER LOGIN ===== */
+/* ===== END PHASE 24.0.02 SESSION RESTORE AFTER LOGIN ===== */
 
-/* ===== PHASE 24.0.01 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== PHASE 24.0.02 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 (function(){
   const RT_FORCE_LOGIN_EACH_PAGE_LOAD = true;
   let postLoginReconnectPromptOpen = false;
@@ -6438,12 +6438,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 })();
-/* ===== END PHASE 24.0.01 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
+/* ===== END PHASE 24.0.02 LOGIN RECONNECT + RESTORE PROMPT FIX ===== */
 
 
-/* ===== PHASE 24.0.01 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
+/* ===== PHASE 24.0.02 WORKSPACE-GATED LISTS + POST-LOGIN RESTORE ===== */
 (function(){
-  const PHASE = "24.0.01";
+  const PHASE = "24.0.02";
   function folderConnected(){ try { return typeof workspaceFolderHandle !== 'undefined' && !!workspaceFolderHandle; } catch(e) { return false; } }
   function supportsPicker(){ try { return typeof window.showDirectoryPicker === 'function'; } catch(e) { return false; } }
   function setPhaseDisplays(){
@@ -6539,12 +6539,12 @@ document.addEventListener('DOMContentLoaded', () => {
   saveScenario = async function(event){ if (!folderConnected()) { alert('Connect a workspace folder before saving live scenarios.'); return; } const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; await writeSessionStateFile('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   document.addEventListener('DOMContentLoaded', () => { setPhaseDisplays(); try { setScenarioSaveEngine('Chrome/Edge Workspace Folder'); } catch(e) {} setTimeout(()=>{ try { renderSavedScenarios(); renderDashboardOpenTable(); } catch(e){} }, 200); setTimeout(()=>{ if (typeof isUserLoggedIn === 'function' && isUserLoggedIn()) showReconnectPrompt(); }, 500); });
 })();
-/* ===== END PHASE 24.0.01 ===== */
+/* ===== END PHASE 24.0.02 ===== */
 
 
-/* ===== PHASE 24.0.01 DIRECT LOGIN RECONNECT HOOK ===== */
+/* ===== PHASE 24.0.02 DIRECT LOGIN RECONNECT HOOK ===== */
 (function(){
-  const PHASE = "24.0.01";
+  const PHASE = "24.0.02";
   function rt28SetPhaseDisplays(){
     try { if (typeof APP_VERSION !== 'undefined') window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
     const ids = ['appVersion','versionDisplay','footerVersion','phaseVersion'];
@@ -6677,13 +6677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } catch(e) { console.warn('RiskTool save session hook not applied', e); }
 })();
-/* ===== END PHASE 24.0.01 ===== */
+/* ===== END PHASE 24.0.02 ===== */
 
 
 
-/* ===== PHASE 24.0.01 DIRECT POST-LOGIN RECONNECT FLOW ===== */
+/* ===== PHASE 24.0.02 DIRECT POST-LOGIN RECONNECT FLOW ===== */
 (function(){
-  const PHASE = "24.0.01";
+  const PHASE = "24.0.02";
   function setPhase29Displays(){
     ["appVersion","phaseBadge","phaseVersion","footerVersion"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=PHASE; });
     document.querySelectorAll('[data-app-version]').forEach(el => { el.textContent = PHASE; });
@@ -6717,7 +6717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await writable.write(JSON.stringify(payload, null, 2));
       await writable.close();
       return payload;
-    } catch(e) { console.error('Phase 24.0.01 session write failed', e); return null; }
+    } catch(e) { console.error('Phase 24.0.02 session write failed', e); return null; }
   }
   async function offerRestore29(){
     if (!folderConnected29()) return false;
@@ -6809,13 +6809,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorSave) saveScenario = async function(event){ const result = await priorSave.apply(this, arguments); const id=document.getElementById('singleScenarioId')?.value || document.getElementById('complexScenarioId')?.value || document.getElementById('betaScenarioId')?.value || ''; const name=document.getElementById('singleScenarioName')?.value || document.getElementById('complexScenarioName')?.value || document.getElementById('betaScenarioName')?.value || ''; if(id) await writeSessionState29('scenario-save', {scenarioId:id, scenarioName:name}); return result; };
   } catch(e) {}
 })();
-/* ===== END PHASE 24.0.01 ===== */
+/* ===== END PHASE 24.0.02 ===== */
 
 
-/* ===== PHASE 24.0.01 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
+/* ===== PHASE 24.0.02 RUNTIME REBASE: LOGIN + EDITABILITY + VIEW GUARD ===== */
 (function(){
   'use strict';
-  var PHASE='24.0.01';
+  var PHASE='24.0.02';
   var SESSION_KEY='risk_manager_session_user_v2101';
   var VALID=['dashboard','single','complex','beta','categories','users','saved','reports','information','portfolio-report','scenario-review'];
   function q(s,r){return (r||document).querySelector(s)}
@@ -6909,10 +6909,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',function(){setTimeout(function(){version();login();unlockFields();},20)},true);
   document.addEventListener('change',function(){setTimeout(function(){fixCategories();unlockFields();},20)},true);
 })();
-/* ===== END PHASE 24.0.01 RUNTIME REBASE ===== */
-/* ===== PHASE 24.0.01 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 24.0.02 RUNTIME REBASE ===== */
+/* ===== PHASE 24.0.02 COMPLEX WORKSPACE UI ===== */
 (function(){
-  const PHASE = "24.0.01";
+  const PHASE = "24.0.02";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -6941,11 +6941,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)}); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(summary,50)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init54,300)); else setTimeout(init54,300); setTimeout(init54,1200);
 })();
-/* ===== END PHASE 24.0.01 COMPLEX WORKSPACE UI ===== */
+/* ===== END PHASE 24.0.02 COMPLEX WORKSPACE UI ===== */
 
-/* ===== PHASE 24.0.01 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== PHASE 24.0.02 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 (function(){
-  const PHASE = "24.0.01";
+  const PHASE = "24.0.02";
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -6966,11 +6966,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init55,80),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init55,80)},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}); else {setTimeout(init55,100);setTimeout(init55,800);setTimeout(init55,1600)}
 })();
-/* ===== END PHASE 24.0.01 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
+/* ===== END PHASE 24.0.02 COMPLEX WORKSPACE VISUAL MATCH PATCH ===== */
 
-/* ===== PHASE 24.0.01 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== PHASE 24.0.02 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 (function(){
-  const PHASE = "24.0.01";
+  const PHASE = "24.0.02";
   try { window.RISKTOOL_RUNTIME_VERSION = PHASE; } catch(e) {}
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -6991,12 +6991,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init56,60),true); document.addEventListener('input',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true); document.addEventListener('change',e=>{if(e.target.closest?.('#view-complex'))setTimeout(init56,60)},true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}); else {setTimeout(init56,150);setTimeout(init56,700);setTimeout(init56,1500);}
 })();
-/* ===== END PHASE 24.0.01 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
+/* ===== END PHASE 24.0.02 COMPLEX WORKSPACE LAYOUT CORRECTION ===== */
 
 
-/* ===== PHASE 24.0.01 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== PHASE 24.0.02 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 (function(){
-  const PHASE='24.0.01';
+  const PHASE='24.0.02';
   const qs=(s,r=document)=>r.querySelector(s); const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
@@ -7019,13 +7019,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('input',()=>setTimeout(init,80),true); document.addEventListener('change',()=>setTimeout(init,80),true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}); else {setTimeout(init,150);setTimeout(init,700);setTimeout(init,1500);}
 })();
-/* ===== END PHASE 24.0.01 SINGLE + BETA WORKSPACE UI RESTORE ===== */
+/* ===== END PHASE 24.0.02 SINGLE + BETA WORKSPACE UI RESTORE ===== */
 
 
-/* ===== PHASE 24.0.01 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== PHASE 24.0.02 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 (function(){
   'use strict';
-  const PHASE='24.0.01';
+  const PHASE='24.0.02';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   function setVersion(){
@@ -7098,12 +7098,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',()=>setTimeout(init,60),true);
   document.addEventListener('change',()=>setTimeout(init,80),true);
 })();
-/* ===== END PHASE 24.0.01 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
+/* ===== END PHASE 24.0.02 COMPLEX TEST + NEW COMPONENT ACTIONS ===== */
 
 
-/* ===== PHASE 24.0.01 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== PHASE 24.0.02 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
 (function(){
-  const VERSION='24.0.01';
+  const VERSION='24.0.02';
   const qs=(s,r=document)=>r.querySelector(s);
   function setVersion(){
     const v=qs('#appVersion'); if(v) v.textContent=VERSION;
@@ -7206,19 +7206,19 @@ document.addEventListener('DOMContentLoaded', () => {
   else [50,300,900,1600,2600].forEach(t=>setTimeout(init,t));
   ['click','change','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
 })();
-/* ===== END PHASE 24.0.01 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
+/* ===== END PHASE 24.0.02 BUTTON PLACEMENT + POST-LOGIN WORKSPACE RESTORE ===== */
 
 
-/* ===== PHASE 24.0.01 STABILIZATION PATCH ===== */
+/* ===== PHASE 24.0.02 STABILIZATION PATCH ===== */
 (function(){
   'use strict';
-  const VERSION='24.0.01';
+  const VERSION='24.0.02';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const storeKey='risk_manager_saved_evaluations_v2';
   const money=n=>{try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(n)||0)}catch(e){return '$'+Math.round(Number(n)||0).toLocaleString()}};
   const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  function call(name,...args){try{if(typeof window[name]==='function')return window[name](...args)}catch(e){console.warn('RT 24.0.01',name,e)}}
+  function call(name,...args){try{if(typeof window[name]==='function')return window[name](...args)}catch(e){console.warn('RT 24.0.02',name,e)}}
   function saved(){try{if(typeof window.getSavedScenarios==='function')return window.getSavedScenarios()||[]}catch(e){} try{return JSON.parse(localStorage.getItem(storeKey)||'[]')||[]}catch(e){return []}}
   function setSaved(items){try{if(typeof window.setSavedScenarios==='function'){window.setSavedScenarios(items||[]);return}}catch(e){} try{localStorage.setItem(storeKey,JSON.stringify(items||[]))}catch(e){console.warn(e)}}
   function norm(payload){try{if(typeof window.normalizeScenario==='function')return window.normalizeScenario(payload)}catch(e){} return payload}
@@ -7248,13 +7248,13 @@ document.addEventListener('DOMContentLoaded', () => {
   ['change','input','hashchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(init,80),true));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[80,400,1200].forEach(t=>setTimeout(init,t))); else [80,400,1200].forEach(t=>setTimeout(init,t));
 })();
-/* ===== END PHASE 24.0.01 STABILIZATION PATCH ===== */
+/* ===== END PHASE 24.0.02 STABILIZATION PATCH ===== */
 
 
-/* ===== PHASE 24.0.01 TARGETED FIX: POST-LOGIN LOAD + PORTFOLIO RUNNER ===== */
+/* ===== PHASE 24.0.02 TARGETED FIX: POST-LOGIN LOAD + PORTFOLIO RUNNER ===== */
 (function(){
   'use strict';
-  const VERSION='24.0.01';
+  const VERSION='24.0.02';
   const SCENARIO_KEY='risk_manager_saved_evaluations_v2';
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -7355,12 +7355,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function init(){ setVersion(); wireLoadScreenFix(); if(qs('#view-reports')?.classList.contains('active')) renderPortfolioRunner(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>[50,250,750,1500].forEach(t=>setTimeout(init,t))); else [50,250,750,1500].forEach(t=>setTimeout(init,t));
 })();
-/* ===== END PHASE 24.0.01 TARGETED FIX ===== */
+/* ===== END PHASE 24.0.02 TARGETED FIX ===== */
 
-/* ===== PHASE 24.0.01 TARGETED LOAD + PORTFOLIO REPORT REBUILD ===== */
+/* ===== PHASE 24.0.02 TARGETED LOAD + PORTFOLIO REPORT REBUILD ===== */
 (function(){
   'use strict';
-  const VERSION='24.0.01';
+  const VERSION='24.0.02';
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7417,13 +7417,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click',function(e){ if(e.target.closest('#loginGateContinueBtn')) setTimeout(showLoad,600); if(e.target.closest('.nav-item[data-view="reports"],.nav-item[data-view="portfolio-report"]')) setTimeout(renderPortfolio,120); if(e.target.closest('#rt76RunPortfolio,#rt76RefreshPortfolio')) setTimeout(renderPortfolio,60); },true);
   document.addEventListener('DOMContentLoaded',()=>{setVersion();addStyles();ensureLoadModal(); if($('#view-reports')?.classList.contains('active')) renderPortfolio();}); setTimeout(()=>{setVersion();addStyles()},300);
 })();
-/* ===== END PHASE 24.0.01 TARGETED LOAD + PORTFOLIO REPORT REBUILD ===== */
+/* ===== END PHASE 24.0.02 TARGETED LOAD + PORTFOLIO REPORT REBUILD ===== */
 
 
-/* ===== PHASE 24.0.01 TARGETED POST-LOGIN LOAD + PORTFOLIO ACTION BUTTONS ===== */
+/* ===== PHASE 24.0.02 TARGETED POST-LOGIN LOAD + PORTFOLIO ACTION BUTTONS ===== */
 (function(){
 'use strict';
-const VERSION='24.0.01', $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const VERSION='24.0.02', $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>Number(v||0)||0, money=v=>Number(v||0).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
 function setV(){const e=$('#appVersion'); if(e)e.textContent=VERSION; const n=$('#workspacePhaseNote'); if(n)n.textContent=String(n.textContent||'').replace(/23\.0\.\d+/g,VERSION)}
@@ -7465,13 +7465,13 @@ const oldAct=window.activateView||(typeof activateView==='function'?activateView
 document.addEventListener('click',e=>{if(e.target.closest('#loginGateContinueBtn'))setTimeout(showLoad,650); if(e.target.closest('.nav-item[data-view="reports"],.nav-item[data-view="portfolio-report"]'))setTimeout(renderPortfolio,120)},true);
 function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contains('active'))renderPortfolio()} if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[50,250,800,1600].forEach(t=>setTimeout(boot,t))); else [50,250,800,1600].forEach(t=>setTimeout(boot,t));
 })();
-/* ===== END PHASE 24.0.01 ===== */
+/* ===== END PHASE 24.0.02 ===== */
 
 
-/* ===== PHASE 24.0.01 PORTFOLIO TOTALS + VERSION LOCK ===== */
+/* ===== PHASE 24.0.02 PORTFOLIO TOTALS + VERSION LOCK ===== */
 (function(){
   'use strict';
-  const VERSION = '24.0.01';
+  const VERSION = '24.0.02';
   const SCENARIO_KEY = 'risk_manager_saved_evaluations_v2';
   const $ = (s,r=document)=>r.querySelector(s);
   const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -7588,6 +7588,9 @@ function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contai
       '<div class="table-wrap"><table><thead><tr><th>Run</th><th>Annual Loss</th><th>Residual Loss</th><th>Hard Cost</th><th>Soft Cost</th><th>Total Loss</th></tr></thead><tbody>'+
       rows.map((x,i)=>'<tr><td>'+esc(x.iteration||x.run||i+1)+'</td><td>'+money(x.annualLoss||x.outcome||x.totalLoss||x.loss||x.residualLoss)+'</td><td>'+money(x.residualLoss||x.outcome||x.totalLoss||x.loss||x.annualLoss)+'</td><td>'+money(x.hardCost||x.hardCostSample||0)+'</td><td>'+money(x.softCost||x.softCostSample||0)+'</td><td>'+money(x.totalLoss||x.outcome||x.annualLoss||x.residualLoss||0)+'</td></tr>').join('')+
       '</tbody></table></div>';
+    removeLegacyPortfolioTotals();
+    setTimeout(removeLegacyPortfolioTotals, 50);
+    setTimeout(removeLegacyPortfolioTotals, 250);
   }
   function exportScenarioCsv(row){
     const lines = [['Scenario ID','Scenario Name','Type','Run','Annual Loss','Residual Loss','Hard Cost','Soft Cost','Total Loss','Outcome'].join(',')];
@@ -7604,6 +7607,23 @@ function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contai
     s.textContent = '.rt2401-metrics{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:14px;margin:14px 0}.rt2401-metric .metric-value{font-size:28px;font-weight:800;margin:8px 0}.rt2401-heatmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.rt2401-heat{border:1px solid #cbd5e1;border-radius:12px;padding:10px;text-align:left;cursor:pointer;background:#eef4fb;color:#10223f}.rt2401-heat strong,.rt2401-heat span,.rt2401-heat em{display:block}.rt2401-heat span{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rt2401-heat em{font-style:normal;margin-top:4px}.rt2401-h1{opacity:.55}.rt2401-h2{opacity:.7}.rt2401-h3{opacity:.85}.rt2401-h4{box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}.rt2401-h5{box-shadow:inset 0 0 0 3px rgba(0,0,0,.2);font-weight:800}.rt2401-row{cursor:pointer}.rt2401-row:hover{background:#f3f7ff}.rt2401-actions{display:flex;gap:6px;flex-wrap:wrap}.rt2401-actions .small-btn{white-space:nowrap}';
     document.head.appendChild(s);
   }
+  function removeLegacyPortfolioTotals(){
+    const view = $('#view-reports'); if(!view) return;
+    // Legacy report block reappears after View Outcomes in older runtime handlers.
+    // It contains the duplicated Total Scenarios / Total Exposure / Residual Risk / Insurance Impact fields.
+    Array.from(view.children).forEach(child => {
+      const text = (child.textContent || '').replace(/\s+/g,' ').trim();
+      const isLegacyTotals = text.includes('Total Scenarios') && text.includes('Total Exposure') && text.includes('Residual Risk') && text.includes('Insurance Impact');
+      const isOurMetrics = child.classList && child.classList.contains('rt2401-metrics');
+      const isOurHeader = child.classList && child.classList.contains('section-header');
+      if (isLegacyTotals && !isOurMetrics && !isOurHeader) child.remove();
+    });
+    // Also remove any nested legacy cards that get injected by prior report code.
+    $$('div.card', view).forEach(card => {
+      const text = (card.textContent || '').replace(/\s+/g,' ').trim();
+      if (text.includes('Total Scenarios') && text.includes('Highest Driver') && !card.querySelector('#rt2401Outcomes')) card.remove();
+    });
+  }
   function heatClass(value,max){ const p=max ? value/max : 0; return p>=.8?'rt2401-h5':p>=.6?'rt2401-h4':p>=.4?'rt2401-h3':p>=.2?'rt2401-h2':'rt2401-h1'; }
   function renderPortfolioReport(){
     const view = $('#view-reports'); if (!view) return;
@@ -7619,6 +7639,7 @@ function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contai
       '<div class="card"><div class="card-header"><h3>Portfolio Ranking & Recommendations</h3><span>All saved scenarios</span></div><div class="table-wrap"><table><thead><tr><th>Rank</th><th>Scenario</th><th>Type</th><th>Area / Product Family</th><th>Total Exposure</th><th>Residual Risk</th><th>Insurance Impact</th><th>P90</th><th>Top Driver</th><th>Actions</th></tr></thead><tbody>'+
       (rows.length?rows.map((r,i)=>'<tr class="rt2401-row" data-rt2401-id="'+esc(r.id)+'"><td>'+(i+1)+'</td><td><strong>'+esc(r.name)+'</strong><br><span class="muted">'+esc(r.id)+'</span></td><td>'+esc(r.type)+'</td><td>'+esc(r.raw.productGroup||r.raw.primaryProduct||r.sum.productGroup||'')+'</td><td>'+money(r.exposure)+'</td><td>'+money(r.residual)+'</td><td>'+money(r.insurance)+'</td><td>'+money(r.p90)+'</td><td>'+esc(r.driver)+'</td><td class="rt2401-actions"><button class="btn btn-secondary small-btn" type="button" data-rt2401-review="'+esc(r.id)+'">Review</button><button class="btn btn-secondary small-btn" type="button" data-rt2401-outcomes="'+esc(r.id)+'">View Outcomes</button><button class="btn btn-secondary small-btn" type="button" data-rt2401-export="'+esc(r.id)+'">Export CSV</button></td></tr>').join(''):'<tr><td colspan="10">No saved scenarios yet. Save scenarios, then run the portfolio report.</td></tr>')+
       '</tbody></table></div></div><div class="card" id="rt2401Drilldown"><div class="card-header"><h3>Scenario Drilldown</h3><span>Auditor / Examiner Support</span></div><div class="note-box">Click a scenario row to review summary details. Use View Outcomes to populate 100 Monte Carlo rows below.</div></div><div class="card" id="rt2401Outcomes"><div class="card-header"><h3>Selected Scenario Outcomes</h3><span>Monte Carlo</span></div><div class="note-box">Select View Outcomes to preview 100 Monte Carlo rows for a scenario.</div></div>';
+    removeLegacyPortfolioTotals();
     function getRow(id){ return rows.find(r => String(r.id) === String(id)); }
     function selectRow(id, showOutcomes){
       const r = getRow(id); if(!r) return;
@@ -7638,7 +7659,7 @@ function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contai
       rows.forEach((r,i)=>lines.push([i+1,r.name,r.type,r.exposure,r.residual,r.insurance,r.p90,r.driver].map(csvCell).join(',')));
       download('portfolio_report_snapshot.csv', lines.join('\n'));
     }, true);
-    try { console.log('RiskTool 24.0.01 Portfolio Totals', { totalExposure: totals.exposure, residualRisk: totals.residual, insuranceImpact: totals.insurance, scenarioCount: rows.length }); } catch(e) {}
+    try { console.log('RiskTool 24.0.02 Portfolio Totals', { totalExposure: totals.exposure, residualRisk: totals.residual, insuranceImpact: totals.insurance, scenarioCount: rows.length }); } catch(e) {}
   }
   const originalActivate = window.activateView || (typeof activateView === 'function' ? activateView : null);
   if (originalActivate) {
@@ -7651,6 +7672,8 @@ function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contai
   }
   document.addEventListener('click', function(e){
     setTimeout(lockVersion, 30);
+    setTimeout(removeLegacyPortfolioTotals, 80);
+    setTimeout(removeLegacyPortfolioTotals, 350);
     if (e.target.closest('.nav-item[data-view="reports"],.nav-item[data-view="portfolio-report"],#rt78RunPortfolio,#rt76RunPortfolio,#rt2401RunPortfolio')) {
       setTimeout(renderPortfolioReport, 180);
     }
@@ -7659,6 +7682,14 @@ function boot(){setV();styles();modal(); if($('#view-reports')?.classList.contai
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => [50,250,800,1600,3000].forEach(t=>setTimeout(boot,t)));
   else [50,250,800,1600,3000].forEach(t=>setTimeout(boot,t));
   let ticks=0; const timer=setInterval(()=>{ lockVersion(); ticks++; const v=$('#view-reports'); if(v && !v.classList.contains('hidden') && v.dataset.rt2401Portfolio !== 'true' && (v.textContent||'').includes('Total Exposure')) renderPortfolioReport(); if(ticks>20) clearInterval(timer); }, 500);
+  try {
+    const obs = new MutationObserver(() => {
+      const view = $('#view-reports');
+      if (view && !view.classList.contains('hidden')) removeLegacyPortfolioTotals();
+    });
+    const startObs = () => { const view = $('#view-reports'); if(view) obs.observe(view,{childList:true,subtree:true}); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObs); else startObs();
+  } catch(e) {}
   window.renderPortfolioReport2401 = renderPortfolioReport;
 })();
-/* ===== END PHASE 24.0.01 PORTFOLIO TOTALS + VERSION LOCK ===== */
+/* ===== END PHASE 24.0.02 PORTFOLIO TOTALS + VERSION LOCK ===== */
