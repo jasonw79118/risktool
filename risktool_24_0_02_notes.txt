@@ -1,0 +1,49 @@
+RiskTool 24.0.02 Notes
+
+Purpose:
+- Fix the duplicate Portfolio Report totals block that reappeared after selecting View Outcomes.
+- Keep the restored Portfolio Report behavior intact.
+- Do not resume work on the post-login load workspace screen.
+
+What changed:
+1. Version moved to 24.0.02.
+2. Added a legacy Portfolio Report cleanup guard.
+   - Removes the older duplicated Total Scenarios / Total Exposure / Residual Risk / Insurance Impact block.
+   - Runs after Portfolio Report render.
+   - Runs again after View Outcomes.
+   - Uses a MutationObserver to remove the duplicate if older runtime handlers inject it after a click.
+3. Left the current Portfolio Report module intact:
+   - Summary cards remain the only totals display.
+   - Ranking table remains.
+   - View Outcomes remains.
+   - Export CSV remains.
+4. Left save logic alone.
+5. Left workspace reconnect/login flow alone per current direction.
+
+Regression test:
+1. Hard refresh the site after push.
+2. Confirm bottom-left version shows 24.0.02 only.
+3. Open Portfolio Report.
+4. Confirm only one Total Exposure / Residual Risk / Insurance Impact section appears.
+5. Click View Outcomes.
+6. Confirm the Monte Carlo outcomes table appears and the duplicate Total Scenarios line does NOT appear above it.
+7. Confirm Export CSV still downloads the scenario Monte Carlo CSV.
+
+Mandatory cleanup commands before commit:
+
+PowerShell:
+Remove-Item .\app_24_0_*.js -Exclude app_24_0_02.js -ErrorAction SilentlyContinue
+Remove-Item .\app_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .\app.js -ErrorAction SilentlyContinue
+Remove-Item .\beta_scenario_engine.js -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+Expected:
+app_24_0_02.js
+
+Commit/push:
+git add .
+git commit -m "24.0.02"
+git pull origin main --rebase
+git push origin main --force-with-lease
