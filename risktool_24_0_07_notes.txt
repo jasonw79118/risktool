@@ -1,0 +1,42 @@
+RISKTOOL 24.0.07 STABILIZATION PATCH
+
+Purpose:
+- Stop enhancement work and repair the broken save path.
+- Preserve the category dropdown repair from 24.0.06.
+
+Changed:
+1. Added final save-system hard reset after all older workspace-folder patches load.
+2. Save buttons now write directly to browser scenario storage.
+3. Save no longer requires a connected workspace folder.
+4. getSavedScenarios/setSavedScenarios are reset to use the browser-storage scenario list.
+5. Save stores the full editable scenario payload plus calculated summary fields.
+6. Dashboard Open Report routes to the current Portfolio Report view.
+7. Version display locked to 24.0.07.
+
+Regression test:
+1. Clean old JS files.
+2. Confirm only app_24_0_07.js remains.
+3. Hard refresh browser.
+4. Create Single Scenario -> Save Scenario -> confirm alert says saved.
+5. Refresh browser -> Saved Scenarios and Dashboard should still show it.
+6. Open same scenario, edit title/category/status -> Save -> refresh -> changes should persist.
+7. Repeat with Beta Scenario.
+8. Repeat with Complex Scenario using Save Component / Save Area button.
+9. Dashboard Open Report should open the current Portfolio Report screen, not the legacy Scenario Review report.
+
+Mandatory PowerShell cleanup before commit:
+Remove-Item .\app_24_0_*.js -Exclude app_24_0_07.js -ErrorAction SilentlyContinue
+Remove-Item .\app_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .\app.js -ErrorAction SilentlyContinue
+Remove-Item .\beta_scenario_engine.js -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+Expected result:
+app_24_0_07.js
+
+Commit/push:
+git add .
+git commit -m "24.0.07"
+git pull origin main --rebase
+git push origin main --force-with-lease
