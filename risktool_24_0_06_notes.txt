@@ -1,0 +1,62 @@
+RiskTool 24.0.06 Stabilization Patch
+
+Purpose: stop enhancements and repair broken proof-of-concept behavior.
+
+What changed in 24.0.06:
+1. Version stability
+   - index.html now references only app_24_0_06.js?v=24.0.06.
+   - Runtime version display is locked to 24.0.06.
+
+2. Category dropdown repair
+   - Scenario-level Category dropdowns now merge the full available category/product-family list from defaults, Category Admin storage, and existing dropdown values.
+   - This repairs the missing category options caused by prior patches reading only one category source.
+
+3. Save persistence repair
+   - Save now selects the payload based on the active screen: Single, Complex, or Beta.
+   - Save persists the full scenario payload, not only a calculated summary.
+   - The primary scenario storage key and the older legacy key are kept in sync because older dashboard/report code still reads both in places.
+   - Dashboard and Saved Scenarios refresh immediately after save.
+
+4. Dashboard Open Report routing
+   - Dashboard Open Report now routes to the current Portfolio Report screen and attempts to drill into the selected scenario.
+   - This avoids the old legacy report screen.
+
+5. Package cleanup
+   - This ZIP is flat and contains only index.html, app_24_0_06.js, style.css, and this notes file.
+
+Regression testing checklist:
+1. Run cleanup commands below before pushing.
+2. Confirm only app_24_0_06.js remains in the repository root.
+3. Hard refresh the site after GitHub Pages deploy.
+4. Open Single Scenario and confirm Category dropdown has the full list.
+5. Edit an existing scenario, save, open it again, and confirm changes persisted.
+6. Create a new single scenario, save, confirm it appears on Dashboard and Saved Scenarios.
+7. Test Complex Scenario save after adding a section/risk item.
+8. Test Beta Scenario save.
+9. From Dashboard, click Open Report and confirm it opens the current Portfolio Report screen.
+
+Mandatory cleanup commands before commit:
+
+PowerShell:
+Remove-Item .pp_24_0_*.js -Exclude app_24_0_06.js -ErrorAction SilentlyContinue
+Remove-Item .pp_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .pp.js -ErrorAction SilentlyContinue
+Remove-Item .eta_scenario_engine.js -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force .isktool -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+Expected result:
+app_24_0_06.js
+
+Commit/push:
+git add .
+git commit -m "24.0.06"
+git pull origin main --rebase
+git push origin main --force-with-lease
+
+Audit finding from uploaded risktool(16).zip:
+- The ZIP contained multiple active app_24_0_xx.js files.
+- It also contained a nested risktool/risktool folder with another index.html and another app_24_0_05.js.
+- The root index.html referenced app_24_0_04.js while the nested index referenced app_24_0_05.js with an old cache version.
+- That file structure can cause version bouncing and old behavior returning after deploys.
