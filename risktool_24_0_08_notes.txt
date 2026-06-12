@@ -1,0 +1,40 @@
+RiskTool 24.0.08 Stabilization Patch
+
+Purpose:
+- Stop enhancements. Repair save persistence only.
+- Category field was reported working again and was not changed.
+
+Changed in 24.0.08:
+- Replaced the save-button event path with a hard save interceptor for Save Scenario, Save Beta Scenario, Save Component, and any RT save-all button.
+- Save now persists the full scenario payload plus calculated summary to both active scenario storage keys.
+- Save no longer depends on workspace-folder mode, but if a workspace folder is connected it also updates the workspace cache and attempts to flush workspace files.
+- Dashboard and Saved Scenarios tables refresh from the same saved scenario list.
+- Dashboard Open Report remains routed to the current Portfolio Report.
+- Version locked to 24.0.08.
+
+Regression test:
+1. Hard refresh the site after deployment.
+2. Confirm bottom version shows 24.0.08 only.
+3. Open Single Scenario, enter Component Name and Category, click Save Scenario. You should see a saved alert and Dashboard Saved Scenarios count should increase.
+4. Change the same scenario name, click Save Scenario again, then open Saved Scenarios and confirm the same ID updated rather than creating a duplicate.
+5. Repeat on Complex Scenario Save Component.
+6. Repeat on Beta Scenario Save Beta Scenario.
+7. If workspace folder is connected, confirm save still succeeds even if folder write is skipped by browser permission.
+
+Mandatory cleanup before commit/push:
+PowerShell:
+Remove-Item .\app_24_0_*.js -Exclude app_24_0_08.js -ErrorAction SilentlyContinue
+Remove-Item .\app_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .\app.js -ErrorAction SilentlyContinue
+Remove-Item .\beta_scenario_engine.js -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+Expected:
+app_24_0_08.js
+
+Push:
+git add .
+git commit -m "24.0.08"
+git pull origin main --rebase
+git push origin main --force-with-lease
