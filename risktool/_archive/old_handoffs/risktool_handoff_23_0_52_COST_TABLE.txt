@@ -1,0 +1,75 @@
+RISKTOOL HANDOFF — PHASE 23.0.52-R COST/LOSS TABLE PATCH
+Date: 04.30.2026
+Baseline: 23.0.51-R reset patch based on user-provided 23.0.50 baseline
+
+PURPOSE
+This patch continues the reset-stabilization work by improving the Complex Scenario Builder data model after removal of user-submitted subjective risk values.
+
+WHAT CHANGED
+1. Version advanced to 23.0.52-R.
+2. index.html now references app_23_0_52.js?v=23.0.52.
+3. Component-level hard cost, soft cost multiplier, and mitigation cost inputs were removed from the Selected Component Workspace.
+4. A new repeatable Cost / Loss Entry section and Cost / Loss Table were added to the Complex Builder.
+5. Cost / Loss entries can be scoped to either:
+   - the full component; or
+   - a specific risk item inside the selected component.
+6. Cost / Loss records support:
+   - Cost Type
+   - Applies To
+   - Related Risk Item
+   - Amount Min
+   - Amount Likely
+   - Amount Max
+   - Date / Period
+   - Source Type
+   - Notes
+   - Source Link
+7. Risk Item Entry no longer uses Item Risk Score or Weight fields.
+8. Risk Item Entry now uses evidence-driven probability and impact fields:
+   - Probability Min / Likely / Max
+   - Impact Min / Likely / Max
+   - Evidence Quality
+   - Risk Item Status
+   - Risk Item Description
+9. Risk Item Table columns were updated to show probability, impact, evidence quality, linked cost count, and status instead of score and weight.
+10. Cost / Loss amounts now feed complex component rollups.
+11. Hard Facts / Evidence loss-cost amounts remain risk anchors and can override/raise exposure if factual losses exceed cost-table estimates.
+12. Legacy component-level cost fields are migrated into cost/loss entries when older saved scenarios are reopened.
+
+CALCULATION DIRECTION
+The component risk calculation now considers:
+- Risk item probability and impact estimates
+- Cost / Loss table hard-loss and soft-cost entries
+- Hard Facts / Evidence loss-cost amounts
+- Control effectiveness
+- Insurance coverage net of deductible
+
+Cost / Loss table values are used to build cost bounds for existing Monte Carlo and reporting logic:
+- hard cost = sum of hard-loss/legal/staff/vendor/customer restitution/other likely values
+- soft cost = sum of soft-cost likely values converted to a soft-cost multiplier for compatibility
+- mitigation cost = sum of remediation/control-cost likely values
+
+IMPORTANT DESIGN NOTE
+Costs were intentionally moved out of the Component Workspace because one component may have many costs/losses. This allows separate entries for customer remediation, staff time, legal costs, vendor remediation, soft-cost impact, and control implementation cost.
+
+FILES IN PATCH
+- index.html
+- app.js
+- app_23_0_52.js
+- risktool_handoff_23_0_52_COST_TABLE.txt
+
+DELIVERY RULE
+ZIP is flat. Replacement files are visible immediately when opened.
+
+NEXT TESTING PRIORITIES
+1. Open Complex Builder and verify no component-level hard/soft/mitigation cost fields appear.
+2. Add a risk item using probability and impact fields.
+3. Add multiple Cost / Loss rows to the same component.
+4. Tie one Cost / Loss row to a specific risk item.
+5. Save the component and verify the Area Rollup updates.
+6. Reopen the component and verify cost rows persist.
+7. Delete a risk item and confirm linked cost entries are only unlinked, not wiped.
+8. Verify Portfolio Report and Scenario Review still remain split.
+
+KNOWN FOLLOW-UP
+Future phase should add full edit/update support for risk items themselves. This patch keeps risk item delete and updates the entry/table model, but does not yet add a risk-item edit form state.

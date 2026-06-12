@@ -1,0 +1,33 @@
+RISKTOOL HANDOFF — PHASE 23.0.40
+Date: 04.29.2026
+Version Target: 23.0.40
+
+OBJECTIVE
+Correct the Complex Scenario Builder Area Rollup table so the parent Area/Product Family is not repeated on every row. The parent area (for example, Loans) is now shown in the rollup status line, while each row represents an underlying component/product-service (for example, Loan Statements, Loan Disclosures, Loan Rates, Escrow, Collections, or Transactions).
+
+CHANGES INCLUDED
+1. Updated Area Rollup Summary header language.
+2. Changed rollup table columns to Component / Product-Service, Risk Items, Inherent Score, Residual Score, Highest Driver, and Status.
+3. Added component-level rollup calculation using component risk item scores/weights, control effectiveness, mitigation status credit, and insurance coverage offset.
+4. Rollup status line now displays Area Rollup, Overall Area Residual Score, and Highest-Risk Component.
+5. Component names in the rollup table are clickable and reopen the component workspace.
+6. Bumped visible/cache version references to 23.0.40.
+
+FILES INCLUDED
+- index.html
+- app.js
+- app_23_0_40.js
+- style.css
+- beta_scenario_engine.js
+- risktool_handoff_23_0_40.txt
+
+TEST CASES
+1. Add parent Area/Product Family such as Loans.
+2. Add components such as Loan Statements and Loan Rates.
+3. Confirm Area Rollup table rows show components, not repeated Loans rows.
+4. Confirm residual scores display by component.
+5. Confirm clicking a component name opens its workspace.
+6. Confirm version displays 23.0.40.
+
+NEXT RECOMMENDED PHASE
+23.0.41 — add a component-level score explanation/detail drawer showing why each component received its inherent and residual score.

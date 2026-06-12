@@ -1,0 +1,5 @@
+Phase 23.0.22
+- Added post-login reconnect workspace prompt
+- Reconnect prompt also appears on page load when session user is already active
+- Restore prompt still appears after folder reconnection when session-state.json exists
+- Updated version strings and script cache-bust to 23.0.22

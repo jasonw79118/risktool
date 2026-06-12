@@ -1,0 +1,23 @@
+RISKTOOL HANDOFF — PHASE 23.0.41
+Date: 04.29.2026
+
+Scope:
+- Fixed Area Rollup Summary refresh issue where saved Area Components displayed in the component table but the rollup still showed “No saved components yet.”
+- Updated renderComplexScenarioComponents() so the Area Rollup Summary re-renders whenever components are rendered, added, cleared, or refreshed.
+- Added a direct rollup refresh after saving an Area Component.
+- Bumped visible application version and cache-busting references from 23.0.40 to 23.0.41.
+
+Expected test:
+1. Open Complex Scenario Builder.
+2. Add/select an Area/Product Family.
+3. Save one or more Area Components.
+4. Confirm Area Rollup Summary now shows one row per Component/Product-Service instead of the “No saved components yet” message.
+5. Confirm bottom-left dashboard version shows 23.0.41.
+
+Files included:
+- index.html
+- app.js
+- app_23_0_41.js
+- style.css
+- beta_scenario_engine.js
+- risktool_handoff_23_0_41.txt

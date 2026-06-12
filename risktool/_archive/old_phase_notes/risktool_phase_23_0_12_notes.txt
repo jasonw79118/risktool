@@ -1,0 +1,27 @@
+RISKTOOL PHASE 23.0.12 NOTES
+
+USER DELIVERY PREFERENCE
+- ZIP files only
+- Do not paste code into chat
+- Keep original filenames when possible
+- Include handoff notes when phases move forward
+
+WHAT THIS PATCH CHANGES
+- Clarifies that scenario saves still write to browser local storage in the current browser build.
+- Adds an "Actual Browser Save Location" field in User Admin so the live page shows the browser origin and localStorage key used for saved scenarios.
+- Updates wording around workspace path fields so they are clearly labeled as reference-only in this phase.
+- Adds versioned script query strings to beta_scenario_engine.js and app.js to help force browsers to fetch newer JavaScript after pushes.
+- Advances the visible phase text from 23.0.11 to 23.0.12.
+
+KEY SAVE DETAIL
+- Current scenario storage key in app.js: risk_manager_scenarios_v431
+- Current save location: browser localStorage for the site origin running RiskTool
+- Workspace path settings are not yet the actual scenario save target in this phase
+
+WHY THIS PATCH WAS NEEDED
+- Saving was repaired, but the User Admin workspace path fields looked like the active save target.
+- One browser instance appeared stuck on an older build even after refresh.
+- The app needed a visible callout for the true save location plus better cache-busting on script loads.
+
+NEXT LIKELY STEP
+- Begin real shared-workspace migration so scenario writes can move from browser localStorage to actual workspace files/settings.

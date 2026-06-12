@@ -1,0 +1,13 @@
+PHASE 21.0.1 VERIFICATION NOTES
+
+When this phase is coded, verify:
+1. User Admin exists
+2. Users can be added and edited
+3. Roles save correctly
+4. Single Scenario stores owner info
+5. Complex Scenario stores owner info
+6. Component scenarios store component owner
+7. Dashboard shows owner columns
+8. Saved Scenarios shows owner columns
+9. Storage Mode saves correctly
+10. Existing scenario layout remains unchanged

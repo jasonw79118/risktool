@@ -1,0 +1,6 @@
+Phase 23.0.32
+- Keeps delete scenario fix.
+- Simplifies post-login restore flow.
+- After successful login, always shows Reconnect Workspace Folder screen.
+- Reconnect reads config/session-state.json and offers Restore Previous Session.
+- Flat ZIP packaging, no nested risktool folder.

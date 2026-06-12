@@ -1,0 +1,58 @@
+RISKTOOL 24.0.03 NOTES
+
+CHANGES MADE
+1. Added Test Mode toggle in User Admin.
+   - OFF hides Model Validation.
+   - ON shows Model Validation in the left pane.
+
+2. Added Model Validation screen shell.
+   Buttons added:
+   - Load Core Banking Test Portfolio
+   - Clear Test Portfolio
+   - Download Model Validation Pack
+   - Export Validation Dataset
+
+3. Added deterministic Core Banking Test Portfolio loader.
+   - Uses TEST-CORE-### IDs.
+   - Adds 8 deterministic bank/core-style validation scenarios.
+   - Includes risk items, costs/losses, evidence, mitigations, insurance, accepted risk, and Monte Carlo rows.
+
+4. Standardized Monte Carlo run options.
+   - Allowed: 100, 1,000, 10,000, 100,000.
+   - Removed 500 option from runtime and HTML selects.
+
+5. Version moved to 24.0.03 and locked in the runtime.
+
+NOT CHANGED
+- Portfolio Report calculation module was not redesigned in this patch.
+- Save logic was not changed.
+- Post-login workspace load screen was not changed.
+- Workspace architecture was not changed.
+
+REGRESSION TESTING
+1. Confirm bottom-left version shows 24.0.03 only.
+2. Confirm Portfolio Report still loads and no duplicate total line appears after View Outcomes.
+3. Go to User Admin > Test Mode > ON.
+4. Confirm Model Validation appears in left pane.
+5. Open Model Validation and click Load Core Banking Test Portfolio.
+6. Go to Portfolio Report and confirm TEST-CORE scenarios are included.
+7. Return to Model Validation and test Export Validation Dataset and Download Model Validation Pack.
+8. Turn Test Mode OFF and confirm Model Validation is hidden.
+
+MANDATORY CLEANUP BEFORE PUSH
+PowerShell:
+Remove-Item .\app_24_0_*.js -Exclude app_24_0_03.js -ErrorAction SilentlyContinue
+Remove-Item .\app_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .\app.js -ErrorAction SilentlyContinue
+Remove-Item .\beta_scenario_engine.js -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+EXPECTED RESULT
+app_24_0_03.js
+
+PUSH COMMANDS
+git add .
+git commit -m "24.0.03"
+git pull origin main --rebase
+git push origin main --force-with-lease

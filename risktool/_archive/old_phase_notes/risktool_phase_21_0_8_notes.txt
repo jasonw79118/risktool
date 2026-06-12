@@ -1,0 +1,13 @@
+RISKTOOL PHASE 21.0.8 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.8
+- Checkbox-based Show password controls are removed
+- Native browser password reveal can remain
+
+Behavior fixes:
+- Default Local Admin login is hardened
+- Existing Local Admin records are normalized every load
+- Default credentials should work:
+  - user text: Local Admin
+  - password: admin

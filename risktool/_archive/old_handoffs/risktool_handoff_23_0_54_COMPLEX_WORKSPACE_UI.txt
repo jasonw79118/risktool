@@ -1,0 +1,21 @@
+RISKTOOL HANDOFF — PHASE 23.0.54 COMPLEX WORKSPACE UI
+Date: 04.30.2026
+Baseline: 23.0.53 column sources/editing patch
+Target Version: 23.0.54
+
+CHANGES INCLUDED
+- Version bumped to 23.0.54.
+- Complex Scenario Builder adjusted toward the approved Component Workspace mockup.
+- Component Summary rollup card added.
+- Numbered child-table tabs added for Risk Items, Costs/Losses, Evidence, Mitigation, Insurance, and Accepted Risk.
+- Right-side Component Workspace Tables navigator added.
+- Right-side How Rollups Are Calculated panel added.
+- Underlined source links added to field labels, table headers, and rollup panels.
+- Risk Item rows now support Edit and Delete; the Risk Item form supports Add, Update, Cancel, and Clear Form.
+- Existing repeatable table edit/delete framework for Cost/Loss, Evidence, Mitigation, Insurance, and Accepted Risk remains in place.
+
+INSTALLATION
+Copy the flat ZIP contents into the active RiskTool site root/docs folder. Do not nest the files.
+
+TESTING
+Confirm version 23.0.54, tab switching, right-side navigator, source links, risk item edit/update/delete, and existing child-table edit/delete behavior.

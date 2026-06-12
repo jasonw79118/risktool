@@ -1,0 +1,235 @@
+RISKTOOL PHASE 23.0.1
+DESKTOP SHELL + FILE BRIDGE SPEC
+
+PURPOSE
+Begin the shared-workspace architecture with a desktop shell and a controlled filesystem bridge.
+
+PRIMARY GOALS
+1. Wrap the current browser-style app in a desktop shell
+2. Add a filesystem bridge for approved workspace access
+3. Add workspace initialization flow
+4. Preserve current scenario layouts
+5. Ensure frontend version is visibly bumped to 23.0.1
+
+RECOMMENDED SHELL
+Preferred:
+- Tauri
+
+Acceptable:
+- Electron
+
+RECOMMENDATION
+Use Tauri unless a specific Electron dependency is required.
+
+WHY TAURI
+- lighter footprint
+- simpler desktop distribution
+- good filesystem access pattern
+- better fit for a security-conscious internal tool
+- browser-style frontend can remain mostly intact
+
+==================================================
+1. PHASE 23.0.1 TARGET OUTCOME
+==================================================
+
+After this phase, the app should:
+- launch as a desktop application
+- still render the current RiskTool frontend
+- expose a file bridge API for:
+  - choose workspace folder
+  - validate workspace structure
+  - create missing folders if allowed
+  - read config files
+  - write config files
+- show the connected workspace in the UI
+- show frontend version 23.0.1 clearly
+
+This phase does NOT yet require:
+- full scenario save/load migration
+- full user auth from users.json
+- audit write completion
+- full attachment/export writing
+
+==================================================
+2. DESKTOP SHELL REQUIREMENTS
+==================================================
+
+SHELL FEATURES
+- local app window
+- app menu / basic shell metadata
+- permission-limited file access
+- secure bridge only for approved file functions
+- no arbitrary unrestricted filesystem execution
+
+FRONTEND LOAD MODEL
+- existing frontend bundled into desktop shell
+- current views preserved:
+  - Dashboard
+  - Single Scenario
+  - Complex Scenario
+  - Beta Scenario
+  - Reports
+  - Category Admin
+  - User Admin
+  - Information
+
+VERSION DISPLAY
+- frontend must visibly show 23.0.1
+- version should remain bottom-left or current location
+- version source should be centralized
+
+==================================================
+3. FILE BRIDGE CONTRACT
+==================================================
+
+The frontend should not access filesystem APIs directly.
+Use a controlled bridge with approved methods only.
+
+RECOMMENDED BRIDGE METHODS
+- selectWorkspaceRoot()
+- getWorkspaceRoot()
+- validateWorkspaceStructure(root)
+- createWorkspaceStructure(root)
+- readWorkspaceFile(path)
+- writeWorkspaceFile(path, content)
+- listWorkspaceFiles(path)
+- fileExists(path)
+
+OPTIONAL LATER
+- appendAuditEntry(entry)
+- exportScenarioFile(...)
+- writeAttachment(...)
+
+SECURITY RULE
+Bridge should only operate inside the approved workspace root once selected.
+
+==================================================
+4. WORKSPACE INITIALIZATION FLOW
+==================================================
+
+FIRST RUN / SETUP
+1. user opens app
+2. app asks to select or create workspace root
+3. app validates folder structure
+4. app creates required folders if permitted
+5. app writes initial config files if missing
+6. app stores workspace reference for future launches
+
+REQUIRED FOLDERS
+- config/
+- scenarios/
+- scenarios/single/
+- scenarios/complex/
+- scenarios/beta/
+- attachments/
+- exports/
+- audit/
+- archive/
+- temp/
+
+REQUIRED CONFIG FILES
+- config/users.json
+- config/admin-settings.json
+- config/workspace-settings.json
+- config/roles.json
+
+==================================================
+5. INITIAL CONFIG FILE CONTENT
+==================================================
+
+users.json
+- can be seeded with Admin user
+- use hashed password later; for first shell scaffold, placeholder structure is acceptable
+
+admin-settings.json
+- feature flags
+- version policy
+- lock settings
+- retention options
+
+workspace-settings.json
+- workspace name
+- workspace root
+- export folder references
+- default save mode
+- version target
+
+roles.json
+- Admin
+- Manager / Reviewer
+- Standard User
+- Read Only
+
+==================================================
+6. FRONTEND CHANGES REQUIRED IN 23.0.1
+==================================================
+
+VISIBLE CHANGES
+- version number updated to 23.0.1
+- workspace status display added
+- current workspace root display added
+- workspace initialization action added
+- save engine wording changed to shared-workspace direction
+
+SAFE RULES
+Do NOT change:
+- current scenario order
+- current complex scenario hierarchy
+- current Monte Carlo logic
+- current report calculation logic
+- current Information layout unless necessary for workspace help text
+
+==================================================
+7. UI ADDITIONS TO EXPECT
+==================================================
+
+USER ADMIN / WORKSPACE AREA
+Add or refine:
+- Connected Workspace
+- Select Workspace
+- Validate Workspace
+- Create Missing Folders
+- Workspace Status
+
+Optional visible fields:
+- current workspace path
+- last validation status
+- shell mode indicator
+- save engine display
+
+==================================================
+8. PHASE 23.0.1 FILE OUTPUTS
+==================================================
+
+Code deliverables for this phase should eventually include:
+- desktop shell project files
+- updated frontend files
+- workspace bridge module
+- initial config seed files
+- handoff notes
+
+==================================================
+9. VERIFICATION FOR 23.0.1
+==================================================
+
+Verify:
+- app launches in shell
+- frontend still loads
+- version reads 23.0.1
+- workspace root can be selected
+- workspace folders can be validated
+- required folders can be created
+- workspace path is shown in UI
+- no scenario layout regression occurs
+
+==================================================
+10. NEXT PHASE AFTER 23.0.1
+==================================================
+
+PHASE 23.0.2
+- save/load users/admin/settings from workspace config files
+
+PHASE 23.0.3
+- save/load scenarios as JSON files in workspace folders
+
+END OF SPEC

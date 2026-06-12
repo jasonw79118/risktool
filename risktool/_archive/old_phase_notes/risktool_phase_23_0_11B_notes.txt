@@ -1,0 +1,22 @@
+RISKTOOL PHASE 23.0.11B NOTES
+
+FULL PROJECT SAVE OVERRIDE PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.11
+2. Save Scenario writes to browser-local saved scenarios again
+3. Saved Scenarios table populates after save
+4. Dashboard open-scenarios table refreshes after save
+
+What was changed:
+- replaced the current save/render path with a direct browser-local override
+- override now controls:
+  - getSavedScenarios
+  - setSavedScenarios
+  - renderSavedScenarios
+  - renderDashboardOpenTable
+  - saveScenario
+  - saveBetaScenario
+
+Why:
+- this bypasses the broken branches in the current project and forces a stable local-save path for testing

@@ -1,0 +1,17 @@
+RISKTOOL PHASE 21.0.5 NOTES
+
+Visible changes to verify:
+1. Version note updates to 21.0.5
+2. Login Required modal now includes:
+   - Password field
+   - Open User Admin button
+3. User Admin now includes:
+   - Password field on User Entry
+
+Behavior changes:
+- login now requires matching password for selected user
+- default local admin credentials are:
+  - user: Local Admin
+  - password: admin
+- Open User Admin lets an admin reach setup without first starting a session
+- login gate no longer acts like a selector-only screen

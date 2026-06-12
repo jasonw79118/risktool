@@ -1,0 +1,231 @@
+RISKTOOL PHASE 22.0.0
+BACKEND-CONTROLLED SHARED WORKSPACE FOUNDATION
+
+PURPOSE
+Move RiskTool from browser-local scenario storage to a backend-controlled architecture with:
+- authenticated users
+- role-based access
+- scenario ownership
+- audit logging
+- secure centralized persistence
+- shared attachment / export support
+
+THIS PHASE SHOULD REPLACE
+- browser-only scenario record storage as the primary system of record
+
+THIS PHASE SHOULD RETAIN
+- current scenario layouts
+- current scenario calculation flow
+- current complex scenario hierarchy
+- current information/help content where possible
+
+1. TARGET ARCHITECTURE
+FRONTEND
+- existing RiskTool web app
+- authenticated session required
+- frontend calls backend APIs for:
+  - login
+  - user management
+  - scenario CRUD
+  - scenario ownership
+  - dashboard queries
+  - audit history
+  - workspace configuration
+  - attachments metadata
+
+BACKEND
+Recommended stack:
+- FastAPI or Node/Express
+- JWT or secure session-cookie auth
+- role-based authorization middleware
+- database-backed scenario storage
+- optional file storage adapter for attachments / exports
+
+DATABASE
+Recommended:
+- PostgreSQL
+
+FILE / DOCUMENT STORAGE
+Recommended:
+- shared drive or object storage for attachments and exported reports only
+- scenario records remain in database, not raw files as primary source of truth
+
+2. SECURITY MODEL
+AUTHENTICATION
+- username/email + password login
+- hashed passwords only
+- admin-created users
+- account disable / deactivate support
+- optional MFA later
+
+AUTHORIZATION
+Roles:
+- Admin
+- Manager / Reviewer
+- Standard User
+- Read Only
+
+Minimum rules:
+- Admin: full access
+- Manager / Reviewer: team view + assigned scenarios
+- Standard User: own / assigned work
+- Read Only: read-only visibility according to assignment rules
+
+PASSWORD HANDLING
+- never store plaintext passwords
+- use bcrypt/argon2 hashing
+- require password change workflow later
+- support password reset flow later
+
+AUDIT / TRACEABILITY
+Every critical event should be logged:
+- login success/failure
+- user creation/update/deactivate
+- scenario create/update
+- ownership reassignment
+- acceptance decision changes
+- storage configuration changes
+- report export events
+
+3. DATABASE TABLES
+users
+- id
+- user_id
+- display_name
+- email_or_login
+- password_hash
+- role
+- reporting_line
+- department
+- status
+- created_at
+- updated_at
+
+scenarios
+- id
+- scenario_id
+- mode
+- name
+- scenario_status
+- scenario_source
+- product_group
+- primary_product
+- primary_regulation
+- risk_domain
+- created_by_user_id
+- assigned_owner_user_id
+- last_updated_by_user_id
+- team_or_department
+- storage_mode_tag
+- workspace_id
+- created_at
+- updated_at
+
+complex_components
+- id
+- component_id
+- scenario_id
+- group_id
+- scenario_name
+- scenario_status
+- product_group
+- primary_product
+- primary_regulation
+- risk_domain
+- created_by_user_id
+- assigned_owner_user_id
+- last_updated_by_user_id
+- team_or_department
+- created_at
+- updated_at
+
+supporting child tables:
+- risk_items
+- insurance_entries
+- hard_facts
+- mitigations
+- accepted_risks
+- audit_log
+- workspace_settings
+
+4. API ENDPOINTS
+AUTH
+POST /api/auth/login
+POST /api/auth/logout
+GET  /api/auth/me
+
+USERS
+GET    /api/users
+POST   /api/users
+PATCH  /api/users/{id}
+POST   /api/users/{id}/deactivate
+
+SCENARIOS
+GET    /api/scenarios
+POST   /api/scenarios
+GET    /api/scenarios/{scenario_id}
+PUT    /api/scenarios/{scenario_id}
+DELETE /api/scenarios/{scenario_id}
+
+COMPONENTS
+GET    /api/scenarios/{scenario_id}/components
+POST   /api/scenarios/{scenario_id}/components
+PUT    /api/components/{component_id}
+DELETE /api/components/{component_id}
+
+LOOKUPS / DASHBOARD
+GET /api/dashboard/open
+GET /api/scenarios/mine
+GET /api/scenarios/team
+GET /api/scenarios/unassigned
+
+AUDIT
+GET /api/audit
+GET /api/scenarios/{scenario_id}/audit
+
+WORKSPACE
+GET /api/workspace/settings
+PUT /api/workspace/settings
+
+EXPORTS / ATTACHMENTS
+POST /api/scenarios/{scenario_id}/export
+POST /api/scenarios/{scenario_id}/attachments
+GET  /api/scenarios/{scenario_id}/attachments
+
+5. FRONTEND CHANGES REQUIRED
+- remove browser local storage as primary system of record
+- keep local storage only for cached preferences if desired
+- login screen authenticates against backend
+- user admin reads/writes to backend
+- scenario save -> backend POST/PUT
+- dashboard reads from backend
+- saved scenarios reads from backend
+
+6. SECURE STORAGE RULES
+PRIMARY SCENARIO RECORDS
+- database only
+
+ATTACHMENTS / EXPORTED FILES
+- controlled shared drive or object storage
+
+SHARED PATHS
+- managed export destinations, not primary live database
+
+7. MIGRATION PLAN
+1. Create backend and database schema
+2. Add auth endpoints and user admin endpoints
+3. Add scenario CRUD endpoints
+4. Wire frontend login to backend
+5. Wire saved scenarios/dashboard to backend reads
+6. Wire scenario save/update to backend writes
+7. Add audit log writes
+8. Add export / attachment service
+9. Retire browser local storage as primary save path
+
+8. NEAR-TERM PHASES
+22.0.0 backend architecture foundation + schema + API spec
+22.0.1 backend auth + users service
+22.0.2 scenario CRUD backend + frontend integration
+22.0.3 dashboard / saved scenarios backend queries
+22.0.4 audit log + ownership reassignment
+22.0.5 attachment/export service + shared-drive integration

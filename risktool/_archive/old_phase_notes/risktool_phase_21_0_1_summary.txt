@@ -1,0 +1,10 @@
+PHASE 21.0.1 QUICK SUMMARY
+
+This pack is the implementation specification for:
+- User Admin
+- Ownership fields
+- Dashboard ownership visibility
+- Storage mode field capture
+
+It does NOT change the app yet.
+It defines the next controlled coding phase.

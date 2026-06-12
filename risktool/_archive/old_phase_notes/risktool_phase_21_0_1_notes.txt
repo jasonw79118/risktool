@@ -1,0 +1,32 @@
+RISKTOOL PHASE 21.0.1 NOTES
+
+REAL CODE PACK
+
+Visible changes to verify:
+1. New left-nav item: User Admin
+2. New User Admin screen with:
+   - Session Defaults
+   - User Entry
+   - User Table
+3. Dashboard table now shows:
+   - Assigned Owner
+   - Storage Mode
+4. Saved Scenarios table now shows:
+   - Assigned Owner
+   - Storage Mode
+5. Version note updates to 21.0.1
+
+Functional changes:
+- users are stored locally
+- one default Local Admin user is created if no users exist
+- current session user can be selected
+- default storage mode can be selected
+- new saves capture:
+  - created by
+  - assigned owner
+  - last updated by
+  - team / department
+  - storage mode
+
+Also corrected:
+- Single Scenario reopen mapping for Reporting Lines and Primary Product / Service

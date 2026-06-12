@@ -1,0 +1,15 @@
+RISKTOOL PHASE 20.1.50 NOTES
+
+SAFE APPEND ONLY
+
+Changes:
+- Phase bumped to 20.1.50
+- Added Board Packet Use section
+- Added Narrative Writing Guidance section
+- Added Review and Challenge Questions section
+
+NO CHANGES TO:
+- layout
+- scenario logic
+- render chain
+- navigation

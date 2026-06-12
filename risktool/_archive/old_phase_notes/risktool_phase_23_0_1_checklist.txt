@@ -1,0 +1,27 @@
+PHASE 23.0.1 CHECKLIST
+
+Desktop shell
+[ ] choose Tauri or Electron
+[ ] shell launches frontend
+[ ] app window configured
+
+Versioning
+[ ] frontend version shows 23.0.1
+[ ] version source centralized
+
+Workspace bridge
+[ ] select workspace root
+[ ] validate folder structure
+[ ] create missing folders
+[ ] read config file
+[ ] write config file
+
+UI
+[ ] workspace status shown
+[ ] workspace path shown
+[ ] workspace setup action present
+
+Safety
+[ ] scenario layout unchanged
+[ ] complex hierarchy unchanged
+[ ] Monte Carlo unchanged

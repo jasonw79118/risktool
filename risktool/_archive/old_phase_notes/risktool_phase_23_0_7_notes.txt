@@ -1,0 +1,22 @@
+RISKTOOL PHASE 23.0.7 NOTES
+
+REAL SAVE RESTORE PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.7
+2. Saved Scenarios section now includes:
+   - Download Current Scenario JSON
+   - Upload Scenario JSON
+3. Save Scenario should again write into browser-local saved scenarios
+4. Saved Scenarios table and Dashboard should refresh after save/import
+
+What this pack does:
+- restores browser-local scenario saving for testing
+- adds JSON download for the current scenario
+- adds JSON upload/import into Saved Scenarios
+- keeps shared-workspace migration direction visible
+
+What it does NOT do:
+- no scenario layout changes
+- no complex hierarchy changes
+- no true workspace-file save migration yet

@@ -1,0 +1,3 @@
+RISKTOOL HANDOFF — PHASE 23.0.45
+
+Adds Hubbard-style dollar expected loss calculation overrides and Portfolio Risk Ranking by Area/Product Family. Includes version bump, report snapshot save fallback, and area hot spot ranking.

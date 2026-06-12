@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Risk Manager Phase 4.3 Starter Example</title>
+  <link rel="stylesheet" href="./css/theme-phase-4-3.css" />
+</head>
+<body>
+  <main class="rm-card" style="max-width:1100px;margin:24px auto;">
+    <h1>Risk Manager – Phase 4.3 Starter Example</h1>
+    <p>This page is only a sample shell for testing the starter modules.</p>
+
+    <label class="help-label" title="This is hover help without a question mark.">Product Group</label>
+
+    <section id="categoryAdmin" style="margin-top:24px;"></section>
+    <section id="scenarioTable" style="margin-top:24px;"></section>
+  </main>
+
+  <script type="module">
+    import seeds from "./data/category-seeds.json" with { type: "json" };
+    import { renderCategoryAdmin } from "./js/category-admin-phase-4-3.js";
+    import { renderScenarioTable } from "./js/scenario-table-phase-4-3.js";
+
+    renderCategoryAdmin(seeds, document.getElementById("categoryAdmin"));
+
+    renderScenarioTable([
+      {
+        scenarioId: "RSK-2026-0001",
+        title: "UDAAP review gap for Payment Services",
+        scenarioType: "single",
+        productGroup: "Payment Services",
+        riskDomain: "Compliance",
+        scenarioStatus: "Open",
+        scenarioSource: "New Regulation",
+        disposition: "Mitigate",
+        scenarioOwner: "Compliance",
+        acceptedRiskFlag: false,
+        lastUpdated: new Date().toISOString()
+      }
+    ], document.getElementById("scenarioTable"));
+  </script>
+</body>
+</html>

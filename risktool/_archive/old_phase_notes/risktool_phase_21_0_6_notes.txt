@@ -1,0 +1,22 @@
+RISKTOOL PHASE 21.0.6 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.6
+- Login uses a typed text field for User
+- Login still includes Password
+- User Admin includes Workspace Setup with:
+  - Local Workspace Path
+  - Shared Workspace Path
+  - Save Workspace Setup
+- User Admin includes Password on User Entry
+
+Behavior changes:
+- login matches typed display name or login name
+- default admin credentials:
+  - user text: Local Admin
+  - password: admin
+- workspace path settings are saved locally in this browser
+
+Important:
+- workspace paths are stored as path settings in this phase
+- browser apps cannot directly write to arbitrary local/share-drive paths without a backend, native wrapper, or explicit file API workflow

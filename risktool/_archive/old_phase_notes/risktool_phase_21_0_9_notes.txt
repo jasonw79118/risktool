@@ -1,0 +1,11 @@
+RISKTOOL PHASE 21.0.9 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.9
+- Password field on login gate accepts typing
+- Start Session button is clickable
+- Open User Admin button is clickable
+
+What was fixed:
+- login modal controls are now explicitly allowed before session start
+- session guard no longer blocks interactions inside the login modal

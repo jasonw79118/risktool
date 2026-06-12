@@ -1,0 +1,27 @@
+RiskTool 23.0.58 handoff
+
+Purpose
+- Correct placement of the New Component workflow button.
+- Begin aligning Single Scenario Builder and Beta Scenario screens with the Complex Scenario Builder workspace visual pattern.
+
+Files included
+- index.html
+- app.js
+- app_23_0_58.js
+- risktool_handoff_23_0_58.txt
+
+Changes made
+1. Version bumped to 23.0.58.
+2. New Component button is forced to render directly below the Complex Scenario Builder description and above Component Summary.
+3. Existing bottom-rendered New Component control is moved, not duplicated.
+4. Single Scenario Builder now receives a workspace-style summary card and numbered tab strip.
+5. Beta Scenario Builder now receives a workspace-style summary card and numbered tab strip.
+6. Summary cards update from current form values and keep the same rollup/source-link visual language used in Complex Builder.
+
+Regression tests
+1. Complex Builder: New Component button appears above Component Summary, in the red-circle location requested.
+2. Complex Builder: clicking New Component clears the form and switches into create mode.
+3. Complex Builder: tabs remain directly below Component Summary.
+4. Single Scenario: screen shows Scenario Workspace header, summary card, and tab strip without breaking existing form fields.
+5. Beta Scenario: screen shows Planning Workspace header, summary card, and tab strip without breaking existing form fields.
+6. Sidebar remains dark blue with icons and no duplicate Portfolio Report entry.

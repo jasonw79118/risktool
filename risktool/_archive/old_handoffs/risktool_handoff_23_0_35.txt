@@ -1,0 +1,45 @@
+RISKTOOL HANDOFF — PHASE 23.0.35
+Date: 04.28.2026
+
+DELIVERED PATCH
+1. Version advanced from 23.0.34 to 23.0.35.
+2. index.html now displays 23.0.35 in the lower-left version label.
+3. index.html now references app_23_0_35.js?v=23.0.35 for cache busting.
+4. app.js and app_23_0_35.js both contain the same updated 23.0.35 application logic.
+5. Complex Product Section delete now allows deletion when linked risk items exist.
+   - User receives confirmation:
+     This will delete the Product/Service/Area and associated risk item(s). Continue?
+   - On confirm, linked risk items are removed.
+   - Product Section table and Risk Item table re-render.
+6. Risk Item table now includes an Actions column.
+7. Each risk item row now has a Delete button.
+8. Risk item delete asks for confirmation and then re-renders the table/recalculates inherent score.
+9. Information screen remains tied to the left navigation only.
+   - The floating Information button is disabled/removed.
+   - Selecting Information from the left nav triggers the information pane render.
+
+FILES INCLUDED IN ZIP
+- index.html
+- app.js
+- app_23_0_35.js
+- beta_scenario_engine.js
+- style.css
+- risktool_handoff_23_0_35.txt
+
+TEST CHECKLIST
+1. Hard refresh the GitHub Pages site after push.
+2. Confirm lower-left version reads 23.0.35.
+3. Confirm index loads app_23_0_35.js in browser dev tools/network tab.
+4. Open Complex Scenario.
+5. Add Product Section.
+6. Add at least one linked Risk Item.
+7. Delete the Product Section.
+8. Confirm warning appears and linked risk items delete after confirmation.
+9. Add another Risk Item.
+10. Use the Risk Item row Delete button and confirm it removes only that item.
+11. Open Information from the left navigation and confirm no floating Information button appears.
+
+NEXT PHASE SUGGESTIONS
+23.0.36 — Continue Complex Scenario component clarity and product/section scoring calculation.
+23.0.37 — Expand evidence/hard facts by component.
+23.0.38 — Deeper Monte Carlo integration and examiner-facing methodology output.

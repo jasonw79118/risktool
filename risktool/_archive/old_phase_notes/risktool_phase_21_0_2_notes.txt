@@ -1,0 +1,31 @@
+RISKTOOL PHASE 21.0.2 NOTES
+
+Visible changes to verify:
+1. Version note updates to 21.0.2
+2. Single Scenario now has a new card:
+   - Scenario Ownership
+   - Created By
+   - Assigned Owner
+   - Last Updated By
+   - Team / Department
+   - Storage Mode
+3. Complex Scenario now has a new card:
+   - Scenario Ownership
+   - Created By
+   - Assigned Owner
+   - Last Updated By
+   - Team / Department
+   - Storage Mode
+
+Functional changes:
+- ownership fields now appear directly in Single and Complex builders
+- assigned owner dropdown is fed from active users in User Admin
+- ownership defaults follow the current session user
+- ownership fields are saved with scenario records
+- ownership fields are restored when reopening saved scenarios
+
+What did NOT change:
+- scenario order
+- complex scenario hierarchy
+- navigation flow
+- Monte Carlo logic

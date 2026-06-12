@@ -1,0 +1,35 @@
+RISKTOOL HANDOFF — PHASE 23.0.63 CATEGORY WORKSPACE FIX
+Date: 04.30.2026
+
+Patch source: current app package supplied by user as risktool(11).zip.
+
+WHAT CHANGED
+1. Version bumped to 23.0.63 across index.html, app.js, and app_23_0_63.js.
+2. index.html points to app_23_0_63.js?v=23.0.63.
+3. Scenario-level Risk Domain fields are now treated as Category fields in Single, Complex, and Beta screens.
+4. Category fields are positioned directly below the relevant Area Review ID / Area Group ID field.
+5. Category dropdowns are populated from Category Admin's Category/Product Group library and remain selectable.
+6. Duplicate lower Category/Primary Product fields remain hidden and synchronized for backward compatibility.
+7. Risk Domain remains available for individual Risk Item Entry only.
+8. Single and Beta workspace tabs are finalized with one active tab row and section-specific panels.
+9. Dashboard graph card remains hidden; dashboard table labeling is adjusted toward Category.
+10. Left navigation active state is reinforced so Complex does not stay highlighted on every screen.
+
+REGRESSION TESTS
+- Live bottom-left version should show 23.0.63.
+- View source should show app_23_0_63.js?v=23.0.63.
+- Single Scenario: Category appears directly below Area Review ID and allows selection.
+- Complex Scenario: Category appears directly below Area Group ID and allows selection.
+- Beta Scenario: Category appears directly below Area Review ID and allows selection.
+- Scenario-level Risk Domain should no longer be visible as a user-facing scenario field.
+- Risk Item Entry should still have Risk Domain.
+- Single and Beta should show one tab row only.
+- Tabs should show related section content only.
+- Left nav should highlight only the active view.
+
+FILES INCLUDED
+- index.html
+- app.js
+- app_23_0_63.js
+- style.css
+- risktool_handoff_23_0_63.txt

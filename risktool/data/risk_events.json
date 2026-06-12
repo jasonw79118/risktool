@@ -1,0 +1,72 @@
+[
+  {
+    "event_id": "EVT-001",
+    "domain_id": "fraud_external",
+    "domain_name": "External Fraud Risk",
+    "event_name": "ACH fraud event",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-002",
+    "domain_id": "cybersecurity",
+    "domain_name": "Cybersecurity Risk",
+    "event_name": "Account takeover campaign",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-003",
+    "domain_id": "consumer_compliance",
+    "domain_name": "Consumer Compliance Risk",
+    "event_name": "Reg E error resolution failure",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-004",
+    "domain_id": "payments_network",
+    "domain_name": "Payments & Network Rule Risk",
+    "event_name": "NACHA rules violation",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-005",
+    "domain_id": "aml_sanctions",
+    "domain_name": "BSA/AML, Sanctions & Financial Crimes Risk",
+    "event_name": "Weak CIP/KYC controls",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-006",
+    "domain_id": "third_party_vendor",
+    "domain_name": "Third-Party & Vendor Risk",
+    "event_name": "Critical vendor outage",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-007",
+    "domain_id": "information_security_privacy",
+    "domain_name": "Information Security & Privacy Risk",
+    "event_name": "Privacy breach / unauthorized data exposure",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-008",
+    "domain_id": "legal_litigation",
+    "domain_name": "Legal, Litigation & Judgement Risk",
+    "event_name": "Class action or major settlement scenario",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-009",
+    "domain_id": "operational_process",
+    "domain_name": "Operational Process Risk",
+    "event_name": "Large-scale processing error",
+    "event_type": "Loss Event"
+  },
+  {
+    "event_id": "EVT-010",
+    "domain_id": "reputation_brand",
+    "domain_name": "Reputation & Brand Risk",
+    "event_name": "Complaint surge and brand damage",
+    "event_type": "Loss Event"
+  }
+]

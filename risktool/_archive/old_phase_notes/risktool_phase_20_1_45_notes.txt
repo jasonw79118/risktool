@@ -1,0 +1,16 @@
+RISKTOOL PHASE 20.1.45 NOTES
+
+Built forward from the current working baseline.
+
+Included:
+- Phase bumped to 20.1.45
+- Information / User Guide expanded without changing the working screen layout
+- Added:
+  - Complex Scenario Structure guidance
+  - Worked Examples
+  - Monte Carlo and Random Outcomes explanation
+  - FAQ section
+- Preserved the current working scenario layout and selection behavior
+- Also cleaned visible wording if older labels were still present:
+  - Complex Scenario Risk Items -> Risk Item Table
+  - Mitigation Factors -> Mitigation Entry

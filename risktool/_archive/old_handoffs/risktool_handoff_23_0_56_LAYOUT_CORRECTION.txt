@@ -1,0 +1,25 @@
+RiskTool 23.0.56 Layout Correction Patch
+
+Purpose:
+- Correct the Complex Scenario Builder workspace so it more closely matches the approved mockup.
+
+Changes:
+1. Restored visible left-pane icon markers for navigation items.
+2. Removed extra gap between the left navigation pane and the main canvas by matching the body grid column to the sidebar width.
+3. Moved the workspace section tabs directly above the active entry pane.
+4. Rebuilt the tab order to:
+   1. Component Entry
+   2. Risk Items
+   3. Costs / Losses
+   4. Hard Facts / Evidence
+   5. Mitigation / Controls
+   6. Insurance / Risk Transfer
+   7. Accepted Risk
+5. Added Component Entry as its own active tab rather than leaving the component form outside the tab workflow.
+6. Updated the right-side Component Workspace Tables panel to match the same tab order.
+7. Preserved the column-source links, rollup card, table edit/delete actions, and full workspace structure from prior patches.
+
+Delivery:
+- Flat ZIP.
+- Replacement files are not nested in a subfolder.
+- Replace index.html, app.js, and app_23_0_56.js together.

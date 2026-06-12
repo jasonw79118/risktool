@@ -1,0 +1,12 @@
+[
+  {
+    "id": "single_risk",
+    "name": "Single Risk Evaluation",
+    "description": "Deprecated in Phase 4.3 UI because builder selection now determines scenario type."
+  },
+  {
+    "id": "complex_risk",
+    "name": "Complex Risk Evaluation",
+    "description": "Deprecated in Phase 4.3 UI because builder selection now determines scenario type."
+  }
+]

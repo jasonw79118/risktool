@@ -1,0 +1,19 @@
+RISKTOOL PHASE 23.0.3 NOTES
+
+REAL FRONTEND UPDATE PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.3
+2. Workspace Setup now shows a phase note:
+   - Current frontend phase: 23.0.3
+   - Shared-workspace config-file integration is the active implementation track
+
+What this pack is for:
+- give you a real pushable frontend update
+- ensure the visible version can move forward
+- avoid another spec-only zip with no index.html/app.js changes
+
+What this pack does NOT do:
+- no scenario layout changes
+- no complex hierarchy changes
+- no save-engine migration yet

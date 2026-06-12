@@ -1,0 +1,6 @@
+Phase 23.0.28
+- Directly routes login button and Enter key through rtLoginAndReconnect().
+- Shows Reconnect Workspace Folder modal immediately after successful login.
+- Reconnect checks config/session-state.json and offers restore.
+- Keeps saved scenario lists gated until workspace is connected.
+- Flat ZIP packaging, no parent folder.

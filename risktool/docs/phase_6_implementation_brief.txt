@@ -1,0 +1,13 @@
+Risk Manager – Phase 6 Implementation Brief
+
+Add a new Beta Scenario workflow for project planning and future-state risk modeling.
+
+Scenario Types:
+- Single Scenario
+- Complex Scenario
+- Beta Scenario
+
+Beta Scenario uses:
+Min / Mode / Max
+Randomized simulations
+Promotion to live scenario after management approval.

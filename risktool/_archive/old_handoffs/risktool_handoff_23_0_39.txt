@@ -1,0 +1,39 @@
+RISKTOOL HANDOFF — PHASE 23.0.39
+Date: 04.29.2026
+Version Target: 23.0.39
+
+OBJECTIVE
+Refactor Complex Scenario Builder language and flow toward the intended hierarchy:
+Area / Product Family → Area Components → selected component workspace → component-specific risk items, evidence, mitigation, insurance, accepted risk → area rollup.
+
+CHANGES INCLUDED
+1. Renamed Product Section Entry to Area / Product Family Setup.
+2. Renamed Product Section Table to Area Rollup Summary.
+3. Renamed Overall Scenario Components to Area Components.
+4. Renamed Scenario Details for Selected Scenario to Selected Component Workspace.
+5. Renamed Scenario Name to Component Name and Add Scenario to Save Component.
+6. Updated labels/help text so components such as Loan Statements, Loan Disclosures, Loan Rates, Loan Transactions, Escrow, and Collections are treated as child components under a broader area such as Loans.
+7. Updated area rollup calculation text and calculation basis so it considers component risk items across saved components plus the current workspace, evidence count, mitigation status, insurance offset, and exposure estimates.
+8. Bumped visible version and cache references to 23.0.39.
+
+FILES INCLUDED
+- index.html
+- app.js
+- app_23_0_39.js
+- style.css
+- beta_scenario_engine.js
+- risktool_handoff_23_0_39.txt
+
+NEXT RECOMMENDED PHASE
+23.0.40 should make the hierarchy data model more explicit:
+- Add a distinct Area Review record separate from Component records.
+- Store componentId on each risk item, evidence item, mitigation item, insurance item, and accepted-risk decision.
+- Add component score cards and an area rollup card that shows highest-risk component, weighted residual score, and review frequency.
+
+TEST CASES
+1. Add Area / Product Family = Loans.
+2. Save components named Loan Statements, Loan Disclosures, and Loan Rates.
+3. Add risk items, evidence, mitigation, insurance, and accepted risk to each component.
+4. Confirm Area Components table shows the child components.
+5. Confirm Area Rollup Summary recalculates after component risk items are added or deleted.
+6. Confirm dashboard/footer version displays 23.0.39.

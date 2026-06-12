@@ -1,0 +1,5 @@
+RiskTool Phase 23.0.19
+- Added post-login restore prompt modal
+- Prompt appears after successful login when a workspace folder is connected and session-state.json exists
+- Prompt also appears after connecting the workspace folder while already logged in
+- Restore, Not Now, and Clear Session State actions added to the prompt

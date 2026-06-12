@@ -1,0 +1,26 @@
+[
+  {
+    "tier": "Very High",
+    "min_score": 85,
+    "max_score": 100,
+    "review_frequency": "Quarterly"
+  },
+  {
+    "tier": "High",
+    "min_score": 70,
+    "max_score": 84,
+    "review_frequency": "Semiannual"
+  },
+  {
+    "tier": "Moderate",
+    "min_score": 50,
+    "max_score": 69,
+    "review_frequency": "Annual"
+  },
+  {
+    "tier": "Low",
+    "min_score": 0,
+    "max_score": 49,
+    "review_frequency": "18-24 Months"
+  }
+]

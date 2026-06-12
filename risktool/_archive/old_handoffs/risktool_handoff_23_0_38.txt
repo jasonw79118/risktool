@@ -1,0 +1,14 @@
+RISKTOOL HANDOFF — PHASE 23.0.38
+Date: 04.28.2026
+
+Completed in this patch:
+1. Changed Complex Scenario Builder Product Section Weight from a manual selected number to a calculated field.
+2. Added calculated product-section risk weighting based on linked risk items, risk item scores/weights, hard facts/evidence count, mitigation status strength, insurance coverage/deductible offset, and scenario exposure estimates.
+3. Product Section table now shows Calculated Weight, Risk Score, and Calculation Basis.
+4. Version references bumped to 23.0.38, including visible app version and app_23_0_38.js cache-busted script reference.
+
+Testing focus:
+- Add a product section with no risk items: should show 1/5 with no linked risk items note.
+- Add risk items to that product: calculated weight should update automatically.
+- Add hard facts, mitigations, and insurance: calculation basis should update when tables are changed.
+- Confirm dashboard footer/version shows 23.0.38 after deploy/cache refresh.

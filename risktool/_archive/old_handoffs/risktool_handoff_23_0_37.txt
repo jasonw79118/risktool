@@ -1,0 +1,12 @@
+RISKTOOL HANDOFF — PHASE 23.0.37
+Date: 04.28.2026
+
+Completed:
+- Added spacing/wrapping to Information quick buttons.
+- Bumped visible dashboard/sidebar/footer/version badge to 23.0.37.
+- Updated index.html to reference app_23_0_37.js?v=23.0.37 and style.css?v=23.0.37 for cache busting.
+
+Test:
+- Hard refresh after push.
+- Dashboard/sidebar and bottom-left badge should show 23.0.37.
+- Information quick buttons should have visible separation.

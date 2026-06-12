@@ -1,0 +1,11 @@
+RISKTOOL PHASE 21.0.13 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.13
+- After successful login, the login bubble should disappear
+- The app shell should become clickable immediately
+
+What was fixed:
+- successful login now force-closes the login gate
+- successful login now re-enables the sidebar and main app area
+- login modal visibility state is hardened

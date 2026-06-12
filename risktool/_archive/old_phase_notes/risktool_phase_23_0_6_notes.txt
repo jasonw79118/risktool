@@ -1,0 +1,20 @@
+RISKTOOL PHASE 23.0.6 NOTES
+
+FULL FRONTEND UPDATE PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.6
+2. Workspace Setup phase note updates to 23.0.6
+3. Shared Workspace Readiness Checklist card updates to 23.0.6
+4. New card appears:
+   - Shared Workspace Migration Status
+
+What this pack does:
+- provides a real pushable frontend update
+- makes current-state vs target-state migration status visible
+- gives you another real version bump
+
+What it does NOT do:
+- no scenario layout changes
+- no complex hierarchy changes
+- no file-save migration yet

@@ -1,0 +1,13 @@
+PHASE 21.0.0 QUICK SUMMARY
+
+This pack does NOT modify the app.
+
+It defines the next major phase:
+- users
+- ownership
+- local vs shared storage
+- role-aware access
+- dashboard filtering by owner / team
+
+Recommended next coding phase:
+Phase 21.0.0 – Multi-User + Storage Foundation

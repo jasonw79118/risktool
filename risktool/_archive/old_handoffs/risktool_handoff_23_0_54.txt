@@ -1,0 +1,10 @@
+RiskTool Phase 23.0.54 Recompiled Package
+
+Flat ZIP contents:
+- index.html
+- app.js
+- app_23_0_54.js
+- README.txt
+- risktool_handoff_23_0_54.txt
+
+This package was rebuilt fresh from the uploaded source folder and verified with unzip -t before delivery.

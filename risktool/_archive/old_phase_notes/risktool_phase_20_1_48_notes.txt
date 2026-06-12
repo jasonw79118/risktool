@@ -1,0 +1,14 @@
+RISKTOOL PHASE 20.1.48 NOTES
+
+Built forward from the 20.1.47 safe information append baseline.
+
+SAFE INFORMATION EXPANSION ONLY
+- No render-chain changes
+- No new manual renderer function
+- No scenario logic changes
+- No layout changes
+
+Added to Information:
+- Screen-by-Screen Guide
+- Scenario Examples
+- Using Reports Well

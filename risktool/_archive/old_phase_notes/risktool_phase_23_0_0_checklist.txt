@@ -1,0 +1,29 @@
+SHARED WORKSPACE FOUNDATION CHECKLIST
+
+Architecture
+[ ] choose Electron or Tauri
+[ ] define workspace root
+[ ] define folder structure
+[ ] define file schemas
+
+Security
+[ ] password hashing
+[ ] users.json outside browser storage
+[ ] admin-settings.json outside browser storage
+[ ] audit-log.jsonl design
+[ ] revision/conflict policy
+
+File model
+[ ] scenario file naming
+[ ] single scenario schema
+[ ] complex scenario schema
+[ ] beta scenario schema
+[ ] attachment metadata model
+
+Frontend migration
+[ ] workspace picker/setup flow
+[ ] load users from workspace config
+[ ] save scenarios to JSON files
+[ ] dashboard reads from workspace files
+[ ] saved scenarios reads from workspace files
+[ ] browser local storage retired as primary save engine

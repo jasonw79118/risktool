@@ -1,0 +1,25 @@
+RiskTool Phase 23.0.24
+
+Purpose
+- Fix the active login and restore-session path.
+- Keep the package flat so it extracts directly into the existing risktool folder.
+
+Changes
+- Bumped runtime APP_VERSION to 23.0.24.
+- Bumped index.html script cache-bust to app.js?v=23.0.24.
+- Forces a fresh login after page load instead of keeping the user logged in forever through browser localStorage.
+- Adds a post-login Reconnect Workspace Folder modal.
+- Reconnect modal appears right after successful login when Chrome/Edge folder access is available.
+- Reconnect button sets Chrome/Edge Workspace Folder mode, opens the folder picker from a user click, and then checks config/session-state.json.
+- If a prior session exists, the existing Restore Previous Session modal appears after reconnect.
+- Added a data favicon reference to suppress the harmless favicon.ico 404.
+
+Expected test
+1. Extract this ZIP directly into C:\Users\jason\risktool.
+2. Commit and push.
+3. Open the live site in Chrome or Edge and hard refresh.
+4. Confirm bottom-left version shows 23.0.24.
+5. Login.
+6. Confirm Reconnect Workspace Folder appears immediately after login.
+7. Select the same workspace folder.
+8. If config/session-state.json exists with a scenarioId, Restore Previous Session should appear.

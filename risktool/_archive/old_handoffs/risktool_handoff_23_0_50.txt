@@ -1,0 +1,43 @@
+RISKTOOL HANDOFF — PHASE 23.0.50
+Date: 04.29.2026
+
+OBJECTIVE
+Separate portfolio-wide reporting from individual scenario review.
+
+CHANGES INCLUDED
+1. Added Portfolio Report menu/view.
+   - Runs all saved Single and Complex scenarios from saved scenario storage.
+   - Ranks by Average Component Risk.
+   - Also displays Total Exposure for dollar materiality.
+   - Includes Monte Carlo iteration selector: 100, 1,000, 10,000, 100,000.
+   - Includes ranking chart and total exposure chart.
+   - Includes per-scenario management recommendation narrative.
+   - Includes View Outcomes and Export CSV actions per scenario.
+
+2. Renamed existing Reports menu behavior to Scenario Review.
+   - Scenario Review is intentionally for individual scenario drilldown.
+   - Portfolio Report is the all-scenarios review engine.
+
+3. Monte Carlo reporting updates.
+   - Portfolio Report runs Monte Carlo for every saved scenario.
+   - Uses range-based triangular sampling for hard cost and soft-cost ranges.
+   - Shows P50/P90/P95/P99, expected loss, residual exposure, and volatility.
+
+4. Version/cache update.
+   - index.html references app_23_0_50.js?v=23.0.50.
+   - app.js and app_23_0_50.js include Phase 23.0.50 logic.
+   - Visible dashboard/sidebar version updated to 23.0.50.
+
+TEST PLAN
+1. Upload/replace files.
+2. Clear browser cache or hard refresh.
+3. Save at least two scenarios: one Single and one Complex.
+4. Open Portfolio Report.
+5. Confirm all saved scenarios appear.
+6. Confirm ranking is by Average Component Risk and Total Exposure also shows.
+7. Change Monte Carlo iterations and rerun report.
+8. Click View Outcomes and Export CSV for a scenario.
+9. Open Scenario Review and confirm it remains a single-scenario drilldown.
+
+NOTES
+The prior Reports page was tied to active/current scenario. This phase adds a separate all-scenarios Portfolio Report so the two concepts are no longer mixed.

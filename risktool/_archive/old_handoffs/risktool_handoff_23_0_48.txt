@@ -1,0 +1,7 @@
+RISKTOOL HANDOFF — PHASE 23.0.48
+Date: 04.29.2026
+- Portfolio Scenario Review evaluates every saved Single and Complex scenario.
+- Shows Avg Component Risk and Total Risk; ranks by Avg Component Risk.
+- Monte Carlo auto-runs for each saved scenario on report load.
+- Scenario Review and View Outcomes are available for each row.
+- Calculated Area Rollup Score displays average component residual risk, not legacy 1/5 scoring.

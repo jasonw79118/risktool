@@ -1,0 +1,44 @@
+RISKTOOL 24.0.04 NOTES
+
+Purpose: stabilization patch only. New feature work is paused until persistence and dashboard navigation are stable.
+
+Changed:
+- Restored scenario save persistence so edits are written to the active saved scenario record.
+- Save now stores the full scenario payload, not just a stripped summary row.
+- Removed the workspace-folder gating effect from scenario save/list rendering. Reconnect through User Settings remains available, but saving no longer silently fails because a folder is not connected.
+- Added best-effort workspace JSON copy only when a workspace folder is already connected.
+- Reconnected Dashboard Open Report buttons.
+- Added a delegated click handler so Open Report still works after dashboard table rerenders.
+- Locked runtime/version display to 24.0.04.
+
+Not changed:
+- Portfolio Report expansion was not changed in this patch.
+- Test Mode and Model Validation were not changed in this patch.
+- Post-login load workspace flow remains ignored/de-scoped.
+- Existing workspace architecture was not replaced.
+
+Regression test:
+1. Open an existing scenario, change a field, click Save Scenario, navigate away and reopen it. The change should persist.
+2. Create a new Single scenario and save it. It should appear in Saved Scenarios and Dashboard Open Scenarios.
+3. Create or edit a Complex scenario and save it. It should appear in Saved Scenarios and Dashboard Open Scenarios.
+4. From Dashboard, click Open Report for an open scenario. It should navigate to the report view for that scenario.
+5. Refresh the browser and confirm the saved scenario list is still present.
+6. Confirm bottom-left version stays 24.0.04.
+
+MANDATORY CLEANUP BEFORE PUSH:
+PowerShell:
+Remove-Item .\app_24_0_*.js -Exclude app_24_0_04.js -ErrorAction SilentlyContinue
+Remove-Item .\app_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .\app.js -ErrorAction SilentlyContinue
+Remove-Item .\beta_scenario_engine.js -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+Expected:
+app_24_0_04.js
+
+Push:
+git add .
+git commit -m "24.0.04"
+git pull origin main --rebase
+git push origin main --force-with-lease

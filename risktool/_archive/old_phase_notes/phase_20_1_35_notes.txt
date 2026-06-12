@@ -1,0 +1,17 @@
+PHASE 20.1.35
+
+Built from the latest uploaded baseline files.
+
+Fixes included:
+- Product/Service/Area uses Product Groups from Category Admin.
+- Scenario-level Reporting Lines use Products / Services from Category Admin.
+- Category Admin Products / Services list is renamed visually to Reporting Lines.
+- Scenario-level labels renamed visually to Reporting Lines.
+- Dashboard/Open Scenario header renamed to Reporting Lines.
+- Complex Scenario order corrected and preserved.
+
+Files included:
+- app.js
+- index.html
+- phase_20_1_35_notes.txt
+- risktool_handoff_phase_20_1_35.txt

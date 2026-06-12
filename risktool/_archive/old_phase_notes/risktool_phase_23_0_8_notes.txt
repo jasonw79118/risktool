@@ -1,0 +1,22 @@
+RISKTOOL PHASE 23.0.8 NOTES
+
+REAL SAVE FIX PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.8
+2. Save Scenario should now write again into browser-local saved scenarios
+3. Saved Scenarios table should populate after save
+4. Dashboard should refresh after save
+
+What was fixed:
+- restored hidden compatibility fields:
+  - singleScenarioOwner
+  - complexScenarioOwner
+  - betaScenarioOwner
+- existing save/load code still referenced these fields after the visible ownership cards were removed
+- hidden fields preserve current logic without changing the UI layout
+
+What this pack does NOT do:
+- no scenario layout changes
+- no complex hierarchy changes
+- no true workspace-file save migration yet

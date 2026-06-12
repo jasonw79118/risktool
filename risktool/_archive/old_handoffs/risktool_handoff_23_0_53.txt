@@ -1,0 +1,10 @@
+RISKTOOL HANDOFF — PHASE 23.0.53
+
+Focus: fix table edit/delete integrity for risk items, insurance, hard facts/evidence, mitigations, and accepted-risk records.
+
+Changes:
+- Normalizes missing artifact IDs so deleting one legacy blank-ID row does not delete all rows.
+- Adds reliable delegated Edit/Delete actions.
+- Risk items now support Edit -> Update Risk Item.
+- Deletes remove only the selected artifact and refresh rollups.
+- Version bumped to 23.0.53.

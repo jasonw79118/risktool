@@ -1,0 +1,25 @@
+
+PHASE 4.4 – BOARD & HEATMAP UPGRADE
+
+Add to index.html:
+
+<script src="heatmap.js"></script>
+<script src="board_report.js"></script>
+<script src="ai_export.js"></script>
+
+Dashboard additions:
+- canvas id="riskHeatmap"
+- button "Generate Board Packet"
+- button "Export AI Briefing"
+
+The heatmap uses scenario likelihood and impact values.
+
+Board packet supports:
+- complex scenarios
+- each risk item explanation
+- each mitigation factor explanation
+- financial model summary
+- Monte Carlo range summary
+
+AI briefing export produces a structured text file that can be
+dropped into ChatGPT/Copilot to generate a PowerPoint deck.

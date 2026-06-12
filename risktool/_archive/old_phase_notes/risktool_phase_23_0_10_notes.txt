@@ -1,0 +1,23 @@
+RISKTOOL PHASE 23.0.10 NOTES
+
+FULL PROJECT FIX PACK
+
+Visible changes to verify:
+1. Frontend version updates to 23.0.10
+2. Site clicks and logic screens should still work
+3. Save Scenario should no longer break on owner-field assignments
+4. Saved Scenarios table should populate after save
+
+What was fixed:
+- replaced invalid app.js assignments like:
+  (document.getElementById("singleScenarioOwner")?.value || "") = ...
+  with safe helper calls:
+  setInputValueSafe("singleScenarioOwner", ...)
+- same fix applied for:
+  - singleScenarioOwner
+  - complexScenarioOwner
+  - betaScenarioOwner
+
+Why this matters:
+- those invalid assignments can break script execution or the save path
+- this pack is rebuilt from the full uploaded project baseline

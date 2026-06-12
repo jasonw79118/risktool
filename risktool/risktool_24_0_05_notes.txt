@@ -1,0 +1,46 @@
+RISKTOOL 24.0.05 NOTES
+
+Purpose: targeted fix patch for dashboard report navigation, scenario save visibility, and the builder Category field. No new feature work.
+
+Changed:
+- Dashboard Open Report now lands on the current Portfolio Report screen and automatically drills into the clicked scenario (drilldown card + 100 Monte Carlo outcome rows). Root cause: the runtime-rebase layer reassigned window.activateView and dropped the Portfolio Report render hook, so Open Report displayed the legacy "Report Options & Snapshot" screen instead.
+- New scenarios no longer silently default to "Closed" status. Scenario Status lists are alphabetized, so "Closed" was the first option and became the default for every new Single/Complex scenario. The Dashboard "Open Scenarios" table filters out Closed rows, which made successful saves look like the Save buttons were broken. New (unsaved) scenarios now default to "Open". Statuses chosen by the user, and statuses on reopened scenarios, are never overridden.
+- The builder "Category" field now pulls the complete Category Admin list (defaults + user-added) on Single, Complex, and Beta builders, plus the complex section/risk-item category selects. Root cause: the category dropdown override read only user-added localStorage values and window.productGroups, which was always undefined because productGroups is declared with a top-level let and never attached to window. The fix merges DEFAULT_PRODUCT_GROUPS with stored values and keeps window.productGroups in sync so all layers use the same list.
+- Backstop: clicking "Not Now" on the post-login reconnect prompt always hides the rtReconnectWorkspace29 overlay (older close helpers referenced a misspelled element id, which could leave an invisible click-blocking layer).
+- Locked runtime/version display to 24.0.05.
+
+Not changed:
+- Save persistence path from 24.0.04 (local browser storage primary, best-effort workspace copy) was not changed. Saves were verified writing to risk_manager_scenarios_v431 and surviving refresh.
+- Test Mode and Model Validation were not changed.
+- Existing workspace architecture was not replaced.
+
+Note on existing data:
+- Scenarios saved before this patch with status "Closed" (the old accidental default) will still be hidden from the Dashboard Open Scenarios table by design. Reopen them from Saved Scenarios and change status to Open if they should appear on the dashboard.
+
+Regression test (all verified in headless Chromium before release):
+1. Open an existing scenario, change a field, click Save Scenario, navigate away and reopen it. The change persists, status is preserved, and no duplicate row is created.
+2. Create a new Single scenario and save it. Status defaults to Open; it appears in Saved Scenarios and Dashboard Open Scenarios.
+3. Create or edit a Complex scenario and save it. It appears in Saved Scenarios and Dashboard Open Scenarios.
+4. Save a Beta scenario. It appears in Saved Scenarios and Dashboard Open Scenarios.
+5. From Dashboard, click Open Report for an open scenario. It navigates to the Portfolio Report view, renders the rt2401 report, and drills into that scenario with 100 Monte Carlo rows populated.
+6. Sidebar Portfolio Report navigation still renders the rt2401 report.
+7. Category Admin: add a new Category value. The builder Category dropdowns on Single, Complex, and Beta immediately include it along with all default categories, and the dropdown count matches the admin Category count.
+8. Refresh the browser and confirm the saved scenario list is still present.
+9. Confirm bottom-left version stays 24.0.05.
+
+MANDATORY CLEANUP BEFORE PUSH:
+PowerShell:
+Remove-Item .\app_24_0_*.js -Exclude app_24_0_05.js -ErrorAction SilentlyContinue
+Remove-Item .\app_23_0_*.js -ErrorAction SilentlyContinue
+Remove-Item .\app.js -ErrorAction SilentlyContinue
+
+Get-ChildItem app_*.js
+
+Expected:
+app_24_0_05.js
+
+Push:
+git add .
+git commit -m "24.0.05"
+git pull origin main --rebase
+git push origin main --force-with-lease

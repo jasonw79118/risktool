@@ -1,0 +1,12 @@
+RISKTOOL PHASE 21.0.10 NOTES
+
+Visible changes to verify:
+- Version updates to 21.0.10
+- Start Session button now works
+- Open User Admin button now works
+- Login screen appears and is active immediately on startup
+
+What was fixed:
+- login gate buttons are now bound during init()
+- login guard is attached during init()
+- login state is checked at startup so the gate activates immediately

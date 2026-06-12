@@ -1,0 +1,56 @@
+[
+  {
+    "category": "Insurance",
+    "recommendations": [
+      "Cyber liability insurance",
+      "Crime / fidelity bond",
+      "E&O / professional liability",
+      "D&O coverage"
+    ]
+  },
+  {
+    "category": "Controls",
+    "recommendations": [
+      "Dual control",
+      "Exception reporting",
+      "Enhanced reconciliations",
+      "Segregation of duties"
+    ]
+  },
+  {
+    "category": "Technology",
+    "recommendations": [
+      "MFA hardening",
+      "Behavioral monitoring",
+      "Patch acceleration",
+      "Tokenization"
+    ]
+  },
+  {
+    "category": "Operational",
+    "recommendations": [
+      "Manual fallback process",
+      "Staff cross-training",
+      "Runbook updates",
+      "Issue escalation improvements"
+    ]
+  },
+  {
+    "category": "Vendor",
+    "recommendations": [
+      "Secondary provider",
+      "Contract amendments",
+      "SLA strengthening",
+      "Exit plan testing"
+    ]
+  },
+  {
+    "category": "Compliance",
+    "recommendations": [
+      "Disclosure redesign",
+      "Policy rewrite",
+      "Targeted training",
+      "Complaint review cadence"
+    ]
+  }
+]
